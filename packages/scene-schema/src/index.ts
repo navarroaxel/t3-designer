@@ -58,13 +58,20 @@ export const DoorSchema = z.object({
   hinge: z.enum(['start', 'end']),
   // Wall-local +X follows from → to; +Z points (-dz, dx) in the plan.
   opensToward: z.union([z.literal(1), z.literal(-1)]),
-  locationConfidence: z.enum(['schematic', 'inferred']),
+  locationConfidence: z.enum(['schematic', 'inferred', 'observed']),
+  appearance: z.enum(['passage', 'panel', 'glazed']).optional(),
+  finish: z.enum(['blue-gray', 'gray', 'white']).optional(),
+  condition: z.enum(['damaged-panel']).optional(),
+  evidence: z.string().optional(),
 })
 export type Door = z.infer<typeof DoorSchema>
 
 export const WindowSchema = z.object({
   ...openingFields,
   sillHeight: nonnegative,
+  kind: z.enum(['casement', 'balcony-door']).optional(),
+  locationConfidence: z.enum(['observed', 'inferred']).optional(),
+  evidence: z.string().optional(),
 })
 export type Window = z.infer<typeof WindowSchema>
 
@@ -137,3 +144,20 @@ export const ApartmentSchema = z.object({
   })
 })
 export type Apartment = z.infer<typeof ApartmentSchema>
+
+// Reusable authored assets remain distinct from architectural geometry.
+export const AssetSchema = z.object({
+  id, label: z.string().min(1), url: z.string().startsWith('/models/'),
+  dimensions: z.tuple([positive, positive, positive]),
+  evidence: z.string().min(1),
+  dimensionalStatus: z.literal('estimated'),
+})
+export type Asset = z.infer<typeof AssetSchema>
+export const FixtureSchema = z.object({
+  id, assetId: id, roomId: id, label: z.string().min(1),
+  position: z.tuple([z.number().finite(), nonnegative, z.number().finite()]),
+  rotation: z.number().finite(),
+  evidence: z.string().min(1),
+  placementStatus: z.literal('estimated'),
+})
+export type Fixture = z.infer<typeof FixtureSchema>

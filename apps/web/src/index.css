@@ -96,3 +96,40 @@ h1 { font-size: 25px; letter-spacing: -0.065rem; font-weight: 620; margin: 5px 0
   .app-footer { padding: 16px; }
   .app-footer p { max-width: none; font-size: 10px; }
 }
+
+/* Current-state inspector; the viewport remains the primary workspace. */
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 278px; gap: 16px; padding: 0 22px; flex: 1; }
+.workspace .viewport { margin: 0; min-height: 650px; height: calc(100dvh - 185px); }
+.stage-label { font-size: 11px; font-weight: 500; letter-spacing: 0; color: #85907d; margin-left: 10px; vertical-align: middle; }
+.inspector { border: 1px solid #e0e5db; border-radius: 9px; background: #fffefa; padding: 20px 17px; max-height: calc(100dvh - 185px); min-height: 650px; overflow: auto; }
+.inspector-heading p { margin: 8px 0 21px; font-size: 14px; font-weight: 500; line-height: 1.5; color: #53634c; }
+.inspector-tabs { display: flex; gap: 3px; background: #f0f1ea; padding: 3px; border-radius: 6px; margin-bottom: 15px; }
+.inspector-tabs button { flex: 1; border: 0; border-radius: 4px; padding: 9px 4px; color: #839079; background: transparent; font-size: 11px; }
+.inspector-tabs button[aria-pressed=true] { background: #fffefa; color: #46563f; box-shadow: 0 1px 5px #35413910; }
+.inspector-tabs span { font-size: 9px; margin-left: 5px; color: #99a28f; }
+.room-nav, .asset-row { width: 100%; background: transparent; border: 0; border-bottom: 1px solid #eff1e9; display: flex; align-items: center; justify-content: space-between; text-align: left; gap: 8px; padding: 11px 6px; color: #5e6a55; font-size: 11px; }
+.room-nav i { font-style: normal; color: #a3ac9b; margin-right: 9px; font-size: 9px; }
+.room-nav small, .asset-row small { font-size: 9px; color: #8c9783; white-space: nowrap; }
+.room-nav:hover, .asset-row:hover { background: #f4f5ee; }
+.room-nav.selected, .asset-row.selected { color: #384f30; background: #eaf0e1; border-radius: 4px; }
+.room-nav.overview { margin-bottom: 5px; border: 0; padding: 12px 9px; font-weight: 600; }
+.finish-list { padding-top: 22px; }
+.inspector h2 { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; margin: 0 0 13px; color: #8a947e; }
+.finish { display: flex; gap: 10px; align-items: center; font-size: 10px; margin: 12px 0; color: #617056; }
+.finish > span { width: 27px; height: 27px; border-radius: 50%; box-shadow: inset 0 0 0 1px #00000010; flex-shrink: 0; }
+.finish small { display: block; font-size: 9px; color: #9aa18f; margin-top: 3px; }
+.inspector-note { font-size: 10px; color: #8a947f; line-height: 1.6; }
+.asset-row { padding: 9px 6px; font-size: 10px; }
+.asset-details { background: #f2f3ec; padding: 14px; border-radius: 5px; margin: 16px 0; }
+.asset-details h2 { color: #5e6e54; line-height: 1.5; }
+.asset-details p { font-size: 12px; color: #53664a; line-height: 1.5; }
+.asset-details p span { display: block; font-size: 9px; color: #8d9783; }
+.asset-details > small { color: #9c8765; font-size: 9px; }
+.asset-details p.asset-evidence { font-size: 10px; color: #859078; }
+.asset-details a { font-size: 10px; color: #5c754d; text-decoration: none; }
+.evidence-notes { border-top: 1px solid #e7ebdf; margin-top: 20px; padding-top: 14px; color: #87947b; font-size: 10px; }
+.evidence-notes summary { cursor: pointer; }
+.evidence-notes p { font-size: 10px; line-height: 1.7; }
+.view-buttons button[aria-pressed=true] { background: #e9eee2; color: #3c5432; }
+@media (max-width: 1000px) { .workspace { grid-template-columns: minmax(0, 1fr) 235px; padding: 0 14px; gap: 10px; } .inspector { padding: 17px 12px; } .scene-guide small { max-width: 180px; line-height: 1.5; } .viewport-bottom { align-items: flex-start; flex-direction: column-reverse; gap: 10px; } }
+@media (max-width: 760px) { .workspace { grid-template-columns: 1fr; padding: 0 8px; } .workspace .viewport { height: 65dvh; min-height: 500px; } .inspector { min-height: 0; max-height: none; padding: 20px; } .room-navigation { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; } .finish-list { display: none; } .asset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 15px; } .stage-label { display: block; margin: 4px 0 0; font-size: 10px; } .inspector-heading p { margin-bottom: 14px; } }

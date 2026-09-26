@@ -1,15 +1,18 @@
 import { useMemo } from 'react'
 import { Shape } from 'three'
 import type { Point2D } from '@t3-designer/scene-schema'
+import { floorSurface, type FloorFinish } from '../materials/surfaces'
 
 type FloorProps = {
   polygon: Point2D[]
   color: string
   elevation?: number
   thickness?: number
+  finish?: FloorFinish
 }
 
-export function Floor({ polygon, color, elevation = 0, thickness = 0 }: FloorProps) {
+export function Floor({ polygon, color, elevation = 0, thickness = 0, finish }: FloorProps) {
+  const surface = useMemo(() => finish ? floorSurface(finish) : undefined, [finish])
   const shape = useMemo(() => {
     const outline = new Shape()
     polygon.forEach(([x, z], index) => {
@@ -28,7 +31,13 @@ export function Floor({ polygon, color, elevation = 0, thickness = 0 }: FloorPro
       ) : (
         <shapeGeometry args={[shape]} />
       )}
-      <meshStandardMaterial color={color} roughness={0.95} />
+      <meshStandardMaterial
+        color={surface ? '#ffffff' : color}
+        map={surface?.color}
+        bumpMap={surface?.relief}
+        bumpScale={finish === 'parquet' ? 0.008 : 0.012}
+        roughness={surface?.roughness ?? 0.95}
+      />
     </mesh>
   )
 }

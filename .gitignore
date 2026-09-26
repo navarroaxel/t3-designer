@@ -7,3 +7,9 @@ dist/
 .env
 .env.*
 !.env.example
+*.blend1
+*.blend2
+
+# Python-generated caches
+__pycache__/
+*.py[cod]

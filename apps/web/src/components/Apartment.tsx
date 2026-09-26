@@ -1,21 +1,26 @@
 import type { Apartment as ApartmentData } from '@t3-designer/scene-schema'
 import { Floor } from './Floor'
 import { Wall } from './Wall'
+import { Fixtures } from './Fixtures'
+import { ServiceDetails } from './ServiceDetails'
+import { ArchitecturalDetails } from './ArchitecturalDetails'
+import { roomFinish } from '../materials/surfaces'
 
 type ApartmentProps = {
   apartment: ApartmentData
   cutaway: boolean
+  showFixtures?: boolean
 }
 
-export function Apartment({ apartment, cutaway }: ApartmentProps) {
+export function Apartment({ apartment, cutaway, showFixtures = true }: ApartmentProps) {
   return (
     <group>
       <Floor polygon={apartment.perimeter} color="#d4d4c9" thickness={0.14} />
       {apartment.rooms.map((room) => (
-        <Floor key={room.id} polygon={room.polygon} color={room.color} elevation={0.008} />
+        <Floor key={room.id} polygon={room.polygon} color={room.color} elevation={0.01} finish={roomFinish(room.id)} />
       ))}
       {apartment.balcony && (
-        <Floor polygon={apartment.balcony.polygon} color="#dce1d1" thickness={0.14} />
+        <Floor polygon={apartment.balcony.polygon} color="#c2c2b9" thickness={0.14} finish="balcony" />
       )}
       {apartment.walls.map((wall) => (
         <Wall
@@ -26,6 +31,8 @@ export function Apartment({ apartment, cutaway }: ApartmentProps) {
           cutaway={cutaway}
         />
       ))}
+      <ArchitecturalDetails apartment={apartment} cutaway={cutaway} />
+      {showFixtures && <><Fixtures /><ServiceDetails apartment={apartment} cutaway={cutaway} /></>}
     </group>
   )
 }

@@ -1,118 +1,66 @@
-# Apartment reconstruction and evidence
+# Apartment geometry — current visual reconstruction
 
-## What the source actually establishes
+The proportional source image reports room areas, not surveyed wall lengths.
+This revision uses the eleven photographs and four videos indexed in
+`reference-evidence.md` to correct topology and add observed details. All linear
+coordinates, heights, widths and object placements are still estimated.
 
-The image is titled “Un plan proportionnel aux surfaces” and explicitly marks its
-geometry and reconstructed wall lengths/shapes as estimated. It reports areas,
-a schematic arrangement, a north arrow, and six schematic door swings.
-It contains **no measured wall lengths or heights**. Its note says that windows
-and balcony access are unspecified.
+## Geometry
 
-The footer references DIO AGENDA, diagnostic dated 06/07/2026, dossier
-M-2026-07-002, surface page 62 and layout page 65. Only the screenshot was supplied;
-the referenced original diagnostic pages were not inspected. Reported areas below
-are transcriptions, not an independent certification.
+| Zone | Reported area m² | Estimated bounding span X × Z, m |
+| --- | ---: | ---: |
+| Chambre 1 | 11.81 | 3.374 × 3.500 |
+| Chambre 2 | 9.32 | 2.663 × 3.500 |
+| Salon / séjour | 16.39 | 3.402 × 4.818 |
+| Entrée | 2.26 | 2.200 × 1.027 |
+| WC | 0.87 | 0.720 × 1.208 |
+| Salle d’eau | 3.21 | 2.200 × 1.855 |
+| Cuisine | 4.26 | 2.200 × 1.936 |
+| Placard | 1.06 | 1.100 × 0.964 |
 
-## Reported areas and estimated reconstruction
+The bathroom is L-shaped; its bounding rectangle includes the separate WC.
+Conceptual room polygons tile the perimeter and preserve the reported49.18m².
+Walls are centered on their boundaries, so clear rendered floor area is smaller.
+Balcony area1.26m² and basement8.54m² are reported outside Carrez. Basement shape
+is unknown and is not modeled.
 
-All dimensions in the right column are **estimated**, in meters. Extra decimal
-places in the data ensure that adjacent zones meet; they do not express measurement
-precision.
+Compared with the first schematic reconstruction: service-strip width is2.20m
+instead of2.65m, allowing a1.936m kitchen short span for the observed U-shaped
+cabinetry. This yields about0.53m at the narrow fridge passage with these asset
+estimates; it is not a measured clearance. Bedroom portals now have a broad
+intervening pier. Wall height is estimated2.70m to allow the observed utility
+cabinet above the entry portal. Exterior walls0.18m, interior walls0.10m.
 
-| Zone | Reported area (m²) | Estimated polygon dimensions (m) |
-| --- | ---: | --- |
-| Salon / séjour | 16.39 | 4.0975 × 4.00 |
-| Cuisine | 4.26 | 2.65 × 1.60755 |
-| Chambre 1 | 11.81 | 3.37429 × 3.50 |
-| Chambre 2 | 9.32 | 2.66286 × 3.50 |
-| Salle d’eau | 3.21 | L shape: 2.65 × 1.53962 block minus WC |
-| Entrée | 2.26 | 2.65 × 0.85283 |
-| WC | 0.87 | 0.82 × 1.06098 |
-| Placard | 1.06 | 1.10 × 0.96364 |
-| **Total Carrez as reported** | **49.18** | Conceptual room-zone sum |
-| Balcony, outside Carrez | 1.26 | 2.40 × 0.525 |
-| Basement, outside Carrez | 8.54 | Not modeled: no shape/location/level given |
+## Openings and evidence
 
-The estimated main bounding rectangle is **7.8475 × 7.50 m**; the perimeter steps
-inward at the northwest entrance recess and southeast closet return. The balcony
-adds 0.525 m to the reconstructed south extent. The bounding rectangle is not the
-apartment area and these are not measured exterior dimensions.
+- Bedroom portals and hall/living/bath passages have visible profiled casings.
+- The WC leaf opens outward, supported by P03. Its55cm estimate fits this narrow
+  reconstructed zone; actual width must be measured.
+- The closet panel has an irregular hole based on P09.
+- V04 confirms a cased kitchen passage and white glazed balcony access.
+- Two bedroom casements, kitchen casement and balcony French doors are modeled.
+  Presence/type is observed; offsets, widths, heights and sill levels are inferred.
+- Doorway dimensions and exact hidden hinge sides remain provisional.
 
-Five provisional anchors approximate the drawing's proportions: bedroom depth
-3.50 m, western strip width 2.65 m, closet width 1.10 m, WC width 0.82 m, and
-balcony width 2.40 m. Remaining dimensions are derived from the reported areas.
-The eight conceptual room polygons tile the perimeter with a total of 49.18 m².
+## Coordinate and asset contract
 
-**Wall centerlines follow those zone boundaries.** Assumed thicknesses overlay
-the room floors, so the visible clear floor area is smaller. The reconstruction
-does not claim that its net floor area, wall-inclusive footprint, or overall spans
-constitute a Carrez survey. New measurements should replace the reconstruction
-rather than be forced to agree with its current proportions.
+Plan [X,Z]: +X east, +Z south; +Y is height. North follows the schematic arrow.
+One unit is one meter. Blender position is (web X, -web Z, web Y).
+Architecture stays in t3.ts; fixture library and instances in current-state.ts.
+JSON files are generated exports for review and Blender assembly.
 
-## Coordinates and layout
+## Unresolved calibration
 
-- `[x, z]` is a point on the plan, in meters; the finished floor is at `y = 0`.
-- `+X` points right/east, `+Z` points down/south, and `+Y` points upward.
-- North is `-Z`, following the screenshot's schematic north arrow.
-- Origin `(0, 0, 0)` is the northwest corner of the overall bounding rectangle.
-  The actual north wall begins approximately 1.81 m east of this origin.
-- Bedrooms occupy `z = 0…3.50`; the southern block ends at `z = 7.50`.
-- The bathroom is L-shaped around the WC. The kitchen/living boundary remains
-  open, as in the image.
+Exact dimensions, true room shapes, wall thicknesses and ceiling heights require
+a survey. Bathroom vanity/washer adjacency is observed, but the old plan does not
+constrain the shower/glass-block arrangement well enough for an exact replica.
+The modeled partition is provisional and has been placed without intersecting
+fixture volumes; do not infer a verified circulation layout from it. Window guard
+and balcony rail spacing are estimated. Materials and wear are visual approximations.
 
-## Walls and openings
+## Verification
 
-There are eight exterior and nine internal wall segments. Every wall has an
-assumed height of **2.50 m**, with assumed exterior thickness **0.18 m** and
-interior thickness **0.10 m**. There is no ceiling so the interior can be inspected.
-
-Six door locations and swing directions follow the schematic drawing:
-
-| Door | Hinge in drawing | Opens toward |
-| --- | --- | --- |
-| Main entrance | North | East, into entrance |
-| Entrance → living | South | West, into entrance |
-| Chambre 1 | East | North, into bedroom |
-| Chambre 2 | West | North, into bedroom |
-| Entrance → bathroom | East | South, into bathroom |
-| Living → closet | North | West, into living |
-
-All door widths (0.60–0.73 m), heights (2.04 m), offsets, and display angles are
-estimates. WC access is a **seventh, inferred opening** from the entrance: its
-location/swing is not clearly visible in the image. Its different leaf color
-identifies that uncertainty. It must be verified before treating it as real.
-
-Doors and windows are holes generated by splitting each wall into solid
-rectangles: posts, lintels, and sills as applicable. The window component and
-segmentation support sill heights, but `windows` is deliberately empty. Empty
-means **unknown**, not “the real apartment has no windows.” No window, balcony
-door, railing, or basement shape is fabricated.
-
-The default cutaway display shortens walls and door leaves to reveal the layout;
-switching it off restores full assumed wall/door heights without changing domain
-data. Materials, thin door leaves, floor slab thickness, and open-leaf angle are
-schematic rendering choices rather than architectural details.
-
-## Data and checks
-
-The canonical data is `apps/web/src/data/t3.ts`. `docs/t3-apartment.json` is a
-generated review snapshot of the parsed object; the renderer never reads it.
-Regenerate the snapshot after changing the source data. The `Apartment` contains:
-
-```text
-schemaVersion, id, name, units, coordinateSystem
-perimeter: 8 [x, z] vertices
-rooms: 8 { id, name, polygon, reportedArea, color }
-walls: 17 { id, from, to, height, thickness, kind, estimated }
-doors: 7 { id, wallId, offset, width, height, hinge, opensToward,
-           locationConfidence, estimated }
-windows: []
-balcony: { id, name, polygon, reportedArea }
-metadata: { source, description, reportedCarrezArea, reportedBasementArea,
-            assumptions, unresolved }
-```
-
-Tests cover wall transforms, concave polygon calculations, opening segmentation,
-schema validation, reported zone areas, the stepped exterior loop, real scene
-openings, and JSON round-trip preservation of unknown/inferred information.
-These establish internal consistency; they cannot replace a survey.
+Automated checks cover valid IDs/units, area tiling, aperture bounds and overlap,
+wall solid-area conservation, JSON serialization, asset GLB structure/catalog
+dimensions, fixture references/heights and nominal fixture-volume intersections.
+These establish software consistency, not photographic or survey accuracy.

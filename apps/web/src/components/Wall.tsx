@@ -1,4 +1,3 @@
-import { Edges } from '@react-three/drei'
 import { segmentWall, wallRotation } from '@t3-designer/geometry'
 import type { Door as DoorData, Wall as WallData, Window as WindowData } from '@t3-designer/scene-schema'
 import { Door } from './Door'
@@ -28,11 +27,27 @@ export function Wall({ wall, doors, windows, cutaway }: WallProps) {
             receiveShadow
           >
             <boxGeometry args={[segment.length, height, wall.thickness]} />
-            <meshStandardMaterial color={wall.kind === 'exterior' ? '#e8e7de' : '#f0eee7'} roughness={0.9} />
-            <Edges color="#c7c8bc" />
+            <meshStandardMaterial color={wall.kind === 'exterior' ? '#e9e7dc' : '#f1eee1'} roughness={0.94} />
           </mesh>
         )
       })}
+      {/* Skirting follows the actual solid intervals and stops at every doorway. */}
+      {segments.filter((segment) => segment.bottom === 0).map((segment, index) => (
+        <group key={`skirting-${index}`}>
+          {(wall.kind === 'exterior' ? [1] : [-1, 1]).map((side) => (
+            <group key={side}>
+              <mesh position={[segment.offset + segment.length / 2, 0.055, side * (wall.thickness / 2 + 0.009)]} castShadow receiveShadow>
+                <boxGeometry args={[segment.length, 0.09, 0.018]} />
+                <meshStandardMaterial color="#aeb7b0" roughness={0.65} />
+              </mesh>
+              <mesh position={[segment.offset + segment.length / 2, 0.102, side * (wall.thickness / 2 + 0.007)]} receiveShadow>
+                <boxGeometry args={[segment.length, 0.008, 0.014]} />
+                <meshStandardMaterial color="#c3c9bc" roughness={0.62} />
+              </mesh>
+            </group>
+          ))}
+        </group>
+      ))}
       {doors.map((door) => <Door key={door.id} door={door} wall={wall} visibleWallHeight={visibleHeight} />)}
       {windows.map((window) => <Window key={window.id} window={window} wall={wall} visibleWallHeight={visibleHeight} />)}
     </group>

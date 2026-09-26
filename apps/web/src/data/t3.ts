@@ -6,17 +6,17 @@ import {
 } from '@t3-designer/scene-schema'
 
 // The screenshot provides AREAS only. None of the lengths below are surveyed.
-// These five chosen dimensions approximate the drawing's proportions. All other
+// These chosen dimensions reconcile the proportional drawing with the videos. All other
 // boundaries are solved from the reported areas, retaining full precision so
 // adjacent room polygons meet. Wall thickness is an overlay on these area zones;
 // the resulting clear floor area must not be presented as a Carrez measurement.
 const estimated = {
   bedroomDepth: 3.5,
-  westStripWidth: 2.65,
+  westStripWidth: 2.2,
   closetWidth: 1.1,
-  wcWidth: 0.82,
+  wcWidth: 0.72,
   balconyWidth: 2.4,
-  wallHeight: 2.5,
+  wallHeight: 2.7,
   exteriorThickness: 0.18,
   interiorThickness: 0.1,
 }
@@ -152,54 +152,62 @@ export const t3Apartment = ApartmentSchema.parse({
     wall('wc-east', [estimated.wcWidth, zEntranceSouth], [estimated.wcWidth, zWcSouth], 'interior'),
     wall('wc-south', [0, zWcSouth], [estimated.wcWidth, zWcSouth], 'interior'),
     wall('bathroom-south', [0, zBathroomSouth], [xService, zBathroomSouth], 'interior'),
+    wall('kitchen-living', [xService, zBathroomSouth], [xService, zSouth], 'interior'),
     wall('closet-west', [xLivingEast, zBedroomsSouth], [xLivingEast, zClosetSouth], 'interior'),
-    // No kitchen/living partition: the drawing shows an open shared boundary.
+    // Video V04 shows a cased kitchen opening, with short returns and a lintel.
   ],
   // The six visible door swings are schematic. Positions, widths, heights, and
   // the renderer's open angle are estimates. Offsets follow each wall's direction.
   doors: [
     {
-      id: 'main-entry', wallId: 'exterior-west',
+      id: 'main-entry', appearance: 'panel', finish: 'blue-gray', wallId: 'exterior-west',
       // Leave room for both perpendicular wall thicknesses in this narrow zone.
       offset: zSouth - (zBedroomsSouth + 0.11 + 0.68), width: 0.68, height: 2.04,
       hinge: 'end', opensToward: 1, locationConfidence: 'schematic', estimated: true,
     },
     {
-      id: 'entrance-living', wallId: 'service-spine',
+      id: 'entrance-living', appearance: 'passage', finish: 'blue-gray', wallId: 'service-spine',
       offset: 0.08, width: 0.68, height: 2.04,
       hinge: 'end', opensToward: 1, locationConfidence: 'schematic', estimated: true,
     },
     {
-      id: 'bedroom-1-entry', wallId: 'bedroom-1-south',
-      offset: xBedroomDivider - xBedroomsWest - 0.15 - 0.73, width: 0.73, height: 2.04,
+      id: 'bedroom-1-entry', appearance: 'passage', finish: 'gray', wallId: 'bedroom-1-south',
+      offset: xService + 0.22 - xBedroomsWest, width: 0.73, height: 2.04,
       hinge: 'end', opensToward: -1, locationConfidence: 'schematic', estimated: true,
     },
     {
-      id: 'bedroom-2-entry', wallId: 'bedroom-2-south',
-      offset: 0.15, width: 0.73, height: 2.04,
+      id: 'bedroom-2-entry', appearance: 'passage', finish: 'gray', wallId: 'bedroom-2-south',
+      offset: 0.38, width: 0.73, height: 2.04,
       hinge: 'start', opensToward: -1, locationConfidence: 'schematic', estimated: true,
     },
     {
-      id: 'bathroom-entry', wallId: 'entrance-service',
+      id: 'bathroom-entry', appearance: 'passage', finish: 'blue-gray', wallId: 'entrance-service',
       offset: xService - 0.14 - 0.68, width: 0.68, height: 2.04,
       hinge: 'end', opensToward: 1, locationConfidence: 'schematic', estimated: true,
     },
     {
-      id: 'closet-entry', wallId: 'closet-west',
+      id: 'closet-entry', appearance: 'panel', finish: 'gray', condition: 'damaged-panel', wallId: 'closet-west',
       offset: 0.08, width: 0.73, height: 2.04,
       hinge: 'start', opensToward: 1, locationConfidence: 'schematic', estimated: true,
     },
     {
-      // No unambiguous WC swing is drawn. This proposed opening provides access
-      // from the adjacent entrance; location and swing require on-site checking.
-      id: 'wc-entry-inferred', wallId: 'entrance-service',
-      offset: 0.11, width: 0.6, height: 2.04,
-      hinge: 'start', opensToward: 1, locationConfidence: 'inferred', estimated: true,
+      // P03 confirms the separate WC door opening outward into the entrance.
+      id: 'wc-entry', wallId: 'entrance-service',
+      offset: 0.10, width: 0.55, height: 2.04,
+      hinge: 'start', opensToward: -1, locationConfidence: 'observed', estimated: true,
+      appearance: 'panel', finish: 'blue-gray', evidence: 'P03 and V04: separate WC opens from entrance; dimensions estimated.',
     },
+    { id: 'kitchen-passage', wallId: 'kitchen-living', offset: 0.18, width: 1.55, height: 2.16,
+      hinge: 'start', opensToward: 1, locationConfidence: 'observed', estimated: true,
+      appearance: 'passage', finish: 'white', evidence: 'V04 40-44s: kitchen opening under lintel with short returns.' },
   ],
-  // The image explicitly says windows and balcony access are unspecified.
-  // Empty means unknown, not that the real apartment has no windows.
-  windows: [],
+  // Presence is observed; exact placement/size is photo-aligned and estimated.
+  windows: [
+    { id: 'bedroom-1-window', wallId: 'exterior-north', offset: 0.78, width: 1.48, height: 1.36, sillHeight: 0.83, estimated: true, kind: 'casement', locationConfidence: 'observed', evidence: 'P07/P09/P10 and V04: two-leaf white window, radiator below.' },
+    { id: 'bedroom-2-window', wallId: 'exterior-north', offset: xBedroomDivider - xBedroomsWest + 0.62, width: 1.40, height: 1.36, sillHeight: 0.83, estimated: true, kind: 'casement', locationConfidence: 'observed', evidence: 'P07 and V04: second bedroom window; exact room identity provisional.' },
+    { id: 'kitchen-window', wallId: 'exterior-south', offset: xLivingEast - 1.66, width: 1.30, height: 1.12, sillHeight: 1.02, estimated: true, kind: 'casement', locationConfidence: 'observed', evidence: 'P06/P11 and V02: window along counter, partly obscured by fridge.' },
+    { id: 'balcony-access', wallId: 'exterior-south', offset: 0.63, width: 1.46, height: 2.18, sillHeight: 0.02, estimated: true, kind: 'balcony-door', locationConfidence: 'observed', evidence: 'V04 40-44s: white double French door with opaque lower panels.' },
+  ],
   balcony: {
     id: 'balcony', name: 'Balcon', reportedArea: reported.balcony,
     polygon: rectangle(
@@ -209,23 +217,24 @@ export const t3Apartment = ApartmentSchema.parse({
   },
   metadata: {
     source: 'User-provided proportional-plan screenshot, preserved at docs/reference/t3-plan.png. Its footer cites DIO AGENDA, diagnostic dated 06/07/2026, dossier M-2026-07-002, pages 62 and 65; those original pages were not provided.',
-    description: 'Area-consistent reconstruction of an already estimated drawing. All linear coordinates and dimensions are estimates, not measurements of the apartment.',
+    description: 'Current-state reconstruction combining the proportional plan with 11 photos and 4 walkthrough videos supplied 2026-09-26. Areas remain source-reported; all linear dimensions and asset placements are estimated.',
     reportedCarrezArea: reported.carrez,
     reportedBasementArea: reported.basement,
     assumptions: [
       'All polygon coordinates, wall lengths, thicknesses, heights, opening sizes, offsets, door swings, and balcony dimensions are estimated.',
-      'Estimated anchors: bedroom depth 3.50 m, west strip width 2.65 m, closet width 1.10 m, WC width 0.82 m, balcony width 2.40 m. Remaining dimensions follow from reported areas.',
+      'Estimated anchors: bedroom depth 3.50 m, west strip width 2.20 m (revised for U kitchen), closet width 1.10 m, WC width 0.72 m, balcony width 2.40 m. Remaining dimensions follow from reported areas.',
       'Conceptual room polygons preserve the eight reported areas, totaling 49.18 m². Walls are centered on zone boundaries and overlap the floor polygons; wall thickness is not deducted. This is not a measured net-area or Carrez model.',
-      'Wall height 2.50 m, exterior thickness 0.18 m, interior thickness 0.10 m, door height 2.04 m, and door widths 0.60–0.73 m are assumptions.',
-      'Six door positions and hinge sides follow the schematic swing symbols. WC access is inferred from entrance adjacency and is visually distinguished.',
-      'The kitchen is open to the living room. The balcony is a separate estimated slab without invented access, railing, or window details.',
+      'Wall height 2.70 m (estimated to accommodate observed utility recess above doors), exterior thickness 0.18 m, interior thickness 0.10 m, door height 2.04 m, and door widths 0.55–0.73 m are assumptions.',
+      'Openings combine the schematic with visual evidence: bedroom portals widened apart, WC access confirmed, kitchen passage and balcony access observed. Unseen leaf swings remain estimates.',
+      'The kitchen has a cased opening to the living room. Its reconstructed short dimension is 1.936 m, allowing two 0.60 m cabinet runs and a roughly 0.74 m conceptual aisle; real clear widths need measurement.',
+      'Material colors and surface grain are visual approximations. Wear/damage is selectively represented, not a complete condition survey.',
       'The north arrow is accepted as drawn: +X is right/east, +Z is down/south, +Y is up. Origin is the northwest corner of the overall bounding rectangle.',
     ],
     unresolved: [
       'Surveyed wall lengths, angles, thicknesses, ceiling heights, and true room shapes are unavailable.',
-      'Window positions, dimensions, and sill heights are not specified; windows: [] represents unknown information.',
-      'Balcony access, railing, exact shape, and level are not specified; no balcony door is modeled.',
-      'Door dimensions and exact positions need measurement. WC door position and swing are inferred.',
+      'Window presence/type is visually observed, but exact positions, dimensions and sill heights require measurement.',
+      'Balcony French door and metal railing are visible in V04; exact balcony proportions and rail spacing remain estimates.',
+      'Door dimensions, exact offsets and hidden hinge details need measurement. Model is photo-aligned rather than surveyed.',
       'The 8.54 m² basement is reported outside Carrez but has no plan, location, or level data; it is not reconstructed.',
     ],
   },

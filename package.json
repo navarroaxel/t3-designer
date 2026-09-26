@@ -11,7 +11,12 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "blender:check": "uv run scripts/blender/check_mcp.py",
+    "blender:sample": "\"/Applications/Blender.app/Contents/MacOS/Blender\" --background --factory-startup --python-exit-code 1 --python scripts/blender/create_door_frame.py",
+    "scene:snapshot": "node scripts/export_scene.ts",
+    "blender:assets": "\"/Applications/Blender.app/Contents/MacOS/Blender\" --background --factory-startup --python-exit-code 1 --python scripts/blender/create_current_assets.py",
+    "blender:apartment": "pnpm scene:snapshot && \"/Applications/Blender.app/Contents/MacOS/Blender\" --background --factory-startup --python-exit-code 1 --python scripts/blender/assemble_apartment.py"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

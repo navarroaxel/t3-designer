@@ -1,71 +1,78 @@
 # T3 Designer
 
-A browser-based 3D reconstruction of a T3 apartment in Quimper, generated from
-structured scene data. This milestone includes room floors, the stepped exterior,
-internal walls, door openings, and an estimated balcony slab.
+A local, interactive reconstruction of the current T3 apartment in Quimper, based
+on the proportional plan, 11 photos and 4 walkthrough videos. Includes eight room
+zones, architectural openings, current finishes and 18 reusable Blender assets
+placed as 21 fixture instances. All linear dimensions remain estimates.
 
-**This is a reconstruction of an already estimated plan, not a measured survey.**
-The screenshot reports areas but no linear dimensions. Window locations and
-balcony access are explicitly unspecified; none are invented in the scene.
+## Run
 
-## Run locally
-
-Use Node.js 24+ and pnpm 12.7.0 (pinned in `package.json`).
-The repository pin selects pnpm independently of the global installation. When
-upgrading it, update the pin and run the checks below with the new version.
+Node.js 24+ and pnpm 12.7.0 (repository pin):
 
 ```sh
 pnpm install
 pnpm dev
 ```
 
-Open the URL printed by Vite, normally `http://localhost:5173`.
+Open the Vite URL, normally http://localhost:5173. Orbit by dragging, zoom with the
+wheel, pan with right-drag. Select an environment to focus the camera. Use Planta
+or Perspectiva, Corte, Equipamiento and Rótulos to inspect layers. The asset tab
+lists nominal dimensions, source evidence and downloadable GLBs.
 
 ```sh
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm --filter @t3-designer/web preview
 ```
 
-Tests use Node's built-in test runner. The production output is `apps/web/dist`.
-There is no separate formatter configured. TypeScript stays on 6.0.x for
-compatibility with the installed ESLint integration; React stays on 19.3.x within
-React Three Fiber's supported range.
+## Hybrid architecture
 
-## Navigate
+- `apps/web/src/data/t3.ts`: canonical architectural data in meters, validated by
+  `packages/scene-schema`. Floor polygons, walls and apertures remain editable data.
+- `apps/web/src/data/current-state.ts`: canonical asset catalog and placements,
+  with source references and explicitly estimated dimensions.
+- `packages/geometry`: renderer-independent wall segmentation, bounds and polygons.
+- `apps/web/src/components`: procedural architecture plus instantiated GLB objects.
+- `apps/web/src/materials`: deterministic parquet/tile color and relief maps,
+  scaled in meters. No private source photos are embedded in web textures.
+- `scripts/blender/create_current_assets.py`: original reusable asset authoring.
+- `scripts/blender/assemble_apartment.py`: derived Blender apartment scene from
+  exported domain data, for inspection/rendering; it is not the source of truth.
 
-Drag to orbit, scroll/pinch to zoom, and right-drag to pan. **Top View** aligns
-north with the top of the drawing; **3D View** restores the default perspective.
-The cutaway control shortens displayed walls for inspection; disabling it shows
-their full assumed 2.50 m height. The underlying apartment data is not changed.
+**1 unit = 1 meter.** Plan points are `[X,Z]`; X east, Y up, Z south. Blender uses
+`(x,-z,y)` for the same point. Asset fronts face +Z in the web, origins are floor
+centered and scale is applied. The app imports individual GLBs, not one opaque
+apartment mesh.
 
-## Architecture
+## Blender outputs
 
-- `packages/scene-schema`: canonical Zod schemas and inferred TypeScript types.
-  Validates metric coordinates, walls, rooms, openings, references, and opening
-  bounds/overlap. `SCENE_SCHEMA_VERSION` remains `1` for this first real model.
-- `apps/web/src/data/t3.ts`: the apartment's source of truth. Separates reported
-  areas from estimated dimensions, records assumptions and unknowns, and validates
-  the generated plain object with `ApartmentSchema`.
-- `packages/geometry`: renderer-independent wall transforms, polygon area and
-  centroid calculations, bounds, and wall segmentation around openings.
-- `apps/web/src/components`: React Three Fiber geometry generated from the data.
-  Door/window apertures use solid wall segments, avoiding boolean geometry.
-- `docs/reference/t3-plan.png`: the supplied source image, preserved for review.
-- `docs/apartment-geometry.md`: extraction, reconstruction, and uncertainty notes.
+```sh
+pnpm blender:check      # Verify the already configured live MCP connection
+pnpm blender:assets     # Rebuild the 18 GLBs and editable asset library
+pnpm scene:snapshot     # Refresh both JSON exports from TypeScript
+pnpm blender:apartment  # Refresh data and rebuild the derived Blender scene
+```
 
-**1 world unit = 1 meter.** Points are `[X, Z]`; X runs right/east, Y is vertical,
-and Z runs down/south in the drawing. North is `-Z`. The origin is the northwest
-corner of the overall bounding rectangle, outside the stepped apartment footprint.
+The two Blender generation commands use the installed macOS Blender executable.
+See [connection details](docs/blender.md). Generation writes its own named output
+files; save authored variants separately before regenerating.
 
-The private workspace packages export TypeScript source through `workspace:*`
-dependencies. Turborepo caches checks and production output, runs dependency checks
-first, and requires typechecking before builds. Furniture, editing tools,
-textures, backend services, and Blender integration are outside this milestone.
+- `assets/blender/asset-library.blend`: editable asset library.
+- `apps/web/public/models/current/`: individual GLBs + manifest.
+- `assets/blender/t3-current-state.blend`: derived assembled scene.
+- `assets/blender/current-assets.png` and `t3-current-state.png`: previews.
 
-## Continue from this checkpoint
+## Evidence and precision
 
-See [the checkpoint notes](docs/checkpoint.md) for the working baseline, known
-limitations, validation commands, and the next apartment-base refinements.
+See [visual evidence](docs/reference-evidence.md), [geometry notes](docs/apartment-geometry.md)
+and [checkpoint](docs/checkpoint.md). The reported room areas sum to49.18m²;
+conceptual polygons preserve them, but walls overlay their boundaries. This is not
+a measured net-area survey. Window and appliance presence are observed; their
+metric dimensions and global placements remain provisional. The bathroom's exact
+shower/partition arrangement especially needs a measured plan. Wear is selectively
+represented; mirror and glass are lightweight PBR approximations, not ray-traced
+room reflections. The basement is not reconstructed.
+
+Original source media remain in Downloads; contact-sheet derivatives under
+`assets/reference` are locally gitignored. Nothing was uploaded or published.

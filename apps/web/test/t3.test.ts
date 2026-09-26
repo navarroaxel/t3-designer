@@ -42,22 +42,25 @@ test('room polygons tile the stepped footprint without gaps or overlaps', () => 
   }
 })
 
-test('all seven openings remove the intended wall area and remain inside their wall', () => {
-  assert.equal(t3Apartment.doors.length, 7)
+test('all door and window openings remove the intended wall area and remain inside their wall', () => {
+  assert.equal(t3Apartment.doors.length, 8)
   for (const wall of t3Apartment.walls) {
     const doors = t3Apartment.doors.filter(door => door.wallId === wall.id)
-    const solids = segmentWall(wall, doors)
+    const windows = t3Apartment.windows.filter(window => window.wallId === wall.id)
+    const solids = segmentWall(wall, [...doors, ...windows])
     const solidArea = solids.reduce((sum, segment) => sum + segment.length * segment.height, 0)
-    const openingArea = doors.reduce((sum, door) => sum + door.width * door.height, 0)
+    const openingArea = [...doors, ...windows].reduce((sum, opening) => sum + opening.width * opening.height, 0)
     assert.ok(Math.abs(solidArea + openingArea - wallLength(wall) * wall.height) < 1e-9, wall.id)
   }
 })
 
-test('serialized scene retains unknown windows, inferred WC access, and metric axes', () => {
+test('serialized scene retains observed openings, evidence, and metric axes', () => {
   const roundTrip = ApartmentSchema.parse(JSON.parse(JSON.stringify(t3Apartment)))
   assert.deepEqual(roundTrip, t3Apartment)
   assert.deepEqual(roundTrip.coordinateSystem, { x: 'east', y: 'up', z: 'south' })
   assert.equal(roundTrip.units, 'meters')
-  assert.deepEqual(roundTrip.windows, [])
-  assert.deepEqual(roundTrip.doors.filter(door => door.locationConfidence === 'inferred').map(door => door.id), ['wc-entry-inferred'])
+  assert.equal(roundTrip.windows.length, 4)
+  assert.ok(roundTrip.windows.every(w => w.estimated && w.locationConfidence === 'observed' && w.evidence))
+  assert.equal(roundTrip.doors.find(d => d.id === 'wc-entry')?.opensToward, -1)
+  assert.deepEqual(roundTrip.doors.filter(door => door.locationConfidence === 'inferred').map(door => door.id), [])
 })
