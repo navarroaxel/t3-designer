@@ -10,7 +10,9 @@ balcony access are explicitly unspecified; none are invented in the scene.
 
 ## Run locally
 
-Use Node.js 24+ and pnpm 11.27.0 (pinned in `package.json`).
+Use Node.js 24+ and pnpm 12.7.0 (pinned in `package.json`).
+The repository pin selects pnpm independently of the global installation. When
+upgrading it, update the pin and run the checks below with the new version.
 
 ```sh
 pnpm install
