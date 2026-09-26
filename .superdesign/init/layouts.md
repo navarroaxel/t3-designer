@@ -1,5 +1,9 @@
+# App shell
+Source: `apps/web/src/App.tsx`
+The single app shell renders a header, dominant interactive viewport, right inspector and evidence footer.
+
+```tsx
 import { useState } from 'react'
-import { BuildingExplorer } from './components/BuildingExplorer'
 import { ApartmentScene } from './components/ApartmentScene'
 import { t3Apartment } from './data/t3'
 import { assetCatalog, currentFixtures, reconstructionNotes } from './data/current-state'
@@ -13,7 +17,6 @@ const finishes = [
 ]
 
 export default function App() {
-  const [workspaceView, setWorkspaceView] = useState<'apartment' | 'building'>(() => window.location.hash === '#apartment' ? 'apartment' : 'building')
   const [cutaway, setCutaway] = useState(true)
   const [showLabels, setShowLabels] = useState(false)
   const [showFixtures, setShowFixtures] = useState(true)
@@ -35,20 +38,15 @@ export default function App() {
     <main className="designer">
       <header className="app-header">
         <div className="project-heading">
-          <span className="eyebrow">Quimper / Estudio de arquitectura</span>
-          <h1>T3 Designer <span className="stage-label">{workspaceView === 'building' ? 'Edificio y entorno' : 'Estado actual'}</span></h1>
+          <span className="eyebrow">Quimper / Estudio del apartamento</span>
+          <h1>T3 Designer <span className="stage-label">Estado actual</span></h1>
         </div>
         <div className="project-details">
-          <span className="estimate-badge"><span /> {workspaceView === 'building' ? 'IGN + reconstrucción visual' : 'Medidas estimadas'}</span>
+          <span className="estimate-badge"><span /> Medidas estimadas</span>
           <div className="area-stat"><strong>{t3Apartment.metadata.reportedCarrezArea.toFixed(2)} m²</strong><span>Superficie Carrez reportada</span></div>
         </div>
       </header>
 
-      <nav className="workspace-switcher" aria-label="Elegir vista del proyecto">
-        <button aria-pressed={workspaceView === 'apartment'} onClick={() => { setWorkspaceView('apartment'); window.history.replaceState(null, '', '#apartment') }}>Departamento</button>
-        <button aria-pressed={workspaceView === 'building'} onClick={() => { setWorkspaceView('building'); window.history.replaceState(null, '', '#building') }}>Edificio y sol <span>Nuevo</span></button>
-      </nav>
-      {workspaceView === 'building' ? <BuildingExplorer /> : <>
       <div className="workspace">
         <section className="viewport" aria-label="Modelo del apartamento">
           <ApartmentScene apartment={t3Apartment} cutaway={cutaway} showLabels={showLabels} showFixtures={showFixtures} focusRoomId={focusRoomId} view={view} />
@@ -97,7 +95,8 @@ export default function App() {
         <p>Estado actual reconstruido. Superficies reportadas; geometría, medidas y posiciones estimadas. Los materiales y detalles de desgaste son aproximaciones visuales.</p>
         <span className="wall-height">Altura: {t3Apartment.walls[0]?.height.toFixed(2)} m <span>estimada</span></span>
       </footer>
-      </>}
     </main>
   )
 }
+
+```

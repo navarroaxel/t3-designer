@@ -1,3 +1,17 @@
+# Compact theme tokens
+- Font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif.
+- Ink #354139, background #f9faf6, surface #fffefa, viewport #edf0eb, soft panel #f0f1ea.
+- Secondary text #53634c, muted #7d8978; border #e0e5db; active sage #eaf0e1; warm estimate #f2eee4 / #827154.
+- Type: title 25px 620, eyebrow 10px 650 uppercase .13em; controls 11px; body 11–14px.
+- Radius: viewport/panel 9px, controls 6px, badges 5px.
+- Spacing: shell 22–32px, panel 17–20px; micro gaps 4–7px; grid gap 16px.
+- Shadow: controls 0 2px 6px #465b3a05; selected tab 0 1px 5px #35413910.
+- Breakpoints: 1000px narrower inspector, 800px compact header, 760px stacked workspace, 560px phone. Tall view 950px.
+- No Tailwind configuration, theme provider, dark theme or CSS variables other than root style declarations.
+
+# Raw source
+Source: `apps/web/src/index.css`
+```css
 :root {
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: #354139;
@@ -134,8 +148,4 @@ h1 { font-size: 25px; letter-spacing: -0.065rem; font-weight: 620; margin: 5px 0
 @media (max-width: 1000px) { .workspace { grid-template-columns: minmax(0, 1fr) 235px; padding: 0 14px; gap: 10px; } .inspector { padding: 17px 12px; } .scene-guide small { max-width: 180px; line-height: 1.5; } .viewport-bottom { align-items: flex-start; flex-direction: column-reverse; gap: 10px; } }
 @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; padding: 0 8px; } .workspace .viewport { height: 65dvh; min-height: 500px; } .inspector { min-height: 0; max-height: none; padding: 20px; } .room-navigation { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; } .finish-list { display: none; } .asset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 15px; } .stage-label { display: block; margin: 4px 0 0; font-size: 10px; } .inspector-heading p { margin-bottom: 14px; } }
 
-.workspace-switcher { display: flex; gap: 4px; margin: -5px 22px 16px; padding: 4px; border-radius: 7px; background: #edf0e8; width: fit-content; }
-.workspace-switcher button { border: 0; border-radius: 4px; background: transparent; padding: 9px 17px; font-size: 11px; color: #819076; }
-.workspace-switcher button[aria-pressed=true] { background: #fffefa; color: #405634; box-shadow: 0 1px 5px #35413912; }
-.workspace-switcher button span { font-size: 8px; color: #a18b5b; margin-left: 8px; text-transform: uppercase; letter-spacing: .04em; }
-@media(max-width:560px) { .workspace-switcher { margin-left: 10px; } .workspace-switcher button { padding: 10px 14px; } }
+```
