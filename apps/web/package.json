@@ -1,0 +1,33 @@
+{
+  "name": "@t3-designer/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.8.0",
+    "@t3-designer/geometry": "workspace:*",
+    "@t3-designer/scene-schema": "workspace:*",
+    "react": "~19.3.0",
+    "react-dom": "~19.3.0",
+    "three": "^0.186.0",
+    "zustand": "^5.0.15",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.0"
+  }
+}

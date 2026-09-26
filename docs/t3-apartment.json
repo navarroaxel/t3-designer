@@ -1,0 +1,629 @@
+{
+  "schemaVersion": 1,
+  "id": "quimper-t3",
+  "name": "Quimper · Appartement T3",
+  "units": "meters",
+  "coordinateSystem": {
+    "x": "east",
+    "y": "up",
+    "z": "south"
+  },
+  "perimeter": [
+    [
+      1.8103571428571419,
+      0
+    ],
+    [
+      7.8475,
+      0
+    ],
+    [
+      7.8475,
+      4.463636363636364
+    ],
+    [
+      6.7475000000000005,
+      4.463636363636364
+    ],
+    [
+      6.7475000000000005,
+      7.5
+    ],
+    [
+      0,
+      7.5
+    ],
+    [
+      0,
+      3.5
+    ],
+    [
+      1.8103571428571419,
+      3.5
+    ]
+  ],
+  "rooms": [
+    {
+      "id": "bedroom-1",
+      "name": "Chambre 1",
+      "polygon": [
+        [
+          1.8103571428571419,
+          0
+        ],
+        [
+          5.184642857142856,
+          0
+        ],
+        [
+          5.184642857142856,
+          3.5
+        ],
+        [
+          1.8103571428571419,
+          3.5
+        ]
+      ],
+      "reportedArea": 11.81,
+      "color": "#dfc7bf"
+    },
+    {
+      "id": "bedroom-2",
+      "name": "Chambre 2",
+      "polygon": [
+        [
+          5.184642857142856,
+          0
+        ],
+        [
+          7.8475,
+          0
+        ],
+        [
+          7.8475,
+          3.5
+        ],
+        [
+          5.184642857142856,
+          3.5
+        ]
+      ],
+      "reportedArea": 9.32,
+      "color": "#c9d2bd"
+    },
+    {
+      "id": "living",
+      "name": "Salon / séjour",
+      "polygon": [
+        [
+          2.65,
+          3.5
+        ],
+        [
+          6.7475000000000005,
+          3.5
+        ],
+        [
+          6.7475000000000005,
+          7.5
+        ],
+        [
+          2.65,
+          7.5
+        ]
+      ],
+      "reportedArea": 16.39,
+      "color": "#e3d5bd"
+    },
+    {
+      "id": "entrance",
+      "name": "Entrée",
+      "polygon": [
+        [
+          0,
+          3.5
+        ],
+        [
+          2.65,
+          3.5
+        ],
+        [
+          2.65,
+          4.3528301886792455
+        ],
+        [
+          0,
+          4.3528301886792455
+        ]
+      ],
+      "reportedArea": 2.26,
+      "color": "#ded6c3"
+    },
+    {
+      "id": "wc",
+      "name": "WC",
+      "polygon": [
+        [
+          0,
+          4.3528301886792455
+        ],
+        [
+          0.82,
+          4.3528301886792455
+        ],
+        [
+          0.82,
+          5.413805798435343
+        ],
+        [
+          0,
+          5.413805798435343
+        ]
+      ],
+      "reportedArea": 0.87,
+      "color": "#c9dadb"
+    },
+    {
+      "id": "bathroom",
+      "name": "Salle d’eau",
+      "polygon": [
+        [
+          0.82,
+          4.3528301886792455
+        ],
+        [
+          2.65,
+          4.3528301886792455
+        ],
+        [
+          2.65,
+          5.892452830188679
+        ],
+        [
+          0,
+          5.892452830188679
+        ],
+        [
+          0,
+          5.413805798435343
+        ],
+        [
+          0.82,
+          5.413805798435343
+        ]
+      ],
+      "reportedArea": 3.21,
+      "color": "#c1d3d2"
+    },
+    {
+      "id": "kitchen",
+      "name": "Cuisine",
+      "polygon": [
+        [
+          0,
+          5.892452830188679
+        ],
+        [
+          2.65,
+          5.892452830188679
+        ],
+        [
+          2.65,
+          7.5
+        ],
+        [
+          0,
+          7.5
+        ]
+      ],
+      "reportedArea": 4.26,
+      "color": "#cfbea3"
+    },
+    {
+      "id": "closet",
+      "name": "Placard",
+      "polygon": [
+        [
+          6.7475000000000005,
+          3.5
+        ],
+        [
+          7.8475,
+          3.5
+        ],
+        [
+          7.8475,
+          4.463636363636364
+        ],
+        [
+          6.7475000000000005,
+          4.463636363636364
+        ]
+      ],
+      "reportedArea": 1.06,
+      "color": "#ccc9bc"
+    }
+  ],
+  "walls": [
+    {
+      "id": "exterior-north",
+      "from": [
+        1.8103571428571419,
+        0
+      ],
+      "to": [
+        7.8475,
+        0
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "exterior-east",
+      "from": [
+        7.8475,
+        0
+      ],
+      "to": [
+        7.8475,
+        4.463636363636364
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "exterior-closet-south",
+      "from": [
+        7.8475,
+        4.463636363636364
+      ],
+      "to": [
+        6.7475000000000005,
+        4.463636363636364
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "exterior-living-east",
+      "from": [
+        6.7475000000000005,
+        4.463636363636364
+      ],
+      "to": [
+        6.7475000000000005,
+        7.5
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "exterior-south",
+      "from": [
+        6.7475000000000005,
+        7.5
+      ],
+      "to": [
+        0,
+        7.5
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "exterior-west",
+      "from": [
+        0,
+        7.5
+      ],
+      "to": [
+        0,
+        3.5
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "exterior-entrance-north",
+      "from": [
+        0,
+        3.5
+      ],
+      "to": [
+        1.8103571428571419,
+        3.5
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "exterior-bedroom-west",
+      "from": [
+        1.8103571428571419,
+        3.5
+      ],
+      "to": [
+        1.8103571428571419,
+        0
+      ],
+      "height": 2.5,
+      "thickness": 0.18,
+      "kind": "exterior",
+      "estimated": true
+    },
+    {
+      "id": "bedroom-divider",
+      "from": [
+        5.184642857142856,
+        0
+      ],
+      "to": [
+        5.184642857142856,
+        3.5
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "bedroom-1-south",
+      "from": [
+        1.8103571428571419,
+        3.5
+      ],
+      "to": [
+        5.184642857142856,
+        3.5
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "bedroom-2-south",
+      "from": [
+        5.184642857142856,
+        3.5
+      ],
+      "to": [
+        7.8475,
+        3.5
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "service-spine",
+      "from": [
+        2.65,
+        3.5
+      ],
+      "to": [
+        2.65,
+        5.892452830188679
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "entrance-service",
+      "from": [
+        0,
+        4.3528301886792455
+      ],
+      "to": [
+        2.65,
+        4.3528301886792455
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "wc-east",
+      "from": [
+        0.82,
+        4.3528301886792455
+      ],
+      "to": [
+        0.82,
+        5.413805798435343
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "wc-south",
+      "from": [
+        0,
+        5.413805798435343
+      ],
+      "to": [
+        0.82,
+        5.413805798435343
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "bathroom-south",
+      "from": [
+        0,
+        5.892452830188679
+      ],
+      "to": [
+        2.65,
+        5.892452830188679
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    },
+    {
+      "id": "closet-west",
+      "from": [
+        6.7475000000000005,
+        3.5
+      ],
+      "to": [
+        6.7475000000000005,
+        4.463636363636364
+      ],
+      "height": 2.5,
+      "thickness": 0.1,
+      "kind": "interior",
+      "estimated": true
+    }
+  ],
+  "doors": [
+    {
+      "id": "main-entry",
+      "wallId": "exterior-west",
+      "offset": 3.21,
+      "width": 0.68,
+      "height": 2.04,
+      "estimated": true,
+      "hinge": "end",
+      "opensToward": 1,
+      "locationConfidence": "schematic"
+    },
+    {
+      "id": "entrance-living",
+      "wallId": "service-spine",
+      "offset": 0.08,
+      "width": 0.68,
+      "height": 2.04,
+      "estimated": true,
+      "hinge": "end",
+      "opensToward": 1,
+      "locationConfidence": "schematic"
+    },
+    {
+      "id": "bedroom-1-entry",
+      "wallId": "bedroom-1-south",
+      "offset": 2.4942857142857147,
+      "width": 0.73,
+      "height": 2.04,
+      "estimated": true,
+      "hinge": "end",
+      "opensToward": -1,
+      "locationConfidence": "schematic"
+    },
+    {
+      "id": "bedroom-2-entry",
+      "wallId": "bedroom-2-south",
+      "offset": 0.15,
+      "width": 0.73,
+      "height": 2.04,
+      "estimated": true,
+      "hinge": "start",
+      "opensToward": -1,
+      "locationConfidence": "schematic"
+    },
+    {
+      "id": "bathroom-entry",
+      "wallId": "entrance-service",
+      "offset": 1.8299999999999996,
+      "width": 0.68,
+      "height": 2.04,
+      "estimated": true,
+      "hinge": "end",
+      "opensToward": 1,
+      "locationConfidence": "schematic"
+    },
+    {
+      "id": "closet-entry",
+      "wallId": "closet-west",
+      "offset": 0.08,
+      "width": 0.73,
+      "height": 2.04,
+      "estimated": true,
+      "hinge": "start",
+      "opensToward": 1,
+      "locationConfidence": "schematic"
+    },
+    {
+      "id": "wc-entry-inferred",
+      "wallId": "entrance-service",
+      "offset": 0.11,
+      "width": 0.6,
+      "height": 2.04,
+      "estimated": true,
+      "hinge": "start",
+      "opensToward": 1,
+      "locationConfidence": "inferred"
+    }
+  ],
+  "windows": [],
+  "balcony": {
+    "id": "balcony",
+    "name": "Balcon",
+    "polygon": [
+      [
+        4.3475,
+        7.5
+      ],
+      [
+        6.7475000000000005,
+        7.5
+      ],
+      [
+        6.7475000000000005,
+        8.025
+      ],
+      [
+        4.3475,
+        8.025
+      ]
+    ],
+    "reportedArea": 1.26
+  },
+  "metadata": {
+    "source": "User-provided proportional-plan screenshot, preserved at docs/reference/t3-plan.png. Its footer cites DIO AGENDA, diagnostic dated 06/07/2026, dossier M-2026-07-002, pages 62 and 65; those original pages were not provided.",
+    "description": "Area-consistent reconstruction of an already estimated drawing. All linear coordinates and dimensions are estimates, not measurements of the apartment.",
+    "reportedCarrezArea": 49.18,
+    "reportedBasementArea": 8.54,
+    "assumptions": [
+      "All polygon coordinates, wall lengths, thicknesses, heights, opening sizes, offsets, door swings, and balcony dimensions are estimated.",
+      "Estimated anchors: bedroom depth 3.50 m, west strip width 2.65 m, closet width 1.10 m, WC width 0.82 m, balcony width 2.40 m. Remaining dimensions follow from reported areas.",
+      "Conceptual room polygons preserve the eight reported areas, totaling 49.18 m². Walls are centered on zone boundaries and overlap the floor polygons; wall thickness is not deducted. This is not a measured net-area or Carrez model.",
+      "Wall height 2.50 m, exterior thickness 0.18 m, interior thickness 0.10 m, door height 2.04 m, and door widths 0.60–0.73 m are assumptions.",
+      "Six door positions and hinge sides follow the schematic swing symbols. WC access is inferred from entrance adjacency and is visually distinguished.",
+      "The kitchen is open to the living room. The balcony is a separate estimated slab without invented access, railing, or window details.",
+      "The north arrow is accepted as drawn: +X is right/east, +Z is down/south, +Y is up. Origin is the northwest corner of the overall bounding rectangle."
+    ],
+    "unresolved": [
+      "Surveyed wall lengths, angles, thicknesses, ceiling heights, and true room shapes are unavailable.",
+      "Window positions, dimensions, and sill heights are not specified; windows: [] represents unknown information.",
+      "Balcony access, railing, exact shape, and level are not specified; no balcony door is modeled.",
+      "Door dimensions and exact positions need measurement. WC door position and swing are inferred.",
+      "The 8.54 m² basement is reported outside Carrez but has no plan, location, or level data; it is not reconstructed."
+    ]
+  }
+}
