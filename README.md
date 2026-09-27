@@ -3,9 +3,9 @@
 A local, interactive reconstruction of the current T3 apartment in Quimper, based
 on the proportional plan, 11 photos and 4 walkthrough videos. Includes eight room
 zones, architectural openings, current finishes and 18 reusable Blender assets
-placed as 21 fixture instances. Apartment dimensions remain estimates. A separate
-**Edificio + sol** view adds the georeferenced Colbert building, 98 neighbours and
-a date/time sun-and-shadow study using public IGN, RNB and cadastral data.
+placed as 21 fixture instances. Apartment dimensions remain estimates. The T3 is
+also placed inside the georeferenced Colbert building, with 98 neighbours and
+shared date/time sunlight in both the exterior and interior views.
 
 ## Run
 
@@ -16,21 +16,25 @@ pnpm install
 pnpm dev
 ```
 
-Open the Vite URL, normally http://localhost:5173. Orbit by dragging, zoom with the
+Open the Vite URL, normally [localhost:5173](http://localhost:5173). Orbit by dragging, zoom with the
 wheel, pan with right-drag. Select an environment to focus the camera. Use Planta
 or Perspectiva, Corte, Equipamiento and Rótulos to inspect layers. The asset tab
 lists nominal dimensions, source evidence and downloadable GLBs.
 
+For the complete code/data check, also install Python 3.10+:
+
 ```sh
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
+pnpm check
 ```
+
+This runs lint, TypeScript checks, Node and Python tests, read-only snapshot
+verification, and the production web build. It does not start Blender or require
+MCP. Individual commands remain available: `pnpm lint`, `pnpm typecheck`,
+`pnpm test`, `pnpm scene:verify` and `pnpm build`.
 
 ## Building and sunlight
 
-Choose **Edificio + sol** in the header to switch to the exterior view. Set the
+Choose **Edificio y sol** in the header to switch to the exterior view. Set the
 calendar date and **Hora en Quimper**, drag the time slider, or play the day's
 movement. The seasonal presets compare spring, summer, autumn and winter. Time
 always uses **Europe/Paris**, including daylight-saving transitions, independently
@@ -38,9 +42,20 @@ of your computer's timezone. Direct sunlight switches off at night.
 
 Orbit and zoom as in the apartment, use **Planta** for a north-oriented overhead
 view, and toggle neighbours, the solar path or labels. The panel reports solar
-altitude, azimuth, sunrise, sunset and solar noon. The apartment remains a separate
-view: its exact location, windows and rotation within the building are not yet
-identified.
+altitude, azimuth, sunrise, sunset and solar noon. **Nuestro T3** marks the unit;
+**Corte de piso** and **Ver interior** expose its actual room geometry. The
+apartment is provisionally placed on the third floor above ground, near the
+northwest end of the courtyard facade, following the supplied mark and window
+photo. The living room faces southwest and bedrooms northeast under this
+explicitly estimated registration; it has not been surveyed.
+
+In **Departamento → Sol**, focus the living room or either bedroom, change the
+date/time or play the day to inspect sunlight through the window openings. The
+selected moment is retained when switching views. **Mostrar edificio** adds a
+floor section around the apartment; hiding it preserves neighbouring shadows.
+The view cut hides wall tops and the ceiling without removing their physical
+shadows. Window glazing lets direct light through; frames, balcony guards and
+opaque door panels still cast shadows. See [placement assumptions](docs/apartment-placement.md).
 
 The target is officially **1ter impasse Jean-Baptiste Colbert, Quimper**; RNB
 connects addresses 1, 1 bis and 1 ter to the same building. This version uses a
@@ -56,66 +71,95 @@ shadow study, not a certified insolation or energy report.
 
 ## Hybrid architecture
 
+See [architecture and extension boundaries](docs/architecture.md) for the complete
+flow from domain data to the web and Blender adapters.
+
 - `apps/web/src/data/t3.ts`: canonical architectural data in meters, validated by
   `packages/scene-schema`. Floor polygons, walls and apertures remain editable data.
 - `apps/web/src/data/current-state.ts`: canonical asset catalog and placements,
   with source references and explicitly estimated dimensions.
 - `apps/web/src/data/building-site.ts`: public geographic extract in true-north
   metre coordinates, with source IDs, heights, cadastral parcel and roads.
+- `apps/web/src/data/apartment-placement.ts`: estimated rigid registration and
+  through-building aperture, shared by the interior and exterior scenes.
 - `apps/web/src/lib/solar.ts`: shared NOAA/Meeus sun geometry and Europe/Paris
   civil-time conversion, including clock-change gaps and repeated hours.
 - `packages/geometry`: renderer-independent wall segmentation, bounds and polygons.
-- `apps/web/src/components`: procedural architecture plus instantiated GLB objects.
+- `packages/scene-schema/src/project.ts`: versioned project snapshot contract.
+- `scripts/export_scene.ts` and `scripts/lib/project-snapshot.ts`: deterministic,
+  validated exports containing the apartment, segmented wall solids, placement,
+  assets, geographic context and astronomical sun.
+- `assets/scenes/t3-project.json`: tracked combined project snapshot consumed by
+  the Blender renderer; regenerate it from the TypeScript inputs.
+- `apps/web/src/components`: workspace explorers, procedural architecture and
+  instantiated GLB objects. `App` owns the shared solar state and apartment view
+  state; both scenes render on demand.
 - `apps/web/src/materials`: deterministic parquet/tile color and relief maps,
   scaled in meters. No private source photos are embedded in web textures.
 - `scripts/blender/create_current_assets.py`: original reusable asset authoring.
-- `scripts/blender/assemble_apartment.py`: derived Blender apartment scene from
-  exported domain data, for inspection/rendering; it is not the source of truth.
+- `scripts/blender/assemble_project.py`: combined apartment/building solar scene
+  derived from the project snapshot. Blender output is not the source of truth.
+- `scripts/blender/assemble_apartment.py` and `assemble_building.py`: retained
+  adapters for the historical standalone reference scenes.
 
 **1 unit = 1 meter.** Web plan points are `[X,Z]`, with Y up. The building frame
-uses X true east and Z true south; the apartment's rotation relative to true north
-is still uncalibrated. Blender uses `(x,-z,y)` for the same point. Asset fronts face
+uses X true east and Z true south; the apartment uses the estimated site rotation
+in `apartment-placement.ts`. Blender uses `(x,-z,y)` for the same point. Asset fronts face
 +Z in the web, origins are floor centered and scale is applied. The app imports
 individual GLBs, not one opaque apartment mesh.
 
-## Blender outputs
+## Headless Blender pipeline
+
+The combined render needs an installed Blender executable, Node.js/pnpm and
+Python 3.10+ for validation. It runs in a separate background process; Blender's
+GUI, the MCP add-on and `uv` are not required. The runner uses `BLENDER_BIN` when
+set, otherwise the standard macOS application path or `blender` on `PATH`.
 
 ```sh
-pnpm blender:check      # Verify the already configured live MCP connection
-pnpm blender:assets     # Rebuild the 18 GLBs and editable asset library
-pnpm scene:snapshot     # Refresh both JSON exports from TypeScript
-pnpm blender:apartment  # Refresh data and rebuild the derived Blender scene
+pnpm scene:snapshot    # Refresh all four tracked JSON snapshots
+pnpm scene:verify      # Check them without writing
+pnpm blender:validate  # Audit tracked .blend / .glb assets; no save or render
+pnpm blender:scene     # Build the combined .blend from the saved project JSON
+pnpm blender:render    # Build it and render a PNG with Cycles CPU
 ```
 
-The two Blender generation commands use the installed macOS Blender executable.
-See [connection details](docs/blender.md). Generation writes its own named output
-files; save authored variants separately before regenerating.
-
-- `assets/blender/asset-library.blend`: editable asset library.
-- `apps/web/public/models/current/`: individual GLBs + manifest.
-- `assets/blender/t3-current-state.blend`: derived assembled scene.
-- `assets/blender/current-assets.png` and `t3-current-state.png`: previews.
-- `assets/blender/t3-building-context.blend`: editable **T3 Building Sun** scene,
-  with building, neighbours, source metadata and a sampled solar timeline.
-- `assets/blender/t3-building-context.png`: rendered exterior preview.
-- `docs/building-site.json`: geographic and solar snapshot for Blender.
-
-To rebuild the exterior scene from its snapshot and render its preview:
+`scene:snapshot` defaults to **2026-09-26 at 15:00, Europe/Paris**. It exports
+`docs/t3-apartment.json`, `docs/current-fixtures.json`, `docs/building-site.json`
+and `assets/scenes/t3-project.json`. It does not read the browser's current date
+or time. A separate seasonal render can use its own snapshot:
 
 ```sh
-/Applications/Blender.app/Contents/MacOS/Blender --background --python scripts/blender/assemble_building.py -- --render
+pnpm scene:snapshot --date 2026-12-21 --time 15:00 --output artifacts/scenes/winter.json
+pnpm blender:render --input artifacts/scenes/winter.json --output artifacts/blender/winter.blend --render artifacts/renders/winter.png --resolution 640 --samples 12
 ```
 
-The exterior generator creates a new scene and saves a copy, preserving existing
-scenes and the active working-file path when run through MCP. Its solar timeline
-samples 26 September 2026 every 15 minutes; frame 61 is 15:00 in Paris. The web view
-supports arbitrary selected dates; the Blender snapshot needs regeneration for a
-different day. See [Blender model details](docs/building-research.md#escena-blender-editable).
+With `--output`, only that combined JSON is written. `--check` verifies the same
+selected outputs without changing them; use the same date/time arguments.
+Repeated autumn clock times require `--occurrence earlier` or `--occurrence later`
+(the default is `reject`); nonexistent spring clock times are rejected.
+
+Generated outputs are ignored under `artifacts/`: the default scene is
+`artifacts/blender/t3-project.blend`, its validation report is
+`artifacts/blender/t3-project.validation.json`, and the PNG is
+`artifacts/renders/t3-project.png`. The asset audit writes
+`artifacts/reports/assets.json`. The new builder refuses `.blend` output inside
+`assets/blender`, preserving the four historical source/reference files.
+
+A combined **Cycles CPU render at 960 px and 32 samples** has been verified. The
+scene embeds the source JSON and builder source, records its source hash and
+selected UTC instant, and checks solar direction, fixture count and the physical
+context. Camera cuts leave complete walls, ceiling and neighbours casting
+shadows. Materials, facade decoration, roof forms and renderer lighting remain
+approximations; these checks do not establish visual parity or measured solar
+accuracy.
+
+See [Blender commands, outputs and optional MCP setup](docs/blender.md) for all
+flags, preserved references and the older asset-authoring commands.
 
 ## Evidence and precision
 
 See [visual evidence](docs/reference-evidence.md), [geometry notes](docs/apartment-geometry.md)
-and [checkpoint](docs/checkpoint.md). The reported room areas sum to49.18m²;
+and [checkpoint](docs/checkpoint.md). The reported room areas sum to 49.18 m²;
 conceptual polygons preserve them, but walls overlay their boundaries. This is not
 a measured net-area survey. Window and appliance presence are observed; their
 metric dimensions and global placements remain provisional. The bathroom's exact

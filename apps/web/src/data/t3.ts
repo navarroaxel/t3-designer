@@ -37,9 +37,11 @@ const reported = {
   carrez: 49.18,
 }
 
-// Plan coordinates are [X, Z]: right/east is +X, down/south is +Z.
-// The origin is the northwest corner of the bounding rectangle, outside the
-// stepped footprint. North is -Z; Y is height above the finished floor.
+// Plan coordinates are [X, Z]: right is +X, down is +Z. The schema's east/south
+// labels are historical plan-axis labels, not surveyed compass bearings.
+// The origin is the upper-left corner of the bounding rectangle, outside the
+// stepped footprint; Y is height above its finished floor. The provisional
+// true-north registration now lives in apartment-placement.ts.
 const xService = estimated.westStripWidth
 const zBedroomsSouth = estimated.bedroomDepth
 const lowerDepth =
@@ -228,7 +230,7 @@ export const t3Apartment = ApartmentSchema.parse({
       'Openings combine the schematic with visual evidence: bedroom portals widened apart, WC access confirmed, kitchen passage and balcony access observed. Unseen leaf swings remain estimates.',
       'The kitchen has a cased opening to the living room. Its reconstructed short dimension is 1.936 m, allowing two 0.60 m cabinet runs and a roughly 0.74 m conceptual aisle; real clear widths need measurement.',
       'Material colors and surface grain are visual approximations. Wear/damage is selectively represented, not a complete condition survey.',
-      'The north arrow is accepted as drawn: +X is right/east, +Z is down/south, +Y is up. Origin is the northwest corner of the overall bounding rectangle.',
+      'Stored plan axes use the historical east/south labels: +X is drawing-right, +Z is drawing-down, +Y is up. The drawing arrow is not a surveyed compass alignment. The separate apartment-placement transform provisionally aligns the living/kitchen to the southwest courtyard and bedrooms to the northeast using the user-marked building image.',
     ],
     unresolved: [
       'Surveyed wall lengths, angles, thicknesses, ceiling heights, and true room shapes are unavailable.',

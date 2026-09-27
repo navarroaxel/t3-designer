@@ -202,9 +202,9 @@ def openings(data):
             box('Balcony baluster',(.018,.97,.018),(x,.5,z),'iron','Openings and trim',bevel=.001);x+=.14
 
 
-def fixtures(data):
+def fixtures(data, asset_paths=None):
     for f in data['fixtures']:
-        p=ROOT/'apps/web/public/models/current'/(f['assetId']+'.glb')
+        p=asset_paths[f['assetId']] if asset_paths is not None else ROOT/'apps/web/public/models/current'/(f['assetId']+'.glb')
         previous=set(scene.objects)
         bpy.ops.import_scene.gltf(filepath=str(p))
         new=set(scene.objects)-previous

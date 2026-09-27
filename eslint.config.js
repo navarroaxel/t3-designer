@@ -18,6 +18,15 @@ export default defineConfig([
     },
   },
   {
+    files: ['scripts/**/*.ts'],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    extends: [js.configs.recommended],
+    languageOptions: { globals: globals.node },
+  },
+  {
     files: ['**/*.config.{js,ts}'],
     extends: [js.configs.recommended],
     languageOptions: {

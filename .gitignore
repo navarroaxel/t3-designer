@@ -13,3 +13,6 @@ dist/
 # Python-generated caches
 __pycache__/
 *.py[cod]
+
+# Reproducible render outputs and validation reports; canonical inputs are tracked.
+artifacts/

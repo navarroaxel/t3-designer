@@ -5,16 +5,19 @@ import { Fixtures } from './Fixtures'
 import { ServiceDetails } from './ServiceDetails'
 import { ArchitecturalDetails } from './ArchitecturalDetails'
 import { roomFinish } from '../materials/surfaces'
+import { ApartmentSolarEnvelope } from './ApartmentSolarEnvelope'
 
 type ApartmentProps = {
   apartment: ApartmentData
   cutaway: boolean
   showFixtures?: boolean
+  solarStudy?: boolean
 }
 
-export function Apartment({ apartment, cutaway, showFixtures = true }: ApartmentProps) {
+export function Apartment({ apartment, cutaway, showFixtures = true, solarStudy = false }: ApartmentProps) {
   return (
     <group>
+      {solarStudy && <ApartmentSolarEnvelope apartment={apartment} showFixtures={showFixtures} />}
       <Floor polygon={apartment.perimeter} color="#d4d4c9" thickness={0.14} />
       {apartment.rooms.map((room) => (
         <Floor key={room.id} polygon={room.polygon} color={room.color} elevation={0.01} finish={roomFinish(room.id)} />
@@ -31,7 +34,7 @@ export function Apartment({ apartment, cutaway, showFixtures = true }: Apartment
           cutaway={cutaway}
         />
       ))}
-      <ArchitecturalDetails apartment={apartment} cutaway={cutaway} />
+      <ArchitecturalDetails apartment={apartment} cutaway={solarStudy ? false : cutaway} />
       {showFixtures && <><Fixtures /><ServiceDetails apartment={apartment} cutaway={cutaway} /></>}
     </group>
   )

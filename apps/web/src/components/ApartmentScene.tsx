@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useRef, type ComponentRef, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { Vector3, PerspectiveCamera, PMREMGenerator, Object3D } from 'three'
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { Vector3, PerspectiveCamera } from 'three'
 import { apartmentBounds, polygonBounds, polygonCentroid } from '@t3-designer/geometry'
 import type { Apartment as ApartmentData, Point2D } from '@t3-designer/scene-schema'
 import { Apartment } from './Apartment'
+import { InteriorSunlight } from './InteriorSunlight'
+import { BuildingContext } from './BuildingContext'
+import { APARTMENT_PLACEMENT } from '../data/apartment-placement'
+import type { SolarPosition } from '../lib/solar'
+import { advanceCameraTransition, type CameraTransition } from '../lib/camera-transition'
 
 type ViewRequest = { mode: '3d' | 'top'; revision: number }
 
@@ -16,6 +20,8 @@ type ApartmentSceneProps = {
   showFixtures?: boolean
   focusRoomId?: string
   view: ViewRequest
+  sun: SolarPosition
+  showContext: boolean
 }
 
 type RoomLabel = {
@@ -26,8 +32,11 @@ type RoomLabel = {
   extra: boolean
 }
 
-function LabelProjection({ labels, elements }: { labels: RoomLabel[]; elements: RefObject<Map<string, HTMLDivElement>> }) {
+function LabelProjection({ labels, elements, enabled }: { labels: RoomLabel[]; elements: RefObject<Map<string, HTMLDivElement>>; enabled: boolean }) {
   const projected = useMemo(() => new Vector3(), [])
+  const invalidate = useThree(state => state.invalidate)
+  // Labels mount outside Canvas; toggling them must request a projection frame.
+  useEffect(() => { invalidate() }, [enabled, labels, invalidate])
 
   useFrame(({ camera, size }) => {
     camera.updateMatrixWorld()
@@ -44,12 +53,13 @@ function LabelProjection({ labels, elements }: { labels: RoomLabel[]; elements: 
   return null
 }
 
-function SceneCamera({ apartment, view, focusRoomId }: Pick<ApartmentSceneProps, 'apartment' | 'view' | 'focusRoomId'>) {
+function SceneCamera({ apartment, view, focusRoomId, showContext }: Pick<ApartmentSceneProps, 'apartment' | 'view' | 'focusRoomId' | 'showContext'>) {
   const controlsRef = useRef<ComponentRef<typeof OrbitControls>>(null)
-  const transition = useRef<{ position: Vector3; target: Vector3 } | null>(null)
+  const transition = useRef<CameraTransition | null>(null)
   const initialized = useRef(false)
   const { width, height } = useThree((state) => state.size)
   const camera = useThree((state) => state.camera)
+  const invalidate = useThree((state) => state.invalidate)
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -57,8 +67,8 @@ function SceneCamera({ apartment, view, focusRoomId }: Pick<ApartmentSceneProps,
     const focusRoom = apartment.rooms.find((room) => room.id === focusRoomId)
     const bounds = focusRoom ? polygonBounds(focusRoom.polygon) : apartmentBounds(apartment)
     const [x, z] = focusRoom ? polygonCentroid(focusRoom.polygon) : bounds.center
-    const aspect = width / Math.max(height, 1)
-    const span = Math.max(bounds.width, bounds.depth, bounds.width / aspect)
+    const aspect = Math.max(width, 1) / Math.max(height, 1)
+    const span = Math.max(bounds.width, bounds.depth, bounds.width / aspect) * (showContext && !focusRoom ? 1.4 : 1)
     // Flush any remaining drag momentum before applying a deliberate view reset.
     controls.enableDamping = false
     controls.update()
@@ -86,21 +96,17 @@ function SceneCamera({ apartment, view, focusRoomId }: Pick<ApartmentSceneProps,
     camera.updateProjectionMatrix()
     controls.update()
     controls.enableDamping = true
-  }, [camera, apartment, view, width, height, focusRoomId])
+    invalidate()
+  }, [camera, apartment, view, width, height, focusRoomId, showContext, invalidate])
 
   useFrame((_, delta) => {
     const goal = transition.current
     const controls = controlsRef.current
     if (!goal || !controls) return
-    const amount = 1 - Math.exp(-7 * delta)
-    camera.position.lerp(goal.position, amount)
-    controls.target.lerp(goal.target, amount)
+    const arrived = advanceCameraTransition(camera.position, controls.target, goal, delta)
     controls.update()
-    if (camera.position.distanceTo(goal.position) < 0.005 && controls.target.distanceTo(goal.target) < 0.005) {
-      camera.position.copy(goal.position)
-      controls.target.copy(goal.target)
-      transition.current = null
-    }
+    if (arrived) transition.current = null
+    else invalidate()
   })
 
   return (
@@ -111,7 +117,7 @@ function SceneCamera({ apartment, view, focusRoomId }: Pick<ApartmentSceneProps,
         enableDamping
         dampingFactor={0.08}
         minDistance={1.2}
-        maxDistance={50}
+        maxDistance={100}
         minPolarAngle={0.001}
         maxPolarAngle={Math.PI / 2.05}
         enablePan
@@ -121,67 +127,12 @@ function SceneCamera({ apartment, view, focusRoomId }: Pick<ApartmentSceneProps,
   )
 }
 
-function Daylight({ center }: { center: [number, number] }) {
-  const gl = useThree((state) => state.gl)
-  const scene = useThree((state) => state.scene)
-  const target = useMemo(() => {
-    const object = new Object3D()
-    object.position.set(center[0], 0, center[1])
-    return object
-  }, [center[0], center[1]])
-
-  useEffect(() => {
-    // A local studio environment gives the stainless-steel appliances reflections
-    // without downloading an HDRI or depending on a third-party CDN.
-    const environment = new RoomEnvironment()
-    const generator = new PMREMGenerator(gl)
-    const output = generator.fromScene(environment, 0.04)
-    const previous = scene.environment
-    const previousIntensity = scene.environmentIntensity
-    scene.environment = output.texture
-    scene.environmentIntensity = 0.52
-    environment.dispose()
-    generator.dispose()
-    return () => {
-      scene.environment = previous
-      scene.environmentIntensity = previousIntensity
-      output.dispose()
-    }
-  }, [gl, scene])
-
-  return (
-    <group>
-      <primitive object={target} />
-      <ambientLight intensity={0.32} />
-      <hemisphereLight args={['#e9f0ff', '#d5c3a1', 0.75]} />
-      <directionalLight
-        position={[center[0] - 4, 11, center[1] - 5]}
-        target={target}
-        color="#fff6e3"
-        intensity={2.5}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-8}
-        shadow-camera-right={8}
-        shadow-camera-top={8}
-        shadow-camera-bottom={-8}
-        shadow-camera-near={0.1}
-        shadow-camera-far={32}
-        shadow-bias={-0.00015}
-        shadow-normalBias={0.018}
-        shadow-radius={3}
-      />
-      <directionalLight position={[center[0] + 7, 6, center[1] + 5]} target={target} color="#ecf2ff" intensity={0.55} />
-    </group>
-  )
-}
-
-export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = true, focusRoomId, view }: ApartmentSceneProps) {
+export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = true, focusRoomId, view, sun, showContext }: ApartmentSceneProps) {
   const bounds = apartmentBounds(apartment)
   const [x, z] = bounds.center
   // Canvas owns one explicit camera; controls and labels always use that same instance.
   const camera = useMemo(() => {
-    const perspective = new PerspectiveCamera(42, 1, 0.1, 150)
+    const perspective = new PerspectiveCamera(42, 1, 0.1, 500)
     perspective.position.set(13, 16, 16)
     return perspective
   }, [])
@@ -194,22 +145,28 @@ export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = 
   return (
     <div className="scene-surface">
     <Canvas
+      frameloop="demand"
       camera={camera}
       shadows="percentage"
       dpr={[1, 2]}
-      fallback={<div className="canvas-fallback">This apartment view needs a browser with WebGL enabled.</div>}
-      aria-label="Interactive 3D model of the T3 apartment. Drag to orbit, scroll to zoom, right-drag to pan."
+      fallback={<div className="canvas-fallback">La vista del departamento necesita WebGL. Activá la aceleración gráfica del navegador.</div>}
+      aria-label="Modelo 3D del departamento con luz solar por sus ventanas. Arrastrar para orbitar, rueda para acercar."
     >
-      <color attach="background" args={['#e8eae4']} />
-      <Daylight center={[x, z]} />
-      <mesh position={[x, -0.155, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <color attach="background" args={[sun.isDaylight ? '#e8eae4' : '#687684']} />
+      <InteriorSunlight apartment={apartment} sun={sun} />
+      <group rotation={[0, -APARTMENT_PLACEMENT.rotationY, 0]}>
+        <group position={APARTMENT_PLACEMENT.position.map(value => -value) as [number, number, number]}>
+          <BuildingContext visible={showContext} cutaway="floor" showNeighbors />
+        </group>
+      </group>
+      <mesh position={[x, showContext ? -APARTMENT_PLACEMENT.position[1] - .15 : -.155, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={showContext}>
         <planeGeometry args={[120, 120]} />
         <meshStandardMaterial color="#e8eae4" roughness={1} />
       </mesh>
-      <gridHelper position={[x, -0.15, z]} args={[30, 30, '#dce0d6', '#e1e5db']} />
-      <Apartment apartment={apartment} cutaway={cutaway} showFixtures={showFixtures} />
-      <SceneCamera apartment={apartment} view={view} focusRoomId={focusRoomId} />
-      <LabelProjection labels={labels} elements={labelElements} />
+      {!showContext && <gridHelper position={[x, -0.15, z]} args={[30, 30, '#dce0d6', '#e1e5db']} />}
+      <Apartment apartment={apartment} cutaway={cutaway} showFixtures={showFixtures} solarStudy />
+      <SceneCamera apartment={apartment} view={view} focusRoomId={focusRoomId} showContext={showContext} />
+      <LabelProjection labels={labels} elements={labelElements} enabled={showLabels} />
     </Canvas>
     {showLabels && (
       <div className="labels-overlay" aria-label="Room names and reported areas">

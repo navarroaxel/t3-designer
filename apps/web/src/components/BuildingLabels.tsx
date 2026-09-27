@@ -1,5 +1,5 @@
-import { useMemo, type RefObject } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, type RefObject } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 
 export type BuildingLabelAnchor = {
@@ -21,6 +21,8 @@ export function BuildingLabelProjection({ labels, elements }: {
   elements: LabelElements
 }) {
   const projected = useMemo(() => new Vector3(), [])
+  const invalidate = useThree(state => state.invalidate)
+  useEffect(() => { invalidate() }, [labels, invalidate])
 
   useFrame(({ camera, size }) => {
     camera.updateMatrixWorld()

@@ -9,14 +9,19 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
-    "test": "turbo run test",
+    "lint": "turbo run lint && eslint scripts",
+    "typecheck": "turbo run typecheck && tsc --project scripts/tsconfig.json",
+    "test": "turbo run test && node --test scripts/test/*.test.ts && python3 -m unittest discover -s scripts/blender/tests",
     "blender:check": "uv run scripts/blender/check_mcp.py",
-    "blender:sample": "\"/Applications/Blender.app/Contents/MacOS/Blender\" --background --factory-startup --python-exit-code 1 --python scripts/blender/create_door_frame.py",
+    "blender:sample": "node scripts/run_blender.mjs create_door_frame.py",
     "scene:snapshot": "node scripts/export_scene.ts",
-    "blender:assets": "\"/Applications/Blender.app/Contents/MacOS/Blender\" --background --factory-startup --python-exit-code 1 --python scripts/blender/create_current_assets.py",
-    "blender:apartment": "pnpm scene:snapshot && \"/Applications/Blender.app/Contents/MacOS/Blender\" --background --factory-startup --python-exit-code 1 --python scripts/blender/assemble_apartment.py"
+    "blender:assets": "node scripts/run_blender.mjs create_current_assets.py",
+    "blender:apartment": "pnpm scene:snapshot && node scripts/run_blender.mjs assemble_apartment.py",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm scene:verify && pnpm build",
+    "scene:verify": "node scripts/export_scene.ts --check",
+    "blender:validate": "python3 scripts/blender/validate_assets.py --report artifacts/reports/assets.json",
+    "blender:scene": "node scripts/run_blender.mjs assemble_project.py",
+    "blender:render": "node scripts/run_blender.mjs assemble_project.py --render"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -25,6 +30,9 @@
     "globals": "^17.12.0",
     "turbo": "^2.11.3",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.70.1"
+    "typescript-eslint": "^8.70.1",
+    "@types/node": "^24.13.6",
+    "@t3-designer/scene-schema": "workspace:*",
+    "@t3-designer/geometry": "workspace:*"
   }
 }

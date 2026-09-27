@@ -1,6 +1,2155 @@
 {
-  "generatedAt": "2026-09-26",
-  "coordinateSystem": "x east / y up / z south, metres",
+  "schemaVersion": 1,
+  "project": {
+    "id": "t3-designer",
+    "name": "Quimper T3 · apartment and building solar study"
+  },
+  "units": "meters",
+  "coordinates": {
+    "apartment": "local plan X/right,Y/up,Z/down",
+    "site": "X/east,Y/up,Z/south",
+    "blender": "X/east,Y/north,Z/up",
+    "siteToBlender": [
+      [
+        "x",
+        1
+      ],
+      [
+        "z",
+        -1
+      ],
+      [
+        "y",
+        1
+      ]
+    ]
+  },
+  "apartment": {
+    "schemaVersion": 1,
+    "id": "quimper-t3",
+    "name": "Quimper · Appartement T3",
+    "units": "meters",
+    "coordinateSystem": {
+      "x": "east",
+      "y": "up",
+      "z": "south"
+    },
+    "perimeter": [
+      [
+        0.6645552560646903,
+        0
+      ],
+      [
+        6.701698113207549,
+        0
+      ],
+      [
+        6.701698113207549,
+        4.463636363636364
+      ],
+      [
+        5.601698113207548,
+        4.463636363636364
+      ],
+      [
+        5.601698113207548,
+        8.318181818181817
+      ],
+      [
+        0,
+        8.318181818181817
+      ],
+      [
+        0,
+        3.5
+      ],
+      [
+        0.6645552560646903,
+        3.5
+      ]
+    ],
+    "rooms": [
+      {
+        "id": "bedroom-1",
+        "name": "Chambre 1",
+        "polygon": [
+          [
+            0.6645552560646903,
+            0
+          ],
+          [
+            4.038840970350405,
+            0
+          ],
+          [
+            4.038840970350405,
+            3.5
+          ],
+          [
+            0.6645552560646903,
+            3.5
+          ]
+        ],
+        "reportedArea": 11.81,
+        "color": "#dfc7bf"
+      },
+      {
+        "id": "bedroom-2",
+        "name": "Chambre 2",
+        "polygon": [
+          [
+            4.038840970350405,
+            0
+          ],
+          [
+            6.701698113207549,
+            0
+          ],
+          [
+            6.701698113207549,
+            3.5
+          ],
+          [
+            4.038840970350405,
+            3.5
+          ]
+        ],
+        "reportedArea": 9.32,
+        "color": "#c9d2bd"
+      },
+      {
+        "id": "living",
+        "name": "Salon / séjour",
+        "polygon": [
+          [
+            2.2,
+            3.5
+          ],
+          [
+            5.601698113207548,
+            3.5
+          ],
+          [
+            5.601698113207548,
+            8.318181818181817
+          ],
+          [
+            2.2,
+            8.318181818181817
+          ]
+        ],
+        "reportedArea": 16.39,
+        "color": "#e3d5bd"
+      },
+      {
+        "id": "entrance",
+        "name": "Entrée",
+        "polygon": [
+          [
+            0,
+            3.5
+          ],
+          [
+            2.2,
+            3.5
+          ],
+          [
+            2.2,
+            4.527272727272727
+          ],
+          [
+            0,
+            4.527272727272727
+          ]
+        ],
+        "reportedArea": 2.26,
+        "color": "#ded6c3"
+      },
+      {
+        "id": "wc",
+        "name": "WC",
+        "polygon": [
+          [
+            0,
+            4.527272727272727
+          ],
+          [
+            0.72,
+            4.527272727272727
+          ],
+          [
+            0.72,
+            5.735606060606061
+          ],
+          [
+            0,
+            5.735606060606061
+          ]
+        ],
+        "reportedArea": 0.87,
+        "color": "#c9dadb"
+      },
+      {
+        "id": "bathroom",
+        "name": "Salle d’eau",
+        "polygon": [
+          [
+            0.72,
+            4.527272727272727
+          ],
+          [
+            2.2,
+            4.527272727272727
+          ],
+          [
+            2.2,
+            6.381818181818182
+          ],
+          [
+            0,
+            6.381818181818182
+          ],
+          [
+            0,
+            5.735606060606061
+          ],
+          [
+            0.72,
+            5.735606060606061
+          ]
+        ],
+        "reportedArea": 3.21,
+        "color": "#c1d3d2"
+      },
+      {
+        "id": "kitchen",
+        "name": "Cuisine",
+        "polygon": [
+          [
+            0,
+            6.381818181818182
+          ],
+          [
+            2.2,
+            6.381818181818182
+          ],
+          [
+            2.2,
+            8.318181818181817
+          ],
+          [
+            0,
+            8.318181818181817
+          ]
+        ],
+        "reportedArea": 4.26,
+        "color": "#cfbea3"
+      },
+      {
+        "id": "closet",
+        "name": "Placard",
+        "polygon": [
+          [
+            5.601698113207548,
+            3.5
+          ],
+          [
+            6.701698113207549,
+            3.5
+          ],
+          [
+            6.701698113207549,
+            4.463636363636364
+          ],
+          [
+            5.601698113207548,
+            4.463636363636364
+          ]
+        ],
+        "reportedArea": 1.06,
+        "color": "#ccc9bc"
+      }
+    ],
+    "walls": [
+      {
+        "id": "exterior-north",
+        "from": [
+          0.6645552560646903,
+          0
+        ],
+        "to": [
+          6.701698113207549,
+          0
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "exterior-east",
+        "from": [
+          6.701698113207549,
+          0
+        ],
+        "to": [
+          6.701698113207549,
+          4.463636363636364
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "exterior-closet-south",
+        "from": [
+          6.701698113207549,
+          4.463636363636364
+        ],
+        "to": [
+          5.601698113207548,
+          4.463636363636364
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "exterior-living-east",
+        "from": [
+          5.601698113207548,
+          4.463636363636364
+        ],
+        "to": [
+          5.601698113207548,
+          8.318181818181817
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "exterior-south",
+        "from": [
+          5.601698113207548,
+          8.318181818181817
+        ],
+        "to": [
+          0,
+          8.318181818181817
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "exterior-west",
+        "from": [
+          0,
+          8.318181818181817
+        ],
+        "to": [
+          0,
+          3.5
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "exterior-entrance-north",
+        "from": [
+          0,
+          3.5
+        ],
+        "to": [
+          0.6645552560646903,
+          3.5
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "exterior-bedroom-west",
+        "from": [
+          0.6645552560646903,
+          3.5
+        ],
+        "to": [
+          0.6645552560646903,
+          0
+        ],
+        "height": 2.7,
+        "thickness": 0.18,
+        "kind": "exterior",
+        "estimated": true
+      },
+      {
+        "id": "bedroom-divider",
+        "from": [
+          4.038840970350405,
+          0
+        ],
+        "to": [
+          4.038840970350405,
+          3.5
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "bedroom-1-south",
+        "from": [
+          0.6645552560646903,
+          3.5
+        ],
+        "to": [
+          4.038840970350405,
+          3.5
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "bedroom-2-south",
+        "from": [
+          4.038840970350405,
+          3.5
+        ],
+        "to": [
+          6.701698113207549,
+          3.5
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "service-spine",
+        "from": [
+          2.2,
+          3.5
+        ],
+        "to": [
+          2.2,
+          6.381818181818182
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "entrance-service",
+        "from": [
+          0,
+          4.527272727272727
+        ],
+        "to": [
+          2.2,
+          4.527272727272727
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "wc-east",
+        "from": [
+          0.72,
+          4.527272727272727
+        ],
+        "to": [
+          0.72,
+          5.735606060606061
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "wc-south",
+        "from": [
+          0,
+          5.735606060606061
+        ],
+        "to": [
+          0.72,
+          5.735606060606061
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "bathroom-south",
+        "from": [
+          0,
+          6.381818181818182
+        ],
+        "to": [
+          2.2,
+          6.381818181818182
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "kitchen-living",
+        "from": [
+          2.2,
+          6.381818181818182
+        ],
+        "to": [
+          2.2,
+          8.318181818181817
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      },
+      {
+        "id": "closet-west",
+        "from": [
+          5.601698113207548,
+          3.5
+        ],
+        "to": [
+          5.601698113207548,
+          4.463636363636364
+        ],
+        "height": 2.7,
+        "thickness": 0.1,
+        "kind": "interior",
+        "estimated": true
+      }
+    ],
+    "doors": [
+      {
+        "id": "main-entry",
+        "wallId": "exterior-west",
+        "offset": 4.0281818181818165,
+        "width": 0.68,
+        "height": 2.04,
+        "estimated": true,
+        "hinge": "end",
+        "opensToward": 1,
+        "locationConfidence": "schematic",
+        "appearance": "panel",
+        "finish": "blue-gray"
+      },
+      {
+        "id": "entrance-living",
+        "wallId": "service-spine",
+        "offset": 0.08,
+        "width": 0.68,
+        "height": 2.04,
+        "estimated": true,
+        "hinge": "end",
+        "opensToward": 1,
+        "locationConfidence": "schematic",
+        "appearance": "passage",
+        "finish": "blue-gray"
+      },
+      {
+        "id": "bedroom-1-entry",
+        "wallId": "bedroom-1-south",
+        "offset": 1.75544474393531,
+        "width": 0.73,
+        "height": 2.04,
+        "estimated": true,
+        "hinge": "end",
+        "opensToward": -1,
+        "locationConfidence": "schematic",
+        "appearance": "passage",
+        "finish": "gray"
+      },
+      {
+        "id": "bedroom-2-entry",
+        "wallId": "bedroom-2-south",
+        "offset": 0.38,
+        "width": 0.73,
+        "height": 2.04,
+        "estimated": true,
+        "hinge": "start",
+        "opensToward": -1,
+        "locationConfidence": "schematic",
+        "appearance": "passage",
+        "finish": "gray"
+      },
+      {
+        "id": "bathroom-entry",
+        "wallId": "entrance-service",
+        "offset": 1.38,
+        "width": 0.68,
+        "height": 2.04,
+        "estimated": true,
+        "hinge": "end",
+        "opensToward": 1,
+        "locationConfidence": "schematic",
+        "appearance": "passage",
+        "finish": "blue-gray"
+      },
+      {
+        "id": "closet-entry",
+        "wallId": "closet-west",
+        "offset": 0.08,
+        "width": 0.73,
+        "height": 2.04,
+        "estimated": true,
+        "hinge": "start",
+        "opensToward": 1,
+        "locationConfidence": "schematic",
+        "appearance": "panel",
+        "finish": "gray",
+        "condition": "damaged-panel"
+      },
+      {
+        "id": "wc-entry",
+        "wallId": "entrance-service",
+        "offset": 0.1,
+        "width": 0.55,
+        "height": 2.04,
+        "estimated": true,
+        "hinge": "start",
+        "opensToward": -1,
+        "locationConfidence": "observed",
+        "appearance": "panel",
+        "finish": "blue-gray",
+        "evidence": "P03 and V04: separate WC opens from entrance; dimensions estimated."
+      },
+      {
+        "id": "kitchen-passage",
+        "wallId": "kitchen-living",
+        "offset": 0.18,
+        "width": 1.55,
+        "height": 2.16,
+        "estimated": true,
+        "hinge": "start",
+        "opensToward": 1,
+        "locationConfidence": "observed",
+        "appearance": "passage",
+        "finish": "white",
+        "evidence": "V04 40-44s: kitchen opening under lintel with short returns."
+      }
+    ],
+    "windows": [
+      {
+        "id": "bedroom-1-window",
+        "wallId": "exterior-north",
+        "offset": 0.78,
+        "width": 1.48,
+        "height": 1.36,
+        "estimated": true,
+        "sillHeight": 0.83,
+        "kind": "casement",
+        "locationConfidence": "observed",
+        "evidence": "P07/P09/P10 and V04: two-leaf white window, radiator below."
+      },
+      {
+        "id": "bedroom-2-window",
+        "wallId": "exterior-north",
+        "offset": 3.9942857142857147,
+        "width": 1.4,
+        "height": 1.36,
+        "estimated": true,
+        "sillHeight": 0.83,
+        "kind": "casement",
+        "locationConfidence": "observed",
+        "evidence": "P07 and V04: second bedroom window; exact room identity provisional."
+      },
+      {
+        "id": "kitchen-window",
+        "wallId": "exterior-south",
+        "offset": 3.941698113207548,
+        "width": 1.3,
+        "height": 1.12,
+        "estimated": true,
+        "sillHeight": 1.02,
+        "kind": "casement",
+        "locationConfidence": "observed",
+        "evidence": "P06/P11 and V02: window along counter, partly obscured by fridge."
+      },
+      {
+        "id": "balcony-access",
+        "wallId": "exterior-south",
+        "offset": 0.63,
+        "width": 1.46,
+        "height": 2.18,
+        "estimated": true,
+        "sillHeight": 0.02,
+        "kind": "balcony-door",
+        "locationConfidence": "observed",
+        "evidence": "V04 40-44s: white double French door with opaque lower panels."
+      }
+    ],
+    "balcony": {
+      "id": "balcony",
+      "name": "Balcon",
+      "polygon": [
+        [
+          3.201698113207548,
+          8.318181818181817
+        ],
+        [
+          5.601698113207548,
+          8.318181818181817
+        ],
+        [
+          5.601698113207548,
+          8.843181818181817
+        ],
+        [
+          3.201698113207548,
+          8.843181818181817
+        ]
+      ],
+      "reportedArea": 1.26
+    },
+    "metadata": {
+      "source": "User-provided proportional-plan screenshot, preserved at docs/reference/t3-plan.png. Its footer cites DIO AGENDA, diagnostic dated 06/07/2026, dossier M-2026-07-002, pages 62 and 65; those original pages were not provided.",
+      "description": "Current-state reconstruction combining the proportional plan with 11 photos and 4 walkthrough videos supplied 2026-09-26. Areas remain source-reported; all linear dimensions and asset placements are estimated.",
+      "reportedCarrezArea": 49.18,
+      "reportedBasementArea": 8.54,
+      "assumptions": [
+        "All polygon coordinates, wall lengths, thicknesses, heights, opening sizes, offsets, door swings, and balcony dimensions are estimated.",
+        "Estimated anchors: bedroom depth 3.50 m, west strip width 2.20 m (revised for U kitchen), closet width 1.10 m, WC width 0.72 m, balcony width 2.40 m. Remaining dimensions follow from reported areas.",
+        "Conceptual room polygons preserve the eight reported areas, totaling 49.18 m². Walls are centered on zone boundaries and overlap the floor polygons; wall thickness is not deducted. This is not a measured net-area or Carrez model.",
+        "Wall height 2.70 m (estimated to accommodate observed utility recess above doors), exterior thickness 0.18 m, interior thickness 0.10 m, door height 2.04 m, and door widths 0.55–0.73 m are assumptions.",
+        "Openings combine the schematic with visual evidence: bedroom portals widened apart, WC access confirmed, kitchen passage and balcony access observed. Unseen leaf swings remain estimates.",
+        "The kitchen has a cased opening to the living room. Its reconstructed short dimension is 1.936 m, allowing two 0.60 m cabinet runs and a roughly 0.74 m conceptual aisle; real clear widths need measurement.",
+        "Material colors and surface grain are visual approximations. Wear/damage is selectively represented, not a complete condition survey.",
+        "Stored plan axes use the historical east/south labels: +X is drawing-right, +Z is drawing-down, +Y is up. The drawing arrow is not a surveyed compass alignment. The separate apartment-placement transform provisionally aligns the living/kitchen to the southwest courtyard and bedrooms to the northeast using the user-marked building image."
+      ],
+      "unresolved": [
+        "Surveyed wall lengths, angles, thicknesses, ceiling heights, and true room shapes are unavailable.",
+        "Window presence/type is visually observed, but exact positions, dimensions and sill heights require measurement.",
+        "Balcony French door and metal railing are visible in V04; exact balcony proportions and rail spacing remain estimates.",
+        "Door dimensions, exact offsets and hidden hinge details need measurement. Model is photo-aligned rather than surveyed.",
+        "The 8.54 m² basement is reported outside Carrez but has no plan, location, or level data; it is not reconstructed."
+      ]
+    }
+  },
+  "assets": [
+    {
+      "id": "fridge-freezer",
+      "label": "Heladera / freezer",
+      "url": "/models/current/fridge-freezer.glb",
+      "dimensions": [
+        0.6,
+        1.85,
+        0.64
+      ],
+      "evidence": "P06 / P11 · acero inoxidable, dos puertas",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/fridge-freezer.glb"
+    },
+    {
+      "id": "washing-machine",
+      "label": "Lavarropas frontal",
+      "url": "/models/current/washing-machine.glb",
+      "dimensions": [
+        0.6,
+        0.85,
+        0.6
+      ],
+      "evidence": "P02 · frontal blanco bajo mesada",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/washing-machine.glb"
+    },
+    {
+      "id": "oven-cooktop",
+      "label": "Horno y placa",
+      "url": "/models/current/oven-cooktop.glb",
+      "dimensions": [
+        0.6,
+        0.88,
+        0.6
+      ],
+      "evidence": "P08 / V02 · horno negro y placa de cuatro zonas",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/oven-cooktop.glb"
+    },
+    {
+      "id": "microwave",
+      "label": "Microondas",
+      "url": "/models/current/microwave.glb",
+      "dimensions": [
+        0.48,
+        0.29,
+        0.38
+      ],
+      "evidence": "P08 / P11 · negro, sobre mesada",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/microwave.glb"
+    },
+    {
+      "id": "extractor-hood",
+      "label": "Campana extractora",
+      "url": "/models/current/extractor-hood.glb",
+      "dimensions": [
+        0.6,
+        0.65,
+        0.48
+      ],
+      "evidence": "P08 · campana y chimenea de acero",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/extractor-hood.glb"
+    },
+    {
+      "id": "boiler",
+      "label": "Caldera mural",
+      "url": "/models/current/boiler.glb",
+      "dimensions": [
+        0.4,
+        0.75,
+        0.3
+      ],
+      "evidence": "P06 / P11 · carcasa blanca",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/boiler.glb"
+    },
+    {
+      "id": "base-cabinet",
+      "label": "Mueble bajo de cocina",
+      "url": "/models/current/base-cabinet.glb",
+      "dimensions": [
+        0.6,
+        0.9,
+        0.6
+      ],
+      "evidence": "P06 / P08 / V02 · roble, frentes enmarcados",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/base-cabinet.glb"
+    },
+    {
+      "id": "sink-cabinet",
+      "label": "Mueble con pileta y escurridor",
+      "url": "/models/current/sink-cabinet.glb",
+      "dimensions": [
+        0.9,
+        1.05,
+        0.6
+      ],
+      "evidence": "P06 / P11 · una pileta de acero",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/sink-cabinet.glb"
+    },
+    {
+      "id": "wall-cabinet",
+      "label": "Alacena",
+      "url": "/models/current/wall-cabinet.glb",
+      "dimensions": [
+        0.8,
+        0.7,
+        0.32
+      ],
+      "evidence": "P06 / P11 · roble, dos hojas",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/wall-cabinet.glb"
+    },
+    {
+      "id": "bathroom-vanity",
+      "label": "Vanitory y lavabo",
+      "url": "/models/current/bathroom-vanity.glb",
+      "dimensions": [
+        0.6,
+        0.88,
+        0.5
+      ],
+      "evidence": "P02 · un lavabo circular de acero; el segundo es un reflejo",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/bathroom-vanity.glb"
+    },
+    {
+      "id": "toilet",
+      "label": "Inodoro",
+      "url": "/models/current/toilet.glb",
+      "dimensions": [
+        0.38,
+        0.78,
+        0.65
+      ],
+      "evidence": "P03 / V04 · cerámica blanca",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/toilet.glb"
+    },
+    {
+      "id": "radiator",
+      "label": "Radiador",
+      "url": "/models/current/radiator.glb",
+      "dimensions": [
+        0.9,
+        0.6,
+        0.1
+      ],
+      "evidence": "P07 / P10 / V04 · panel blanco",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/radiator.glb"
+    },
+    {
+      "id": "towel-rail",
+      "label": "Toallero radiador",
+      "url": "/models/current/towel-rail.glb",
+      "dimensions": [
+        0.45,
+        0.7,
+        0.1
+      ],
+      "evidence": "P02 · blanco, visible en espejo",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/towel-rail.glb"
+    },
+    {
+      "id": "glass-block-screen",
+      "label": "Mampara de ladrillos de vidrio",
+      "url": "/models/current/glass-block-screen.glb",
+      "dimensions": [
+        0.8,
+        2.1,
+        0.08
+      ],
+      "evidence": "P02 / V04 · bloques translúcidos",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/glass-block-screen.glb"
+    },
+    {
+      "id": "shower-tray",
+      "label": "Receptor de ducha",
+      "url": "/models/current/shower-tray.glb",
+      "dimensions": [
+        0.8,
+        0.12,
+        0.8
+      ],
+      "evidence": "V04 03s · receptor elevado blanco",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/shower-tray.glb"
+    },
+    {
+      "id": "electrical-panel",
+      "label": "Tablero eléctrico",
+      "url": "/models/current/electrical-panel.glb",
+      "dimensions": [
+        0.38,
+        0.52,
+        0.09
+      ],
+      "evidence": "P04 · sobre paso entrada–living",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/electrical-panel.glb"
+    },
+    {
+      "id": "low-table",
+      "label": "Mesa baja de madera",
+      "url": "/models/current/low-table.glb",
+      "dimensions": [
+        0.65,
+        0.48,
+        0.65
+      ],
+      "evidence": "V04 44s · junto al acceso al balcón",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/low-table.glb"
+    },
+    {
+      "id": "wall-mirror",
+      "label": "Espejo de baño",
+      "url": "/models/current/wall-mirror.glb",
+      "dimensions": [
+        1.2,
+        1,
+        0.035
+      ],
+      "evidence": "P02 · sobre lavabo y lavarropas",
+      "dimensionalStatus": "estimated",
+      "repoPath": "apps/web/public/models/current/wall-mirror.glb"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "k-fridge",
+      "assetId": "fridge-freezer",
+      "roomId": "kitchen",
+      "label": "Heladera / freezer",
+      "position": [
+        1.7700000000000002,
+        0.015,
+        7.888181818181817
+      ],
+      "rotation": 3.141592653589793,
+      "evidence": "P06 / P11 · acero inoxidable, dos puertas",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-sink",
+      "assetId": "sink-cabinet",
+      "roomId": "kitchen",
+      "label": "Mueble con pileta y escurridor",
+      "position": [
+        0.4,
+        0.015,
+        7.35
+      ],
+      "rotation": 1.5707963267948966,
+      "evidence": "P06 / P11 · una pileta de acero",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-oven",
+      "assetId": "oven-cooktop",
+      "roomId": "kitchen",
+      "label": "Horno y placa",
+      "position": [
+        1.06,
+        0.015,
+        6.741818181818182
+      ],
+      "rotation": 0,
+      "evidence": "P08 / V02 · horno negro y placa de cuatro zonas",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-drawers",
+      "assetId": "base-cabinet",
+      "roomId": "kitchen",
+      "label": "Mueble bajo de cocina",
+      "position": [
+        1.67,
+        0.015,
+        6.741818181818182
+      ],
+      "rotation": 0,
+      "evidence": "P06 / P08 / V02 · roble, frentes enmarcados",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-south-cabinet",
+      "assetId": "base-cabinet",
+      "roomId": "kitchen",
+      "label": "Mueble bajo de cocina",
+      "position": [
+        1.02,
+        0.015,
+        7.928181818181817
+      ],
+      "rotation": 3.141592653589793,
+      "evidence": "P06 / P08 / V02 · roble, frentes enmarcados",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-microwave",
+      "assetId": "microwave",
+      "roomId": "kitchen",
+      "label": "Microondas",
+      "position": [
+        1.67,
+        0.925,
+        6.741818181818182
+      ],
+      "rotation": 0,
+      "evidence": "P08 / P11 · negro, sobre mesada",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-hood",
+      "assetId": "extractor-hood",
+      "roomId": "kitchen",
+      "label": "Campana extractora",
+      "position": [
+        1.06,
+        1.52,
+        6.681818181818182
+      ],
+      "rotation": 0,
+      "evidence": "P08 · campana y chimenea de acero",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-boiler",
+      "assetId": "boiler",
+      "roomId": "kitchen",
+      "label": "Caldera mural",
+      "position": [
+        0.49,
+        1.2,
+        6.601818181818182
+      ],
+      "rotation": 0,
+      "evidence": "P06 / P11 · carcasa blanca",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "k-upper",
+      "assetId": "wall-cabinet",
+      "roomId": "kitchen",
+      "label": "Alacena",
+      "position": [
+        0.25,
+        1.48,
+        7.35
+      ],
+      "rotation": 1.5707963267948966,
+      "evidence": "P06 / P11 · roble, dos hojas",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "b-washer",
+      "assetId": "washing-machine",
+      "roomId": "bathroom",
+      "label": "Lavarropas frontal",
+      "position": [
+        1.08,
+        0.015,
+        4.9772727272727275
+      ],
+      "rotation": 1.5707963267948966,
+      "evidence": "P02 · frontal blanco bajo mesada",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "b-vanity",
+      "assetId": "bathroom-vanity",
+      "roomId": "bathroom",
+      "label": "Vanitory y lavabo",
+      "position": [
+        1.03,
+        0.015,
+        5.587272727272728
+      ],
+      "rotation": 1.5707963267948966,
+      "evidence": "P02 · un lavabo circular de acero; el segundo es un reflejo",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "b-shower",
+      "assetId": "shower-tray",
+      "roomId": "bathroom",
+      "label": "Receptor de ducha",
+      "position": [
+        1.7300000000000002,
+        0.015,
+        5.911818181818182
+      ],
+      "rotation": 0,
+      "evidence": "V04 03s · receptor elevado blanco",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "b-glass",
+      "assetId": "glass-block-screen",
+      "roomId": "bathroom",
+      "label": "Mampara de ladrillos de vidrio",
+      "position": [
+        0.9,
+        0.015,
+        6.141818181818182
+      ],
+      "rotation": 0,
+      "evidence": "P02 / V04 · bloques translúcidos",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "b-towel",
+      "assetId": "towel-rail",
+      "roomId": "bathroom",
+      "label": "Toallero radiador",
+      "position": [
+        2.0900000000000003,
+        0.5,
+        5.057272727272728
+      ],
+      "rotation": -1.5707963267948966,
+      "evidence": "P02 · blanco, visible en espejo",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "b-mirror",
+      "assetId": "wall-mirror",
+      "roomId": "bathroom",
+      "label": "Espejo de baño",
+      "position": [
+        0.7949999999999999,
+        0.98,
+        5.282272727272727
+      ],
+      "rotation": 1.5707963267948966,
+      "evidence": "P02 · sobre lavabo y lavarropas",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "wc-toilet",
+      "assetId": "toilet",
+      "roomId": "wc",
+      "label": "Inodoro",
+      "position": [
+        0.36,
+        0.015,
+        5.330606060606061
+      ],
+      "rotation": 3.141592653589793,
+      "evidence": "P03 / V04 · cerámica blanca",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "living-radiator",
+      "assetId": "radiator",
+      "roomId": "living",
+      "label": "Radiador",
+      "position": [
+        2.31,
+        0.18,
+        5.53
+      ],
+      "rotation": 1.5707963267948966,
+      "evidence": "P07 / P10 / V04 · panel blanco",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "living-table",
+      "assetId": "low-table",
+      "roomId": "living",
+      "label": "Mesa baja de madera",
+      "position": [
+        5.101698113207548,
+        0.015,
+        7.718181818181817
+      ],
+      "rotation": 0,
+      "evidence": "V04 44s · junto al acceso al balcón",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "entry-electrics",
+      "assetId": "electrical-panel",
+      "roomId": "entrance",
+      "label": "Tablero eléctrico",
+      "position": [
+        2.0700000000000003,
+        2.07,
+        4.04
+      ],
+      "rotation": -1.5707963267948966,
+      "evidence": "P04 · sobre paso entrada–living",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "bedroom-1-radiator",
+      "assetId": "radiator",
+      "roomId": "bedroom-1",
+      "label": "Radiador",
+      "position": [
+        2.1845552560646904,
+        0.14,
+        0.16
+      ],
+      "rotation": 0,
+      "evidence": "P07 / P10 / V04 · panel blanco",
+      "placementStatus": "estimated"
+    },
+    {
+      "id": "bedroom-2-radiator",
+      "assetId": "radiator",
+      "roomId": "bedroom-2",
+      "label": "Radiador",
+      "position": [
+        5.358840970350405,
+        0.14,
+        0.16
+      ],
+      "rotation": 0,
+      "evidence": "P07 / P10 / V04 · panel blanco",
+      "placementStatus": "estimated"
+    }
+  ],
+  "placement": {
+    "buildingId": "BATIMENT0000000316727839",
+    "confidence": "estimated",
+    "position": [
+      -12.684077802732626,
+      9.3,
+      -11.62850331177366
+    ],
+    "rotationY": -0.5374010334436539,
+    "floorIndex": 3,
+    "storeyHeight": 3.1,
+    "floorElevation": 9.3,
+    "facadeOffset": 5.5,
+    "exteriorInset": 0.09,
+    "wallHeight": 2.7,
+    "bounds": {
+      "minX": 0,
+      "maxX": 6.701698113207549,
+      "minZ": 0,
+      "maxZ": 8.318181818181817,
+      "width": 6.701698113207549,
+      "depth": 8.318181818181817
+    },
+    "livingFacadeAzimuth": 210.79081112229017,
+    "bedroomFacadeAzimuth": 30.790811122290165,
+    "label": "T3 · 3.er piso estimado",
+    "assumption": "Ubicación aproximada según tu marca: tercer piso, living hacia el patio suroeste y habitaciones hacia el noreste."
+  },
+  "geometry": {
+    "walls": [
+      {
+        "wallId": "exterior-north",
+        "solids": [
+          {
+            "position": [
+              1.0545552560646905,
+              1.35,
+              0
+            ],
+            "scale": [
+              0.78,
+              2.7,
+              0.18
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              2.1845552560646904,
+              0.415,
+              0
+            ],
+            "scale": [
+              1.4799999999999998,
+              0.83,
+              0.18
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              2.1845552560646904,
+              2.4450000000000003,
+              0
+            ],
+            "scale": [
+              1.4799999999999998,
+              0.5100000000000002,
+              0.18
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              3.7916981132075476,
+              1.35,
+              0
+            ],
+            "scale": [
+              1.7342857142857149,
+              2.7,
+              0.18
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              5.358840970350405,
+              0.415,
+              0
+            ],
+            "scale": [
+              1.4000000000000004,
+              0.83,
+              0.18
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              5.358840970350405,
+              2.4450000000000003,
+              0
+            ],
+            "scale": [
+              1.4000000000000004,
+              0.5100000000000002,
+              0.18
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              6.3802695417789765,
+              1.35,
+              0
+            ],
+            "scale": [
+              0.6428571428571432,
+              2.7,
+              0.18
+            ],
+            "rotationY": 0
+          }
+        ]
+      },
+      {
+        "wallId": "exterior-east",
+        "solids": [
+          {
+            "position": [
+              6.701698113207549,
+              1.35,
+              2.231818181818182
+            ],
+            "scale": [
+              4.463636363636364,
+              2.7,
+              0.18
+            ],
+            "rotationY": -1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "exterior-closet-south",
+        "solids": [
+          {
+            "position": [
+              6.151698113207548,
+              1.35,
+              4.463636363636364
+            ],
+            "scale": [
+              1.1000000000000005,
+              2.7,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          }
+        ]
+      },
+      {
+        "wallId": "exterior-living-east",
+        "solids": [
+          {
+            "position": [
+              5.601698113207548,
+              1.35,
+              6.390909090909091
+            ],
+            "scale": [
+              3.8545454545454527,
+              2.7,
+              0.18
+            ],
+            "rotationY": -1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "exterior-south",
+        "solids": [
+          {
+            "position": [
+              5.286698113207548,
+              1.35,
+              8.318181818181817
+            ],
+            "scale": [
+              0.63,
+              2.7,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          },
+          {
+            "position": [
+              4.241698113207548,
+              0.01,
+              8.318181818181817
+            ],
+            "scale": [
+              1.46,
+              0.02,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          },
+          {
+            "position": [
+              4.241698113207548,
+              2.45,
+              8.318181818181817
+            ],
+            "scale": [
+              1.46,
+              0.5,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          },
+          {
+            "position": [
+              2.585849056603774,
+              1.35,
+              8.318181818181817
+            ],
+            "scale": [
+              1.851698113207548,
+              2.7,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          },
+          {
+            "position": [
+              1.0100000000000007,
+              0.51,
+              8.318181818181817
+            ],
+            "scale": [
+              1.2999999999999998,
+              1.02,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          },
+          {
+            "position": [
+              1.0100000000000007,
+              2.42,
+              8.318181818181817
+            ],
+            "scale": [
+              1.2999999999999998,
+              0.56,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          },
+          {
+            "position": [
+              0.1800000000000006,
+              1.35,
+              8.318181818181817
+            ],
+            "scale": [
+              0.3600000000000003,
+              2.7,
+              0.18
+            ],
+            "rotationY": -3.141592653589793
+          }
+        ]
+      },
+      {
+        "wallId": "exterior-west",
+        "solids": [
+          {
+            "position": [
+              0,
+              1.35,
+              6.304090909090908
+            ],
+            "scale": [
+              4.0281818181818165,
+              2.7,
+              0.18
+            ],
+            "rotationY": 1.5707963267948966
+          },
+          {
+            "position": [
+              0,
+              2.37,
+              3.95
+            ],
+            "scale": [
+              0.6799999999999997,
+              0.6600000000000001,
+              0.18
+            ],
+            "rotationY": 1.5707963267948966
+          },
+          {
+            "position": [
+              0,
+              1.35,
+              3.5549999999999997
+            ],
+            "scale": [
+              0.11000000000000032,
+              2.7,
+              0.18
+            ],
+            "rotationY": 1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "exterior-entrance-north",
+        "solids": [
+          {
+            "position": [
+              0.3322776280323452,
+              1.35,
+              3.5
+            ],
+            "scale": [
+              0.6645552560646903,
+              2.7,
+              0.18
+            ],
+            "rotationY": 0
+          }
+        ]
+      },
+      {
+        "wallId": "exterior-bedroom-west",
+        "solids": [
+          {
+            "position": [
+              0.6645552560646903,
+              1.35,
+              1.75
+            ],
+            "scale": [
+              3.5,
+              2.7,
+              0.18
+            ],
+            "rotationY": 1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "bedroom-divider",
+        "solids": [
+          {
+            "position": [
+              4.038840970350405,
+              1.35,
+              1.75
+            ],
+            "scale": [
+              3.5,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "bedroom-1-south",
+        "solids": [
+          {
+            "position": [
+              1.5422776280323454,
+              1.35,
+              3.5
+            ],
+            "scale": [
+              1.75544474393531,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              2.785,
+              2.37,
+              3.5
+            ],
+            "scale": [
+              0.73,
+              0.6600000000000001,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              3.5944204851752026,
+              1.35,
+              3.5
+            ],
+            "scale": [
+              0.8888409703504045,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          }
+        ]
+      },
+      {
+        "wallId": "bedroom-2-south",
+        "solids": [
+          {
+            "position": [
+              4.228840970350405,
+              1.35,
+              3.5
+            ],
+            "scale": [
+              0.38,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              4.783840970350405,
+              2.37,
+              3.5
+            ],
+            "scale": [
+              0.7299999999999999,
+              0.6600000000000001,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              5.9252695417789765,
+              1.35,
+              3.5
+            ],
+            "scale": [
+              1.5528571428571438,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          }
+        ]
+      },
+      {
+        "wallId": "service-spine",
+        "solids": [
+          {
+            "position": [
+              2.2,
+              1.35,
+              3.54
+            ],
+            "scale": [
+              0.08,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          },
+          {
+            "position": [
+              2.2,
+              2.37,
+              3.92
+            ],
+            "scale": [
+              0.68,
+              0.6600000000000001,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          },
+          {
+            "position": [
+              2.2,
+              1.35,
+              5.320909090909091
+            ],
+            "scale": [
+              2.121818181818182,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "entrance-service",
+        "solids": [
+          {
+            "position": [
+              0.05,
+              1.35,
+              4.527272727272727
+            ],
+            "scale": [
+              0.1,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              0.375,
+              2.37,
+              4.527272727272727
+            ],
+            "scale": [
+              0.55,
+              0.6600000000000001,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              1.015,
+              1.35,
+              4.527272727272727
+            ],
+            "scale": [
+              0.7299999999999999,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              1.72,
+              2.37,
+              4.527272727272727
+            ],
+            "scale": [
+              0.6800000000000002,
+              0.6600000000000001,
+              0.1
+            ],
+            "rotationY": 0
+          },
+          {
+            "position": [
+              2.13,
+              1.35,
+              4.527272727272727
+            ],
+            "scale": [
+              0.14000000000000012,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          }
+        ]
+      },
+      {
+        "wallId": "wc-east",
+        "solids": [
+          {
+            "position": [
+              0.72,
+              1.35,
+              5.131439393939394
+            ],
+            "scale": [
+              1.208333333333334,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "wc-south",
+        "solids": [
+          {
+            "position": [
+              0.36,
+              1.35,
+              5.735606060606061
+            ],
+            "scale": [
+              0.72,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          }
+        ]
+      },
+      {
+        "wallId": "bathroom-south",
+        "solids": [
+          {
+            "position": [
+              1.1,
+              1.35,
+              6.381818181818182
+            ],
+            "scale": [
+              2.2,
+              2.7,
+              0.1
+            ],
+            "rotationY": 0
+          }
+        ]
+      },
+      {
+        "wallId": "kitchen-living",
+        "solids": [
+          {
+            "position": [
+              2.2,
+              1.35,
+              6.471818181818182
+            ],
+            "scale": [
+              0.18,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          },
+          {
+            "position": [
+              2.2,
+              2.43,
+              7.336818181818182
+            ],
+            "scale": [
+              1.55,
+              0.54,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          },
+          {
+            "position": [
+              2.2,
+              1.35,
+              8.215
+            ],
+            "scale": [
+              0.20636363636363475,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          }
+        ]
+      },
+      {
+        "wallId": "closet-west",
+        "solids": [
+          {
+            "position": [
+              5.601698113207548,
+              1.35,
+              3.54
+            ],
+            "scale": [
+              0.08,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          },
+          {
+            "position": [
+              5.601698113207548,
+              2.37,
+              3.945
+            ],
+            "scale": [
+              0.73,
+              0.6600000000000001,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          },
+          {
+            "position": [
+              5.601698113207548,
+              1.35,
+              4.386818181818182
+            ],
+            "scale": [
+              0.1536363636363639,
+              2.7,
+              0.1
+            ],
+            "rotationY": -1.5707963267948966
+          }
+        ]
+      }
+    ],
+    "floor": {
+      "polygon": [
+        [
+          0.6645552560646903,
+          0
+        ],
+        [
+          6.701698113207549,
+          0
+        ],
+        [
+          6.701698113207549,
+          4.463636363636364
+        ],
+        [
+          5.601698113207548,
+          4.463636363636364
+        ],
+        [
+          5.601698113207548,
+          8.318181818181817
+        ],
+        [
+          0,
+          8.318181818181817
+        ],
+        [
+          0,
+          3.5
+        ],
+        [
+          0.6645552560646903,
+          3.5
+        ]
+      ],
+      "elevation": 0,
+      "thickness": 0.14
+    },
+    "ceiling": {
+      "polygon": [
+        [
+          0.6645552560646903,
+          0
+        ],
+        [
+          6.701698113207549,
+          0
+        ],
+        [
+          6.701698113207549,
+          4.463636363636364
+        ],
+        [
+          5.601698113207548,
+          4.463636363636364
+        ],
+        [
+          5.601698113207548,
+          8.318181818181817
+        ],
+        [
+          0,
+          8.318181818181817
+        ],
+        [
+          0,
+          3.5
+        ],
+        [
+          0.6645552560646903,
+          3.5
+        ]
+      ],
+      "elevation": 2.7,
+      "thickness": 0.18
+    },
+    "contextSections": {
+      "before": [
+        [
+          -11.857737074144163,
+          -13.405905790815797
+        ],
+        [
+          -15.538,
+          -15.615
+        ],
+        [
+          -21.713,
+          -7.221
+        ],
+        [
+          -17.1600773716041,
+          -4.507902961587891
+        ]
+      ],
+      "apartmentBand": [
+        [
+          -11.608,
+          -13.256
+        ],
+        [
+          -11.857737074144163,
+          -13.405905790815797
+        ],
+        [
+          -17.1600773716041,
+          -4.507902961587891
+        ],
+        [
+          -11.05942038298917,
+          -0.872507467504823
+        ],
+        [
+          -6.121787845089113,
+          -9.158484192342613
+        ],
+        [
+          -12.052,
+          -12.614
+        ]
+      ],
+      "after": [
+        [
+          -11.05942038298917,
+          -0.8725074675048239
+        ],
+        [
+          14.6,
+          14.418
+        ],
+        [
+          16.817,
+          17.835
+        ],
+        [
+          25.373,
+          12.441
+        ],
+        [
+          21.988,
+          7.221
+        ],
+        [
+          -6.121787845089113,
+          -9.158484192342613
+        ]
+      ],
+      "belowTop": 9.16,
+      "ceilingBase": 12
+    }
+  },
   "site": {
     "latitude": 48.00129436934608,
     "longitude": -4.106788129193569,
@@ -4348,14 +6497,6 @@
           41.923
         ]
       ],
-      "height": 15.2,
-      "roofHeight": 0,
-      "groundAltitude": 5,
-      "groundOffset": -3.8,
-      "floors": 3,
-      "planarAccuracy": 2.5,
-      "verticalAccuracy": 1.5,
-      "source": "ign-bdtopo",
       "holes": [
         [
           [
@@ -4375,7 +6516,15 @@
             54.14
           ]
         ]
-      ]
+      ],
+      "height": 15.2,
+      "roofHeight": 0,
+      "groundAltitude": 5,
+      "groundOffset": -3.8,
+      "floors": 3,
+      "planarAccuracy": 2.5,
+      "verticalAccuracy": 1.5,
+      "source": "ign-bdtopo"
     }
   ],
   "roads": [

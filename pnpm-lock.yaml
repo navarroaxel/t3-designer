@@ -169,6 +169,15 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.11.0)
+      '@t3-designer/geometry':
+        specifier: workspace:*
+        version: link:packages/geometry
+      '@t3-designer/scene-schema':
+        specifier: workspace:*
+        version: link:packages/scene-schema
+      '@types/node':
+        specifier: ^24.13.6
+        version: 24.13.6
       eslint:
         specifier: ^10.11.0
         version: 10.11.0
