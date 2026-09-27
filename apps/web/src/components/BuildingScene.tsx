@@ -10,6 +10,9 @@ import { BuildingContext, SiteGround, type BuildingCutaway } from './BuildingCon
 import { BuildingLabelOverlay, BuildingLabelProjection, type BuildingLabel } from './BuildingLabels'
 import { getLocalDate, getSolarDay, type SolarPosition } from '../lib/solar'
 import { advanceCameraTransition, type CameraTransition } from '../lib/camera-transition'
+import { useTranslation } from 'react-i18next'
+import { useLocale } from '../i18n/useLocale'
+import { WebGLGuard } from './WebGLGuard'
 
 export type BuildingSceneProps = {
   instant: Date
@@ -124,18 +127,21 @@ function ApartmentMarker() {
 }
 
 export function BuildingScene(props: BuildingSceneProps) {
+  const { t } = useTranslation('workspace')
+  const { formatNumber } = useLocale()
   const { instant, sun, showNeighbors, showSunPath, showLabels, view, cutaway, focusApartment } = props
   const elements = useRef(new Map<string, HTMLDivElement>())
   const labels: BuildingLabel[] = showLabels ? [
     ...(!focusApartment ? [{ id: 'building', position: [0, 19, 0] as [number, number, number], text: '1 / 1 bis / 1 ter', subtitle: 'Jean-Baptiste Colbert', kind: 'building' as const }] : []),
-    { id: 'apartment', position: apartmentToSite([(APARTMENT_PLACEMENT.bounds.minX + APARTMENT_PLACEMENT.bounds.maxX) / 2, APARTMENT_PLACEMENT.wallHeight + (focusApartment ? 7 : 2), APARTMENT_PLACEMENT.bounds.maxZ + .6]), text: 'Nuestro T3', subtitle: APARTMENT_PLACEMENT.label, kind: 'building' },
-    ...([['N', 0, -56], ['S', 0, 56], ['E', 56, 0], ['O', -56, 0]] as const).map(([name, x, z]) => ({ id: name, position: [x, .3, z] as [number, number, number], text: name, kind: 'cardinal' as const })),
-    ...(sun.isDaylight && showSunPath ? [{ id: 'sun', position: sun.direction.map(value => value * 52) as [number, number, number], text: `Sol · ${sun.altitude.toFixed(0)}°`, kind: 'sun' as const }] : []),
+    { id: 'apartment', position: apartmentToSite([(APARTMENT_PLACEMENT.bounds.minX + APARTMENT_PLACEMENT.bounds.maxX) / 2, APARTMENT_PLACEMENT.wallHeight + (focusApartment ? 7 : 2), APARTMENT_PLACEMENT.bounds.maxZ + .6]), text: t('building.apartmentLabel'), subtitle: t('building.apartmentFloor', { floor: formatNumber(APARTMENT_PLACEMENT.floorIndex) }), kind: 'building' },
+    ...([['N', 'building.north', 0, -56], ['S', 'building.south', 0, 56], ['E', 'building.east', 56, 0], ['W', 'building.west', -56, 0]] as const).map(([id, key, x, z]) => ({ id, position: [x, .3, z] as [number, number, number], text: t(key), kind: 'cardinal' as const })),
+    ...(sun.isDaylight && showSunPath ? [{ id: 'sun', position: sun.direction.map(value => value * 52) as [number, number, number], text: t('building.sunLabel', { altitude: formatNumber(sun.altitude, 0) }), kind: 'sun' as const }] : []),
   ] : []
   return <div className="building-scene-surface">
+    <WebGLGuard fallback={<div className="canvas-fallback">{t('building.canvasFallback')}</div>}>
     <Canvas frameloop="demand" shadows="percentage" camera={{ fov: 43, near: .2, far: 1600, position: [-69, 55, 80] }} dpr={[1, 1.6]}
-      fallback={<div className="canvas-fallback">La vista del edificio necesita WebGL. Activá la aceleración gráfica del navegador.</div>}
-      aria-label="Modelo 3D georreferenciado del edificio y vecinos con sombras solares">
+      fallback={<div className="canvas-fallback">{t('building.canvasFallback')}</div>}
+      aria-label={t('building.canvasAria')}>
       <color attach="background" args={[sun.isDaylight ? '#e7eae2' : '#667482']} />
       <fog attach="fog" args={[sun.isDaylight ? '#e7eae2' : '#667482', 155, 350]} />
       <Sunlight sun={sun} focusApartment={focusApartment} />
@@ -149,6 +155,7 @@ export function BuildingScene(props: BuildingSceneProps) {
       <Camera view={view} focusApartment={focusApartment} cutaway={cutaway} />
       <BuildingLabelProjection labels={labels} elements={elements} />
     </Canvas>
+    </WebGLGuard>
     <BuildingLabelOverlay labels={labels} elements={elements} />
   </div>
 }

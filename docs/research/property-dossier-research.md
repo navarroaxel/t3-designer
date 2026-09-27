@@ -3,7 +3,7 @@
 Investigación del **27 de septiembre de 2026**, sobre el repositorio en `5153560`.
 Estado: investigación de referencia para la POC local de Documentación. Los valores públicos de este informe se consultaron el 27/09/2026; no son respuestas en tiempo real.
 
-**Alcance vigente de la POC:** el usuario autorizó mantener los datos existentes y los extractos públicos en este repositorio para desarrollar la tercera vista. La [guía editorial vigente](property-dossier.md) define esta primera versión. La [arquitectura híbrida](property-dossier-architecture.md) queda como evolución diferida; DB, S3 y multiusuario no forman parte de la POC. No se recibieron aún los documentos oficiales de compra.
+**Alcance vigente de la POC:** el usuario autorizó mantener los datos existentes y los extractos públicos en este repositorio para desarrollar la tercera vista. La [guía editorial vigente](property-dossier.md) define esta primera versión. La [arquitectura híbrida](../architecture/property-dossier-architecture.md) queda como evolución diferida; DB, S3 y multiusuario no forman parte de la POC. No se recibieron aún los documentos oficiales de compra.
 
 ## Decisión recomendada
 
@@ -25,11 +25,11 @@ almacenamiento privado se resolverán antes de añadirlos.
 ## Trabajo realizado y evidencia conservada
 
 - Revisión de las dos vistas, los datos canónicos, los esquemas y la documentación
-  existente. Inspección visual de [la captura del plano](reference/t3-plan.png).
+  existente. Inspección visual de [la captura del plano](../reference/t3-plan.png).
 - Consulta actual de **cinco servicios públicos**: BAN mediante IGN, RNB, API
   Carto/catastro, IGN BD TOPO y BDNB. Los identificadores y valores principales
   coinciden con la investigación anterior.
-- Conservación de [un extracto de las cinco respuestas](../apps/web/public/dossier/official-sources-2026-09-27.json)
+- Conservación de [un extracto de las cinco respuestas](../../apps/web/public/dossier/official-sources-2026-09-27.json)
   con URL, fecha y hora UTC, campos originales, criterio de selección y hash de la
   respuesta recibida. Es una selección documentada, **no un archivo íntegro de
   todas las respuestas HTTP**. Los campos de DPE representativo no se incorporan.
@@ -114,7 +114,7 @@ Las longitudes de muros, altura interior **2,70 m**, espesores **0,18 / 0,10 m**
 dimensiones de aberturas y mobiliario son estimaciones. Se pueden mostrar en un
 apartado «Referencias del modelo», fuera de las medidas documentadas del inmueble.
 
-[El índice visual](reference-evidence.md) describe 11 fotos y 4 videos: presencia
+[El índice visual](../reference/evidence.md) describe 11 fotos y 4 videos: presencia
 de ventanas, radiadores, cocina, equipo aparente de caldera, revestimientos y daños
 visibles. Eso sirve para documentar el estado observado con fecha y fotograma.
 No demuestra dimensiones, prestaciones térmicas, conformidad de instalaciones ni
@@ -245,7 +245,7 @@ nuevo no debe alterar silenciosamente la geometría del 3D.
 
 La [guía editorial de la POC](property-dossier.md) define el alcance técnico
 actual: catálogo local en la aplicación y evidencia estática en el repositorio.
-La [propuesta híbrida diferida](property-dossier-architecture.md) conserva una
+La [propuesta híbrida diferida](../architecture/property-dossier-architecture.md) conserva una
 posible evolución con Markdown, SQL y S3; no describe servicios implementados ni
 requisitos previos para esta primera vista.
 

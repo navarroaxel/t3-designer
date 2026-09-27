@@ -63,7 +63,7 @@ def setup():
                 if o.get('owner')==OWNER:bpy.data.objects.remove(o,do_unlink=True)
             bpy.data.scenes.remove(old)
     scene=bpy.data.scenes.new('T3 · Current apartment · estimated geometry');scene['owner']=OWNER
-    scene['dimensional_status']='estimated';scene['source']='docs/t3-apartment.json + docs/current-fixtures.json'
+    scene['dimensional_status']='estimated';scene['source']='docs/snapshots/t3-apartment.json + docs/snapshots/current-fixtures.json'
     bpy.context.window.scene=scene;enum_set(scene.unit_settings,'system','METRIC');scene.unit_settings.scale_length=1
     for name in ['Architecture','Upper walls · enable for full height','Floor finishes','Openings and trim','Current fixtures','Studio']:
         c=bpy.data.collections.new(name);c['owner']=OWNER;scene.collection.children.link(c);collections[name]=c
@@ -246,7 +246,7 @@ def studio():
 
 
 def main(render=True):
-    apartment=json.loads((ROOT/'docs/t3-apartment.json').read_text());placed=json.loads((ROOT/'docs/current-fixtures.json').read_text())
+    apartment=json.loads((ROOT/'docs/snapshots/t3-apartment.json').read_text());placed=json.loads((ROOT/'docs/snapshots/current-fixtures.json').read_text())
     setup();floors(apartment);walls(apartment);openings(apartment);fixtures(placed);studio()
     SOURCE.parent.mkdir(parents=True,exist_ok=True)
     bpy.data.libraries.write(str(SOURCE),{scene},fake_user=True,compress=True)

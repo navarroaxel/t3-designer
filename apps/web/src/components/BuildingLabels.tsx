@@ -1,6 +1,7 @@
 import { useEffect, useMemo, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
+import { useTranslation } from 'react-i18next'
 
 export type BuildingLabelAnchor = {
   id: string
@@ -49,8 +50,9 @@ export function BuildingLabelOverlay({ labels, elements }: {
   labels: readonly BuildingLabel[]
   elements: LabelElements
 }) {
+  const { t } = useTranslation('workspace')
   return <div className="labels-overlay building-labels-overlay"
-    aria-label="Rótulos del edificio, puntos cardinales y posición del sol"
+    aria-label={t('building.labelOverlayAria')}
     style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 20 }}>
     {labels.map(label => {
       const className = label.kind === 'building' ? 'building-model-label'

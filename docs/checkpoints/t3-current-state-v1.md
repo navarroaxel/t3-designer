@@ -62,7 +62,7 @@ Validation completed on 2026-09-26 before saving this checkpoint:
   labels, equipment visibility and asset inventory.
 - Live Blender scene and saved render visually inspected; original scene retained.
 
-To resume, read this file and `docs/reference-evidence.md`, then run `pnpm dev`.
+To resume, read this file and `docs/reference/evidence.md`, then run `pnpm dev`.
 The next modeling priority is measured geometry and the bathroom's precise
 shower/partition arrangement, followed by more faithful materials and wear.
 The checkpoint remains a first visual reconstruction, not a measured 1:1 model.

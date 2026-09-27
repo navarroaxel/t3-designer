@@ -2,7 +2,7 @@
 
 The proportional source image reports room areas, not surveyed wall lengths.
 This revision uses the eleven photographs and four videos indexed in
-`reference-evidence.md` to correct topology and add observed details. All linear
+[`../reference/evidence.md`](../reference/evidence.md) to correct topology and add observed details. All linear
 coordinates, heights, widths and object placements are still estimated.
 
 ## Geometry

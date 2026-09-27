@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SITE_BUILDINGS, SITE_PARCEL } from '../data/building-site'
 import { t3Apartment } from '../data/t3'
 
@@ -22,13 +23,14 @@ export function DossierIcon({ name, size = 18 }: { name: 'book' | 'home' | 'buil
 
 /** Real local IGN/cadastral geometry. North is up; this is not an aerial photo. */
 export function DossierSitePlan() {
+  const { t } = useTranslation('dossier')
   const id = useId()
   const points = SITE_PARCEL.footprint
   const xMin = Math.min(...points.map(point => point[0])) - 22
   const zMin = Math.min(...points.map(point => point[1])) - 12
   const width = Math.max(...points.map(point => point[0])) - xMin + 22
   const height = Math.max(...points.map(point => point[1])) - zMin + 12
-  return <svg viewBox={`${xMin} ${zMin} ${width} ${height}`} role="img" aria-label="Plano cartográfico de la parcela AL 0538 y del edificio, con el norte hacia arriba">
+  return <svg viewBox={`${xMin} ${zMin} ${width} ${height}`} role="img" aria-label={t('ui.sitePlanAlt')}>
     <defs><pattern id={id} width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="0.3" cy="0.3" r="0.17" fill="#b8c1b1" /></pattern></defs>
     <rect x={xMin} y={zMin} width={width} height={height} fill={`url(#${id})`} />
     {SITE_BUILDINGS.filter(building => !building.isTarget).map(building => <polygon key={building.id} points={building.footprint.map(point => point.join(',')).join(' ')} fill="#dee3d6" stroke="#ccd3c6" strokeWidth="0.3" />)}
@@ -41,13 +43,14 @@ export function DossierSitePlan() {
 }
 
 export function DossierApartmentPlan() {
+  const { t } = useTranslation('dossier')
   const allPoints = t3Apartment.perimeter
   const minX = Math.min(...allPoints.map(point => point[0]))
   const minZ = Math.min(...allPoints.map(point => point[1]))
   const width = Math.max(...allPoints.map(point => point[0])) - minX
   const height = Math.max(...allPoints.map(point => point[1])) - minZ
   const colors = ['#e5e7d9', '#e8ddd0', '#d8dfd3', '#e8e2d5', '#deded0', '#e2d5c5', '#d5ddd4', '#dce1cd']
-  return <svg viewBox={`${minX - 0.4} ${minZ - 0.4} ${width + 0.8} ${height + 0.8}`} role="img" aria-label="Plano esquemático del departamento: áreas reportadas y formas estimadas">
+  return <svg viewBox={`${minX - 0.4} ${minZ - 0.4} ${width + 0.8} ${height + 0.8}`} role="img" aria-label={t('ui.apartmentPlanAlt')}>
     {t3Apartment.rooms.map((room, index) => <polygon key={room.id} points={room.polygon.map(point => point.join(',')).join(' ')} fill={colors[index % colors.length]} stroke="#fafaf3" strokeWidth="0.05" />)}
     {t3Apartment.walls.map(wall => <line key={wall.id} x1={wall.from[0]} y1={wall.from[1]} x2={wall.to[0]} y2={wall.to[1]} stroke="#62715c" strokeWidth={wall.kind === 'exterior' ? 0.09 : 0.055} />)}
   </svg>

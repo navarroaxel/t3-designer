@@ -4,8 +4,8 @@ Fecha: 27/09/2026. Estado: **arquitectura futura diferida; servicios sin impleme
 
 **Prioridad vigente: POC local en el repositorio.** El usuario autorizó conservar
 los datos existentes y los extractos públicos en el codebase para crear ahora la
-tercera vista. La [guía editorial de la POC](property-dossier.md) define el alcance
-actual; [la investigación](property-dossier-research.md) y sus evidencias se
+tercera vista. La [guía editorial de la POC](../research/property-dossier.md) define el alcance
+actual; [la investigación](../research/property-dossier-research.md) y sus evidencias se
 conservan en el proyecto. DB, S3, multiusuario y migración a un expediente privado
 no son requisitos ni trabajo implementado de esta POC.
 
@@ -247,8 +247,8 @@ separar estas clases de contenido:
 | Área actual | Acción a diseñar/ejecutar durante la migración |
 | --- | --- |
 | `apps/web/src/data/t3.ts`, `building-site.ts`, `apartment-placement.ts`, `current-state.ts` | Extraer datos reales al paquete privado; conservar lógica genérica y un ejemplo sintético en la aplicación. |
-| `docs/building-research.md`, geometría, registro visual, checkpoints y README | Separar investigación del caso real de método/documentación técnica; revisar texto que identifica el diagnóstico y el inmueble. |
-| `docs/*.json`, `assets/scenes/t3-project.json` | Trasladar snapshots del caso real y adaptar exportación para consumir el dataset privado. |
+| `docs/research/building-research.md`, geometría, registro visual, checkpoints y README | Separar investigación del caso real de método/documentación técnica; revisar texto que identifica el diagnóstico y el inmueble. |
+| `docs/snapshots/*.json`, `assets/scenes/t3-project.json` | Trasladar snapshots del caso real y adaptar exportación para consumir el dataset privado. |
 | `docs/reference/`, `assets/blender/` | Revisar planos, capturas, escenas y renders, también los metadatos/textos embebidos. |
 | `apps/web/public/models/` y manifiestos | Conservar solo recursos genéricos con derechos claros en la demo; separar composición, evidencia y assets que revelan el caso. |
 | Tests, scripts y build | Sustituir datos reales por fixtures ficticios y verificar que el bundle no contenga el expediente. |
@@ -286,4 +286,4 @@ público, historial y build no contienen datos del caso privado.
 
 Esta propuesta no implementa servicios, repositorios nuevos, importadores ni
 migraciones. La tercera vista se desarrolla por separado con el alcance de la
-[POC local](property-dossier.md), sin depender de esos componentes futuros.
+[POC local](../research/property-dossier.md), sin depender de esos componentes futuros.

@@ -22,7 +22,9 @@
     "scene:verify": "node scripts/export_scene.ts --check",
     "blender:validate": "python3 scripts/blender/validate_assets.py --report artifacts/reports/assets.json",
     "blender:scene": "node scripts/run_blender.mjs assemble_project.py",
-    "blender:render": "node scripts/run_blender.mjs assemble_project.py --render"
+    "blender:render": "node scripts/run_blender.mjs assemble_project.py --render",
+    "test:e2e": "pnpm --filter @t3-designer/web test:e2e",
+    "check:all": "pnpm check && pnpm test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

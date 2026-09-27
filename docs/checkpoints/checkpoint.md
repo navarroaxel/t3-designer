@@ -2,9 +2,9 @@
 
 Esta iteración integra el T3 al edificio, conecta el sol del interior y revisa la
 arquitectura antes de seguir agregando funcionalidades. El checkpoint previo está
-preservado en [edificio y sol](checkpoints/t3-building-sun-v1.md), correspondiente
+preservado en [edificio y sol](t3-building-sun-v1.md), correspondiente
 al commit `f697996`; el interior original sigue en
-[estado inicial del T3](checkpoints/t3-current-state-v1.md), commit `5e45d4e`.
+[estado inicial del T3](t3-current-state-v1.md), commit `5e45d4e`.
 
 ## Estado implementado
 
@@ -26,7 +26,7 @@ al commit `f697996`; el interior original sigue en
 ## Datos y recuperación
 
 Las fuentes de verdad y las reglas para extenderlas están en
-[architecture.md](architecture.md). Los datos editables siguen bajo
+[architecture.md](../architecture/architecture.md). Los datos editables siguen bajo
 `apps/web/src/data`; el schema y la geometría pura están en `packages/`.
 
 `pnpm scene:snapshot` genera cuatro JSON y `pnpm scene:verify` detecta si quedaron
@@ -82,7 +82,7 @@ Geometría y dirección solar son compartidas; materiales, brillo, decoración y
 algunos detalles visuales dependen del renderer. No asumir igualdad de píxeles
 entre web y Blender ni tratar los `.blend` históricos como la escena actual.
 Las medidas, ventanas, encaje y orientación siguen siendo estimados. Ver
-[ubicación](apartment-placement.md) y [límites solares](solar-model.md).
+[ubicación](../model/apartment-placement.md) y [límites solares](../model/solar-model.md).
 
 ## Retomar
 
@@ -95,4 +95,4 @@ pnpm blender:render
 
 Abrir `http://localhost:5173/#apartment`. Para cambiar la fecha del render sin
 reescribir la referencia versionada, exportar con `--output` y pasar ese archivo
-con `--input`; los ejemplos están en [blender.md](blender.md).
+con `--input`; los ejemplos están en [blender.md](../workflows/blender.md).

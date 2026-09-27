@@ -7,7 +7,7 @@ La decisión vigente para esta POC es conservar en el repositorio los datos ya
 disponibles y los extractos públicos consultados. Se prioriza una vista útil con
 evidencia accesible. **DB, S3, multiusuario, carga de documentos y extracción OCR
 quedan diferidos**; no son requisitos para recorrer el expediente actual.
-La [arquitectura híbrida](property-dossier-architecture.md) se conserva como una
+La [arquitectura híbrida](../architecture/property-dossier-architecture.md) se conserva como una
 posible evolución, sin servicios implementados por esta entrega.
 
 ## Qué respalda cada parte
@@ -16,11 +16,11 @@ posible evolución, sin servicios implementados por esta entrega.
 | --- | --- |
 | Este documento | Criterios editoriales, alcance, mantenimiento y límites de la POC. |
 | [Investigación del 27/09/2026](property-dossier-research.md) | Inventario detallado, contraste de fuentes, diferencias y rutas para ampliar el expediente. |
-| [Extracto de cinco consultas públicas](../apps/web/public/dossier/official-sources-2026-09-27.json) | Valores conservados de BAN, RNB, catastro, IGN y BDNB, con URL, instante de consulta y selección realizada. |
-| [Captura del plano](reference/t3-plan.png) | Áreas transcritas, denominaciones y referencia al diagnóstico todavía no recibido. |
-| [Índice de evidencia visual](reference-evidence.md) | Observaciones de las fotos y videos revisados; no mediciones ni certificados. |
-| [Catálogo de la vista](../apps/web/src/data/dossier.ts) | Presentación estructurada de hechos, fuentes, observaciones y pendientes; vincula cada dato con su evidencia. |
-| [Modelo del departamento](../apps/web/src/data/t3.ts) y [registro en el edificio](../apps/web/src/data/apartment-placement.ts) | Datos del modelo existente, que conservan sus supuestos y estimaciones. |
+| [Extracto de cinco consultas públicas](../../apps/web/public/dossier/official-sources-2026-09-27.json) | Valores conservados de BAN, RNB, catastro, IGN y BDNB, con URL, instante de consulta y selección realizada. |
+| [Captura del plano](../reference/t3-plan.png) | Áreas transcritas, denominaciones y referencia al diagnóstico todavía no recibido. |
+| [Índice de evidencia visual](../reference/evidence.md) | Observaciones de las fotos y videos revisados; no mediciones ni certificados. |
+| [Catálogo de la vista](../../apps/web/src/data/dossier.ts) | Presentación estructurada de hechos, fuentes, observaciones y pendientes; vincula cada dato con su evidencia. |
+| [Modelo del departamento](../../apps/web/src/data/t3.ts) y [registro en el edificio](../../apps/web/src/data/apartment-placement.ts) | Datos del modelo existente, que conservan sus supuestos y estimaciones. |
 
 La guía editorial no es un segundo catálogo numérico ni se importa automáticamente
 desde Markdown. En esta POC el catálogo se mantiene en código: una corrección debe

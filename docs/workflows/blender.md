@@ -5,8 +5,8 @@ pipeline for validation/rendering, and an optional MCP connection for editing an
 open Blender session. The background pipeline does not need the GUI, an add-on,
 MCP, `uv`, telemetry consent or external asset providers.
 
-See [architecture](architecture.md) for the data contract and extension
-boundaries, and [solar assumptions](solar-model.md) for the study's limits.
+See [architecture](../architecture/architecture.md) for the data contract and extension
+boundaries, and [solar assumptions](../model/solar-model.md) for the study's limits.
 
 ## Headless prerequisites
 
@@ -41,9 +41,9 @@ Without `--output`, it refreshes four tracked files:
 
 | File | Contents |
 | --- | --- |
-| `docs/t3-apartment.json` | Apartment geometry and metadata |
-| `docs/current-fixtures.json` | Asset catalog and fixture placements |
-| `docs/building-site.json` | Geographic context and solar samples for the older exterior adapter |
+| `docs/snapshots/t3-apartment.json` | Apartment geometry and metadata |
+| `docs/snapshots/current-fixtures.json` | Asset catalog and fixture placements |
+| `docs/snapshots/building-site.json` | Geographic context and solar samples for the older exterior adapter |
 | `assets/scenes/t3-project.json` | Complete project, placement, physical wall/floor/ceiling solids, context sections and solar data |
 
 Run from the repository root. Export options are:
@@ -180,8 +180,8 @@ node scripts/run_blender.mjs assemble_building.py --render
 
 These older commands regenerate their named files under `assets/blender` and
 `apps/web/public/models`; save authored variants under different names first.
-The exterior adapter reads `docs/building-site.json` and its sampled timeline.
-See [exterior reference details](building-research.md#escena-blender-editable).
+The exterior adapter reads `docs/snapshots/building-site.json` and its sampled timeline.
+See [exterior reference details](../research/building-research.md#escena-blender-editable).
 
 The sample generator, `scripts/blender/create_door_frame.py`, exports
 `apps/web/public/models/door-frame.glb` and

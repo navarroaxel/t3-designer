@@ -14,7 +14,7 @@ from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
 OWNER = 't3.building-context.v1'
-SNAPSHOT = ROOT / 'docs/building-site.json'
+SNAPSHOT = ROOT / 'docs/snapshots/building-site.json'
 OUTPUT = ROOT / 'assets/blender/t3-building-context.blend'
 PREVIEW = ROOT / 'assets/blender/t3-building-context.png'
 DATA = json.loads(SNAPSHOT.read_text())
@@ -329,7 +329,7 @@ def lighting_and_camera():
 def save():
     OUTPUT.parent.mkdir(parents=True,exist_ok=True)
     readme = bpy.data.texts.new('READ ME · Colbert public-data model')
-    readme.write('T3 Building Sun\n\n'+scene['source']+'\n\n'+scene['coordinates']+'\n'+scene['precision']+'\n'+scene['terrain']+'\n\n'+scene['timeline']+'\nSolar date: '+scene['solar_date']+'\n\nAll 99 building footprints and 27 road pieces derive from official public IGN data.\nWindow rhythm, roof shapes, materials and flat terrain are visual estimates.\nNo apartment or individual window has been identified.\n\nSee docs/building-research.md and docs/solar-model.md.\nRegenerate with scripts/blender/assemble_building.py.\n')
+    readme.write('T3 Building Sun\n\n'+scene['source']+'\n\n'+scene['coordinates']+'\n'+scene['precision']+'\n'+scene['terrain']+'\n\n'+scene['timeline']+'\nSolar date: '+scene['solar_date']+'\n\nAll 99 building footprints and 27 road pieces derive from official public IGN data.\nWindow rhythm, roof shapes, materials and flat terrain are visual estimates.\nNo apartment or individual window has been identified.\n\nSee docs/research/building-research.md and docs/model/solar-model.md.\nRegenerate with scripts/blender/assemble_building.py.\n')
     source = bpy.data.texts.new('assemble_building.py · generator source')
     source.write(Path(__file__).read_text())
     # A copy preserves the user's working-file path and every original scene.

@@ -31,9 +31,9 @@ if (values.help) {
       if (!existsSync(resolve(root, asset.repoPath))) throw new Error(`Missing render asset: ${asset.repoPath}`)
     }
     const outputs = values.output ? [[resolve(values.output), project] as const] : [
-      [resolve(root, 'docs/t3-apartment.json'), project.apartment],
-      [resolve(root, 'docs/current-fixtures.json'), { assets: assetCatalog, fixtures: currentFixtures }],
-      [resolve(root, 'docs/building-site.json'), buildBuildingSnapshot(options)],
+      [resolve(root, 'docs/snapshots/t3-apartment.json'), project.apartment],
+      [resolve(root, 'docs/snapshots/current-fixtures.json'), { assets: assetCatalog, fixtures: currentFixtures }],
+      [resolve(root, 'docs/snapshots/building-site.json'), buildBuildingSnapshot(options)],
       [resolve(root, 'assets/scenes/t3-project.json'), project],
     ] as const
     const stale: string[] = []

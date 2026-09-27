@@ -1,5 +1,7 @@
 # T3 Designer
 
+Documentation is organized in the [documentation index](docs/README.md).
+
 T3 Designer is an interactive 3D workspace for exploring a home and imagining how
 to make it your own. Move between floor plans and interior views to inspect
 rooms, furniture, fixtures and finishes, then zoom out to understand how the
@@ -36,6 +38,12 @@ verification, and the production web build. It does not start Blender or require
 MCP. Individual commands remain available: `pnpm lint`, `pnpm typecheck`,
 `pnpm test`, `pnpm scene:verify` and `pnpm build`.
 
+The interface follows the browser's preferred supported language (Spanish,
+English or French; English fallback). Use the language selector in the footer to
+save a manual choice or return to automatic detection. Solar time always stays
+in Quimper's `Europe/Paris` timezone. See the [i18n guide](docs/architecture/i18n.md)
+for resource conventions and `pnpm test:e2e` / `pnpm check:all` browser validation.
+
 ## Building and sunlight
 
 Choose **Edificio y sol** in the header to switch to the exterior view. Set the
@@ -59,15 +67,15 @@ selected moment is retained when switching views. **Mostrar edificio** adds a
 floor section around the apartment; hiding it preserves neighbouring shadows.
 The view cut hides wall tops and the ceiling without removing their physical
 shadows. Window glazing lets direct light through; frames, balcony guards and
-opaque door panels still cast shadows. See [placement assumptions](docs/apartment-placement.md).
+opaque door panels still cast shadows. See [placement assumptions](docs/model/apartment-placement.md).
 
 The target is officially **1ter impasse Jean-Baptiste Colbert, Quimper**; RNB
 connects addresses 1, 1 bis and 1 ter to the same building. This version uses a
 local extract of 99 building footprints and source heights, 27 road segments and
 parcel AL 0538. No external requests are needed when changing the time.
 
-Sources and reproducible queries are in [building research](docs/building-research.md).
-See [solar equations, timezone rules and limitations](docs/solar-model.md). Public
+Sources and reproducible queries are in [building research](docs/research/building-research.md).
+See [solar equations, timezone rules and limitations](docs/model/solar-model.md). Public
 geometry supports a massing study; facade openings and roof forms are estimated.
 The display ground is flat, neighbour roofs are inferred, and the selected local
 context does not include the full terrain or distant horizon. It is a visual
@@ -75,7 +83,7 @@ shadow study, not a certified insolation or energy report.
 
 ## Hybrid architecture
 
-See [architecture and extension boundaries](docs/architecture.md) for the complete
+See [architecture and extension boundaries](docs/architecture/architecture.md) for the complete
 flow from domain data to the web and Blender adapters.
 
 - `apps/web/src/data/t3.ts`: canonical architectural data in meters, validated by
@@ -128,7 +136,7 @@ pnpm blender:render    # Build it and render a PNG with Cycles CPU
 ```
 
 `scene:snapshot` defaults to **2026-09-26 at 15:00, Europe/Paris**. It exports
-`docs/t3-apartment.json`, `docs/current-fixtures.json`, `docs/building-site.json`
+`docs/snapshots/t3-apartment.json`, `docs/snapshots/current-fixtures.json`, `docs/snapshots/building-site.json`
 and `assets/scenes/t3-project.json`. It does not read the browser's current date
 or time. A separate seasonal render can use its own snapshot:
 
@@ -157,7 +165,7 @@ shadows. Materials, facade decoration, roof forms and renderer lighting remain
 approximations; these checks do not establish visual parity or measured solar
 accuracy.
 
-See [Blender commands, outputs and optional MCP setup](docs/blender.md) for all
+See [Blender commands, outputs and optional MCP setup](docs/workflows/blender.md) for all
 flags, preserved references and the older asset-authoring commands.
 
 ## Evidence and precision
@@ -170,13 +178,13 @@ does not query external APIs. The individual apartment's original diagnostics,
 legal lot and energy consumption remain pending.
 
 This proof of concept deliberately keeps existing property data and public-source
-extracts in the repository. See the [editorial scope](docs/property-dossier.md)
-and [research inventory](docs/property-dossier-research.md). Database, S3 storage,
-document uploads and multiuser access are deferred; the [hybrid architecture](docs/property-dossier-architecture.md)
+extracts in the repository. See the [editorial scope](docs/research/property-dossier.md)
+and [research inventory](docs/research/property-dossier-research.md). Database, S3 storage,
+document uploads and multiuser access are deferred; the [hybrid architecture](docs/architecture/property-dossier-architecture.md)
 describes a possible later stage, not services required by this version.
 
-See [visual evidence](docs/reference-evidence.md), [geometry notes](docs/apartment-geometry.md)
-and [checkpoint](docs/checkpoint.md). The reported room areas sum to 49.18 m²;
+See [visual evidence](docs/reference/evidence.md), [geometry notes](docs/model/apartment-geometry.md)
+and [checkpoint](docs/checkpoints/checkpoint.md). The reported room areas sum to 49.18 m²;
 conceptual polygons preserve them, but walls overlay their boundaries. This is not
 a measured net-area survey. Window and appliance presence are observed; their
 metric dimensions and global placements remain provisional. The bathroom's exact
@@ -202,5 +210,5 @@ request is appreciated, not an additional license condition.
 Third-party dependencies, public datasets and externally supplied reference
 material retain their respective licenses and rights; the MIT license does not
 relicense them. Preserve source attribution and retrieval dates for the geographic
-extracts; see [data sources and attribution](docs/building-research.md#licencias-y-atribución)
-and [reference provenance](docs/reference-evidence.md).
+extracts; see [data sources and attribution](docs/research/building-research.md#licencias-y-atribución)
+and [reference provenance](docs/reference/evidence.md).

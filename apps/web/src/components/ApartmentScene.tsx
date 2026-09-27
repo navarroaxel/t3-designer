@@ -10,6 +10,10 @@ import { BuildingContext } from './BuildingContext'
 import { APARTMENT_PLACEMENT } from '../data/apartment-placement'
 import type { SolarPosition } from '../lib/solar'
 import { advanceCameraTransition, type CameraTransition } from '../lib/camera-transition'
+import { useTranslation } from 'react-i18next'
+import { useLocale } from '../i18n/useLocale'
+import { roomLabel } from '../i18n/workspace-labels'
+import { WebGLGuard } from './WebGLGuard'
 
 type ViewRequest = { mode: '3d' | 'top'; revision: number }
 
@@ -26,7 +30,6 @@ type ApartmentSceneProps = {
 
 type RoomLabel = {
   id: string
-  name: string
   area: number
   position: Point2D
   extra: boolean
@@ -128,6 +131,8 @@ function SceneCamera({ apartment, view, focusRoomId, showContext }: Pick<Apartme
 }
 
 export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = true, focusRoomId, view, sun, showContext }: ApartmentSceneProps) {
+  const { t } = useTranslation('workspace')
+  const { formatNumber } = useLocale()
   const bounds = apartmentBounds(apartment)
   const [x, z] = bounds.center
   // Canvas owns one explicit camera; controls and labels always use that same instance.
@@ -138,19 +143,20 @@ export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = 
   }, [])
   const labelElements = useRef(new Map<string, HTMLDivElement>())
   const labels = useMemo<RoomLabel[]>(() => [
-    ...apartment.rooms.map((room) => ({ id: room.id, name: room.name, area: room.reportedArea, position: polygonCentroid(room.polygon), extra: false })),
-    ...(apartment.balcony ? [{ id: apartment.balcony.id, name: apartment.balcony.name, area: apartment.balcony.reportedArea, position: polygonCentroid(apartment.balcony.polygon), extra: true }] : []),
+    ...apartment.rooms.map((room) => ({ id: room.id, area: room.reportedArea, position: polygonCentroid(room.polygon), extra: false })),
+    ...(apartment.balcony ? [{ id: apartment.balcony.id, area: apartment.balcony.reportedArea, position: polygonCentroid(apartment.balcony.polygon), extra: true }] : []),
   ], [apartment])
 
   return (
     <div className="scene-surface">
+    <WebGLGuard fallback={<div className="canvas-fallback">{t('apartment.canvasFallback')}</div>}>
     <Canvas
       frameloop="demand"
       camera={camera}
       shadows="percentage"
       dpr={[1, 2]}
-      fallback={<div className="canvas-fallback">La vista del departamento necesita WebGL. Activá la aceleración gráfica del navegador.</div>}
-      aria-label="Modelo 3D del departamento con luz solar por sus ventanas. Arrastrar para orbitar, rueda para acercar."
+      fallback={<div className="canvas-fallback">{t('apartment.canvasFallback')}</div>}
+      aria-label={t('apartment.canvasAria')}
     >
       <color attach="background" args={[sun.isDaylight ? '#e8eae4' : '#687684']} />
       <InteriorSunlight apartment={apartment} sun={sun} />
@@ -168,8 +174,9 @@ export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = 
       <SceneCamera apartment={apartment} view={view} focusRoomId={focusRoomId} showContext={showContext} />
       <LabelProjection labels={labels} elements={labelElements} enabled={showLabels} />
     </Canvas>
+    </WebGLGuard>
     {showLabels && (
-      <div className="labels-overlay" aria-label="Room names and reported areas">
+      <div className="labels-overlay" aria-label={t('apartment.roomLabelsAria')}>
         {labels.map((label) => (
           <div
             key={label.id}
@@ -180,8 +187,8 @@ export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = 
             className={`room-label${label.area < 1.5 ? ' room-label-small' : ''}`}
             style={{ visibility: 'hidden' }}
           >
-            <span>{label.name}</span>
-            <small>{label.area.toFixed(2)} m²{label.extra ? ' · extra' : ''}</small>
+            <span>{roomLabel(t, label.id)}</span>
+            <small>{label.extra ? t('apartment.extraArea', { area: formatNumber(label.area, 2) }) : t('apartment.reportedArea', { area: formatNumber(label.area, 2) })}</small>
           </div>
         ))}
       </div>

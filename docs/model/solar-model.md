@@ -49,4 +49,4 @@ glazing, a single astronomical sun and an approximate diffuse sky replace the
 old reference scene's studio lights. Cycles computes its own light transport;
 materials and brightness are not measured or calibrated, and its appearance is
 not expected to match the web pixel for pixel. The saved scene embeds the full
-snapshot and its source hash. See [Blender workflow](blender.md).
+snapshot and its source hash. See [Blender workflow](../workflows/blender.md).

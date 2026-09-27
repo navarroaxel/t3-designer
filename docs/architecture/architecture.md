@@ -80,7 +80,7 @@ The combined `.blend` embeds the input snapshot and packs image resources.
 
 Run `pnpm scene:snapshot` after canonical data changes, then `pnpm scene:verify`.
 For an alternate date use `--output artifacts/scenes/winter.json` to preserve the
-checked-in baseline. Full commands are in [Blender workflow](blender.md).
+checked-in baseline. Full commands are in [Blender workflow](../workflows/blender.md).
 
 ## Validation and review outcome
 
@@ -116,4 +116,4 @@ persisted inputs can reconstruct the combined scene with Blender's GUI closed.
   loading on target devices before splitting shared scene dependencies. Both
   views currently need the same renderer and many of the same assets.
 - Measurements, facade registration, terrain, vegetation and material photometry
-  remain approximate. See [solar limits](solar-model.md) and [placement](apartment-placement.md).
+  remain approximate. See [solar limits](../model/solar-model.md) and [placement](../model/apartment-placement.md).

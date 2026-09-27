@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BUILDING_SITE } from '../data/building-site'
 import { getLocalDate, getSolarDay, getSolarPosition, resolveLocalDateTime } from './solar'
+import { useLocale } from '../i18n/useLocale'
 
 const { latitude, longitude, timeZone } = BUILDING_SITE
-const zoneFormatter = new Intl.DateTimeFormat('es-ES', { timeZone, timeZoneName: 'short' })
 type Moment = { date: string; minutes: number; adjusted: boolean }
 
 function clockValue(minutes: number) {
@@ -24,6 +24,7 @@ function validMoment(date: string, minutes: number): Moment {
 }
 
 export function useSolarStudy() {
+  const { locale, compass } = useLocale()
   const [moment, setMoment] = useState<Moment>(() => ({ date: getLocalDate(new Date(), timeZone), minutes: 14 * 60, adjusted: false }))
   const [playing, setPlaying] = useState(false)
   const resolution = useMemo(() => resolveLocalDateTime(moment.date, moment.minutes, timeZone), [moment.date, moment.minutes])
@@ -31,8 +32,8 @@ export function useSolarStudy() {
   const sun = useMemo(() => getSolarPosition(instant, latitude, longitude), [instant])
   const day = useMemo(() => getSolarDay(moment.date, latitude, longitude, timeZone), [moment.date])
   const time = clockValue(moment.minutes)
-  const zone = zoneFormatter.formatToParts(instant).find(part => part.type === 'timeZoneName')?.value
-  const bearing = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'][Math.round(sun.azimuth / 45) % 8]
+  const zone = new Intl.DateTimeFormat(locale, { timeZone, timeZoneName: 'short' }).formatToParts(instant).find(part => part.type === 'timeZoneName')?.value
+  const bearing = compass(sun.azimuth)
   const daylightMinutes = Math.round(day.daylightMinutes)
   const daylightHours = Math.floor(daylightMinutes / 60)
   const daylightRemainder = daylightMinutes % 60

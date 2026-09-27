@@ -16,3 +16,7 @@ __pycache__/
 
 # Reproducible render outputs and validation reports; canonical inputs are tracked.
 artifacts/
+
+# Browser test artifacts
+**/test-results/
+**/playwright-report/

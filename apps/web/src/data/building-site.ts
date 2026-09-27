@@ -1,5 +1,5 @@
 /**
- * Public geographic extract fetched 2026-09-26. See docs/building-research.md.
+ * Public geographic extract fetched 2026-09-26. See docs/research/building-research.md.
  * Units: metres. x = true east, z = true south, y = up. Origin is the RNB point.
  * Footprints are open rings (no repeated closing vertex); IGN buildings may
  * follow the eaves rather than the exact cadastral ground footprint.

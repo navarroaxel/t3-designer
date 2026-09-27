@@ -20,8 +20,8 @@ Milestone local: **`checkpoint/t3-building-sun-v1`**. El usuario pidió guardar 
 - `apps/web/src/components/BuildingExplorer.tsx` y `apps/web/src/building.css`: controles y presentación.
 - `apps/web/src/App.tsx`: selector de vistas.
 - `apps/web/src/data/t3.ts`, `current-state.ts`: datos del interior, aún sin alineación geográfica confirmada con el edificio.
-- [building-research.md](../building-research.md): identidad, consultas reproducibles BAN/RNB/IGN/catastro/BDNB, licencias y precisión.
-- [solar-model.md](../solar-model.md): ecuaciones, contrato, DST y límites del modelo solar.
+- [building-research.md](../research/building-research.md): identidad, consultas reproducibles BAN/RNB/IGN/catastro/BDNB, licencias y precisión.
+- [solar-model.md](../model/solar-model.md): ecuaciones, contrato, DST y límites del modelo solar.
 
 ## Proyectos y archivos guardados
 
@@ -38,7 +38,7 @@ Todos los `.blend` siguientes forman parte del repositorio:
 
 El Blender abierto queda asociado a `t3-building-context.blend`; no se borraron las escenas anteriores. El generador `scripts/blender/assemble_building.py` crea una escena nueva y guarda una copia, por lo que repetirlo en una sesión viva agrega otra escena. Para regeneración limpia, usar un proceso en background.
 
-`docs/building-site.json` guarda la instantánea geográfica y 96 muestras solares cada 15 min del **26/09/2026**. En Blender el fotograma 61 corresponde a **15:00 París**; los ejes son **X este / Y norte / Z arriba**. Cambiar el timeline recorre ese día. Para otro día hay que regenerar la instantánea; todavía no hay un exportador persistido específico ni calendario interactivo en Blender. `pnpm scene:snapshot` exporta solamente el interior.
+`docs/snapshots/building-site.json` guarda la instantánea geográfica y 96 muestras solares cada 15 min del **26/09/2026**. En Blender el fotograma 61 corresponde a **15:00 París**; los ejes son **X este / Y norte / Z arriba**. Cambiar el timeline recorre ese día. Para otro día hay que regenerar la instantánea; todavía no hay un exportador persistido específico ni calendario interactivo en Blender. `pnpm scene:snapshot` exporta solamente el interior.
 
 Superdesign:
 
@@ -70,7 +70,7 @@ El usuario aceptó continuar con geometría aproximada y buscar más informació
 
 ## Retomar
 
-1. Leer este checkpoint, `docs/building-research.md` y `docs/solar-model.md`.
+1. Leer este checkpoint, `docs/research/building-research.md` y `docs/model/solar-model.md`.
 2. `pnpm dev` y abrir `http://127.0.0.1:5173/#building`.
 3. Para editar en Blender, abrir `assets/blender/t3-building-context.blend`; inspeccionar antes de modificar y preservar trabajo vivo. `pnpm blender:check` comprueba MCP.
 4. Para regenerar la escena guardada desde su instantánea:
