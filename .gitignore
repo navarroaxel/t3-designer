@@ -9,6 +9,7 @@ dist/
 !.env.example
 *.blend1
 *.blend2
+.superdesign/
 
 # Python-generated caches
 __pycache__/
