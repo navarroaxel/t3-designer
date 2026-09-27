@@ -1,11 +1,15 @@
 # T3 Designer
 
-A local, interactive reconstruction of the current T3 apartment in Quimper, based
-on the proportional plan, 11 photos and 4 walkthrough videos. Includes eight room
-zones, architectural openings, current finishes and 18 reusable Blender assets
-placed as 21 fixture instances. Apartment dimensions remain estimates. The T3 is
-also placed inside the georeferenced Colbert building, with 98 neighbours and
-shared date/time sunlight in both the exterior and interior views.
+T3 Designer is an interactive 3D workspace for exploring a home and imagining how
+to make it your own. Move between floor plans and interior views to inspect
+rooms, furniture, fixtures and finishes, then zoom out to understand how the
+apartment fits into its building and the surrounding neighbourhood.
+
+Explore how natural light reaches each room, how nearby buildings cast shadows,
+and how both change throughout the day and across seasons. With property
+documentation alongside the model and a Blender workflow for detailed renders,
+T3 Designer brings space, light and context together to inform interior design
+decisions.
 
 ## Run
 
