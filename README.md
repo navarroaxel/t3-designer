@@ -186,3 +186,21 @@ room reflections. The basement is not reconstructed.
 
 Original source media remain in Downloads; contact-sheet derivatives under
 `assets/reference` are locally gitignored. Nothing was uploaded or published.
+
+## License and attribution
+
+The project's original code, documentation, authored 3D geometry and generated
+textures are available under the [MIT License](LICENSE).
+Copyright (c) 2026 Pablo Coronel.
+
+Forks, modifications and extensions are welcome, including commercial use. MIT
+requires preserving the copyright and license notices in copies or substantial
+portions of the project. If you build on this work, please credit **T3 Designer
+by Pablo Coronel (pablitxn)** and link to the original repository. This credit/link
+request is appreciated, not an additional license condition.
+
+Third-party dependencies, public datasets and externally supplied reference
+material retain their respective licenses and rights; the MIT license does not
+relicense them. Preserve source attribution and retrieval dates for the geographic
+extracts; see [data sources and attribution](docs/building-research.md#licencias-y-atribución)
+and [reference provenance](docs/reference-evidence.md).

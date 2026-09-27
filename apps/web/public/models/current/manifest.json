@@ -3,7 +3,7 @@
   "units": "metres",
   "up": "+Y",
   "front": "+Z",
-  "license": "Project-owned original geometry and generated textures",
+  "license": "MIT",
   "assets": [
     {
       "id": "fridge-freezer",

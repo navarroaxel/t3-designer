@@ -1,5 +1,6 @@
 {
   "name": "t3-designer",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.7.0",

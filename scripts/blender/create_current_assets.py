@@ -617,7 +617,7 @@ def finish(render=True):
           'authoringScene':SCENE_NAME,'front':'+Z','origin':'floor-center',
           'notes':'Apariencia observada; dimensiones nominales por verificar.'})
     (OUT/'manifest.json').write_text(json.dumps({'version':1,'units':'metres','up':'+Y',
-       'front':'+Z','license':'Project-owned original geometry and generated textures',
+       'front':'+Z','license':'MIT',
        'assets':entries},ensure_ascii=False,indent=2)+'\n')
     world=bpy.data.worlds.new('T3 current · Neutral studio');world.use_nodes=True
     node=next(n for n in world.node_tree.nodes if n.type=='BACKGROUND')
