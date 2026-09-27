@@ -6,7 +6,8 @@ import { workspaceFromHash, type WorkspaceView } from './lib/workspace-view'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from './i18n/useLocale'
 import { listenForLanguageChanges } from './i18n/preferences'
-import { LanguageSettings } from './components/LanguageSettings'
+import { ApplicationSettings } from './components/ApplicationSettings'
+import { listenForThemeChanges } from './lib/theme'
 import { PrivacyControls } from './components/PrivacyControls'
 import { analytics } from './lib/analytics'
 import { PrivacyPage } from './components/PrivacyPage'
@@ -27,6 +28,7 @@ export default function App() {
   const [privacyPage, setPrivacyPage] = useState(() => isPrivacyPath(window.location.pathname))
   const { setPlaying } = solar
   useEffect(listenForLanguageChanges, [])
+  useEffect(listenForThemeChanges, [])
   useEffect(() => {
     analytics.view(privacyPage ? null : workspaceView, !privacyPage && (workspaceView === 'building' || (workspaceView === 'apartment' && apartmentView.panel === 'sun')))
   }, [workspaceView, apartmentView.panel, privacyPage])
@@ -72,9 +74,12 @@ export default function App() {
           <span className="eyebrow">{t('app.eyebrow')}</span>
           {privacyPage ? <div className="privacy-brand-heading">T3 Designer</div> : <h1>T3 Designer <span className="stage-label">{t(`workspaces.${workspaceView}.title`)}</span></h1>}
         </div>
-        <div className="project-details">
-          <span className="estimate-badge"><span /> {t(`workspaces.${workspaceView}.badge`)}</span>
-          <div className="area-stat"><strong>{formatNumber(t3Apartment.metadata.reportedCarrezArea, 2)} m²</strong><span>{t('app.areaLabel')}</span></div>
+        <div className="header-actions">
+          <div className="project-details">
+            <span className="estimate-badge"><span /> {t(`workspaces.${workspaceView}.badge`)}</span>
+            <div className="area-stat"><strong>{formatNumber(t3Apartment.metadata.reportedCarrezArea, 2)} m²</strong><span>{t('app.areaLabel')}</span></div>
+          </div>
+          <ApplicationSettings />
         </div>
       </header>
 
@@ -95,7 +100,6 @@ export default function App() {
         : <ApartmentExplorer solar={solar} state={apartmentView} />}
       </Suspense>
       </>}
-      <footer className="settings-footer"><LanguageSettings /></footer>
     </main>
   )
 }

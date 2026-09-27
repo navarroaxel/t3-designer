@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { closeSettings, languageLabel, openSettings, setLanguage } from './settings-helpers'
 
 const storageKey = 't3-designer.language'
 const variants = [
@@ -17,7 +18,9 @@ for (const variant of variants) {
       await page.goto('/#documentation')
       await expect(page.locator('html')).toHaveAttribute('lang', variant.language)
       await expect(page).toHaveTitle(`T3 Designer · ${variant.title}`)
-      await expect(page.getByRole('combobox', { name: variant.label, exact: true })).toHaveValue('auto')
+      const settings = await openSettings(page)
+      await expect(settings.getByRole('combobox', { name: variant.label, exact: true })).toHaveValue('auto')
+      await closeSettings(page)
       await expect(page.locator('.area-stat strong')).toContainText(variant.area)
       await expect(page.locator('.dossier-hero')).toBeVisible()
       expect(await page.evaluate(key => localStorage.getItem(key), storageKey)).toBeNull()
@@ -33,7 +36,7 @@ for (const variant of variants) {
       await page.locator('.room-navigation button').first().click()
       const selectedRoom = await page.locator('.room-navigation .selected').innerText()
       expect(selectedRoom).toBeTruthy()
-      await page.getByRole('combobox').selectOption('fr')
+      await setLanguage(page, 'fr')
       await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
       await expect(page.locator('.room-navigation button').first()).toHaveClass(/selected/)
       await expect(page.locator('.room-navigation button').first()).toContainText('Chambre')
@@ -47,7 +50,7 @@ for (const variant of variants) {
       await expect(page.locator('.canvas-fallback')).toContainText('WebGL')
       await page.locator('.workspace-switcher button').nth(2).click()
       await expect(page.locator('.dossier-hero')).toBeVisible()
-      await page.getByRole('combobox').selectOption('auto')
+      await setLanguage(page, 'auto')
       await expect(page.locator('html')).toHaveAttribute('lang', variant.language)
       await expect(page).toHaveURL(/#documentation$/)
     })
@@ -96,17 +99,19 @@ test('honours ordered navigator.languages, then falls back to English', async ({
 
 test('manual preference persists and synchronizes across tabs', async ({ page, context }) => {
   await page.goto('/#documentation')
-  await page.getByRole('combobox').selectOption('es')
+  await setLanguage(page, 'es')
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('lang', 'es')
-  await expect(page.getByRole('combobox')).toHaveValue('es')
+  const settings = await openSettings(page)
+  await expect(settings.getByRole('combobox', { name: languageLabel })).toHaveValue('es')
+  await closeSettings(page)
   await page.locator('.dossier-sidebar nav button').nth(4).click()
   await page.locator('.dossier-source-card').first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
   const other = await context.newPage()
   await other.goto('/#documentation')
   await expect(other.locator('html')).toHaveAttribute('lang', 'es')
-  await other.getByRole('combobox').selectOption('fr')
+  await setLanguage(other, 'fr')
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
   await expect(page.getByRole('dialog').locator('h2')).toHaveText('Adresse normalisée')
   await page.evaluate(() => {
@@ -114,10 +119,11 @@ test('manual preference persists and synchronizes across tabs', async ({ page, c
     window.dispatchEvent(new Event('languagechange'))
   })
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
-  await other.getByRole('combobox').selectOption('auto')
+  await setLanguage(other, 'auto')
   await expect(page.locator('html')).toHaveAttribute('lang', 'es')
   await page.keyboard.press('Escape')
-  await expect(page.getByRole('combobox')).toHaveValue('auto')
+  await openSettings(page)
+  await expect(settings.getByRole('combobox', { name: languageLabel })).toHaveValue('auto')
 })
 
 test('invalid or unavailable storage does not prevent rendering or switching', async ({ page }) => {
@@ -132,14 +138,15 @@ test('invalid or unavailable storage does not prevent rendering or switching', a
   })
   await page.reload()
   await expect(page.locator('.dossier-hero')).toBeVisible()
-  await page.getByRole('combobox').selectOption('es')
+  await setLanguage(page, 'es')
   await expect(page.locator('html')).toHaveAttribute('lang', 'es')
 })
 
 test('keyboard language control fits on a mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#documentation')
-  const select = page.getByRole('combobox')
+  const settings = await openSettings(page)
+  const select = settings.getByRole('combobox', { name: languageLabel })
   await select.scrollIntoViewIfNeeded()
   await select.focus()
   await expect(select).toBeFocused()

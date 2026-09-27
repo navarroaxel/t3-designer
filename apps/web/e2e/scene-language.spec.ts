@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { setLanguage } from './settings-helpers'
 
 test.use({
   locale: 'en-GB',
@@ -12,13 +13,13 @@ test('rendered room labels and asset details update without replacing the canvas
   await page.getByRole('checkbox', { name: 'Labels', exact: true }).check()
   await expect(page.locator('.labels-overlay .room-label').filter({ hasText: 'Bedroom 1' })).toBeVisible()
   await page.locator('canvas').evaluate(element => element.setAttribute('data-original-canvas', 'true'))
-  await page.getByRole('combobox').selectOption('fr')
+  await setLanguage(page, 'fr')
   await expect(page.locator('.labels-overlay .room-label').filter({ hasText: 'Chambre 1' })).toBeVisible()
   await expect(page.locator('canvas')).toHaveAttribute('data-original-canvas', 'true')
   await page.locator('.inspector-tabs button').nth(2).click()
   await page.locator('.asset-row').first().click()
   await expect(page.locator('.asset-details')).toContainText('P06 / P11')
-  await page.getByRole('combobox').selectOption('en')
+  await setLanguage(page, 'en')
   await expect(page.locator('.asset-details h2')).toHaveText('Fridge-freezer')
   await expect(page.locator('.asset-details')).toContainText('Estimated dimensions')
   await expect(page.locator('.asset-details a')).toHaveAttribute('href', '/models/current/fridge-freezer.glb')

@@ -13,13 +13,16 @@ function applyPreference(next: LanguagePreference) {
 
 export function setLanguagePreference(next: LanguagePreference) {
   const validated = parsePreference(next)
+  let saved = true
   try {
     if (validated === 'auto') window.localStorage.removeItem(languageStorageKey)
     else window.localStorage.setItem(languageStorageKey, validated)
   } catch {
     // Private/blocked storage still permits changing language for this session.
+    saved = false
   }
   applyPreference(validated)
+  return saved
 }
 
 function subscribe(listener: () => void) {
