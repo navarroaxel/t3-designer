@@ -1,221 +1,201 @@
 # T3 Designer
 
-Documentation is organized in the [documentation index](docs/README.md).
+**Explore the space. Follow the light. See the bigger picture.**
 
-T3 Designer is an interactive 3D workspace for exploring a home and imagining how
-to make it your own. Move between floor plans and interior views to inspect
-rooms, furniture, fixtures and finishes, then zoom out to understand how the
-apartment fits into its building and the surrounding neighbourhood.
+A 3D workspace for understanding a home, from the parquet underfoot to the
+buildings across the courtyard. Explore rooms and fixtures, watch daylight move
+through the windows, and keep the property's sources and open questions close
+at hand.
 
-Explore how natural light reaches each room, how nearby buildings cast shadows,
-and how both change throughout the day and across seasons. With property
-documentation alongside the model and a Blender workflow for detailed renders,
-T3 Designer brings space, light and context together to inform interior design
-decisions.
+Built around a two-bedroom apartment in **Quimper, Brittany**, with a shared
+model for interactive browser exploration and offline Blender renders.
 
-## Run
+![Perspective cutaway of the apartment with existing finishes, fixtures and the room inspector](docs/media/apartment-overview.png)
 
-Node.js 24+ and pnpm 12.7.0 (repository pin):
+[Quick start](#quick-start) · [Take a tour](#take-a-tour) · [How it works](#how-it-works) · [Documentation](docs/README.md)
+
+## Take a tour
+
+### Watch a day unfold
+
+Scrub the timeline or press play to follow sunlight through the apartment and
+across the surrounding buildings. Jump between seasons, focus on a room, and
+switch between interior and exterior views without losing the selected moment.
+The solar path, altitude chart and sunrise/sunset times tell the same story at
+different scales.
+
+![Animated tour following the sun around the building and daylight through the living room](docs/media/sunlight.gif)
+
+*Solar time follows Quimper's `Europe/Paris` timezone, including daylight-saving
+changes. Nighttime disables direct sunlight.*
+
+### From rooms to neighbourhood
+
+- **Inspect the apartment.** Switch between perspective and floor plan, focus on
+  individual rooms, and toggle cutaways, fixtures and labels. Browse the fixture
+  catalog for dimensions, source references and individual GLB downloads.
+- **Put it in context.** Explore the surrounding building volumes, locate the
+  apartment, then reveal its floor or interior. Camera cutaways preserve the
+  shadows of walls, ceilings and neighbouring buildings.
+- **Read the evidence.** The property dossier brings together public records,
+  reported areas, visual observations, source links and unresolved questions.
+  Its bundled content is available alongside the model without a database setup.
+
+| Building and sun | Property dossier |
+| --- | --- |
+| ![Building cutaway revealing the apartment within its neighbourhood](docs/media/building-context.png) | ![Property dossier overview with reported areas, site map and property identity](docs/media/property-dossier.png) |
+| Reveal the apartment inside its building and surroundings. | Follow the sources behind the reconstruction. |
+
+The interface is available in **English, Spanish and French**, with **light,
+dark and system themes**. Open **Settings** to choose your appearance and
+language; preferences are saved in your browser.
+
+## Quick start
+
+Use **Node.js 24+**, **pnpm 12.7.0** (the repository pin), and a browser with
+WebGL 2 enabled.
 
 ```sh
 pnpm install
 pnpm dev
 ```
 
-Open the Vite URL, normally [localhost:5173](http://localhost:5173). Orbit by dragging, zoom with the
-wheel, pan with right-drag. Select an environment to focus the camera. Use Planta
-or Perspectiva, Corte, Equipamiento and Rótulos to inspect layers. The asset tab
-lists nominal dimensions, source evidence and downloadable GLBs.
+Open the Vite URL shown in the terminal, normally
+[localhost:5173](http://localhost:5173).
 
-For the complete code/data check, also install Python 3.10+:
+**Drag** to orbit · **Scroll** to zoom · **Right-drag** to pan
+
+A good first lap:
+
+1. In **Apartment → Sun**, focus the **Living room** and move the time slider.
+2. Compare **Summer** and **Winter** to see how the light changes.
+3. Try **Floor plan**, then toggle **Cutaway** or **Show building**.
+4. Open **Building and sun** and choose **Floor cutaway** or **Show interior**.
+5. Visit **Documentation** to explore the property dossier and its sources.
+
+The browser app uses the checked-in model, GLBs and geographic extract. Blender
+is optional. The solar controls calculate locally; changing the date or time
+does not call an external API.
+
+## How it works
+
+**One metric model, two rendering workflows.** React and Three.js provide the
+interactive view. A validated JSON snapshot carries the apartment, fixtures,
+building context and selected sun position into Blender for offline rendering.
+
+Rooms, walls, openings and placements remain editable TypeScript data. The app
+loads individual GLBs for fixtures; the apartment is not stored as a single
+opaque mesh. Layout changes currently happen in the source data.
+
+| Where | What it owns |
+| --- | --- |
+| [`apps/web`](apps/web) | React UI, Three.js scenes, translations and materials |
+| [`apps/web/src/data`](apps/web/src/data) | Apartment geometry, fixtures, building context, placement and dossier |
+| [`apps/web/src/lib/solar.ts`](apps/web/src/lib/solar.ts) | Shared sun geometry and Quimper civil-time conversion |
+| [`packages/scene-schema`](packages/scene-schema) | Domain validation and the versioned project contract |
+| [`packages/geometry`](packages/geometry) | Renderer-independent polygons, bounds and wall segmentation |
+| [`scripts/blender`](scripts/blender) | Asset auditing, scene assembly and rendering |
+
+All geometry uses metres. Both rendering workflows share geometry, placement
+and solar inputs; materials and renderer settings have their own implementations.
+See the [architecture guide](docs/architecture/architecture.md) for data ownership,
+coordinate conventions and extension boundaries.
+
+## Development
+
+The complete code and data check also requires **Python 3.10+**:
 
 ```sh
 pnpm check
 ```
 
 This runs lint, TypeScript checks, Node and Python tests, read-only snapshot
-verification, and the production web build. It does not start Blender or require
-MCP. Individual commands remain available: `pnpm lint`, `pnpm typecheck`,
-`pnpm test`, `pnpm scene:verify` and `pnpm build`.
+verification, and the production build. It does not require Blender or MCP.
 
-The interface follows the browser's preferred supported language (Spanish,
-English or French; English fallback). Use the language selector in the footer to
-save a manual choice or return to automatic detection. Solar time always stays
-in Quimper's `Europe/Paris` timezone. See the [i18n guide](docs/architecture/i18n.md)
-for resource conventions and `pnpm test:e2e` / `pnpm check:all` browser validation.
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start the web development server |
+| `pnpm build` | Build the production web app |
+| `pnpm test` | Run package, script and Python tests |
+| `pnpm scene:verify` | Check tracked snapshots against canonical data without writing |
+| `pnpm test:e2e` | Run Playwright browser tests |
+| `pnpm check:all` | Run `check`, browser tests and the production analytics suite |
 
-The privacy notice is available at `/privacy`, with consent preferences accessible
-throughout the app. Optional Umami analytics stays off until its public build
-configuration and visitor consent are present. The supplied Website ID is blank.
-See [analytics and privacy](docs/analytics.md) for the same-origin proxy contract,
-events, publication prerequisites and `pnpm test:analytics`. `pnpm check:all` also
-runs that production-only browser suite. The privacy page itself is never measured.
+For browser tests, install Playwright's Chromium once with
+`pnpm --filter @t3-designer/web exec playwright install chromium`.
+See [internationalization](docs/architecture/i18n.md) and
+[analytics and privacy](docs/analytics.md) for the browser validation workflows.
+The [screenshot capture guide](docs/workflows/readme-media.md) explains how to
+regenerate this README's screenshots and animation from the running app.
 
-## Building and sunlight
+### Render with Blender
 
-Choose **Edificio y sol** in the header to switch to the exterior view. Set the
-calendar date and **Hora en Quimper**, drag the time slider, or play the day's
-movement. The seasonal presets compare spring, summer, autumn and winter. Time
-always uses **Europe/Paris**, including daylight-saving transitions, independently
-of your computer's timezone. Direct sunlight switches off at night.
-
-Orbit and zoom as in the apartment, use **Planta** for a north-oriented overhead
-view, and toggle neighbours, the solar path or labels. The panel reports solar
-altitude, azimuth, sunrise, sunset and solar noon. **Nuestro T3** marks the unit;
-**Corte de piso** and **Ver interior** expose its actual room geometry. The
-apartment is provisionally placed on the third floor above ground, near the
-northwest end of the courtyard facade, following the supplied mark and window
-photo. The living room faces southwest and bedrooms northeast under this
-explicitly estimated registration; it has not been surveyed.
-
-In **Departamento → Sol**, focus the living room or either bedroom, change the
-date/time or play the day to inspect sunlight through the window openings. The
-selected moment is retained when switching views. **Mostrar edificio** adds a
-floor section around the apartment; hiding it preserves neighbouring shadows.
-The view cut hides wall tops and the ceiling without removing their physical
-shadows. Window glazing lets direct light through; frames, balcony guards and
-opaque door panels still cast shadows. See [placement assumptions](docs/model/apartment-placement.md).
-
-The target is officially **1ter impasse Jean-Baptiste Colbert, Quimper**; RNB
-connects addresses 1, 1 bis and 1 ter to the same building. This version uses a
-local extract of 99 building footprints and source heights, 27 road segments and
-parcel AL 0538. No external requests are needed when changing the time.
-
-Sources and reproducible queries are in [building research](docs/research/building-research.md).
-See [solar equations, timezone rules and limitations](docs/model/solar-model.md). Public
-geometry supports a massing study; facade openings and roof forms are estimated.
-The display ground is flat, neighbour roofs are inferred, and the selected local
-context does not include the full terrain or distant horizon. It is a visual
-shadow study, not a certified insolation or energy report.
-
-## Hybrid architecture
-
-See [architecture and extension boundaries](docs/architecture/architecture.md) for the complete
-flow from domain data to the web and Blender adapters.
-
-- `apps/web/src/data/t3.ts`: canonical architectural data in meters, validated by
-  `packages/scene-schema`. Floor polygons, walls and apertures remain editable data.
-- `apps/web/src/data/current-state.ts`: canonical asset catalog and placements,
-  with source references and explicitly estimated dimensions.
-- `apps/web/src/data/building-site.ts`: public geographic extract in true-north
-  metre coordinates, with source IDs, heights, cadastral parcel and roads.
-- `apps/web/src/data/apartment-placement.ts`: estimated rigid registration and
-  through-building aperture, shared by the interior and exterior scenes.
-- `apps/web/src/lib/solar.ts`: shared NOAA/Meeus sun geometry and Europe/Paris
-  civil-time conversion, including clock-change gaps and repeated hours.
-- `packages/geometry`: renderer-independent wall segmentation, bounds and polygons.
-- `packages/scene-schema/src/project.ts`: versioned project snapshot contract.
-- `scripts/export_scene.ts` and `scripts/lib/project-snapshot.ts`: deterministic,
-  validated exports containing the apartment, segmented wall solids, placement,
-  assets, geographic context and astronomical sun.
-- `assets/scenes/t3-project.json`: tracked combined project snapshot consumed by
-  the Blender renderer; regenerate it from the TypeScript inputs.
-- `apps/web/src/components`: workspace explorers, procedural architecture and
-  instantiated GLB objects. `App` owns the shared solar state and apartment view
-  state; both scenes render on demand.
-- `apps/web/src/materials`: deterministic parquet/tile color and relief maps,
-  scaled in meters. No private source photos are embedded in web textures.
-- `scripts/blender/create_current_assets.py`: original reusable asset authoring.
-- `scripts/blender/assemble_project.py`: combined apartment/building solar scene
-  derived from the project snapshot. Blender output is not the source of truth.
-- `scripts/blender/assemble_apartment.py` and `assemble_building.py`: retained
-  adapters for the historical standalone reference scenes.
-
-**1 unit = 1 meter.** Web plan points are `[X,Z]`, with Y up. The building frame
-uses X true east and Z true south; the apartment uses the estimated site rotation
-in `apartment-placement.ts`. Blender uses `(x,-z,y)` for the same point. Asset fronts face
-+Z in the web, origins are floor centered and scale is applied. The app imports
-individual GLBs, not one opaque apartment mesh.
-
-## Headless Blender pipeline
-
-The combined render needs an installed Blender executable, Node.js/pnpm and
-Python 3.10+ for validation. It runs in a separate background process; Blender's
-GUI, the MCP add-on and `uv` are not required. The runner uses `BLENDER_BIN` when
-set, otherwise the standard macOS application path or `blender` on `PATH`.
+With Blender installed, export the current source data and render the combined
+scene in a background process:
 
 ```sh
-pnpm scene:snapshot    # Refresh all four tracked JSON snapshots
-pnpm scene:verify      # Check them without writing
-pnpm blender:validate  # Audit tracked .blend / .glb assets; no save or render
-pnpm blender:scene     # Build the combined .blend from the saved project JSON
-pnpm blender:render    # Build it and render a PNG with Cycles CPU
+pnpm scene:snapshot    # Refresh the four tracked JSON snapshots
+pnpm blender:render    # Assemble the combined scene and render with Cycles CPU
 ```
 
-`scene:snapshot` defaults to **2026-09-26 at 15:00, Europe/Paris**. It exports
-`docs/snapshots/t3-apartment.json`, `docs/snapshots/current-fixtures.json`, `docs/snapshots/building-site.json`
-and `assets/scenes/t3-project.json`. It does not read the browser's current date
-or time. A separate seasonal render can use its own snapshot:
+The default snapshot uses **2026-09-26 at 15:00, Europe/Paris**, independently of
+the browser's selected time. Generated `.blend`, validation and PNG outputs go
+under the ignored `artifacts/` directory. Set `BLENDER_BIN` if Blender is not at
+the standard macOS location or on `PATH`.
 
-```sh
-pnpm scene:snapshot --date 2026-12-21 --time 15:00 --output artifacts/scenes/winter.json
-pnpm blender:render --input artifacts/scenes/winter.json --output artifacts/blender/winter.blend --render artifacts/renders/winter.png --resolution 640 --samples 12
-```
+For custom dates, separate output files, asset audits and all render options,
+see the [Blender workflow](docs/workflows/blender.md). The background pipeline
+works without an open Blender window or an MCP connection.
 
-With `--output`, only that combined JSON is written. `--check` verifies the same
-selected outputs without changing them; use the same date/time arguments.
-Repeated autumn clock times require `--occurrence earlier` or `--occurrence later`
-(the default is `reject`); nonexistent spring clock times are rejected.
+## About the reconstruction
 
-Generated outputs are ignored under `artifacts/`: the default scene is
-`artifacts/blender/t3-project.blend`, its validation report is
-`artifacts/blender/t3-project.validation.json`, and the PNG is
-`artifacts/renders/t3-project.png`. The asset audit writes
-`artifacts/reports/assets.json`. The new builder refuses `.blend` output inside
-`assets/blender`, preserving the four historical source/reference files.
+This is an evolving, evidence-based reconstruction of one apartment. **Its
+dimensions and building placement are approximate.** The reported room areas
+sum to **49.18 m²**, but the model is not a measured net-area survey.
 
-A combined **Cycles CPU render at 960 px and 32 samples** has been verified. The
-scene embeds the source JSON and builder source, records its source hash and
-selected UTC instant, and checks solar direction, fixture count and the physical
-context. Camera cuts leave complete walls, ceiling and neighbours casting
-shadows. Materials, facade decoration, roof forms and renderer lighting remain
-approximations; these checks do not establish visual parity or measured solar
-accuracy.
+The building context uses a local extract of **99 building footprints**,
+source heights, roads and the cadastral parcel. Apartment orientation, facade
+openings, roof forms and some fixture dimensions are inferred. Ground is flat;
+terrain, distant obstructions, clouds and vegetation are outside the current
+model. The exact bathroom layout still needs measurements, and the basement
+has not been reconstructed.
 
-See [Blender commands, outputs and optional MCP setup](docs/workflows/blender.md) for all
-flags, preserved references and the older asset-authoring commands.
+Sunlight and shadows are a **visual study**, not a certified insolation, energy
+or measured irradiance report. The dossier distinguishes reported facts,
+observations and pending evidence; apartment-specific diagnostics and legal-lot
+confirmation remain open.
 
-## Evidence and precision
+For the underlying assumptions, see [apartment geometry](docs/model/apartment-geometry.md),
+[building placement](docs/model/apartment-placement.md),
+[solar calculations and limits](docs/model/solar-model.md), and
+[source provenance](docs/reference/evidence.md).
 
-The third **Documentación** view opens the local property dossier alongside the
-3D workspaces. It presents source-backed public records, reported apartment
-areas, visual observations and unresolved differences. The source extract, plan
-image and visual evidence index are served with the application; reading them
-does not query external APIs. The individual apartment's original diagnostics,
-legal lot and energy consumption remain pending.
+## Documentation and privacy
 
-This proof of concept deliberately keeps existing property data and public-source
-extracts in the repository. See the [editorial scope](docs/research/property-dossier.md)
-and [research inventory](docs/research/property-dossier-research.md). Database, S3 storage,
-document uploads and multiuser access are deferred; the [hybrid architecture](docs/architecture/property-dossier-architecture.md)
-describes a possible later stage, not services required by this version.
+The [documentation index](docs/README.md) brings together the architecture,
+research, workflows and checkpoints. Start with:
 
-See [visual evidence](docs/reference/evidence.md), [geometry notes](docs/model/apartment-geometry.md)
-and [checkpoint](docs/checkpoints/checkpoint.md). The reported room areas sum to 49.18 m²;
-conceptual polygons preserve them, but walls overlay their boundaries. This is not
-a measured net-area survey. Window and appliance presence are observed; their
-metric dimensions and global placements remain provisional. The bathroom's exact
-shower/partition arrangement especially needs a measured plan. Wear is selectively
-represented; mirror and glass are lightweight PBR approximations, not ray-traced
-room reflections. The basement is not reconstructed.
+- [Building research and data attribution](docs/research/building-research.md)
+- [Property dossier scope and sources](docs/research/property-dossier.md)
+- [Blender commands and preserved reference scenes](docs/workflows/blender.md)
+- [Analytics and privacy](docs/analytics.md)
 
-Original source media remain in Downloads; contact-sheet derivatives under
-`assets/reference` are locally gitignored. Nothing was uploaded or published.
+The app includes a `/privacy` notice and consent controls. Optional Umami
+analytics requires both public build configuration and visitor consent; the
+supplied Website ID is blank. The privacy page itself is never measured.
 
 ## License and attribution
 
-The project's original code, documentation, authored 3D geometry and generated
-textures are available under the [MIT License](LICENSE).
-Copyright (c) 2026 Pablo Coronel.
+Original code, documentation, authored 3D geometry and generated textures are
+available under the [MIT License](LICENSE). Copyright © 2026 Pablo Coronel.
+Forks, modifications and commercial use are welcome; retain the required
+copyright and license notices.
 
-Forks, modifications and extensions are welcome, including commercial use. MIT
-requires preserving the copyright and license notices in copies or substantial
-portions of the project. If you build on this work, please credit **T3 Designer
-by Pablo Coronel (pablitxn)** and link to the original repository. This credit/link
-request is appreciated, not an additional license condition.
+If you build on this work, credit **T3 Designer by Pablo Coronel (pablitxn)** and
+link to the original repository. This is appreciated, not an additional license
+condition.
 
 Third-party dependencies, public datasets and externally supplied reference
-material retain their respective licenses and rights; the MIT license does not
-relicense them. Preserve source attribution and retrieval dates for the geographic
-extracts; see [data sources and attribution](docs/research/building-research.md#licencias-y-atribución)
-and [reference provenance](docs/reference/evidence.md).
+material retain their own licenses and rights. Preserve the source attribution
+and retrieval dates documented in the [building research](docs/research/building-research.md)
+and [reference evidence](docs/reference/evidence.md).

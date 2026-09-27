@@ -14,6 +14,7 @@ This index groups the project’s technical method, case research, operating wor
 - [Property dossier](research/property-dossier.md): current editorial scope.
 - [Property dossier research](research/property-dossier-research.md): source inventory and research notes.
 - [Blender workflow](workflows/blender.md): scene assembly and validation commands.
+- [README media](workflows/readme-media.md): regenerate the screenshots and sunlight animation from the browser app.
 - [Checkpoints](checkpoints/): resumable project state and decisions.
 - [Reference evidence](reference/evidence.md): provenance and interpretation of visual evidence.
 - [Snapshots](snapshots/): generated JSON inputs used by the Blender workflows and snapshot verification.
