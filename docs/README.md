@@ -4,6 +4,8 @@ This index groups the project’s technical method, case research, operating wor
 
 - [Architecture](architecture/architecture.md): application structure and extension boundaries.
 - [Internationalization](architecture/i18n.md): language detection, catalogs, formatting, and browser tests.
+- [Analytics and privacy](analytics.md): optional Umami, consent, `/privacy`, public configuration, events, and activation checks.
+- [Privacy infrastructure evidence](privacy-infrastructure-evidence.md): verified hosting and retention facts, with dated sources and remaining deployment checks.
 - [Property dossier architecture](architecture/property-dossier-architecture.md): deferred architecture options for the dossier.
 - [Apartment model](model/apartment-geometry.md): geometry and measurement status.
 - [Apartment placement](model/apartment-placement.md): provisional registration in the building.

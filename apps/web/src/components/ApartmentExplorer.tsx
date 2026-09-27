@@ -8,6 +8,7 @@ import type { ApartmentView } from '../lib/useApartmentView'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
 import { assetEvidence, assetLabel, roomLabel } from '../i18n/workspace-labels'
+import { analytics } from '../lib/analytics'
 
 const finishes = [
   { color: '#a97539', name: 'apartment.parquet', rooms: 'apartment.parquetRooms' },
@@ -85,7 +86,7 @@ export function ApartmentExplorer({ solar, state }: { solar: SolarStudy; state: 
           </> : <>
             <p className="inspector-note">{t('apartment.assetCountNote', { count: currentFixtures.length })}</p>
             <div className="asset-list">{assetCatalog.map(item => <button key={item.id} className={`asset-row ${selectedAsset === item.id ? 'selected' : ''}`} onClick={() => { setSelectedAsset(item.id); focusRoom(currentFixtures.find(f => f.assetId === item.id)?.roomId); setShowFixtures(true) }}><span>{assetLabel(t, item.id)}</span><small>×{currentFixtures.filter(f => f.assetId === item.id).length}</small></button>)}</div>
-            {asset && <div className="asset-details"><h2>{assetLabel(t, asset.id)}</h2><p>{asset.dimensions.map(n => formatNumber(n * 100, 0)).join(' × ')} cm <span>{t('apartment.assetDimensions')}</span></p><small>{t('apartment.estimatedDimensions')}</small><p className="asset-evidence">{assetEvidence(t, asset.id)}</p><a href={asset.url} download>{t('apartment.downloadGlb')}</a></div>}
+            {asset && <div className="asset-details"><h2>{assetLabel(t, asset.id)}</h2><p>{asset.dimensions.map(n => formatNumber(n * 100, 0)).join(' × ')} cm <span>{t('apartment.assetDimensions')}</span></p><small>{t('apartment.estimatedDimensions')}</small><p className="asset-evidence">{assetEvidence(t, asset.id)}</p><a href={asset.url} download onClick={() => analytics.downloadGlb()}>{t('apartment.downloadGlb')}</a></div>}
           </>}
           <details className="evidence-notes"><summary>{t('apartment.evidenceSources')}</summary>{reconstructionNoteKeys.map(key => <p key={key}>{t(key)}</p>)}</details>
         </aside>

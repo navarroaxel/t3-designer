@@ -44,6 +44,13 @@ save a manual choice or return to automatic detection. Solar time always stays
 in Quimper's `Europe/Paris` timezone. See the [i18n guide](docs/architecture/i18n.md)
 for resource conventions and `pnpm test:e2e` / `pnpm check:all` browser validation.
 
+The privacy notice is available at `/privacy`, with consent preferences accessible
+throughout the app. Optional Umami analytics stays off until its public build
+configuration and visitor consent are present. The supplied Website ID is blank.
+See [analytics and privacy](docs/analytics.md) for the same-origin proxy contract,
+events, publication prerequisites and `pnpm test:analytics`. `pnpm check:all` also
+runs that production-only browser suite. The privacy page itself is never measured.
+
 ## Building and sunlight
 
 Choose **Edificio y sol** in the header to switch to the exterior view. Set the
