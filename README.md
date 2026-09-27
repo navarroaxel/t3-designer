@@ -162,6 +162,19 @@ flags, preserved references and the older asset-authoring commands.
 
 ## Evidence and precision
 
+The third **Documentación** view opens the local property dossier alongside the
+3D workspaces. It presents source-backed public records, reported apartment
+areas, visual observations and unresolved differences. The source extract, plan
+image and visual evidence index are served with the application; reading them
+does not query external APIs. The individual apartment's original diagnostics,
+legal lot and energy consumption remain pending.
+
+This proof of concept deliberately keeps existing property data and public-source
+extracts in the repository. See the [editorial scope](docs/property-dossier.md)
+and [research inventory](docs/property-dossier-research.md). Database, S3 storage,
+document uploads and multiuser access are deferred; the [hybrid architecture](docs/property-dossier-architecture.md)
+describes a possible later stage, not services required by this version.
+
 See [visual evidence](docs/reference-evidence.md), [geometry notes](docs/apartment-geometry.md)
 and [checkpoint](docs/checkpoint.md). The reported room areas sum to 49.18 m²;
 conceptual polygons preserve them, but walls overlay their boundaries. This is not
