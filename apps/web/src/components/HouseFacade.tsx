@@ -27,7 +27,7 @@ const openings: Part[] = [
   { u: ENTRY_FRONT - .04, depth: .08, v: [1.07, 1.91], y: [0, 1.9], color: '#5b3a26' }, // wooden door, recessed
   { u: FRONT - .04, depth: .08, v: [-3.87, .14], y: [0, 2.4], color: '#cfcab3' }, // garage door
   { u: FRONT - .03, depth: .06, v: [.1, 3.1], y: [FLOOR, FLOOR + 2.1], color: '#d5d6cf' }, // 3 m balcony door, white shutter down to the floor
-  { u: FRONT - .03, depth: .06, v: [-3.33, -1.5], y: [FLOOR + .7, FLOOR + 1.6], color: '#a7aaa0' }, // small window
+  { u: FRONT - .03, depth: .06, v: [-2.415 - 1.02, -2.415 + 1.02], y: [FLOOR + .7, FLOOR + 1.6], color: '#a7aaa0' }, // window of the secondary room, 2.04 m
 ]
 
 function Box({ part, castShadow }: { part: Part; castShadow: boolean }) {

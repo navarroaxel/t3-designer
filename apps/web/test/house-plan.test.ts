@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -116,4 +116,22 @@ test('the rear wall has a 1.78 m door centred on the terrace and a 1.64 m by 2.3
   // The openings are cut out of the rear wall of the first floor.
   const boxes = wallBoxes(FIRST_OUTLINE, OPENINGS.first, FLOOR_HEIGHT, FLOOR_HEIGHT + CUT_HEIGHT)
   assert.ok(boxes.length > 4)
+})
+
+test('the front rooms of the first floor have the owner\'s sizes and fit inside the walls', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  const { main, secondary } = FRONT_ROOMS
+  near(main.v[1] - main.v[0], 5.12); near(main.u[1] - main.u[0], 4.54)
+  near(secondary.v[1] - secondary.v[0], 3.09); near(secondary.u[1] - secondary.u[0], 3.41)
+  // The main room is on the north-east (left from the street) and holds the 3 m balcony door.
+  assert.ok(main.v[0] > secondary.v[1])
+  const balcony = OPENINGS.first.find(opening => opening.u === -5 && opening.v[1] - opening.v[0] > 2.9)!
+  assert.ok(balcony.v[0] >= main.v[0] && balcony.v[1] <= main.v[1])
+  // The secondary room holds the 2.04 m window.
+  const window = OPENINGS.first.find(opening => opening.u === -5 && opening.v[1] - opening.v[0] < 2.5)!
+  near(window.v[1] - window.v[0], 2.04)
+  assert.ok(window.v[0] >= secondary.v[0] && window.v[1] <= secondary.v[1])
+  // Both rooms sit within the first floor's outline.
+  assert.ok(secondary.v[0] >= houseSouthWestEdge(-5) + WALL_THICKNESS - .05)
+  assert.ok(main.v[1] <= 4.475 - WALL_THICKNESS + 1e-9)
 })

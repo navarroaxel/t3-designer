@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { ExtrudeGeometry } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type Floor, type PlanPoint,
 } from '../data/house-plan'
 import { polygonShape } from '../lib/polygon-shape'
@@ -50,6 +50,10 @@ export function HouseShell({ floor }: { floor: Floor }) {
       <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} />
       <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} />
       <Walls floor="first" top={FLOOR_HEIGHT + CUT_HEIGHT} />
+      {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(v0 + v1) / 2]} receiveShadow>
+        <boxGeometry args={[u1 - u0, CUT_HEIGHT, v1 - v0]} />
+        <meshStandardMaterial color={WALL_COLOR} roughness={.95} />
+      </mesh>)}
     </>}
   </group>
 }

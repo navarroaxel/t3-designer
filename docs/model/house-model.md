@@ -84,6 +84,10 @@ lengths of the street fronts and the widths of the streets.
 Buildings shorter than the panels cannot shade them, so these heights only matter for a
 building that turns out to be three floors or more. The data is in `apps/web/src/data/block.ts`.
 
+## Front rooms of the first floor
+
+Seen from the street, the **main bedroom** is on the left (north-east) with the 3 m balcony door: 5.12 m wide and 4.54 m deep inside. The **secondary room** is on the right (south-west): 3.09 m wide and 3.41 m deep, with a window of exactly 2.04 m (owner). The walls are 0.3 m outside and 0.12 m between the rooms, which adds up to the 8.95 m front. The cutaway shows these partitions; what lies behind the rooms is not modelled yet.
+
 ## The terrace and the rear wall
 
 The terrace over the rear ground-floor band has its roof at first-floor level (3.2 m). Along the corner's party wall it has a **1.6 m wall** and, on the light-well side, a **1.1 m railing wall** (owner). The rear wall of the first floor (u = 4) has a **1.78 m balcony door** centred on the terrace and a **1.64 m by 2.3 m window** centred on the ground-floor light well (owner). The window's sill (0.3 m) is assumed.

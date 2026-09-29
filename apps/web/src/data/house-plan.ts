@@ -40,6 +40,9 @@ const REAR_WINDOW_SILL = .3
 const TERRACE_CENTRE = (SW + -1) / 2
 const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
 
+/** Centre of the secondary room's window, from Street View; its width, 2.04 m, is the owner's. */
+const SECONDARY_WINDOW_CENTRE = -2.415
+
 // Openings in the walls, from Street View and the owner. Heights are absolute.
 export const OPENINGS: Record<Floor, Opening[]> = {
   ground: [
@@ -49,7 +52,7 @@ export const OPENINGS: Record<Floor, Opening[]> = {
   ],
   first: [
     { u: -5, v: [.1, 3.1], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] }, // 3 m balcony door
-    { u: -5, v: [-3.33, -1.5], y: [FLOOR_HEIGHT + .7, FLOOR_HEIGHT + 1.6] }, // window
+    { u: -5, v: [SECONDARY_WINDOW_CENTRE - 1.02, SECONDARY_WINDOW_CENTRE + 1.02], y: [FLOOR_HEIGHT + .7, FLOOR_HEIGHT + 1.6] }, // 2.04 m window of the secondary room
     // Rear wall, u = 4 (owner): a 1.78 m balcony door centred on the terrace, which spans from the south-west
     // wall to v = -1, and a 1.64 m by 2.3 m window centred on the ground-floor light well (v = -1 to 1.5).
     { u: 4, v: [TERRACE_CENTRE - REAR_DOOR_WIDTH / 2, TERRACE_CENTRE + REAR_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
@@ -117,3 +120,31 @@ export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number,
   })
   return boxes
 }
+
+/**
+ * The two rooms at the front of the first floor (owner), seen from the street: the main bedroom on the
+ * left (north-east, with the 3 m balcony door), 5.12 m wide and 4.54 m deep, and the secondary room on
+ * the right, 3.09 m wide and 3.41 m deep. Sizes are inside faces. The walls are 0.3 m outside and 0.12 m
+ * between the rooms, which adds up to the 8.95 m front. What lies behind them is not modelled yet.
+ */
+export const PARTITION_THICKNESS = .12
+const INNER_FRONT = -5 + WALL_THICKNESS
+const MAIN_ROOM = { width: 5.12, depth: 4.54 }
+const SECONDARY_ROOM = { width: 3.09, depth: 3.41 }
+const NE_INNER = HALF - WALL_THICKNESS
+export const FRONT_ROOMS = {
+  main: { u: [INNER_FRONT, INNER_FRONT + MAIN_ROOM.depth] as [number, number], v: [NE_INNER - MAIN_ROOM.width, NE_INNER] as [number, number] },
+  secondary: {
+    u: [INNER_FRONT, INNER_FRONT + SECONDARY_ROOM.depth] as [number, number],
+    v: [NE_INNER - MAIN_ROOM.width - PARTITION_THICKNESS - SECONDARY_ROOM.width, NE_INNER - MAIN_ROOM.width - PARTITION_THICKNESS] as [number, number],
+  },
+}
+/** Interior walls of the first floor as [u0, u1, v0, v1]. */
+export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
+  // Between the two rooms, along the main room's depth.
+  [FRONT_ROOMS.main.u[0], FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS, FRONT_ROOMS.main.v[0]],
+  // The main room's back wall.
+  [FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[1]],
+  // The secondary room's back wall.
+  [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[1]],
+]
