@@ -45,11 +45,11 @@ const REAR_DOOR_WIDTH = 1.78, REAR_WINDOW_WIDTH = 2.3, REAR_WINDOW_HEIGHT = 1.64
 const REAR_WINDOW_SILL = .9
 const TERRACE_CENTRE = (SW + -1) / 2
 /**
- * The laundry door (owner): 0.70 m wide, like the living door but with one leaf, on the rear wall, 1.15 m from the
+ * The laundry door (owner): 0.80 m wide, like the living door but with one leaf, on the rear wall, 1.15 m from the
  * party wall with neighbour A, taken from the wall's inner face to the door's nearer edge. The laundry itself is
  * taken to be the roof of the left ground-floor band, at first-floor level.
  */
-export const LAUNDRY_DOOR_WIDTH = .7
+export const LAUNDRY_DOOR_WIDTH = .8
 export const LAUNDRY_DOOR_FROM_PARTY_WALL = 1.15
 const LAUNDRY_DOOR_CENTRE = HALF - WALL_THICKNESS - LAUNDRY_DOOR_FROM_PARTY_WALL - LAUNDRY_DOOR_WIDTH / 2
 const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
