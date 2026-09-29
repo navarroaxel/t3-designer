@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  BALCONY, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -439,13 +439,16 @@ test('the terrace floor lies over the rear band, between its two walls', () => {
   assert.ok(v0 < -4 && v0 > -4.5 && Math.abs(v1 - (-1.15)) < 1e-9)
 })
 
-test('the glazed door between the hall and the living faces the secondary room\'s door, is right-handed and clears the walls', () => {
+test('the door between the hall and the living is 30 cm from the bathroom, partly faces the secondary room\'s door and clears the walls', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   near(LIVING_DOOR.v[1] - LIVING_DOOR.v[0], 1.2)
   near(LIVING_DOOR_LEAVES.wide, .8); near(LIVING_DOOR_LEAVES.narrow, .4)
   // It lies in the wall between the hall and the living and covers the span of the secondary room's door: they face each other.
   near(LIVING_DOOR.u[0], FIRST_FLOOR_BATHROOM.u[1])
-  assert.ok(LIVING_DOOR.v[0] <= SECONDARY_DOOR.v[0] && LIVING_DOOR.v[1] >= SECONDARY_DOOR.v[1], 'faces the secondary room\'s door')
+  // It stands 30 cm from the bathroom's north-east wall, toward the north-east, and still partly faces the secondary room's door.
+  near(LIVING_DOOR.v[0] - (FIRST_FLOOR_BATHROOM.v[1] + .12), .3)
+  const facing = Math.min(LIVING_DOOR.v[1], SECONDARY_DOOR.v[1]) - Math.max(LIVING_DOOR.v[0], SECONDARY_DOOR.v[0])
+  assert.ok(facing > .25, 'still partly faces the secondary room\'s door')
   // It does not cut into the bathroom, which ends at its north-east wall.
   assert.ok(LIVING_DOOR.v[0] >= FIRST_FLOOR_BATHROOM.v[1] + .12 - 1e-9)
   for (const [u0, u1, v0, v1] of FIRST_FLOOR_PARTITIONS) {
@@ -476,4 +479,12 @@ test('the laundry door is 0.80 m, single-leaf, right-handed and 1.30 m from the 
   const swing = FIRST_FLOOR_DOOR_SWINGS.find(item => item.id === 'laundry')!
   near(swing.radius, .8); near(swing.hinge[1], door.v[0]); near(swing.hinge[0], 4)
   assert.deepEqual(swing.open, [1, 0])
+})
+
+test('the first-floor balcony is 7.94 m wide and 0.86 m deep, centred on the facade and in front of the street line', () => {
+  assert.ok(Math.abs(BALCONY.width - 7.94) < 1e-9 && Math.abs(BALCONY.depth - .86) < 1e-9)
+  // Narrower than the 8.95 m facade, so it fits the front, and it never reaches the balcony door's walls.
+  assert.ok(BALCONY.width < 8.95 && BALCONY.width > 3.1)
+  // It carries the 3 m balcony door and the window of the secondary room.
+  for (const opening of OPENINGS.first.filter(item => item.u === -5)) assert.ok(opening.v[0] >= -BALCONY.width / 2 && opening.v[1] <= BALCONY.width / 2, 'the balcony reaches every front opening')
 })

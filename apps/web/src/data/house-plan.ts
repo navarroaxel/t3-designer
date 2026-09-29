@@ -294,16 +294,17 @@ export const CLOSET_SLIDING_PANELS: SlidingPanel[] = Array.from({ length: CLOSET
 
 /**
  * The door between the hall and the living (owner's photo): white and glazed, one and a half leaves: a wide
- * leaf of 0.80 m with the handle and a narrow one of 0.40 m beside it, 1.20 m in all (owner). It faces the secondary room's door across the hall, so it
- * lies on the same span of v; it starts at the bathroom's north-east wall, because centred on that door it would
- * cut into the bathroom. It opens with the right hand, into the living: the wide leaf is hinged on the south-west end.
+ * leaf of 0.80 m with the handle and a narrow one of 0.40 m beside it, 1.20 m in all (owner). It stands 30 cm from the bathroom (owner), so it
+ * only partly faces the secondary room's door across the hall; centred on that door it would cut into the bathroom. It opens with the right hand, into the living: the wide leaf is hinged on the south-west end.
  */
 export const LIVING_DOOR_WIDTH = 1.2
 export const LIVING_DOOR_LEAVES = { wide: .8, narrow: .4 }
 export const LIVING_DOOR_COLOR = '#f3f2ee'
 /** White-painted aluminium frame with glass, drawn as stiles, a bottom rail and a translucent pane (owner). */
 export const LIVING_DOOR_FRAME = { material: 'aluminium', profile: .05, bottomRail: .12, glass: '#bcd6df', glassOpacity: .35 }
-const livingDoorV0 = FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS
+/** 30 cm from the bathroom's north-east wall, toward the north-east (left, coming in from the hall): the owner moved it there. */
+export const LIVING_DOOR_FROM_BATHROOM = .3
+const livingDoorV0 = FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS + LIVING_DOOR_FROM_BATHROOM
 export const LIVING_DOOR = {
   u: [FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS] as [number, number],
   v: [livingDoorV0, livingDoorV0 + LIVING_DOOR_WIDTH] as [number, number],
@@ -471,3 +472,9 @@ export const FLOOR_TILING: FloorTiling[] = [
   { id: 'living', color: '#c69a5d', pattern: SAING_PLANKS, rects: [[KITCHEN_LIVING.u[0], KITCHEN_LIVING.u[1], KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[1]]] },
   { id: 'bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[0], FIRST_FLOOR_BATHROOM.v[1]]] },
 ]
+
+/**
+ * The first-floor balcony (owner): 7.94 m wide along the front and 0.86 m deep in front of the street line. Its
+ * position along the front, centred on the facade, and its 0.3 m slab edge are assumed. It stays in the first-floor cutaway.
+ */
+export const BALCONY = { width: 7.94, depth: .86, edge: .3 }

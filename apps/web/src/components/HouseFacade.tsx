@@ -1,6 +1,6 @@
 import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW } from '../data/building-site'
-import { OPENINGS } from '../data/house-plan'
+import { BALCONY, OPENINGS } from '../data/house-plan'
 
 /**
  * Front elevation of the house, read from Street View (August 2025).
@@ -18,8 +18,8 @@ type Part = { u: number; depth: number; v: Span; y: Span; color: string }
 const ENTRY_FRONT = FRONT + 1
 
 const slabs: Part[] = [
-  // First-floor balcony slab, projecting about 1 m over the pavement.
-  { u: FRONT - .5, depth: 1, v: [-4.6, 4.6], y: [FLOOR - .3, FLOOR], color: '#c9b58a' },
+  // First-floor balcony slab, 7.94 m by 0.86 m over the pavement (owner).
+  { u: FRONT - BALCONY.depth / 2, depth: BALCONY.depth, v: [-BALCONY.width / 2, BALCONY.width / 2], y: [FLOOR - BALCONY.edge, FLOOR], color: '#c9b58a' },
 ]
 
 const openings: Part[] = [
@@ -44,10 +44,16 @@ const rail = (height: number, corners: [number, number][]): [number, number, num
 
 /** `physical` renders only what shades other things (the two slabs) for the
  * shadow pass; the visible pass adds openings and railings. */
-export function HouseFacade({ physical = false }: { physical?: boolean }) {
+export function HouseFacade({ physical = false, balconyOnly = false }: { physical?: boolean; balconyOnly?: boolean }) {
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
     {slabs.map(part => <Box key={part.u} part={part} castShadow={physical} />)}
-    {!physical && <>
+    {!physical && balconyOnly && <>
+      {/* The first-floor balcony alone, for the cutaway: its slab (above) and its railing. */}
+      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT - BALCONY.depth, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT, -BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, BALCONY.width / 2], [FRONT, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
+    </>}
+    {!physical && !balconyOnly && <>
       {/* Rear wall of the first floor, facing the terrace and the light well: glass in its openings. */}
       {OPENINGS.first.filter(opening => opening.u > 0).map(opening => <mesh key={`${opening.v}`} position={[opening.u + .02, (opening.y[0] + opening.y[1]) / 2, -(opening.v[0] + opening.v[1]) / 2]}>
         <boxGeometry args={[.04, opening.y[1] - opening.y[0], opening.v[1] - opening.v[0]]} />
@@ -55,9 +61,9 @@ export function HouseFacade({ physical = false }: { physical?: boolean }) {
       </mesh>)}
       {openings.map(part => <Box key={`${part.v}-${part.y}`} part={part} castShadow={false} />)}
       {/* Balcony railing at the slab edge, and the open railing above the front parapet. */}
-      <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT - 1, 4.6]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT, -4.6]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(FLOOR + 1, [[FRONT - 1, 4.6], [FRONT, 4.6]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT - BALCONY.depth, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT, -BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, BALCONY.width / 2], [FRONT, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(2 * FLOOR + 1.2, [[-6, -HOUSE_HALF_WIDTH], [-6, HOUSE_HALF_WIDTH]])} color="#3f4a44" lineWidth={1.4} />
     </>}
   </group>

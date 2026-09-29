@@ -48,13 +48,12 @@ test('kitchen pieces do not overlap, except a top over its cabinet and stools un
   }
 })
 
-test('the kitchen leaves the terrace door, the light-well window and the TV wall clear', () => {
-  const rear = OPENINGS.first.filter(opening => opening.u === 4)
-  const doors = rear.filter(opening => opening.v[1] - opening.v[0] < 1.9)
-  // Nothing stands in the terrace door's span of v; the window's span may be grazed by the counter's overhang, by less than 0.3 m.
-  for (const item of KITCHEN_BOXES) {
-    for (const door of doors) assert.ok(overlap(item.v, door.v) < 1e-6 || item.u[1] < KITCHEN_LIVING.u[1] - .4, `${item.id} leaves 0.4 m before a rear door`)
-    for (const opening of rear) assert.ok(overlap(item.v, opening.v) < .3 || item.u[1] < KITCHEN_LIVING.u[1] - .5, `${item.id} does not block a rear opening`)
+test('the kitchen leaves room in front of every opening on the rear wall, and keeps away from the TV wall', () => {
+  // Whatever stands in front of a door or the window, within its span of v, ends at least 0.4 m before the rear wall.
+  for (const opening of OPENINGS.first.filter(item => item.u === 4)) {
+    for (const item of KITCHEN_BOXES) {
+      assert.ok(overlap(item.v, opening.v) < 1e-6 || item.u[1] <= KITCHEN_LIVING.u[1] - .4 + 1e-9, `${item.id} leaves 0.4 m in front of a rear opening`)
+    }
   }
   assert.ok(COUNTER_V[0] - KITCHEN_SIZES.overhang - KITCHEN_SIZES.stool > LIVING_TV_PLACEMENT.v[1] + 2, 'the stools stay well away from the TV')
 })
