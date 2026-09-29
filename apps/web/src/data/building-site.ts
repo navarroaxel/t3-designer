@@ -108,6 +108,9 @@ const REAR_SW = 8.6;
 // Rear ground-floor band, 4.5 m outside (3.95 m inside, between the walls): left arm | light well 2.5 m | terrace.
 const LEFT_ARM_INNER = 1.5;
 const TERRACE_INNER = -1;
+const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
+const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
+const TERRACE_WALL_THICKNESS = .15;
 // The entrance is set back 1 m from the street line, between a 0.5 m wall that
 // stays on the line next to the neighbour (north-east) and a 0.7 m pier next to
 // the garage. The garage stands on the line. The upper floor overhangs the recess.
@@ -209,6 +212,13 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-CANTILEVER', 'Casa · voladizo de la azotea', poly([southWest(ROOF_FRONT), southWest(-5), [-5, HALF_WIDTH], [ROOF_FRONT, HALF_WIDTH]]), 2 * FLOOR_HEIGHT, 0, false, 2 * FLOOR_HEIGHT - .5),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, REAR_NE, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', poly([southWest(AZOTEA_REAR), southWest(REAR_SW), [REAR_SW, TERRACE_INNER], [AZOTEA_REAR, TERRACE_INNER]]), FLOOR_HEIGHT, 1),
+  // The terrace's roof is at first-floor level. Along the corner's party wall it has a 1.6 m wall, and on the
+  // inner side, over the light well, a 1.1 m railing wall (owner).
+  building('HOUSE-TERRACE-WALL', 'Casa · medianera de la terracita', poly([southWest(AZOTEA_REAR), southWest(REAR_SW),
+    [REAR_SW, houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS], [AZOTEA_REAR, houseSouthWestEdge(AZOTEA_REAR) + TERRACE_WALL_THICKNESS]]),
+    FLOOR_HEIGHT + TERRACE_PARTY_WALL, 0, false, FLOOR_HEIGHT),
+  building('HOUSE-TERRACE-RAIL', 'Casa · baranda de la terracita', rect(AZOTEA_REAR, REAR_SW, TERRACE_INNER - TERRACE_WALL_THICKNESS, TERRACE_INNER),
+    FLOOR_HEIGHT + TERRACE_RAILING, 0, false, FLOOR_HEIGHT),
   // Lot 7 (A), 9.00 m of front. Street View (Aug 2025): next to the house a brick wall with a
   // green railing on the street line, a front patio about 2 m deep and a one-floor house behind
   // it; then a garage with green doors under a sheet-metal roof.

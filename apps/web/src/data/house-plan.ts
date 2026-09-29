@@ -34,7 +34,13 @@ export const FIRST_OUTLINE: PlanPoint[] = [[-5, SW], [4, SW], [4, HALF], [-5, HA
 export const OUTLINES: Record<Floor, PlanPoint[]> = { ground: GROUND_OUTLINE, first: FIRST_OUTLINE }
 export const FLOOR_LEVEL: Record<Floor, number> = { ground: 0, first: FLOOR_HEIGHT }
 
-// Openings in the front walls, from Street View. Heights are absolute.
+const REAR_DOOR_WIDTH = 1.78, REAR_WINDOW_WIDTH = 1.64, REAR_WINDOW_HEIGHT = 2.3
+/** The window's sill is assumed: the owner gave its size, not its height above the floor. */
+const REAR_WINDOW_SILL = .3
+const TERRACE_CENTRE = (SW + -1) / 2
+const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
+
+// Openings in the walls, from Street View and the owner. Heights are absolute.
 export const OPENINGS: Record<Floor, Opening[]> = {
   ground: [
     { u: -5, v: [-3.87, .14], y: [0, 2.4] }, // garage door, on the street line
@@ -44,6 +50,10 @@ export const OPENINGS: Record<Floor, Opening[]> = {
   first: [
     { u: -5, v: [.1, 3.1], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] }, // 3 m balcony door
     { u: -5, v: [-3.33, -1.5], y: [FLOOR_HEIGHT + .7, FLOOR_HEIGHT + 1.6] }, // window
+    // Rear wall, u = 4 (owner): a 1.78 m balcony door centred on the terrace, which spans from the south-west
+    // wall to v = -1, and a 1.64 m by 2.3 m window centred on the ground-floor light well (v = -1 to 1.5).
+    { u: 4, v: [TERRACE_CENTRE - REAR_DOOR_WIDTH / 2, TERRACE_CENTRE + REAR_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
+    { u: 4, v: [LIGHT_WELL_CENTRE - REAR_WINDOW_WIDTH / 2, LIGHT_WELL_CENTRE + REAR_WINDOW_WIDTH / 2], y: [FLOOR_HEIGHT + REAR_WINDOW_SILL, FLOOR_HEIGHT + REAR_WINDOW_SILL + REAR_WINDOW_HEIGHT] },
   ],
 }
 

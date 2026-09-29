@@ -116,6 +116,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
   // [height above ground, floors]. Owner floor counts: house 2, A 1, the lot behind 1, C 2.
   const expected: Record<string, [number, number]> = {
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
+    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0],
     'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
     'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [3.7, 1],
@@ -264,4 +265,17 @@ test('road geometry remains finite, metric and clipped to the local context', ()
     assert.ok(road.points.length >= 2)
     assert.ok(road.points.every(point => point.length === 2 && point.every(value => Number.isFinite(value) && Math.abs(value) <= 200)), `${road.id}: clipped local metric points`)
   }
+})
+
+test('the terrace has a 1.6 m wall on the corner\'s party wall and a 1.1 m railing over the light well', () => {
+  const wall = byId('HOUSE-TERRACE-WALL'), rail = byId('HOUSE-TERRACE-RAIL'), terrace = byId('HOUSE-TERRACE')
+  closeTo(wall.height - (wall.base ?? 0), 1.6, 1e-9)
+  closeTo(rail.height - (rail.base ?? 0), 1.1, 1e-9)
+  closeTo(wall.base ?? 0, terrace.height, 1e-9)
+  closeTo(rail.base ?? 0, terrace.height, 1e-9)
+  // The wall runs along the south-west edge, the railing along the inner side (v = -1), both over the terrace's 4.6 m.
+  const us = (item: BuildingFootprint) => item.footprint.map(point => siteToHouse(point)[0])
+  closeTo(Math.min(...us(wall)), 4, .01); closeTo(Math.max(...us(wall)), 8.6, .01)
+  closeTo(Math.min(...us(rail)), 4, .01); closeTo(Math.max(...us(rail)), 8.6, .01)
+  for (const point of rail.footprint) assert.ok(siteToHouse(point)[1] <= -.99 && siteToHouse(point)[1] >= -1.16)
 })

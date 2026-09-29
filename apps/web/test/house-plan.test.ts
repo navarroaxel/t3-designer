@@ -103,3 +103,17 @@ test('walls close the reflex corners of the notched outline', () => {
 test('outlines that are not axis-aligned are rejected', () => {
   assert.throws(() => wallBoxes([[0, 0], [4, 1], [4, 5], [0, 5]], [], 0, 1), /axis-aligned/)
 })
+
+test('the rear wall has a 1.78 m door centred on the terrace and a 1.64 m by 2.3 m window centred on the light well', () => {
+  const rear = OPENINGS.first.filter(opening => opening.u === 4)
+  assert.equal(rear.length, 2)
+  const [door, window] = rear.sort((a, b) => a.v[0] - b.v[0])
+  assert.ok(Math.abs(door.v[1] - door.v[0] - 1.78) < 1e-9)
+  assert.ok(Math.abs((door.v[0] + door.v[1]) / 2 - (houseSouthWestEdge(1.8) - 1) / 2) < 1e-9, 'door centred on the terrace')
+  assert.ok(Math.abs(window.v[1] - window.v[0] - 1.64) < 1e-9)
+  assert.ok(Math.abs((window.v[0] + window.v[1]) / 2 - .25) < 1e-9, 'window centred on the light well (v = -1 to 1.5)')
+  assert.ok(Math.abs(window.y[1] - window.y[0] - 2.3) < 1e-9)
+  // The openings are cut out of the rear wall of the first floor.
+  const boxes = wallBoxes(FIRST_OUTLINE, OPENINGS.first, FLOOR_HEIGHT, FLOOR_HEIGHT + CUT_HEIGHT)
+  assert.ok(boxes.length > 4)
+})

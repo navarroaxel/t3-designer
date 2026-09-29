@@ -89,7 +89,7 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'NEIGHBOR-B') return { wall: REAR_LOT_WALL_COLOR, roof: '#cbbd8c', roughness: .92, metalness: 0 }
   if (building.id.endsWith('-CANTILEVER')) return { wall: '#c9b58a', roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
-  if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
+  if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+|TERRACE-(WALL|RAIL))$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
   if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
   // The houses across the street, from Street View: the corner white, the house opposite black.
@@ -198,7 +198,11 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
             <HouseFacade />
             {showPanels && <SolarPanels shade={panelShade} />}
           </>
-        : <HouseShell floor={floor} />}
+        : <>
+            <HouseShell floor={floor} />
+            {/* The terrace's walls stand at first-floor level: they belong to that cut. */}
+            {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+          </>}
       {showNeighbors && <NeighborFacades />}
       {showNeighbors && neighbors.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
     </>}

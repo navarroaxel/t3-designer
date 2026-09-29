@@ -84,6 +84,10 @@ lengths of the street fronts and the widths of the streets.
 Buildings shorter than the panels cannot shade them, so these heights only matter for a
 building that turns out to be three floors or more. The data is in `apps/web/src/data/block.ts`.
 
+## The terrace and the rear wall
+
+The terrace over the rear ground-floor band has its roof at first-floor level (3.2 m). Along the corner's party wall it has a **1.6 m wall** and, on the light-well side, a **1.1 m railing wall** (owner). The rear wall of the first floor (u = 4) has a **1.78 m balcony door** centred on the terrace and a **1.64 m by 2.3 m window** centred on the ground-floor light well (owner). The window's sill (0.3 m) is assumed.
+
 ## The corner's fronts
 
 The corner lot beside the house shows two more faces (`apps/web/src/data/corner-front.ts`): the chamfer (5.95 m) and the face on the cross street (9.07 m). Doors, brick panels, windows, the cornice and the air conditioners are placed from Street View (August 2025), scaled to the doors, so expect about 0.3 m. Above the ground floor stand a terrace with a 4.3 m parapet over the chamfer, an upper room under a sheet roof (5.4 m) and a lower parapet toward the rear (3.7 m). A fibre-cement water tank, about 1 m across and 1.2 m tall, stands on a plastered room 1.6 m square on the terrace (7.4 m in all).

@@ -1,5 +1,6 @@
 import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW } from '../data/building-site'
+import { OPENINGS } from '../data/house-plan'
 
 /**
  * Front elevation of the house, read from Street View (August 2025).
@@ -47,6 +48,11 @@ export function HouseFacade({ physical = false }: { physical?: boolean }) {
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
     {slabs.map(part => <Box key={part.u} part={part} castShadow={physical} />)}
     {!physical && <>
+      {/* Rear wall of the first floor, facing the terrace and the light well: glass in its openings. */}
+      {OPENINGS.first.filter(opening => opening.u > 0).map(opening => <mesh key={`${opening.v}`} position={[opening.u + .02, (opening.y[0] + opening.y[1]) / 2, -(opening.v[0] + opening.v[1]) / 2]}>
+        <boxGeometry args={[.04, opening.y[1] - opening.y[0], opening.v[1] - opening.v[0]]} />
+        <meshStandardMaterial color="#2b3a48" roughness={.3} metalness={.2} />
+      </mesh>)}
       {openings.map(part => <Box key={`${part.v}-${part.y}`} part={part} castShadow={false} />)}
       {/* Balcony railing at the slab edge, and the open railing above the front parapet. */}
       <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT - 1, 4.6]])} color="#3f4a44" lineWidth={1.4} />
