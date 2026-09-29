@@ -156,6 +156,6 @@
 .month-tooltip strong { font-size: 11px; text-transform: capitalize; }
 .month-tooltip-start { left: 0; transform: none; }
 .month-tooltip-end { left: auto; right: 0; transform: none; }
-.month-bar span { display: block; width: 100%; background: #b6c99c; border-radius: 2px 2px 0 0; }
+.month-bar-button span { display: block; width: 100%; background: #b6c99c; border-radius: 2px 2px 0 0; }
 .month-bar small { font-size: 8px; color: #98a08d; }
 .generation-caveat { margin-top: 4px; }
