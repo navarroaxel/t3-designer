@@ -99,6 +99,9 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'OPP-23') return { wall: OPPOSITE_COLORS.cornerWall, roof: OPPOSITE_COLORS.cornerRoof, roughness: .92, metalness: 0 }
   if (building.id === 'OPP-24') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
   if (building.id === 'OPP-24-ROOM') return { wall: OPPOSITE_COLORS.roomWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
+  // The terrace sink: a light masonry block with a dark basin.
+  if (building.id === 'HOUSE-TERRACE-SINK-BASIN') return { wall: '#4d5155', roof: '#4d5155', roughness: .4, metalness: .3 }
+  if (building.id === 'HOUSE-TERRACE-SINK') return { wall: '#cfcdc6', roof: '#dcdad3', roughness: .9, metalness: 0 }
   // The terrace grill: brick body, dark cast-iron grate.
   if (building.id === 'HOUSE-TERRACE-GRILL-GRATE') return { wall: '#2a2a2c', roof: '#2a2a2c', roughness: .5, metalness: .6 }
   if (building.id === 'HOUSE-TERRACE-GRILL') return { wall: '#a5533b', roof: '#8a4a36', roughness: .95, metalness: 0 }
@@ -211,7 +214,7 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
         : <>
             <HouseShell floor={floor} />
             {/* The terrace's walls stand at first-floor level: they belong to that cut. */}
-            {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL|GRILL(-GRATE)?)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+            {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL|GRILL(-GRATE)?|SINK(-BASIN)?)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
           </>}
       {showNeighbors && <NeighborFacades />}
       {showNeighbors && neighbors.map(building => <Volume key={building.id} building={building} castShadow={false} />)}

@@ -44,6 +44,14 @@ const REAR_DOOR_WIDTH = 1.78, REAR_WINDOW_WIDTH = 2.3, REAR_WINDOW_HEIGHT = 1.64
 /** The window's sill is assumed: the owner gave its size, not its height above the floor. */
 const REAR_WINDOW_SILL = .9
 const TERRACE_CENTRE = (SW + -1) / 2
+/**
+ * The laundry door (owner): 0.70 m wide, like the living door but with one leaf, on the rear wall, 1.15 m from the
+ * party wall with neighbour A, taken from the wall's inner face to the door's nearer edge. The laundry itself is
+ * taken to be the roof of the left ground-floor band, at first-floor level.
+ */
+export const LAUNDRY_DOOR_WIDTH = .7
+export const LAUNDRY_DOOR_FROM_PARTY_WALL = 1.15
+const LAUNDRY_DOOR_CENTRE = HALF - WALL_THICKNESS - LAUNDRY_DOOR_FROM_PARTY_WALL - LAUNDRY_DOOR_WIDTH / 2
 const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
 
 /** Centre of the secondary room's window, from Street View; its width, 2.04 m, is the owner's. */
@@ -63,6 +71,8 @@ export const OPENINGS: Record<Floor, Opening[]> = {
     // wall to v = -1, and a 2.3 m wide by 1.64 m high window centred on the ground-floor light well (v = -1 to 1.5).
     { u: 4, v: [TERRACE_CENTRE - REAR_DOOR_WIDTH / 2, TERRACE_CENTRE + REAR_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
     { u: 4, v: [LIGHT_WELL_CENTRE - REAR_WINDOW_WIDTH / 2, LIGHT_WELL_CENTRE + REAR_WINDOW_WIDTH / 2], y: [FLOOR_HEIGHT + REAR_WINDOW_SILL, FLOOR_HEIGHT + REAR_WINDOW_SILL + REAR_WINDOW_HEIGHT] },
+    // The laundry door, on the rear wall at the end of the kitchen's aisle.
+    { u: 4, v: [LAUNDRY_DOOR_CENTRE - LAUNDRY_DOOR_WIDTH / 2, LAUNDRY_DOOR_CENTRE + LAUNDRY_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
   ],
 }
 
@@ -368,6 +378,8 @@ export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
   // Bathroom: facing south-west the right hand is north-west (lower u); the leaf swings into the bathroom.
   // Living: coming in from the hall facing south-east the right hand is south-west (lower v); the wide leaf swings into the living.
   { id: 'living', hinge: [LIVING_DOOR.u[1], LIVING_DOOR.v[0]], closed: [0, 1], open: [1, 0], radius: LIVING_DOOR_LEAVES.wide, color: LIVING_DOOR_COLOR, glazed: true },
+  // Laundry: coming in from the kitchen facing south-east the right hand is south-west (lower v); the leaf swings into the laundry.
+  { id: 'laundry', hinge: [4, LAUNDRY_DOOR_CENTRE - LAUNDRY_DOOR_WIDTH / 2], closed: [0, 1], open: [1, 0], radius: LAUNDRY_DOOR_WIDTH, color: LIVING_DOOR_COLOR, glazed: true },
   { id: 'bathroom', hinge: [BATHROOM_DOOR_SWING.hingeU, BATHROOM_DOOR_SWING.hingeV], closed: [1, 0], open: [0, -1], radius: BATHROOM_DOOR_WIDTH, color: BATHROOM_DOOR_COLOR },
 ]
 

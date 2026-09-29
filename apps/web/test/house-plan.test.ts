@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -105,7 +105,7 @@ test('outlines that are not axis-aligned are rejected', () => {
 })
 
 test('the rear wall has a 1.78 m door centred on the terrace and a 2.3 m by 1.64 m window centred on the light well', () => {
-  const rear = OPENINGS.first.filter(opening => opening.u === 4)
+  const rear = OPENINGS.first.filter(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - LAUNDRY_DOOR_WIDTH) > 1e-9)
   assert.equal(rear.length, 2)
   const [door, window] = rear.sort((a, b) => a.v[0] - b.v[0])
   assert.ok(Math.abs(door.v[1] - door.v[0] - 1.78) < 1e-9)
@@ -282,7 +282,7 @@ test('the main room\'s wall steps back 20 cm along the hall, which is wider ther
   assert.ok(hallWidth - (main.v[0] - (FIRST_FLOOR_BATHROOM.v[1] + .12)) > .19)
 })
 
-test('the main room\'s 0.80 m wenge door is on the wall that steps back, and all four doors are right-handed and swing clear', () => {
+test('the main room\'s 0.80 m wenge door is on the wall that steps back, and all five doors are right-handed and swing clear', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   near(MAIN_DOOR.u[1] - MAIN_DOOR.u[0], .8)
   // On the stepped-back wall, past the secondary room's back face and inside the main room's depth.
@@ -295,7 +295,7 @@ test('the main room\'s 0.80 m wenge door is on the wall that steps back, and all
   // Right hand for someone coming in along `open`. The house frame [u, v] is right-handed seen from above (v is u turned
   // 90 degrees counter-clockwise), so the walker's left is (-open_v, open_u); hinged on the right, the closed leaf
   // extends from the hinge toward that left.
-  assert.equal(FIRST_FLOOR_DOOR_SWINGS.length, 4)
+  assert.equal(FIRST_FLOOR_DOOR_SWINGS.length, 5)
   for (const door of FIRST_FLOOR_DOOR_SWINGS) {
     near(-door.open[1], door.closed[0]); near(door.open[0], door.closed[1])
     near(Math.hypot(...door.closed), 1); near(Math.hypot(...door.open), 1)
@@ -458,9 +458,22 @@ test('the glazed door between the hall and the living faces the secondary room\'
   assert.deepEqual(swing.open, [1, 0])
 })
 
-test('the living door is a white aluminium frame with glass, and only that door is glazed', () => {
+test('the living and laundry doors are white aluminium frames with glass, and only those doors are glazed', () => {
   assert.equal(LIVING_DOOR_FRAME.material, 'aluminium')
   assert.ok(LIVING_DOOR_FRAME.glassOpacity > .1 && LIVING_DOOR_FRAME.glassOpacity < .6, 'translucent enough to read as glass')
   assert.ok(LIVING_DOOR_FRAME.profile > .02 && LIVING_DOOR_FRAME.profile < .08, 'a slim aluminium profile')
-  assert.deepEqual(FIRST_FLOOR_DOOR_SWINGS.filter(door => door.glazed).map(door => door.id), ['living'])
+  assert.deepEqual(FIRST_FLOOR_DOOR_SWINGS.filter(door => door.glazed).map(door => door.id).sort(), ['laundry', 'living'])
+})
+
+test('the laundry door is 0.70 m, single-leaf, right-handed and 1.15 m from the party wall, on the rear wall', () => {
+  const near = (a: number, b: number, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} vs ${b}`)
+  const door = OPENINGS.first.find(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - .7) < 1e-9)!
+  near(door.y[1] - door.y[0], 2.1)
+  // 1.15 m from the party wall's inner face (v = 4.175) to the door's nearer edge.
+  near(KITCHEN_LIVING.v[1] - door.v[1], 1.15)
+  assert.ok(door.v[0] >= KITCHEN_LIVING.v[0] && door.v[1] <= KITCHEN_LIVING.v[1])
+  for (const other of OPENINGS.first.filter(opening => opening.u === 4 && opening !== door)) assert.ok(other.v[1] < door.v[0] || other.v[0] > door.v[1], 'clear of the other openings')
+  const swing = FIRST_FLOOR_DOOR_SWINGS.find(item => item.id === 'laundry')!
+  near(swing.radius, .7); near(swing.hinge[1], door.v[0]); near(swing.hinge[0], 4)
+  assert.deepEqual(swing.open, [1, 0])
 })

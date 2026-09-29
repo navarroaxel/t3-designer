@@ -114,6 +114,8 @@ const TERRACE_WALL_THICKNESS = .15;
 const TERRACE_CENTRE_V = (houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2;
 /** A masonry grill at the back of the first-floor terrace (owner); its size is assumed: 1.2 m wide, 0.55 m deep, 0.85 m high, with a cast-iron grate. */
 export const TERRACE_GRILL = { width: 1.2, depth: .55, height: .85, grate: .03 };
+/** A masonry sink to the left of the grill, seen from the terrace's rear (owner): its size, 0.6 m by 0.5 m and 0.85 m high, is assumed. */
+export const TERRACE_SINK = { width: .6, depth: .5, height: .85, gap: .05, basin: .02 };
 // The entrance is set back 1 m from the street line, between a 0.5 m wall that
 // stays on the line next to the neighbour (north-east) and a 0.7 m pier next to
 // the garage. The garage stands on the line. The upper floor overhangs the recess.
@@ -227,6 +229,11 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
     FLOOR_HEIGHT + TERRACE_GRILL.height, 0, false, FLOOR_HEIGHT),
   building('HOUSE-TERRACE-GRILL-GRATE', 'Casa · parrilla de la terracita · reja', rect(REAR_SW - .05 - TERRACE_GRILL.depth, REAR_SW - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
     FLOOR_HEIGHT + TERRACE_GRILL.height + TERRACE_GRILL.grate, 0, false, FLOOR_HEIGHT + TERRACE_GRILL.height),
+  // To the left of the grill, facing the rear (south-east, so left is north-east, toward the railing): the sink and its basin.
+  building('HOUSE-TERRACE-SINK', 'Casa · pileta de la terracita', rect(REAR_SW - .05 - TERRACE_SINK.depth, REAR_SW - .05, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_SINK.gap, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_SINK.gap + TERRACE_SINK.width),
+    FLOOR_HEIGHT + TERRACE_SINK.height, 0, false, FLOOR_HEIGHT),
+  building('HOUSE-TERRACE-SINK-BASIN', 'Casa · pileta de la terracita · bacha', rect(REAR_SW - .05 - TERRACE_SINK.depth + .06, REAR_SW - .05 - .06, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_SINK.gap + .06, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_SINK.gap + TERRACE_SINK.width - .06),
+    FLOOR_HEIGHT + TERRACE_SINK.height + TERRACE_SINK.basin, 0, false, FLOOR_HEIGHT + TERRACE_SINK.height),
   // Lot 7 (A), 9.00 m of front. Street View (Aug 2025): next to the house a brick wall with a
   // green railing on the street line, a front patio about 2 m deep and a one-floor house behind
   // it; then a garage with green doors under a sheet-metal roof.
