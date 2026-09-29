@@ -223,6 +223,17 @@ export const BATHROOM_DOOR = {
  */
 export const BATHROOM_DOOR_SWING = { hingeU: BATHROOM_DOOR.u[0], hingeV: BATHROOM_DOOR.v[0], radius: BATHROOM_DOOR_WIDTH }
 
+/**
+ * A drywall (durlock) wall that divides the main room in two (owner), parallel to the party wall with
+ * neighbour A and 1.5 m from it. The 1.5 m is taken from the party wall's inner face to the drywall's near
+ * face, and the drywall is 0.10 m thick. It runs the room's depth, front wall to back wall.
+ */
+export const DRYWALL = { distanceFromPartyWall: 1.5, thickness: .1 }
+export const MAIN_ROOM_DRYWALL: [number, number, number, number] = [
+  FRONT_ROOMS.main.u[0], FRONT_ROOMS.main.u[1],
+  NE_INNER - DRYWALL.distanceFromPartyWall - DRYWALL.thickness, NE_INNER - DRYWALL.distanceFromPartyWall,
+]
+
 /** The main room's wall along the hall steps back this far (owner), so the hall is wider there. */
 export const MAIN_ROOM_SETBACK = .2
 
@@ -246,6 +257,8 @@ export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
   [FRONT_ROOMS.secondary.u[1], MAIN_DOOR.u[0], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK],
   [MAIN_DOOR.u[1], FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK],
   [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK],
+  // The drywall wall that divides the main room in two.
+  MAIN_ROOM_DRYWALL,
   // The main room's back wall.
   [FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[1]],
   // The secondary room's back wall, beside the wardrobe's recess.

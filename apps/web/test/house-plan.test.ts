@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -316,4 +316,17 @@ test('the 55 inch TV is a 16:9 screen hung on the shared wall, centred on it, fa
   assert.ok(MAIN_TV_PLACEMENT.v[1] < main.v[1])
   // It hangs clear of the floor and stays under the 1.5 m cut, so it shows whole.
   assert.ok(MAIN_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .5 && MAIN_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 1.5)
+})
+
+test('a 0.10 m drywall wall divides the main room, 1.5 m from the party wall with neighbour A', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  const [u0, u1, v0, v1] = MAIN_ROOM_DRYWALL
+  const { main } = FRONT_ROOMS
+  near(v1 - v0, .1)
+  // 1.5 m from the party wall's inner face (v = 4.175) to the drywall's near face.
+  near(main.v[1] - v1, 1.5)
+  // It runs the room's depth, parallel to the party wall, and stays inside the room.
+  near(u0, main.u[0]); near(u1, main.u[1])
+  assert.ok(v0 > main.v[0] && v1 < main.v[1])
+  assert.ok(FIRST_FLOOR_PARTITIONS.some(wall => wall === MAIN_ROOM_DRYWALL))
 })
