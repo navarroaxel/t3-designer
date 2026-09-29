@@ -7,10 +7,13 @@ import { REAR_LOT_WALL_COLOR } from '../data/neighbor-fronts'
 import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
 import { HouseFacade } from './HouseFacade'
-import { HouseShell } from './HouseShell'
+import { HouseShell, HouseShellPhysical } from './HouseShell'
 import type { Floor } from '../data/house-plan'
 import { NeighborFacades } from './NeighborFacades'
 import { SolarPanels } from './SolarPanels'
+
+/** The house's prisms that the hollow shell replaces in the shadow pass. */
+const HOLLOW_HOUSE_PARTS = new Set(['HOUSE', 'HOUSE-ENTRY', 'HOUSE-ARM', 'HOUSE-TERRACE'])
 
 const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
@@ -185,13 +188,17 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
 }) {
   const house = useMemo(() => SITE_BUILDINGS.filter(isHouse), [])
   const neighbors = useMemo(() => SITE_BUILDINGS.filter(building => !house.includes(building)), [house])
+  // Light sees the house as a hollow shell, so its solid prisms are replaced in the shadow pass: the main block, the
+  // entrance upper floor and the rear ground-floor bands. Roof obstacles, the cantilever and the terrace walls stay.
+  const solids = useMemo(() => house.filter(building => !HOLLOW_HOUSE_PARTS.has(building.id)), [house])
   const physical = useMemo(() => <>
-    {house.map(building => <Volume key={building.id} building={building} />)}
+    {solids.map(building => <Volume key={building.id} building={building} />)}
+    <HouseShellPhysical />
     <HouseFacade physical />
     {/* Hiding the panels also removes their shadows: they are part of the physical obstacles only while shown. */}
     {showPanels && <SolarPanels physical />}
     {neighbors.map(building => <Volume key={building.id} building={building} />)}
-  </>, [house, neighbors, showPanels])
+  </>, [solids, neighbors, showPanels])
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>

@@ -18,14 +18,14 @@ const BED_COLOR = '#d9d2c4'
 const LEAF_COLORS = ['#c39a64', '#b58b5a']
 
 /** A floor slab from a plan outline. Local z is -v, so the shape takes [u, -v]. */
-function Slab({ outline, top }: { outline: PlanPoint[]; top: number }) {
+function Slab({ outline, top, castShadow = false }: { outline: PlanPoint[]; top: number; castShadow?: boolean }) {
   const geometry = useMemo(() => {
     const slab = new ExtrudeGeometry(polygonShape(outline.map(([u, v]) => [u, -v])), { depth: SLAB_THICKNESS, bevelEnabled: false })
     slab.rotateX(-Math.PI / 2)
     return slab
   }, [outline])
   useEffect(() => () => geometry.dispose(), [geometry])
-  return <mesh geometry={geometry} position={[0, top - SLAB_THICKNESS, 0]} receiveShadow>
+  return <mesh geometry={geometry} position={[0, top - SLAB_THICKNESS, 0]} castShadow={castShadow} receiveShadow>
     <meshStandardMaterial color={SLAB_COLOR} roughness={.95} />
   </mesh>
 }
@@ -149,11 +149,11 @@ function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, 
   </mesh>
 }
 
-function Walls({ floor, top }: { floor: Floor; top: number }) {
+function Walls({ floor, top, castShadow = false }: { floor: Floor; top: number; castShadow?: boolean }) {
   const level = FLOOR_LEVEL[floor]
   const boxes = useMemo(() => wallBoxes(floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE, OPENINGS[floor], level, top), [floor, level, top])
   return <>
-    {boxes.map((box, index) => <mesh key={index} position={[box.center[0], box.center[1], -box.center[2]]} receiveShadow>
+    {boxes.map((box, index) => <mesh key={index} position={[box.center[0], box.center[1], -box.center[2]]} castShadow={castShadow} receiveShadow>
       <boxGeometry args={[box.size[0], box.size[1], box.size[2]]} />
       <meshStandardMaterial color={WALL_COLOR} roughness={.95} />
     </mesh>)}
@@ -300,5 +300,25 @@ export function HouseShell({ floor }: { floor: Floor }) {
         <meshStandardMaterial color={PARTITION_COLOR} roughness={.95} />
       </mesh>)}
     </>}
+  </group>
+}
+
+/**
+ * The house as light sees it: a hollow shell, not a solid block. Both floors' exterior walls with their
+ * openings, the first-floor slab (over the recess too), the roof slab and the first floor's interior walls, so
+ * sunlight reaches the rooms only through the windows and doors. It stands in the shadow pass in place of the
+ * house's solid prisms; the panels' own shading still uses the prisms.
+ */
+export function HouseShellPhysical() {
+  return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
+    <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
+    <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} castShadow />
+    <Slab outline={ENTRY_RECESS_OUTLINE} top={FLOOR_HEIGHT} castShadow />
+    <Walls floor="first" top={2 * FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
+    <Slab outline={FIRST_OUTLINE} top={2 * FLOOR_HEIGHT} castShadow />
+    {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + (FLOOR_HEIGHT - SLAB_THICKNESS) / 2, -(v0 + v1) / 2]} castShadow>
+      <boxGeometry args={[u1 - u0, FLOOR_HEIGHT - SLAB_THICKNESS, v1 - v0]} />
+      <meshStandardMaterial color={PARTITION_COLOR} />
+    </mesh>)}
   </group>
 }

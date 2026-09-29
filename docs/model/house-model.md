@@ -122,3 +122,7 @@ trees, wires and the terrace grill. None of them shades the azotea noticeably.
 6. The plans of both floors: interior walls, stairs, and the windows on the side and rear walls.
 7. The real thickness of the exterior walls.
 8. The panel layout: see [solar-array.md](solar-array.md).
+
+## How light sees the house
+
+The shadow pass does not use the house's solid prisms. It uses a hollow shell (`HouseShellPhysical` in `HouseShell.tsx`): both floors' exterior walls with their windows and doors, the first-floor slab over the recess, the roof slab and the first floor's interior walls. Sunlight therefore reaches the rooms only through the openings (owner's request: light cannot cross a wall). The prisms are still used for the rooftop obstacles, the cantilever, the terrace walls and the panels' own shading calculation. Closed doors are not modelled as blockers: their openings let light through.
