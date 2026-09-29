@@ -19,6 +19,12 @@ export default {
     dark: 'Dark',
     automatic: 'Changes apply and save automatically in this browser.',
     sessionOnly: 'The browser could not save a change. It applies for this session but may be lost when you reload.',
+    about: 'About',
+    aboutDescription: 'Where this project lives.',
+    sourceCode: 'Source code',
+    sourceCodeDescription: 'T3 Designer is open source. Read the code, report a problem or follow the changes on GitHub.',
+    openRepository: 'View on GitHub',
+    opensInNewTab: '(opens in a new tab)',
   },
   language: {
     label: 'Language',
