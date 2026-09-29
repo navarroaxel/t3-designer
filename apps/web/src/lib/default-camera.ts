@@ -1,4 +1,4 @@
-import { HOUSE_CENTER } from '../data/building-site.ts'
+import { houseToSite } from '../data/building-site.ts'
 
 export type CameraMode = '3d' | 'top'
 export type CameraPlacement = { position: [number, number, number]; target: [number, number, number] }
@@ -22,7 +22,8 @@ const radians = (degrees: number) => degrees * Math.PI / 180
  * for tall, narrow screens. Site axes: x east, y up, z south.
  */
 export function defaultCamera(mode: CameraMode, factor = 1): CameraPlacement {
-  const [cx, cz] = HOUSE_CENTER
+  // The centre of the roof slab, which spans u = -6 to 4 in the house frame.
+  const [cx, cz] = houseToSite(-1, 0)
   const target: [number, number, number] = [cx, TARGET_HEIGHT, cz]
   if (mode === 'top') return { position: [cx, TOP_HEIGHT * factor, cz + .01], target }
   const { bearing, elevation, distance } = OPENING_VIEW

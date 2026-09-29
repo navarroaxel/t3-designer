@@ -20,11 +20,11 @@ export const CUT_HEIGHT = 1.5
 // Ground floor: garage and rooms, with the entrance recess at the front (1 m deep,
 // between a 0.5 m wall and a 0.7 m pier) and the 2.5 m light well open at the rear.
 export const GROUND_OUTLINE: PlanPoint[] = [
-  [-5, -4.25], [8.5, -4.25], [8.5, -1], [5, -1], [5, 1.5], [8.5, 1.5],
+  [-5, -4.25], [8.5, -4.25], [8.5, -1], [4, -1], [4, 1.5], [8.5, 1.5],
   [8.5, 4.25], [-5, 4.25], [-5, 3.75], [-4, 3.75], [-4, .85], [-5, .85],
 ]
-// First floor: the 10 m x 8.5 m block under the azotea.
-export const FIRST_OUTLINE: PlanPoint[] = [[-5, -4.25], [5, -4.25], [5, 4.25], [-5, 4.25]]
+// First floor: the 9 m x 8.5 m block under the azotea (the roof adds a 1 m cantilever in front).
+export const FIRST_OUTLINE: PlanPoint[] = [[-5, -4.25], [4, -4.25], [4, 4.25], [-5, 4.25]]
 
 export const OUTLINES: Record<Floor, PlanPoint[]> = { ground: GROUND_OUTLINE, first: FIRST_OUTLINE }
 export const FLOOR_LEVEL: Record<Floor, number> = { ground: 0, first: FLOOR_HEIGHT }

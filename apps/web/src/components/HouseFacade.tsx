@@ -19,8 +19,6 @@ const ENTRY_FRONT = FRONT + 1
 const slabs: Part[] = [
   // First-floor balcony slab, projecting about 1 m over the pavement.
   { u: FRONT - .5, depth: 1, v: [-4.6, 4.6], y: [FLOOR - .3, FLOOR], color: '#c9b58a' },
-  // Roof slab fascia, projecting about 0.8 m.
-  { u: FRONT - .4, depth: .8, v: [-4.6, 4.6], y: [2 * FLOOR - .5, 2 * FLOOR], color: '#c9b58a' },
 ]
 
 const openings: Part[] = [
@@ -54,7 +52,7 @@ export function HouseFacade({ physical = false }: { physical?: boolean }) {
       <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT - 1, 4.6]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT, -4.6]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - 1, 4.6], [FRONT, 4.6]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(2 * FLOOR + 1.2, [[-5, -4.25], [-5, 4.25]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(2 * FLOOR + 1.2, [[-6, -4.25], [-6, 4.25]])} color="#3f4a44" lineWidth={1.4} />
     </>}
   </group>
 }

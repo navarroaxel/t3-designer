@@ -5,9 +5,10 @@
  * of the Google Earth view that frames the house.
  * Street View imagery (August 2025) refines the front elevation and the height
  * of the neighbours' fronts.
- * The upper block (10 m x 8.5 m, rotated 45 deg from north) was measured from
- * the scale bar of a top-down view; the rear ground-floor band, terrace and
- * light well follow the owner's dimensions. Heights follow floor counts given by the
+ * The roof (10 m x 8.5 m, rotated 45 deg from north) was measured from the scale
+ * bar of a top-down view. It spans 9 m of house plus a 1 m cantilever over the
+ * pavement, ending on the same line as the first-floor balcony. The rear
+ * ground-floor band, terrace and light well follow the owner's dimensions. Heights follow floor counts given by the
  * owner (3.2 m per floor), and neighbouring footprints are estimated from the
  * same view. This is a shading model, not a survey.
  */
@@ -62,25 +63,35 @@ export const FLOOR_HEIGHT = 3.2;
 
 /**
  * House frame: u runs toward the rear (south-east, away from the street),
- * v toward the north-east (the left side seen from the street). The origin
- * is the centre of the 10 m x 8.5 m upper block.
+ * v toward the north-east (the left side seen from the street). The street line,
+ * where the facade and the neighbours' fronts stand, is u = -5. The roof slab spans
+ * u from -6 (its front edge, 1 m past the street line) to 4, so its centre is u = -1
+ * and the origin is 1 m behind it.
  */
-export const HOUSE_CENTER: SitePoint = [-0.74, -1.0];
+const S = Math.SQRT1_2;
+export const HOUSE_CENTER: SitePoint = [-0.74 + S, -1.0 + S];
 /** Three.js yaw that maps a group's local +x to the house's rear axis (u) and +z to -v. */
 export const HOUSE_YAW = -Math.PI / 4;
-const S = Math.SQRT1_2;
-const round = (value: number) => Math.round(value * 100) / 100;
-const fromHouse = (u: number, v: number): SitePoint => [
-  round(HOUSE_CENTER[0] + S * (u + v)),
-  round(HOUSE_CENTER[1] + S * (u - v)),
+/** A point of the house frame in site coordinates (metres, x east, z south). */
+export const houseToSite = (u: number, v: number): SitePoint => [
+  HOUSE_CENTER[0] + S * (u + v),
+  HOUSE_CENTER[1] + S * (u - v),
 ];
+const fromHouse = houseToSite;
+/** A site point in the house frame, as [u, v]. */
+export const siteToHouse = ([x, z]: SitePoint): [number, number] => {
+  const dx = x - HOUSE_CENTER[0], dz = z - HOUSE_CENTER[1]
+  return [S * (dx + dz), S * (dx - dz)]
+};
 const rect = (u0: number, u1: number, v0: number, v1: number): SitePoint[] =>
   [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(([u, v]) => fromHouse(u, v));
 
 const HALF_WIDTH = 4.25; // 8.5 m wide
-const AZOTEA_REAR = 5; // upper block: 10 m deep, u in [-5, 5]
+const AZOTEA_REAR = 4; // upper block: 9 m deep, u in [-5, 4]
+/** Front edge of the roof slab: a 1 m cantilever past the street line, level with the balcony. */
+export const ROOF_FRONT = -6;
 const LOT_REAR = 8.5; // lot: 13.5 m deep, u in [-5, 8.5]
-// Rear ground-floor band (3.5 m): left arm 2.75 m | light well 2.5 m | terrace 3.25 m.
+// Rear ground-floor band, 4.5 m outside (3.95 m inside, between the walls): left arm 2.75 m | light well 2.5 m | terrace 3.25 m.
 const LEFT_ARM_INNER = 1.5;
 const TERRACE_INNER = -1;
 // The entrance is set back 1 m from the street line, between a 0.5 m wall that
@@ -118,14 +129,16 @@ const building = (
 
 // Rooftop obstacles, read from the owner's photo of the azotea. Elevations are
 // measured from the ground-floor level, on top of the 6.4 m roof slab.
-const ROOF = 2 * FLOOR_HEIGHT;
+/** Elevation of the azotea slab above the ground-floor level. */
+export const ROOF_LEVEL = 2 * FLOOR_HEIGHT;
+const ROOF = ROOF_LEVEL;
 const PARAPET = 1.1; // white masonry parapets on the sides and rear
 const FRONT_PARAPET = .8; // tiled band on the street side
 const WALL = .15;
 // Concrete tank block, 1.6 m x 1.6 m, against the rear wall of the azotea and
 // slightly towards the south-west side. Its slab touches the rear parapet. The
 // heights are estimates from the photo.
-const TANK_U: [number, number] = [3.15, 4.75];
+const TANK_U: [number, number] = [AZOTEA_REAR - 1.85, AZOTEA_REAR - .25];
 const TANK_V: [number, number] = [-2, -.4];
 const rooftop = (id: string, label: string, footprint: SitePoint[], base: number, top: number) =>
   building(`HOUSE-${id}`, label, footprint, ROOF + top, 1, false, ROOF + base);
@@ -135,9 +148,9 @@ const octagon = (u: number, v: number, radius: number): SitePoint[] =>
 
 const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
   rooftop('PARAPET-REAR', 'Parapeto trasero', rect(AZOTEA_REAR - WALL, AZOTEA_REAR, -HALF_WIDTH, HALF_WIDTH), 0, PARAPET),
-  rooftop('PARAPET-NE', 'Parapeto lado NE', rect(-5, AZOTEA_REAR - WALL, HALF_WIDTH - WALL, HALF_WIDTH), 0, PARAPET),
-  rooftop('PARAPET-SW', 'Parapeto lado SO', rect(-5, AZOTEA_REAR - WALL, -HALF_WIDTH, -HALF_WIDTH + WALL), 0, PARAPET),
-  rooftop('PARAPET-FRONT', 'Parapeto frontal', rect(-5, -5 + WALL, -HALF_WIDTH + WALL, HALF_WIDTH - WALL), 0, FRONT_PARAPET),
+  rooftop('PARAPET-NE', 'Parapeto lado NE', rect(ROOF_FRONT, AZOTEA_REAR - WALL, HALF_WIDTH - WALL, HALF_WIDTH), 0, PARAPET),
+  rooftop('PARAPET-SW', 'Parapeto lado SO', rect(ROOF_FRONT, AZOTEA_REAR - WALL, -HALF_WIDTH, -HALF_WIDTH + WALL), 0, PARAPET),
+  rooftop('PARAPET-FRONT', 'Parapeto frontal', rect(ROOF_FRONT, ROOF_FRONT + WALL, -HALF_WIDTH + WALL, HALF_WIDTH - WALL), 0, FRONT_PARAPET),
   // Three legs, as in the photo: one at the front, on the south-west side, and
   // two at the back against the rear parapet.
   rooftop('TANK-COLUMN-FR', 'Pata del tanque · frente derecha', rect(TANK_U[0] + .05, TANK_U[0] + .35, TANK_V[0] + .05, TANK_V[0] + .35), 0, .9),
@@ -156,6 +169,8 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   ].map(([u, v]) => fromHouse(u, v)), 2 * FLOOR_HEIGHT, 2, true),
   // Upper floor only, over the recessed entrance (its ceiling is the ground floor's).
   building('HOUSE-ENTRY', 'Casa · planta alta sobre la entrada', rect(-5, -5 + ENTRY_SETBACK, ENTRY_INNER, ENTRY_OUTER), 2 * FLOOR_HEIGHT, 1, false, FLOOR_HEIGHT - .2),
+  // The roof slab's 1 m cantilever in front of the facade, 0.5 m thick, level with the balcony below.
+  building('HOUSE-CANTILEVER', 'Casa · voladizo de la azotea', rect(ROOF_FRONT, -5, -HALF_WIDTH, HALF_WIDTH), 2 * FLOOR_HEIGHT, 0, false, 2 * FLOOR_HEIGHT - .5),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, LOT_REAR, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', rect(AZOTEA_REAR, LOT_REAR, -HALF_WIDTH, TERRACE_INNER), FLOOR_HEIGHT, 1),
   // Street View (Aug 2025). Every front stands on the same street line, u = -5.

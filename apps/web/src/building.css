@@ -135,4 +135,9 @@
 .floor-selector { margin: 0 0 22px; }
 .floor-selector .eyebrow { font-size: 9px; color: #9c895f; }
 .season-presets.floor-presets { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 9px 0 10px; }
-.floor-note { margin: 0; font-size: 10px; line-height: 1.6; color: #829077; }
+.floor-note, .array-note { margin: 0; font-size: 10px; line-height: 1.6; color: #829077; }
+
+/* Solar array summary. */
+.array-summary { margin: 0 0 22px; display: flex; flex-direction: column; gap: 6px; }
+.array-summary .eyebrow { font-size: 9px; color: #9c895f; }
+.array-summary strong { font-size: 13px; font-weight: 560; letter-spacing: -.01em; }

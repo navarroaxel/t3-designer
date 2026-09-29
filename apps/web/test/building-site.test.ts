@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
+import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
   return Math.abs(ring.reduce((sum, a, index) => {
@@ -50,10 +50,7 @@ const centroid = (ring: SitePoint[]): SitePoint => [
 const byId = (id: string) => SITE_BUILDINGS.find(building => building.id === id)!
 const HOUSE_PARTS = ['HOUSE', 'HOUSE-ENTRY', 'HOUSE-ARM', 'HOUSE-TERRACE']
 // House frame from the source: u toward the rear (south-east), v toward the north-east.
-const houseFrame = ([x, z]: SitePoint): SitePoint => {
-  const dx = x + .74, dz = z + 1
-  return [Math.SQRT1_2 * (dx + dz), Math.SQRT1_2 * (dx - dz)]
-}
+const houseFrame = siteToHouse
 
 test('one target locates the house at Tapalque, Buenos Aires', () => {
   const targets = SITE_BUILDINGS.filter(building => building.isTarget)
@@ -74,10 +71,13 @@ test('one target locates the house at Tapalque, Buenos Aires', () => {
 
 test('the upper block, rear band and lot keep the owner’s dimensions', () => {
   const block = byId('HOUSE'), arm = byId('HOUSE-ARM'), terrace = byId('HOUSE-TERRACE')
-  // The block plus the strip over the recessed entrance make up the full 10 m x 8.5 m.
-  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 10 * 8.5, .05)
-  closeTo(area(arm.footprint), 3.5 * 2.75, .05)
-  closeTo(area(terrace.footprint), 3.5 * 3.25, .05)
+  // The block plus the strip over the recessed entrance make up the 9 m x 8.5 m house, and the
+  // 1 m cantilever in front brings the roof to 10 m x 8.5 m.
+  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 9 * 8.5, .05)
+  closeTo(area(byId('HOUSE-CANTILEVER').footprint), 1 * 8.5, .05)
+  // The rear band is 4.5 m outside, which is the owner's 3.95 m inside plus the walls.
+  closeTo(area(arm.footprint), 4.5 * 2.75, .05)
+  closeTo(area(terrace.footprint), 4.5 * 3.25, .05)
   closeTo(area(SITE_PARCEL.footprint), 13.5 * 8.5, .05)
   closeTo(SITE_PARCEL.area, 13.5 * 8.5, .01)
   validateRing(SITE_PARCEL.footprint, 'lot')
@@ -93,11 +93,10 @@ test('the upper block, rear band and lot keep the owner’s dimensions', () => {
 })
 
 test('the light well is an open void between the terrace and the left arm', () => {
-  const well = [6.75, .25] as SitePoint // u, v at the middle of the 2.5 m x 3.5 m notch
-  const site: SitePoint = [-.74 + Math.SQRT1_2 * (well[0] + well[1]), -1 + Math.SQRT1_2 * (well[0] - well[1])]
+  const site = houseToSite(6.25, .25) // the middle of the 2.5 m x 4.5 m notch
   assert.ok(contains(site, SITE_PARCEL.footprint))
   for (const building of groundVolumes) assert.equal(contains(site, building.footprint), false, `${building.id} must leave the well open`)
-  closeTo(area(SITE_PARCEL.footprint) - HOUSE_PARTS.reduce((sum, id) => sum + area(byId(id).footprint), 0), 2.5 * 3.5, .1)
+  closeTo(area(SITE_PARCEL.footprint) - HOUSE_PARTS.reduce((sum, id) => sum + area(byId(id).footprint), 0), 2.5 * 4.5, .1)
 })
 
 const isRooftop = (building: BuildingFootprint) => /^HOUSE-(PARAPET|TANK)/.test(building.id)
@@ -106,7 +105,7 @@ const groundVolumes = SITE_BUILDINGS.filter(building => !isRooftop(building))
 test('heights follow the reported floor counts, refined by Street View where it shows more', () => {
   // [height above ground, floors]. Owner floor counts: house 2, A 1, B 1, C 2, D 1.
   const expected: Record<string, [number, number]> = {
-    'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
+    'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
     'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-B': [3.2, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
     'NEIGHBOR-D': [3.3, 1],
@@ -147,6 +146,19 @@ test('every front stands on the same street line, u = -5, and A keeps a 2 m pati
   closeTo(Math.min(...byId('NEIGHBOR-C-FRONT').footprint.map(point => houseFrame(point)[1])), -14, .02)
 })
 
+test('the roof is 10 m deep counting a 1 m cantilever that ends on the balcony line', () => {
+  const cantilever = byId('HOUSE-CANTILEVER'), block = byId('HOUSE')
+  const us = (building: BuildingFootprint) => building.footprint.map(point => houseFrame(point)[0])
+  closeTo(Math.min(...us(cantilever)), -6, .02)
+  closeTo(Math.max(...us(cantilever)), -5, .02)
+  closeTo(Math.max(...us(block)), 4, .02)
+  closeTo(Math.max(...us(block)) - Math.min(...us(cantilever)), 10, .04)
+  closeTo(cantilever.height, block.height, 1e-9)
+  closeTo(cantilever.base!, block.height - .5, 1e-9)
+  // The front parapet stands on the roof's front edge, 1 m in front of the facade.
+  closeTo(Math.min(...us(byId('HOUSE-PARAPET-FRONT'))), -6, .02)
+})
+
 test('rooftop obstacles stand on the azotea slab and inside its outline', () => {
   const block = byId('HOUSE')
   const obstacles = SITE_BUILDINGS.filter(isRooftop)
@@ -159,7 +171,7 @@ test('rooftop obstacles stand on the azotea slab and inside its outline', () => 
     assert.ok(item.base! >= block.height - .001, `${item.id}: rests on or above the roof slab`)
     for (const point of item.footprint) {
       const [u, v] = houseFrame(point)
-      assert.ok(u >= -5.01 && u <= 5.01 && Math.abs(v) <= 4.26, `${item.id}: inside the 10 m x 8.5 m azotea`)
+      assert.ok(u >= -6.01 && u <= 4.01 && Math.abs(v) <= 4.26, `${item.id}: inside the 10 m x 8.5 m azotea`)
     }
   }
   // The concrete tank rests on three legs that stay under its slab.

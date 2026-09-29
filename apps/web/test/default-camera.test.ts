@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { HOUSE_CENTER } from '../src/data/building-site.ts'
+import { houseToSite } from '../src/data/building-site.ts'
 import { FRONT_BEARING, defaultCamera, viewAngles } from '../src/lib/default-camera.ts'
 
 const closeTo = (actual: number, expected: number, tolerance: number) =>
@@ -15,11 +15,12 @@ test('the opening view looks at the house from the street side, raised', () => {
   assert.ok(view.distance >= 45 && view.distance <= 90, `the house fills the view: distance ${view.distance}`)
 })
 
-test('the camera targets the house, not the site origin', () => {
+test('the camera targets the roof of the house, not the site origin', () => {
+  const [roofX, roofZ] = houseToSite(-1, 0)
   for (const mode of ['3d', 'top'] as const) {
     const { target } = defaultCamera(mode)
-    closeTo(target[0], HOUSE_CENTER[0], 1e-9)
-    closeTo(target[2], HOUSE_CENTER[1], 1e-9)
+    closeTo(target[0], roofX, 1e-9)
+    closeTo(target[2], roofZ, 1e-9)
     closeTo(target[1], 3, 1e-9)
   }
 })

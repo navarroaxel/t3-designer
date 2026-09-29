@@ -8,6 +8,7 @@ import { HouseFacade } from './HouseFacade'
 import { HouseShell } from './HouseShell'
 import type { Floor } from '../data/house-plan'
 import { NeighborFacades } from './NeighborFacades'
+import { SolarPanels } from './SolarPanels'
 
 const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
@@ -78,6 +79,7 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id.endsWith('-TANK-STEEL')) return { wall: '#d3d8dc', roof: '#e4e8eb', roughness: .38, metalness: .3 }
   // The rear neighbour is blue so that it never reads as part of the house.
   if (building.id === 'NEIGHBOR-B') return { wall: '#9db6cc', roof: '#86a1bb', roughness: .92, metalness: 0 }
+  if (building.id.endsWith('-CANTILEVER')) return { wall: '#c9b58a', roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
   if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id === 'NEIGHBOR-D' || building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
@@ -152,9 +154,10 @@ export function SiteGround() {
  * physical obstacles used by the sunlight pass. */
 export type FloorView = 'exterior' | Floor
 
-export function BuildingContext({ visible = true, showNeighbors = true, floor = 'exterior' }: {
+export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, floor = 'exterior' }: {
   visible?: boolean
   showNeighbors?: boolean
+  showPanels?: boolean
   floor?: FloorView
 }) {
   const house = useMemo(() => SITE_BUILDINGS.filter(isHouse), [])
@@ -162,8 +165,10 @@ export function BuildingContext({ visible = true, showNeighbors = true, floor = 
   const physical = useMemo(() => <>
     {house.map(building => <Volume key={building.id} building={building} />)}
     <HouseFacade physical />
+    {/* Hiding the panels also removes their shadows: they are part of the physical obstacles only while shown. */}
+    {showPanels && <SolarPanels physical />}
     {neighbors.map(building => <Volume key={building.id} building={building} />)}
-  </>, [house, neighbors])
+  </>, [house, neighbors, showPanels])
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>
@@ -171,6 +176,7 @@ export function BuildingContext({ visible = true, showNeighbors = true, floor = 
         ? <>
             {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
             <HouseFacade />
+            {showPanels && <SolarPanels />}
           </>
         : <HouseShell floor={floor} />}
       {showNeighbors && <NeighborFacades />}

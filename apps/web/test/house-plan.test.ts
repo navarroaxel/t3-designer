@@ -26,9 +26,10 @@ const solid = (boxes: PlanBox[], point: [number, number, number]) => boxes.some(
 test('the plan outlines match the volumes of the site', () => {
   closeTo(Math.abs(polygonArea(GROUND_OUTLINE)), siteArea('HOUSE') + siteArea('HOUSE-ARM') + siteArea('HOUSE-TERRACE'), .02)
   closeTo(Math.abs(polygonArea(FIRST_OUTLINE)), siteArea('HOUSE') + siteArea('HOUSE-ENTRY'), .02)
-  closeTo(Math.abs(polygonArea(FIRST_OUTLINE)), 10 * 8.5, 1e-9)
-  // Ground floor: the lot, less the 2.9 m2 entrance recess and the 8.75 m2 light well.
-  closeTo(Math.abs(polygonArea(GROUND_OUTLINE)), 13.5 * 8.5 - 2.9 - 8.75, 1e-9)
+  // First floor: the 9 m x 8.5 m house; the roof's 1 m cantilever is not a floor.
+  closeTo(Math.abs(polygonArea(FIRST_OUTLINE)), 9 * 8.5, 1e-9)
+  // Ground floor: the lot, less the 2.9 m2 entrance recess and the 11.25 m2 light well.
+  closeTo(Math.abs(polygonArea(GROUND_OUTLINE)), 13.5 * 8.5 - 2.9 - 11.25, 1e-9)
 })
 
 test('exterior walls sit inside each outline and are 0.3 m thick', () => {
@@ -90,8 +91,8 @@ test('the first floor has a 3 m balcony door and reaches the cut', () => {
 
 test('walls close the reflex corners of the notched outline', () => {
   const boxes = wallBoxes(GROUND_OUTLINE, [], 0, 1)
-  // Inside corner of the light well at (u, v) = (5, -1): the square just inside it must be solid.
-  assert.equal(solid(boxes, [4.85, .5, -1.15]), true, 'light-well corner is closed')
+  // Inside corner of the light well at (u, v) = (4, -1): the square just inside it must be solid.
+  assert.equal(solid(boxes, [3.85, .5, -1.15]), true, 'light-well corner is closed')
   // Corner of the entrance recess at (-4, 3.75): the recess itself is outside the house,
   // so the square that must be solid lies beyond the return wall, at (-3.85, 3.9).
   assert.equal(solid(boxes, [-3.85, .5, 3.9]), true, 'recess corner is closed')

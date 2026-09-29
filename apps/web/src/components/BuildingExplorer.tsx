@@ -3,6 +3,7 @@ import { BuildingScene } from './BuildingScene'
 import { SolarControls, SolarMomentTag } from './SolarControls'
 import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL } from '../data/building-site'
 import type { FloorView } from './BuildingContext'
+import { ARRAY_WATTS, PANELS, PANEL_SPEC, ROWS, ROW_COUNTS, TILT_DEGREES } from '../data/solar-array'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
@@ -17,6 +18,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   const [showNeighbors, setShowNeighbors] = useState(true)
   const [showSunPath, setShowSunPath] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
+  const [showPanels, setShowPanels] = useState(true)
   const [floor, setFloor] = useState<FloorView>('exterior')
   const [view, setView] = useState<{ mode: '3d' | 'top'; revision: number }>({ mode: '3d', revision: 0 })
   function resetView(mode: '3d' | 'top') {
@@ -26,7 +28,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   return <>
     <div className="workspace building-workspace">
       <section className={`viewport building-viewport ${sun.isDaylight ? 'is-day' : 'is-night'}`} aria-label={t('building.sceneAria')}>
-        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} floor={floor} view={view} />
+        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} showPanels={showPanels} floor={floor} view={view} />
         <div className="viewport-top building-viewport-top">
           <div className="building-location"><span className="eyebrow">{t('building.locationEyebrow')}</span><strong>{BUILDING_SITE.address.split(' · ')[0]}</strong><small>{t('building.location')}</small></div>
           <div className="view-buttons" role="group" aria-label={t('building.camera')}>
@@ -41,6 +43,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
           <fieldset className="display-options building-layers">
             <legend className="sr-only">{t('building.buildingLayers')}</legend>
             <label><input type="checkbox" checked={showNeighbors} onChange={event => setShowNeighbors(event.target.checked)} /> {t('building.neighbors')}</label>
+            <label><input type="checkbox" checked={showPanels} onChange={event => setShowPanels(event.target.checked)} /> {t('building.panels')}</label>
             <label><input type="checkbox" checked={showSunPath} onChange={event => setShowSunPath(event.target.checked)} /> {t('building.solarOrbit')}</label>
             <label><input type="checkbox" checked={showLabels} onChange={event => setShowLabels(event.target.checked)} /> {t('building.labels')}</label>
           </fieldset>
@@ -55,6 +58,11 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
               <button key={option} aria-pressed={floor === option} onClick={() => { setFloor(option); resetView('3d') }}>{t(key)}</button>)}
           </div>
           {floor !== 'exterior' && <p className="floor-note">{t('building.floorNote')}</p>}
+        </section>
+        <section className="array-summary" aria-label={t('building.arrayTitle')}>
+          <span className="eyebrow">{t('building.arrayTitle')}</span>
+          <strong>{t('building.arraySummary', { panels: formatNumber(PANELS.length), watts: formatNumber(PANEL_SPEC.watts), kwp: formatNumber(ARRAY_WATTS / 1000, 2) })}</strong>
+          <p className="array-note">{t('building.arrayLayout', { rows: ROWS.map(row => ROW_COUNTS[row]).join(' + '), tilt: formatNumber(TILT_DEGREES) })}</p>
         </section>
         <div className="solar-heading"><span className="eyebrow">{t('building.solarStudy')}</span><h2>{t('building.annualLightLine1')}<br /> {t('building.annualLightLine2')}</h2><p>{t('building.sharedMoment')}</p></div>
 

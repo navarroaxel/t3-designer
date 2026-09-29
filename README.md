@@ -31,6 +31,7 @@ Open the Vite URL shown in the terminal, normally
    north, at about 79° in December and 32° in June.
 3. Switch to **Top view** to see how far each neighbour's shadow reaches.
 4. Use **Floors** to cut the house open at the ground floor or the first floor. Only the exterior walls are modelled so far.
+5. Tick **Panels** to show the planned array of 16 panels (9.92 kWp) on the azotea. Their shading and energy are not calculated yet.
 
 The solar controls calculate locally; changing the date or time does not call an
 external API. Time follows `America/Argentina/Buenos_Aires` (UTC-3, no daylight
@@ -54,8 +55,9 @@ of the Google Earth view that frames the house. See the
 The site was measured from **Google Earth imagery captured on 2021-09-24**
 and from the owner's dimensions:
 
-- **Upper block (rooftop):** 10 m deep by 8.5 m wide, two floors, flat roof at 6.4 m.
-- **Rear ground-floor band:** 3.5 m deep, with a left arm (2.75 m), a light well
+- **House:** 9 m deep by 8.5 m wide, two floors, flat roof at 6.4 m. The roof is
+  10 m deep counting a 1 m cantilever in front, level with the balcony.
+- **Rear ground-floor band:** 4.5 m deep, with a left arm (2.75 m), a light well
   (2.5 m) and the terrace with grill (3.25 m) on the right seen from the street.
 - **Lot:** 13.5 m by 8.5 m, rotated about 45° from north.
 - **Neighbours:** footprints estimated from the imagery; heights from floor

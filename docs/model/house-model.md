@@ -22,8 +22,9 @@ upper block.
 
 | Volume | Size | Level | Provenance |
 | --- | --- | --- | --- |
-| Upper block (azotea) | 10 m deep, 8.5 m wide | roof slab at 6.4 m | Owner |
-| Rear ground-floor band | 3.5 m deep: left arm 2.75 m, light well 2.5 m, terrace 3.25 m | 3.2 m | Owner (depth trimmed from 3.95 m to fit the 13.5 m lot) |
+| Upper block | 9 m deep, 8.5 m wide, two floors | roof slab at 6.4 m | Owner (the 10 m of the azotea include a 1 m cantilever) |
+| Roof cantilever | 1 m past the street line, 8.5 m wide, 0.5 m thick; it ends level with the first-floor balcony, and the front parapet stands on its edge | slab top at 6.4 m | Owner |
+| Rear ground-floor band | 4.5 m deep outside: left arm 2.75 m, light well 2.5 m, terrace 3.25 m | 3.2 m | Owner (3.95 m inside, plus the walls, to fit the 13.5 m lot) |
 | Lot | 13.5 m by 8.5 m | | Owner |
 | Side and rear parapets | 0.15 m thick | 1.1 m above the roof | Estimated from the azotea photo |
 | Front parapet | 0.15 m thick, tiled | 0.8 m above the roof | Estimated from Street View |
@@ -56,8 +57,8 @@ first floor. `src/data/house-plan.ts` holds the plans and `HouseShell.tsx` draws
 them. Only the exterior walls are modelled, so the rooms are empty.
 
 - Exterior walls are assumed to be 0.3 m thick and slabs 0.2 m. Neither is measured.
-- The ground-floor outline includes the rooms under the rear terrace and the left arm, with the entrance recess and the light well left open. It is 103.1 m2.
-- The first floor is the 10 m by 8.5 m block, 85 m2, with the 3 m balcony door and the window on the street side.
+- The ground-floor outline includes the rooms under the rear terrace and the left arm, with the entrance recess and the light well left open. It is 100.6 m2.
+- The first floor is the 9 m by 8.5 m block, 76.5 m2, with the 3 m balcony door and the window on the street side. The roof's 1 m cantilever is not a floor.
 - The cut hides the upper floors, but they still cast their shadows on the cut floor, because the sunlight pass always uses the whole house.
 - Interior walls, stairs, doors and windows other than the ones on the street front are not modelled yet.
 
@@ -82,3 +83,4 @@ trees, wires and the terrace grill. None of them shades the azotea noticeably.
 5. Whether A and D have an upper level set back behind their fronts, as the photos suggest.
 6. The plans of both floors: interior walls, stairs, and the windows on the side and rear walls.
 7. The real thickness of the exterior walls.
+8. The panel layout: see [solar-array.md](solar-array.md).
