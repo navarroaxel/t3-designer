@@ -116,7 +116,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
   // [height above ground, floors]. Owner floor counts: house 2, A 1, the lot behind 1, C 2.
   const expected: Record<string, [number, number]> = {
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
-    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0],
+    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0],
     'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
     'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [3.7, 1],
@@ -278,4 +278,19 @@ test('the terrace has a 1.6 m wall on the corner\'s party wall and a 1.1 m raili
   closeTo(Math.min(...us(wall)), 4, .01); closeTo(Math.max(...us(wall)), 8.6, .01)
   closeTo(Math.min(...us(rail)), 4, .01); closeTo(Math.max(...us(rail)), 8.6, .01)
   for (const point of rail.footprint) assert.ok(siteToHouse(point)[1] <= -.99 && siteToHouse(point)[1] >= -1.16)
+})
+
+test('the terrace has a masonry grill with a grate at its back, centred between its two walls', () => {
+  const grill = byId('HOUSE-TERRACE-GRILL'), grate = byId('HOUSE-TERRACE-GRILL-GRATE'), terrace = byId('HOUSE-TERRACE')
+  const us = grill.footprint.map(point => siteToHouse(point)[0]), vs = grill.footprint.map(point => siteToHouse(point)[1])
+  closeTo(grill.height - (grill.base ?? 0), .85, 1e-9)
+  closeTo(grill.base ?? 0, terrace.height, 1e-9)
+  closeTo(grate.base ?? 0, grill.height, 1e-9)
+  closeTo(Math.max(...vs) - Math.min(...vs), 1.2, .01); closeTo(Math.max(...us) - Math.min(...us), .55, .01)
+  // At the back: against the rear end of the terrace, and inside it.
+  assert.ok(Math.max(...us) > 8.4 && Math.max(...us) <= 8.6)
+  const wall = byId('HOUSE-TERRACE-WALL'), rail = byId('HOUSE-TERRACE-RAIL')
+  const wallInner = Math.max(...wall.footprint.map(point => siteToHouse(point)[1])), railInner = Math.min(...rail.footprint.map(point => siteToHouse(point)[1]))
+  assert.ok(Math.min(...vs) > wallInner - 1e-6 && Math.max(...vs) < railInner + 1e-6, 'between the party-wall wall and the railing wall')
+  closeTo((Math.min(...vs) + Math.max(...vs)) / 2, (wallInner + railInner) / 2, .05)
 })

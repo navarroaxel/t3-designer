@@ -3,7 +3,7 @@ import { Line } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
@@ -30,6 +30,31 @@ function Slab({ outline, top }: { outline: PlanPoint[]; top: number }) {
   </mesh>
 }
 
+/**
+ * A glazed leaf, sectioned at the cut: white aluminium stiles and a bottom rail around a translucent pane.
+ * `alongU` says which way its length runs; the thickness is across the other axis.
+ */
+function GlazedLeaf({ centre, alongU, length, color = '#f3f2ee' }: { centre: [number, number]; alongU: boolean; length: number; color?: string }) {
+  const { profile, bottomRail, glass, glassOpacity } = LIVING_DOOR_FRAME
+  const height = CUT_HEIGHT
+  const piece = (along: [number, number], y: [number, number], thickness: number, key: string, glassPiece = false) => {
+    const size: [number, number, number] = alongU ? [along[1] - along[0], y[1] - y[0], thickness] : [thickness, y[1] - y[0], along[1] - along[0]]
+    const at: [number, number, number] = alongU ? [centre[0] + (along[0] + along[1]) / 2, FLOOR_HEIGHT + (y[0] + y[1]) / 2, -centre[1]] : [centre[0], FLOOR_HEIGHT + (y[0] + y[1]) / 2, -(centre[1] + (along[0] + along[1]) / 2)]
+    return <mesh key={key} position={at} receiveShadow>
+      <boxGeometry args={size} />
+      {glassPiece
+        ? <meshStandardMaterial color={glass} roughness={.05} metalness={.1} transparent opacity={glassOpacity} depthWrite={false} />
+        : <meshStandardMaterial color={color} roughness={.45} metalness={.25} />}
+    </mesh>
+  }
+  return <>
+    {piece([-length / 2, -length / 2 + profile], [0, height], profile, 'stile-a')}
+    {piece([length / 2 - profile, length / 2], [0, height], profile, 'stile-b')}
+    {piece([-length / 2 + profile, length / 2 - profile], [0, bottomRail], profile, 'rail')}
+    {piece([-length / 2 + profile, length / 2 - profile], [bottomRail, height], .012, 'glass', true)}
+  </>
+}
+
 /** A door open 90 degrees, with the dashed quarter circle of its swing on the floor. */
 function DoorSwingView({ door }: { door: DoorSwing }) {
   const { hinge, closed, open, radius, color } = door
@@ -39,11 +64,14 @@ function DoorSwingView({ door }: { door: DoorSwing }) {
   }
   // The open leaf is a slab from the hinge along `open`, .04 m thick; local x is u, local z is -v.
   const alongU = Math.abs(open[0]) > 0
+  const leafCentre: [number, number] = [hinge[0] + open[0] * radius / 2 + (alongU ? 0 : -closed[0] * .02), hinge[1] + open[1] * radius / 2 + (alongU ? -closed[1] * .02 : 0)]
   return <>
-    <mesh position={[hinge[0] + open[0] * radius / 2 + (alongU ? 0 : -closed[0] * .02), FLOOR_HEIGHT + CUT_HEIGHT / 2, -(hinge[1] + open[1] * radius / 2 + (alongU ? -closed[1] * .02 : 0))]} receiveShadow>
-      <boxGeometry args={[alongU ? radius : .04, CUT_HEIGHT, alongU ? .04 : radius]} />
-      <meshStandardMaterial color={color} roughness={.6} />
-    </mesh>
+    {door.glazed
+      ? <GlazedLeaf centre={leafCentre} alongU={alongU} length={radius} color={color} />
+      : <mesh position={[leafCentre[0], FLOOR_HEIGHT + CUT_HEIGHT / 2, -leafCentre[1]]} receiveShadow>
+          <boxGeometry args={[alongU ? radius : .04, CUT_HEIGHT, alongU ? .04 : radius]} />
+          <meshStandardMaterial color={color} roughness={.6} />
+        </mesh>}
     <Line points={Array.from({ length: 13 }, (_, i) => point(i / 12, FLOOR_HEIGHT + .03))} color="#8a6a3a" lineWidth={1} dashed dashSize={.08} gapSize={.06} />
   </>
 }
@@ -263,11 +291,8 @@ export function HouseShell({ floor }: { floor: Floor }) {
         <boxGeometry args={[MAIN_TV_PLACEMENT.bracket.width, MAIN_TV_PLACEMENT.bracket.height, MAIN_TV_PLACEMENT.bracket.v[1] - MAIN_TV_PLACEMENT.bracket.v[0]]} />
         <meshStandardMaterial color="#3b3d40" roughness={.5} metalness={.6} />
       </mesh>
-      {/* The living door's narrow leaf, glazed, beside the wide one that swings. */}
-      <mesh position={[(LIVING_DOOR.u[0] + LIVING_DOOR.u[1]) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(LIVING_DOOR.v[1] - LIVING_DOOR_LEAVES.narrow / 2)]} receiveShadow>
-        <boxGeometry args={[.05, CUT_HEIGHT, LIVING_DOOR_LEAVES.narrow]} />
-        <meshStandardMaterial color="#dfe8ea" roughness={.1} metalness={.3} transparent opacity={.6} />
-      </mesh>
+      {/* The living door's narrow leaf: the same aluminium frame and glass, beside the wide one that swings. */}
+      <GlazedLeaf centre={[(LIVING_DOOR.u[0] + LIVING_DOOR.u[1]) / 2, LIVING_DOOR.v[1] - LIVING_DOOR_LEAVES.narrow / 2]} alongU={false} length={LIVING_DOOR_LEAVES.narrow} />
       {/* The doors, open 90 degrees with their swings; all right-handed. */}
       {FIRST_FLOOR_DOOR_SWINGS.map(door => <DoorSwingView key={door.id} door={door} />)}
       {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(v0 + v1) / 2]} receiveShadow>

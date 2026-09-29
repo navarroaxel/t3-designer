@@ -111,6 +111,9 @@ const TERRACE_INNER = -1;
 const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
 const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
 const TERRACE_WALL_THICKNESS = .15;
+const TERRACE_CENTRE_V = (houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2;
+/** A masonry grill at the back of the first-floor terrace (owner); its size is assumed: 1.2 m wide, 0.55 m deep, 0.85 m high, with a cast-iron grate. */
+export const TERRACE_GRILL = { width: 1.2, depth: .55, height: .85, grate: .03 };
 // The entrance is set back 1 m from the street line, between a 0.5 m wall that
 // stays on the line next to the neighbour (north-east) and a 0.7 m pier next to
 // the garage. The garage stands on the line. The upper floor overhangs the recess.
@@ -219,6 +222,11 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
     FLOOR_HEIGHT + TERRACE_PARTY_WALL, 0, false, FLOOR_HEIGHT),
   building('HOUSE-TERRACE-RAIL', 'Casa · baranda de la terracita', rect(AZOTEA_REAR, REAR_SW, TERRACE_INNER - TERRACE_WALL_THICKNESS, TERRACE_INNER),
     FLOOR_HEIGHT + TERRACE_RAILING, 0, false, FLOOR_HEIGHT),
+  // The grill stands at the back of the terrace, against the rear, centred between the party-wall wall and the railing wall.
+  building('HOUSE-TERRACE-GRILL', 'Casa · parrilla de la terracita', rect(REAR_SW - .05 - TERRACE_GRILL.depth, REAR_SW - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
+    FLOOR_HEIGHT + TERRACE_GRILL.height, 0, false, FLOOR_HEIGHT),
+  building('HOUSE-TERRACE-GRILL-GRATE', 'Casa · parrilla de la terracita · reja', rect(REAR_SW - .05 - TERRACE_GRILL.depth, REAR_SW - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
+    FLOOR_HEIGHT + TERRACE_GRILL.height + TERRACE_GRILL.grate, 0, false, FLOOR_HEIGHT + TERRACE_GRILL.height),
   // Lot 7 (A), 9.00 m of front. Street View (Aug 2025): next to the house a brick wall with a
   // green railing on the street line, a front patio about 2 m deep and a one-floor house behind
   // it; then a garage with green doors under a sheet-metal roof.

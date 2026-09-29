@@ -291,6 +291,8 @@ export const CLOSET_SLIDING_PANELS: SlidingPanel[] = Array.from({ length: CLOSET
 export const LIVING_DOOR_WIDTH = 1.2
 export const LIVING_DOOR_LEAVES = { wide: .8, narrow: .4 }
 export const LIVING_DOOR_COLOR = '#f3f2ee'
+/** White-painted aluminium frame with glass, drawn as stiles, a bottom rail and a translucent pane (owner). */
+export const LIVING_DOOR_FRAME = { material: 'aluminium', profile: .05, bottomRail: .12, glass: '#bcd6df', glassOpacity: .35 }
 const livingDoorV0 = FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS
 export const LIVING_DOOR = {
   u: [FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS] as [number, number],
@@ -356,7 +358,7 @@ export const KITCHEN_LIVING = {
  * The three doors open with the right hand, seen by someone coming in from the hall, and swing into the room.
  * A hinge point, the direction across the closed opening and the direction the open leaf points, all in [u, v].
  */
-export type DoorSwing = { id: string; hinge: PlanPoint; closed: PlanPoint; open: PlanPoint; radius: number; color: string }
+export type DoorSwing = { id: string; hinge: PlanPoint; closed: PlanPoint; open: PlanPoint; radius: number; color: string; glazed?: boolean }
 export const MAIN_DOOR_COLOR = '#3d2b22'
 export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
   // Main room: coming in facing north-east the right hand is south-east (higher u); the leaf swings into the room.
@@ -365,7 +367,7 @@ export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
   { id: 'secondary', hinge: [SECONDARY_DOOR.u[0], SECONDARY_DOOR.v[1]], closed: [0, -1], open: [-1, 0], radius: SECONDARY_DOOR_WIDTH, color: SECONDARY_DOOR_COLOR },
   // Bathroom: facing south-west the right hand is north-west (lower u); the leaf swings into the bathroom.
   // Living: coming in from the hall facing south-east the right hand is south-west (lower v); the wide leaf swings into the living.
-  { id: 'living', hinge: [LIVING_DOOR.u[1], LIVING_DOOR.v[0]], closed: [0, 1], open: [1, 0], radius: LIVING_DOOR_LEAVES.wide, color: LIVING_DOOR_COLOR },
+  { id: 'living', hinge: [LIVING_DOOR.u[1], LIVING_DOOR.v[0]], closed: [0, 1], open: [1, 0], radius: LIVING_DOOR_LEAVES.wide, color: LIVING_DOOR_COLOR, glazed: true },
   { id: 'bathroom', hinge: [BATHROOM_DOOR_SWING.hingeU, BATHROOM_DOOR_SWING.hingeV], closed: [1, 0], open: [0, -1], radius: BATHROOM_DOOR_WIDTH, color: BATHROOM_DOOR_COLOR },
 ]
 
