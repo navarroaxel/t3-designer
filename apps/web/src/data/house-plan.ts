@@ -469,6 +469,9 @@ export const FLOOR_TILING: FloorTiling[] = [
       [FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS, NE_INNER],
     ],
   },
+  // The laundry, continuous with the kitchen, has the bathroom's tile too (owner). It is taken to be the roof of the left
+  // ground-floor band, at first-floor level, inset 0.15 m from its edges for the walls.
+  { id: 'laundry', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.northEast - .15, 1.5 + .15, HALF - .15]] },
   { id: 'living', color: '#c69a5d', pattern: SAING_PLANKS, rects: [[KITCHEN_LIVING.u[0], KITCHEN_LIVING.u[1], KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[1]]] },
   { id: 'bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[0], FIRST_FLOOR_BATHROOM.v[1]]] },
 ]

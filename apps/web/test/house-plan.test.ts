@@ -407,9 +407,12 @@ test('the bathroom floor is a thin travertine-coloured porcelain layer', () => {
 
 test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Navona natural tiles of 80 by 80 cm, without overlapping', () => {
   const colors = Object.fromEntries(FLOOR_TILING.map(zone => [zone.id, zone.color]))
-  assert.deepEqual(Object.keys(colors).sort(), ['bathroom', 'bedrooms', 'hall', 'living', 'terrace'])
+  assert.deepEqual(Object.keys(colors).sort(), ['bathroom', 'bedrooms', 'hall', 'laundry', 'living', 'terrace'])
   // The first-floor terrace has the bathroom's tile.
   assert.equal(colors.terrace, colors.bathroom)
+  // So does the laundry.
+  assert.equal(colors.laundry, colors.bathroom)
+  assert.equal(FLOOR_TILING.find(zone => zone.id === 'laundry')!.pattern, NAVONA_TILES)
   assert.equal(FLOOR_TILING.find(zone => zone.id === 'terrace')!.pattern, NAVONA_TILES)
   assert.equal(colors.bathroom, BATHROOM_FLOOR.color)
   // The bedrooms and the living are laid with 20 cm by 120 cm wood-look planks; the bathroom with 80 cm squares.
@@ -428,8 +431,8 @@ test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Na
     const overlapV = Math.min(a.rect[3], b.rect[3]) - Math.max(a.rect[2], b.rect[2])
     assert.ok(!(overlapU > 1e-6 && overlapV > 1e-6), `${a.zone} and ${b.zone} tiles overlap`)
   }
-  // Every indoor rectangle stays inside the first floor's block; the terrace lies beyond its rear wall.
-  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
+  // Every indoor rectangle stays inside the first floor's block; the terrace and the laundry lie beyond its rear wall.
+  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace' && item.zone !== 'laundry')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
 })
 
 test('the terrace floor lies over the rear band, between its two walls', () => {
@@ -487,4 +490,12 @@ test('the first-floor balcony is 7.94 m wide and 0.86 m deep, centred on the fac
   assert.ok(BALCONY.width < 8.95 && BALCONY.width > 3.1)
   // It carries the 3 m balcony door and the window of the secondary room.
   for (const opening of OPENINGS.first.filter(item => item.u === -5)) assert.ok(opening.v[0] >= -BALCONY.width / 2 && opening.v[1] <= BALCONY.width / 2, 'the balcony reaches every front opening')
+})
+
+test('the laundry floor lies beyond the rear wall, on the left band, and includes the laundry door\'s way in', () => {
+  const [u0, u1, v0, v1] = FLOOR_TILING.find(zone => zone.id === 'laundry')!.rects[0]
+  assert.ok(Math.abs(u0 - 4) < 1e-9 && u1 > 8 && u1 < 9)
+  assert.ok(v0 >= 1.5 && v1 <= 4.475, 'on the left ground-floor band, past the light well')
+  const door = OPENINGS.first.find(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - LAUNDRY_DOOR_WIDTH) < 1e-9)!
+  assert.ok(door.v[0] >= v0 && door.v[1] <= v1, 'the laundry door opens onto it')
 })
