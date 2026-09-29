@@ -21,7 +21,7 @@ import { SITE_PANELS, litFractions } from './shading.ts'
  * and the rest overcast, with diffuse light only. Shading only costs energy on the clear days.
  */
 const { latitude, longitude } = BUILDING_SITE
-const { site, overcastTransmittance, albedo, iamB0, temperature, losses, inverter } = PV_SYSTEM
+const { site, overcastTransmittance, albedo, iamB0, temperature, losses, inverter, calibration } = PV_SYSTEM
 const LOSS_FACTOR = Object.values(losses).reduce((product, factor) => product * factor, 1)
 
 export type SkyState = 'clear' | 'overcast'
@@ -136,7 +136,7 @@ export function instantPower(
     const temperatureFactor = Math.max(0, 1 + temperature.coefficientPerK * (cell - 25))
     dc += PANEL_SPEC.watts * seriesPower(g) * temperatureFactor
   }
-  const ac = Math.min(inverter.maxAcW, dc * LOSS_FACTOR * inverter.efficiency)
+  const ac = Math.min(inverter.maxAcW, dc * LOSS_FACTOR * inverter.efficiency * calibration.factor)
   const litMean = lit ? SITE_PANELS.reduce((sum, panel) => sum + lit[panel.id], 0) / SITE_PANELS.length : 1
   return { ghi: sky.ghi, poa: irradiance.reduce((sum, value) => sum + value, 0) / irradiance.length, lit: litMean, dcW: dc, acW: ac }
 }

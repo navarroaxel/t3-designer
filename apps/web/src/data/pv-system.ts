@@ -27,6 +27,15 @@ export const PV_SYSTEM = {
    * degradation, lower efficiency in weak light and spectrum, and the inverter's availability and tracking.
    */
   losses: { soiling: .98, wiring: .985, mismatch: .99, quality: .99, weakLight: .985, availability: .99 },
+  /**
+   * Calibration against the owner's measurements. Six 450 Wp panels (2.7 kWp) with the same tilt and
+   * orientation give 12 to 14 kWh a day on average in January: 4.81 kWh per kWp a day at the middle of that range,
+   * while the uncalibrated model gave 5.78 (the mean of January's days). The factor is 4.81 / 5.78 = 0.83, applied
+   * to the panels' power before the inverter, so it also stands in for what the typical losses miss: NASA POWER's
+   * irradiation, which runs above ground stations, hotter modules, longer cables. One month is one point: the same
+   * factor is assumed for the whole year.
+   */
+  calibration: { factor: .83, measuredKwhPerDay: [12, 14], measuredKwp: 2.7, month: 0 },
   /** 10 kW Deye inverter. The efficiency is typical; the clipping limit is its rating. */
   inverter: { efficiency: .97, maxAcW: 10_000 },
   /**
