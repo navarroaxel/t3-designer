@@ -3,7 +3,7 @@ import { Line } from '@react-three/drei'
 import { ExtrudeGeometry } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, BATHROOM_FLOOR, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FIRST_FLOOR_BATHROOM, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type DoorSwing, type Floor, type PlanPoint,
 } from '../data/house-plan'
 import { polygonShape } from '../lib/polygon-shape'
@@ -122,6 +122,11 @@ export function HouseShell({ floor }: { floor: Floor }) {
       <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + SINGLE_BED.height + .06, -(SECONDARY_BED.v[0] + .35)]} receiveShadow>
         <boxGeometry args={[.6, .12, .4]} />
         <meshStandardMaterial color="#f4f1ea" roughness={.95} />
+      </mesh>
+      {/* The bathroom's travertine porcelain floor, over the first-floor slab. */}
+      <mesh position={[(FIRST_FLOOR_BATHROOM.u[0] + FIRST_FLOOR_BATHROOM.u[1]) / 2, FLOOR_HEIGHT + BATHROOM_FLOOR.thickness / 2, -(FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2]} receiveShadow>
+        <boxGeometry args={[FIRST_FLOOR_BATHROOM.u[1] - FIRST_FLOOR_BATHROOM.u[0], BATHROOM_FLOOR.thickness, FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0]]} />
+        <meshStandardMaterial color={BATHROOM_FLOOR.color} roughness={.35} metalness={.05} />
       </mesh>
       {/* The TVs: OLEDs on wall brackets, one in the main room and one in the living. */}
       {[MAIN_TV_PLACEMENT, LIVING_TV_PLACEMENT].map((tv, index) => <group key={index}>

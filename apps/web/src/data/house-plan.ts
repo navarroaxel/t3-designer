@@ -201,6 +201,9 @@ export const FIRST_FLOOR_BATHROOM = {
   u: [bathroomU0, bathroomU0 + BATHROOM.depth] as [number, number],
   v: [FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[0] + BATHROOM.width] as [number, number],
 }
+/** The bathroom's floor (owner): travertine-coloured porcelain tile, a thin layer over the slab. */
+export const BATHROOM_FLOOR = { color: '#d5c6a6', thickness: .012 }
+
 /**
  * The bathroom's door (owner): 0.70 m wide, natural oak, on its north-east wall, toward the wardrobe end, looking
  * onto the hall that lies between the main room's back wall and the kitchen-living.
