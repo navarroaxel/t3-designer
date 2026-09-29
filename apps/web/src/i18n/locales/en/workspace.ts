@@ -34,7 +34,7 @@ const workspace = {
     genMonthTooltip: '{{month}}: {{energy}} kWh a month, {{perDay}} kWh a day',
     genMonthEnergy: '{{energy}} kWh a month',
     genMonthPerDay: '{{perDay}} kWh a day',
-    genCaveat: 'An estimate. Clear-sky physics anchored to NASA POWER’s 20-year climate for this place, the shading of the modelled surroundings, and typical losses. Expect ±10 to 15% on the year. Distant buildings and the weather of a given day are not included.',
+    genCaveat: 'An estimate. Clear-sky physics anchored to NASA POWER’s 20-year climate for this place, the shading of the modelled surroundings, typical losses, and a factor of 0.83 calibrated with a measured January (12 to 14 kWh a day for six 450 Wp panels). Expect ±10 to 15% on the year. Distant buildings and the weather of a given day are not included.',
     floors: 'Floors', floorExterior: 'Whole house', floorGround: 'Ground floor', floorFirst: 'First floor',
     floorNote: 'Cut at 1.5 m above the floor. Exterior walls assumed 0.3 m thick. On the first floor only the two front rooms have their walls; the rest of the interior is not modelled yet.',
   },

@@ -71,10 +71,10 @@ test('the array makes no power at night and never more than the panels or the in
 test('summer days give more than twice the energy of winter days', () => {
   const summer = simulateDay('2026-12-21'), winter = simulateDay('2026-06-21')
   assert.ok(summer.typical.acKwh > 2 * winter.typical.acKwh, `${summer.typical.acKwh} against ${winter.typical.acKwh}`)
-  // Clear days, per kWp: about 7.5 kWh in December and 2.8 kWh in June at this latitude.
+  // Clear days, per kWp, with the calibration (0.83): about 6.1 kWh in December and 2.3 kWh in June at this latitude.
   const perKwp = (kwh: number) => kwh / (ARRAY_WATTS / 1000)
-  assert.ok(perKwp(summer.clear.acKwh) > 6.5 && perKwp(summer.clear.acKwh) < 8.5, `${perKwp(summer.clear.acKwh)}`)
-  assert.ok(perKwp(winter.clear.acKwh) > 2.2 && perKwp(winter.clear.acKwh) < 3.5, `${perKwp(winter.clear.acKwh)}`)
+  assert.ok(perKwp(summer.clear.acKwh) > 5.4 && perKwp(summer.clear.acKwh) < 7, `${perKwp(summer.clear.acKwh)}`)
+  assert.ok(perKwp(winter.clear.acKwh) > 1.8 && perKwp(winter.clear.acKwh) < 3, `${perKwp(winter.clear.acKwh)}`)
   // A clear day beats the mix, which beats a wholly overcast day.
   for (const day of [summer, winter]) assert.ok(day.clear.acKwh > day.typical.acKwh && day.typical.acKwh > day.overcast.acKwh)
 })
@@ -93,7 +93,8 @@ test('a year at this site gives a plausible yield for panels nearly flat toward 
   const year = simulateYear()
   assert.equal(year.months.length, 12)
   // Buenos Aires: about 1300 to 1600 kWh per kWp for well-oriented panels; nearly flat ones a little less.
-  assert.ok(year.specificYield > 1250 && year.specificYield < 1600, `yield ${year.specificYield}`)
+  // Calibrated with the owner's January measurement (about 0.83 of the uncalibrated 1.48 MWh per kWp).
+  assert.ok(year.specificYield > 1100 && year.specificYield < 1450, `yield ${year.specificYield}`)
   closeTo(year.annualKwh, year.specificYield * ARRAY_WATTS / 1000, 1e-6)
   closeTo(year.annualKwh, year.months.reduce((sum, month) => sum + month.acKwh, 0), 1e-6)
   assert.ok(year.annualShadingLossPercent >= 0 && year.annualShadingLossPercent < 5, `shading ${year.annualShadingLossPercent}%`)
@@ -102,4 +103,13 @@ test('a year at this site gives a plausible yield for panels nearly flat toward 
   const kwh = year.months.map(month => month.acKwhPerDay)
   assert.equal(kwh.indexOf(Math.max(...kwh)), 11)
   assert.equal(kwh.indexOf(Math.min(...kwh)), 5)
+})
+
+test('the estimate is calibrated to the owner\'s January: 2.7 kWp gives 12 to 14 kWh a day, 13 at the middle', () => {
+  const kwp = ARRAY_WATTS / 1000
+  let total = 0
+  for (let day = 1; day <= 31; day++) total += simulateDay(`2026-01-${String(day).padStart(2, '0')}`, 20).typical.acKwh
+  const forSixPanels = total / 31 / kwp * 2.7
+  assert.ok(forSixPanels >= 12 && forSixPanels <= 14, `${forSixPanels.toFixed(2)} kWh`)
+  closeTo(forSixPanels, 13, .3)
 })

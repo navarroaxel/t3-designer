@@ -9,6 +9,13 @@ export interface SettingsSection {
   content: ReactNode
 }
 
+/** An "i" in a circle, for the About section. */
+export function InfoIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" /><path d="M12 11v5.5M12 7.6v.1" />
+  </svg>
+}
+
 export function SettingsIcon({ close = false }: { close?: boolean }) {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     {close ? <path d="m6 6 12 12M6 18 18 6" /> : <>

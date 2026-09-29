@@ -19,6 +19,12 @@ export default {
     dark: 'Oscuro',
     automatic: 'Los cambios se aplican y se guardan automáticamente en este navegador.',
     sessionOnly: 'El navegador no permitió guardar algún cambio. Se aplicó para esta sesión; al recargar puede perderse.',
+    about: 'Acerca de',
+    aboutDescription: 'Dónde vive este proyecto.',
+    sourceCode: 'Código fuente',
+    sourceCodeDescription: 'T3 Designer es de código abierto. Mirá el código, avisá de un problema o seguí los cambios en GitHub.',
+    openRepository: 'Ver en GitHub',
+    opensInNewTab: '(se abre en una pestaña nueva)',
   },
   language: {
     label: 'Idioma',

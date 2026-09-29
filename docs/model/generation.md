@@ -16,9 +16,15 @@ How the app turns the array and the sun into kWh. Code: `apps/web/src/lib/pv/`, 
 
 Each bar shows the energy of a typical day of that month. Hovering or focusing a bar (mouse or keyboard) opens a tooltip with the month's estimate, in kWh a month and kWh a day; the same text is the bar's accessible name.
 
+## Calibration with a measurement
+
+The owner measures **12 to 14 kWh a day on average in January** with six 450 Wp panels (2.7 kWp) that have the same tilt and orientation as the planned array. That is 4.81 kWh per kWp a day at the middle of the range; the uncalibrated model gave 5.78 (the mean of January's days), so the model was about 17% optimistic. `PV_SYSTEM.calibration.factor = 0.83` (`apps/web/src/data/pv-system.ts`) multiplies the panels' power before the inverter, and a test keeps a January of six panels between 12 and 14 kWh.
+
+The factor stands in for whatever the typical values miss: NASA POWER's irradiation, which runs above ground stations, hotter modules and longer cables. One month is one data point, so the same factor is used for the whole year, clear days included. More measurements, in other seasons, would show whether it should change with the season.
+
 ## Result (current data)
 
-About 1.48 MWh per kWp per year (~14.7 MWh for 9.92 kWp), ~7.5 kWh/kWp on a clear December day, ~2.8 in June. Shading costs well under 1% because the panels sit above the parapets and the neighbours are low.
+About 1.23 MWh per kWp per year (~12.2 MWh for 9.92 kWp) after the calibration, ~6.1 kWh/kWp on a clear December day and ~2.3 in June. Before it, the yield was 1.48 MWh per kWp. Shading costs well under 1% because the panels sit above the parapets and the neighbours are low.
 
 ## Limits
 

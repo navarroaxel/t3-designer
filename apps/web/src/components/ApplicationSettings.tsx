@@ -2,7 +2,8 @@ import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { setThemePreference, useThemePreference } from '../lib/theme'
 import { LanguageSettings } from './LanguageSettings'
-import { SettingsDialog, SettingsIcon, SettingsRow, type SettingsSection } from './SettingsDialog'
+import { REPOSITORY_URL } from '../lib/repository'
+import { InfoIcon, SettingsDialog, SettingsIcon, SettingsRow, type SettingsSection } from './SettingsDialog'
 import './settings.css'
 
 /** The app owns preferences; new groups can be supplied as sections. */
@@ -43,6 +44,18 @@ export function ApplicationSettings({ sections = [] }: { sections?: readonly Set
               {t(sessionOnly ? 'settings.sessionOnly' : 'settings.automatic')}
             </p>
           </>,
+        },
+        {
+          id: 'about', label: t('settings.about'), description: t('settings.aboutDescription'), icon: <InfoIcon />,
+          content: <div className="settings-row">
+            <div className="settings-row-copy">
+              <span className="settings-row-title">{t('settings.sourceCode')}</span>
+              <p>{t('settings.sourceCodeDescription')}</p>
+            </div>
+            <div className="settings-row-control">
+              <a className="settings-link" href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer">{t('settings.openRepository')}<span className="sr-only"> {t('settings.opensInNewTab')}</span></a>
+            </div>
+          </div>,
         },
         ...sections,
       ]}
