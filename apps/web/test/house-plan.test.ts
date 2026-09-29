@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -237,8 +237,10 @@ test('the kitchen-living is one long room from party wall to party wall behind t
   near(KITCHEN_LIVING.u[0], FIRST_FLOOR_BATHROOM.u[1] + .12)
   // 8.2 m across and about 2.7 m deep: a long room.
   assert.ok(KITCHEN_LIVING.v[1] - KITCHEN_LIVING.v[0] > 8 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] > 2.5 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] < 3)
-  // The wall in front of it runs the whole width; nothing partitions the room itself.
-  assert.ok(FIRST_FLOOR_PARTITIONS.some(([u0, , v0, v1]) => Math.abs(u0 - FIRST_FLOOR_BATHROOM.u[1]) < 1e-9 && v0 <= KITCHEN_LIVING.v[0] + 1e-9 && v1 >= KITCHEN_LIVING.v[1] - 1e-9))
+  // The wall in front of it runs the whole width, except for the door to the hall; nothing partitions the room itself.
+  const front = FIRST_FLOOR_PARTITIONS.filter(([u0]) => Math.abs(u0 - FIRST_FLOOR_BATHROOM.u[1]) < 1e-9 && u0 >= FIRST_FLOOR_BATHROOM.u[1])
+  const covered = front.reduce((sum, [, , v0, v1]) => sum + (v1 - v0), 0) + (LIVING_DOOR.v[1] - LIVING_DOOR.v[0])
+  assert.ok(Math.abs(covered - (KITCHEN_LIVING.v[1] - KITCHEN_LIVING.v[0])) < 1e-6, 'the wall and the door fill the width')
   assert.ok(FIRST_FLOOR_PARTITIONS.every(([u0]) => u0 < KITCHEN_LIVING.u[0]))
   // The terrace door and the light-well window are in it.
   for (const opening of OPENINGS.first.filter(item => item.u === 4)) assert.ok(opening.v[0] >= KITCHEN_LIVING.v[0] && opening.v[1] <= KITCHEN_LIVING.v[1])
@@ -280,7 +282,7 @@ test('the main room\'s wall steps back 20 cm along the hall, which is wider ther
   assert.ok(hallWidth - (main.v[0] - (FIRST_FLOOR_BATHROOM.v[1] + .12)) > .19)
 })
 
-test('the main room\'s 0.80 m wenge door is on the wall that steps back, and all three doors are right-handed and swing clear', () => {
+test('the main room\'s 0.80 m wenge door is on the wall that steps back, and all four doors are right-handed and swing clear', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   near(MAIN_DOOR.u[1] - MAIN_DOOR.u[0], .8)
   // On the stepped-back wall, past the secondary room's back face and inside the main room's depth.
@@ -293,7 +295,7 @@ test('the main room\'s 0.80 m wenge door is on the wall that steps back, and all
   // Right hand for someone coming in along `open`. The house frame [u, v] is right-handed seen from above (v is u turned
   // 90 degrees counter-clockwise), so the walker's left is (-open_v, open_u); hinged on the right, the closed leaf
   // extends from the hinge toward that left.
-  assert.equal(FIRST_FLOOR_DOOR_SWINGS.length, 3)
+  assert.equal(FIRST_FLOOR_DOOR_SWINGS.length, 4)
   for (const door of FIRST_FLOOR_DOOR_SWINGS) {
     near(-door.open[1], door.closed[0]); near(door.open[0], door.closed[1])
     near(Math.hypot(...door.closed), 1); near(Math.hypot(...door.open), 1)
@@ -405,13 +407,18 @@ test('the bathroom floor is a thin travertine-coloured porcelain layer', () => {
 
 test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Navona natural tiles of 80 by 80 cm, without overlapping', () => {
   const colors = Object.fromEntries(FLOOR_TILING.map(zone => [zone.id, zone.color]))
-  assert.deepEqual(Object.keys(colors).sort(), ['bathroom', 'bedrooms', 'living'])
+  assert.deepEqual(Object.keys(colors).sort(), ['bathroom', 'bedrooms', 'hall', 'living', 'terrace'])
+  // The first-floor terrace has the bathroom's tile.
+  assert.equal(colors.terrace, colors.bathroom)
+  assert.equal(FLOOR_TILING.find(zone => zone.id === 'terrace')!.pattern, NAVONA_TILES)
   assert.equal(colors.bathroom, BATHROOM_FLOOR.color)
   // The bedrooms and the living are laid with 20 cm by 120 cm wood-look planks; the bathroom with 80 cm squares.
   assert.ok(SAING_PLANKS.length === 1.2 && SAING_PLANKS.width === .2 && !SAING_PLANKS.veins)
   assert.ok(NAVONA_TILES.length === .8 && NAVONA_TILES.width === .8 && NAVONA_TILES.veins, 'travertine veins, 80 by 80')
   assert.equal(FLOOR_TILING.find(zone => zone.id === 'bathroom')!.pattern, NAVONA_TILES)
-  assert.deepEqual(FLOOR_TILING.filter(zone => zone.pattern === SAING_PLANKS).map(zone => zone.id).sort(), ['bedrooms', 'living'])
+  assert.deepEqual(FLOOR_TILING.filter(zone => zone.pattern === SAING_PLANKS).map(zone => zone.id).sort(), ['bedrooms', 'hall', 'living'])
+  // The hall has the living's floor.
+  assert.equal(colors.hall, colors.living)
   // Almond is light and warm; honey is darker and more saturated than the almond.
   const luminance = (color: string) => [1, 3, 5].map(index => parseInt(color.slice(index, index + 2), 16)).reduce((sum, value) => sum + value, 0)
   assert.ok(luminance(colors.bedrooms) > luminance(colors.living))
@@ -421,6 +428,32 @@ test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Na
     const overlapV = Math.min(a.rect[3], b.rect[3]) - Math.max(a.rect[2], b.rect[2])
     assert.ok(!(overlapU > 1e-6 && overlapV > 1e-6), `${a.zone} and ${b.zone} tiles overlap`)
   }
-  // Every rectangle stays inside the first floor's block.
-  for (const { rect } of rects) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475)
+  // Every indoor rectangle stays inside the first floor's block; the terrace lies beyond its rear wall.
+  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
+})
+
+test('the terrace floor lies over the rear band, between its two walls', () => {
+  const [u0, u1, v0, v1] = FLOOR_TILING.find(zone => zone.id === 'terrace')!.rects[0]
+  assert.ok(Math.abs(u0 - 4) < 1e-9 && u1 > 8 && u1 < 9)
+  // Between the 1.6 m wall on the party wall and the 1.1 m railing wall over the light well (v = -1).
+  assert.ok(v0 < -4 && v0 > -4.5 && Math.abs(v1 - (-1.15)) < 1e-9)
+})
+
+test('the glazed door between the hall and the living faces the secondary room\'s door, is right-handed and clears the walls', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(LIVING_DOOR.v[1] - LIVING_DOOR.v[0], 1.2)
+  near(LIVING_DOOR_LEAVES.wide, .8); near(LIVING_DOOR_LEAVES.narrow, .4)
+  // It lies in the wall between the hall and the living and covers the span of the secondary room's door: they face each other.
+  near(LIVING_DOOR.u[0], FIRST_FLOOR_BATHROOM.u[1])
+  assert.ok(LIVING_DOOR.v[0] <= SECONDARY_DOOR.v[0] && LIVING_DOOR.v[1] >= SECONDARY_DOOR.v[1], 'faces the secondary room\'s door')
+  // It does not cut into the bathroom, which ends at its north-east wall.
+  assert.ok(LIVING_DOOR.v[0] >= FIRST_FLOOR_BATHROOM.v[1] + .12 - 1e-9)
+  for (const [u0, u1, v0, v1] of FIRST_FLOOR_PARTITIONS) {
+    const blocks = u0 < LIVING_DOOR.u[1] - 1e-9 && u1 > LIVING_DOOR.u[0] + 1e-9 && v0 < LIVING_DOOR.v[1] - 1e-9 && v1 > LIVING_DOOR.v[0] + 1e-9
+    assert.ok(!blocks, 'the living door opening is free of walls')
+  }
+  // The wide leaf is hinged on the south-west end and swings into the living.
+  const swing = FIRST_FLOOR_DOOR_SWINGS.find(door => door.id === 'living')!
+  near(swing.hinge[1], LIVING_DOOR.v[0]); near(swing.hinge[0], LIVING_DOOR.u[1]); near(swing.radius, LIVING_DOOR_LEAVES.wide)
+  assert.deepEqual(swing.open, [1, 0])
 })

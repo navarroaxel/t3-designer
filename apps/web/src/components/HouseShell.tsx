@@ -3,9 +3,10 @@ import { Line } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FLOOR_TILING, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
+import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
 import { polygonShape } from '../lib/polygon-shape'
 
 const WALL_COLOR = '#d9cdb2'
@@ -64,7 +65,7 @@ function patternTexture(base: string, pattern: TilePattern) {
       context.fillRect(x, row * rowHeight, length, rowHeight)
       if (pattern.veins) {
         // Soft vertical veins, like travertine.
-        context.strokeStyle = 'rgba(120, 95, 60, .13)'; context.lineWidth = 2
+        context.strokeStyle = pattern.veinColor ?? 'rgba(120, 95, 60, .13)'; context.lineWidth = pattern.veinColor ? 3 : 2
         for (let vein = 0; vein < 7; vein++) {
           const veinX = x + ((vein * 0.61803) % 1) * length
           context.beginPath(); context.moveTo(veinX, row * rowHeight); context.bezierCurveTo(veinX + 14, row * rowHeight + rowHeight * .3, veinX - 12, row * rowHeight + rowHeight * .7, veinX + 6, (row + 1) * rowHeight); context.stroke()
@@ -76,14 +77,32 @@ function patternTexture(base: string, pattern: TilePattern) {
           context.beginPath(); context.moveTo(x, row * rowHeight + line * rowHeight / 5 + (row % 2)); context.lineTo(x + length, row * rowHeight + line * rowHeight / 5 - (piece % 2)); context.stroke()
         }
       }
-      context.strokeStyle = 'rgba(55, 40, 25, .55)'; context.lineWidth = Math.max(1, pattern.grout * pixelsPerMetre)
-      context.strokeRect(x, row * rowHeight, length, rowHeight)
+      if (pattern.grout > 0) {
+        context.strokeStyle = 'rgba(55, 40, 25, .55)'; context.lineWidth = Math.max(1, pattern.grout * pixelsPerMetre)
+        context.strokeRect(x, row * rowHeight, length, rowHeight)
+      }
     }
   }
   const texture = new CanvasTexture(canvas)
   texture.wrapS = texture.wrapT = RepeatWrapping
   texture.colorSpace = SRGBColorSpace
   return texture
+}
+
+/** A kitchen piece: a plain box, or a slab with its pattern (the worktops' Toscana Vena veins). */
+function KitchenPiece({ box }: { box: KitchenBox }) {
+  const { pattern } = box
+  const map = useMemo(() => {
+    if (!pattern) return null
+    const texture = patternTexture(box.color, pattern)
+    texture.repeat.set((box.u[1] - box.u[0]) / pattern.length, (box.v[1] - box.v[0]) / (pattern.width * pattern.rows))
+    return texture
+  }, [pattern, box.color, box.u, box.v])
+  useEffect(() => () => map?.dispose(), [map])
+  return <mesh position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow>
+    <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
+    <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={map ? .35 : .6} metalness={box.id === 'fridge' ? .3 : 0} />
+  </mesh>
 }
 
 /** One rectangle of a floor zone, with its pattern repeated at real scale. */
@@ -180,6 +199,8 @@ export function HouseShell({ floor }: { floor: Floor }) {
       </mesh>
       {/* Porcelain floors: Saing almendra planks in the bedrooms, Saing miel planks in the living, travertine in the bathroom. */}
       {FLOOR_TILING.flatMap(zone => zone.rects.map((rect, index) => <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={rect} />))}
+      {/* The kitchen of the living, from the owner's render, with assumed sizes. */}
+      {KITCHEN_BOXES.map(box => <KitchenPiece key={box.id} box={box} />)}
       {/* The TVs: OLEDs on wall brackets, one in the main room and one in the living. */}
       {[MAIN_TV_PLACEMENT, LIVING_TV_PLACEMENT].map((tv, index) => <group key={index}>
         <mesh position={[(tv.u[0] + tv.u[1]) / 2, (tv.y[0] + tv.y[1]) / 2, -(tv.v[0] + tv.v[1]) / 2]} receiveShadow>
@@ -242,7 +263,12 @@ export function HouseShell({ floor }: { floor: Floor }) {
         <boxGeometry args={[MAIN_TV_PLACEMENT.bracket.width, MAIN_TV_PLACEMENT.bracket.height, MAIN_TV_PLACEMENT.bracket.v[1] - MAIN_TV_PLACEMENT.bracket.v[0]]} />
         <meshStandardMaterial color="#3b3d40" roughness={.5} metalness={.6} />
       </mesh>
-      {/* The three doors, open 90 degrees with their swings; all right-handed. */}
+      {/* The living door's narrow leaf, glazed, beside the wide one that swings. */}
+      <mesh position={[(LIVING_DOOR.u[0] + LIVING_DOOR.u[1]) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(LIVING_DOOR.v[1] - LIVING_DOOR_LEAVES.narrow / 2)]} receiveShadow>
+        <boxGeometry args={[.05, CUT_HEIGHT, LIVING_DOOR_LEAVES.narrow]} />
+        <meshStandardMaterial color="#dfe8ea" roughness={.1} metalness={.3} transparent opacity={.6} />
+      </mesh>
+      {/* The doors, open 90 degrees with their swings; all right-handed. */}
       {FIRST_FLOOR_DOOR_SWINGS.map(door => <DoorSwingView key={door.id} door={door} />)}
       {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(v0 + v1) / 2]} receiveShadow>
         <boxGeometry args={[u1 - u0, CUT_HEIGHT, v1 - v0]} />

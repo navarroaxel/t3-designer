@@ -203,6 +203,14 @@ export const FIRST_FLOOR_BATHROOM = {
 }
 /** Floor tiles are a thin layer over the slab. */
 export const TILE_THICKNESS = .012
+/**
+ * Purastone Toscana Vena (owner), the kitchen's worktop and island top: a sintered slab of 3.20 m by 1.60 m,
+ * 1.2 cm thick, with a warm ivory base and golden ochre veins, inspired by Italian marble; the built-up edge
+ * of the worktop makes it thicker where it shows.
+ */
+export const TOSCANA_VENA_SLAB: TilePattern = { length: 3.2, width: 1.6, rows: 1, stagger: 0, grout: 0, veins: true, veinColor: 'rgba(176, 130, 58, .38)' }
+export const TOSCANA_VENA_COLOR = '#e5dac0'
+
 /** The bathroom's floor (owner): Navona natural, a travertine-coloured porcelain tile, 80 by 80 cm. */
 export const BATHROOM_FLOOR = { color: '#d5c6a6', thickness: TILE_THICKNESS }
 
@@ -274,6 +282,22 @@ export const CLOSET_SLIDING_PANELS: SlidingPanel[] = Array.from({ length: CLOSET
   }
 })
 
+/**
+ * The door between the hall and the living (owner's photo): white and glazed, one and a half leaves: a wide
+ * leaf of 0.80 m with the handle and a narrow one of 0.40 m beside it, 1.20 m in all (owner). It faces the secondary room's door across the hall, so it
+ * lies on the same span of v; it starts at the bathroom's north-east wall, because centred on that door it would
+ * cut into the bathroom. It opens with the right hand, into the living: the wide leaf is hinged on the south-west end.
+ */
+export const LIVING_DOOR_WIDTH = 1.2
+export const LIVING_DOOR_LEAVES = { wide: .8, narrow: .4 }
+export const LIVING_DOOR_COLOR = '#f3f2ee'
+const livingDoorV0 = FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS
+export const LIVING_DOOR = {
+  u: [FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS] as [number, number],
+  v: [livingDoorV0, livingDoorV0 + LIVING_DOOR_WIDTH] as [number, number],
+  y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] as [number, number],
+}
+
 /** The main room's wall along the hall steps back this far (owner), so the hall is wider there. */
 export const MAIN_ROOM_SETBACK = .2
 
@@ -313,7 +337,9 @@ export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
   [SECONDARY_WARDROBE.u[1], SECONDARY_WARDROBE.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[0], SECONDARY_WARDROBE.v[1]],
   // The bathroom's back wall.
   // The bathroom's back wall continues from party wall to party wall: behind it is the kitchen-living.
-  [FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.v[0], NE_INNER],
+  // Split around the door to the hall.
+  [FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.v[0], LIVING_DOOR.v[0]],
+  [FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, LIVING_DOOR.v[1], NE_INNER],
 ]
 
 
@@ -338,6 +364,8 @@ export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
   // Secondary room: facing north-west the right hand is north-east (higher v); the leaf swings toward the window.
   { id: 'secondary', hinge: [SECONDARY_DOOR.u[0], SECONDARY_DOOR.v[1]], closed: [0, -1], open: [-1, 0], radius: SECONDARY_DOOR_WIDTH, color: SECONDARY_DOOR_COLOR },
   // Bathroom: facing south-west the right hand is north-west (lower u); the leaf swings into the bathroom.
+  // Living: coming in from the hall facing south-east the right hand is south-west (lower v); the wide leaf swings into the living.
+  { id: 'living', hinge: [LIVING_DOOR.u[1], LIVING_DOOR.v[0]], closed: [0, 1], open: [1, 0], radius: LIVING_DOOR_LEAVES.wide, color: LIVING_DOOR_COLOR },
   { id: 'bathroom', hinge: [BATHROOM_DOOR_SWING.hingeU, BATHROOM_DOOR_SWING.hingeV], closed: [1, 0], open: [0, -1], radius: BATHROOM_DOOR_WIDTH, color: BATHROOM_DOOR_COLOR },
 ]
 
@@ -399,7 +427,7 @@ export const LIVING_TV_PLACEMENT = {
  * [u0, u1, v0, v1] inside the walls; the hall is not tiled here because its floor was not specified.
  */
 /** How a floor is laid: the piece's size, rows before the pattern repeats, the shift between rows and the joint. */
-export type TilePattern = { length: number; width: number; rows: number; stagger: number; grout: number; veins: boolean }
+export type TilePattern = { length: number; width: number; rows: number; stagger: number; grout: number; veins: boolean; veinColor?: string }
 export type FloorTiling = { id: string; color: string; rects: [number, number, number, number][]; pattern: TilePattern }
 /** Saing almendra and Saing miel (San Lorenzo Design): wood-look porcelain planks, 20 cm by 120 cm, satin. */
 export const SAING_PLANKS: TilePattern = { length: 1.2, width: .2, rows: 3, stagger: 1 / 3, grout: .003, veins: false }
@@ -413,6 +441,17 @@ export const FLOOR_TILING: FloorTiling[] = [
       [FRONT_ROOMS.main.u[0], FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[1]],
       [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[1]],
       [FRONT_ROOMS.secondary.u[0], FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[1]],
+    ],
+  },
+  // The first-floor terrace, over the rear ground-floor band, has the bathroom's tile (owner): from the house's rear wall to
+  // the rear boundary, between the party-wall wall and the railing wall.
+  { id: 'terrace', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.southWest, houseSouthWestEdge((4 + HOUSE_REAR.southWest) / 2) + .15, -1 - .15]] },
+  // The hall has the living's floor (owner): the stretch beside the bathroom, and the wider one behind the main room and the closet.
+  {
+    id: 'hall', color: '#c69a5d', pattern: SAING_PLANKS,
+    rects: [
+      [FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK - PARTITION_THICKNESS],
+      [FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS, NE_INNER],
     ],
   },
   { id: 'living', color: '#c69a5d', pattern: SAING_PLANKS, rects: [[KITCHEN_LIVING.u[0], KITCHEN_LIVING.u[1], KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[1]]] },
