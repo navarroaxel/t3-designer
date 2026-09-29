@@ -1,9 +1,10 @@
 import { useEffect, useMemo } from 'react'
+import { Line } from '@react-three/drei'
 import { ExtrudeGeometry } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, FIRST_FLOOR_PARTITIONS, BATHROOM_DOOR, BATHROOM_DOOR_COLOR, SECONDARY_BED, SECONDARY_DOOR, WARDROBE_LEAVES, SECONDARY_DOOR_COLOR, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
-  type Floor, type PlanPoint,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  type DoorSwing, type Floor, type PlanPoint,
 } from '../data/house-plan'
 import { polygonShape } from '../lib/polygon-shape'
 
@@ -26,6 +27,24 @@ function Slab({ outline, top }: { outline: PlanPoint[]; top: number }) {
   return <mesh geometry={geometry} position={[0, top - SLAB_THICKNESS, 0]} receiveShadow>
     <meshStandardMaterial color={SLAB_COLOR} roughness={.95} />
   </mesh>
+}
+
+/** A door open 90 degrees, with the dashed quarter circle of its swing on the floor. */
+function DoorSwingView({ door }: { door: DoorSwing }) {
+  const { hinge, closed, open, radius, color } = door
+  const point = (fraction: number, height: number): [number, number, number] => {
+    const angle = Math.PI / 2 * fraction
+    return [hinge[0] + radius * (Math.cos(angle) * closed[0] + Math.sin(angle) * open[0]), height, -(hinge[1] + radius * (Math.cos(angle) * closed[1] + Math.sin(angle) * open[1]))]
+  }
+  // The open leaf is a slab from the hinge along `open`, .04 m thick; local x is u, local z is -v.
+  const alongU = Math.abs(open[0]) > 0
+  return <>
+    <mesh position={[hinge[0] + open[0] * radius / 2 + (alongU ? 0 : -closed[0] * .02), FLOOR_HEIGHT + CUT_HEIGHT / 2, -(hinge[1] + open[1] * radius / 2 + (alongU ? -closed[1] * .02 : 0))]} receiveShadow>
+      <boxGeometry args={[alongU ? radius : .04, CUT_HEIGHT, alongU ? .04 : radius]} />
+      <meshStandardMaterial color={color} roughness={.6} />
+    </mesh>
+    <Line points={Array.from({ length: 13 }, (_, i) => point(i / 12, FLOOR_HEIGHT + .03))} color="#8a6a3a" lineWidth={1} dashed dashSize={.08} gapSize={.06} />
+  </>
 }
 
 function Walls({ floor, top }: { floor: Floor; top: number }) {
@@ -81,16 +100,17 @@ export function HouseShell({ floor }: { floor: Floor }) {
         <boxGeometry args={[.6, .12, .4]} />
         <meshStandardMaterial color="#f4f1ea" roughness={.95} />
       </mesh>
-      {/* The room's wenge door, closed, sectioned at the cut. */}
-      <mesh position={[(SECONDARY_DOOR.u[0] + SECONDARY_DOOR.u[1]) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(SECONDARY_DOOR.v[0] + SECONDARY_DOOR.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[.04, CUT_HEIGHT, SECONDARY_DOOR.v[1] - SECONDARY_DOOR.v[0]]} />
-        <meshStandardMaterial color={SECONDARY_DOOR_COLOR} roughness={.6} />
+      {/* The main room's TV: an OLED on a wall bracket, on the wall it shares with the secondary room. */}
+      <mesh position={[(MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (MAIN_TV_PLACEMENT.y[0] + MAIN_TV_PLACEMENT.y[1]) / 2, -(MAIN_TV_PLACEMENT.v[0] + MAIN_TV_PLACEMENT.v[1]) / 2]} receiveShadow>
+        <boxGeometry args={[MAIN_TV_PLACEMENT.u[1] - MAIN_TV_PLACEMENT.u[0], MAIN_TV_PLACEMENT.y[1] - MAIN_TV_PLACEMENT.y[0], MAIN_TV_PLACEMENT.v[1] - MAIN_TV_PLACEMENT.v[0]]} />
+        <meshStandardMaterial color="#0d0e10" roughness={.15} metalness={.4} />
       </mesh>
-      {/* The bathroom's natural-oak door, closed, on the hall side. */}
-      <mesh position={[(BATHROOM_DOOR.u[0] + BATHROOM_DOOR.u[1]) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(BATHROOM_DOOR.v[0] + BATHROOM_DOOR.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[BATHROOM_DOOR.u[1] - BATHROOM_DOOR.u[0], CUT_HEIGHT, .04]} />
-        <meshStandardMaterial color={BATHROOM_DOOR_COLOR} roughness={.6} />
+      <mesh position={[(MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (MAIN_TV_PLACEMENT.y[0] + MAIN_TV_PLACEMENT.y[1]) / 2, -(MAIN_TV_PLACEMENT.bracket.v[0] + MAIN_TV_PLACEMENT.bracket.v[1]) / 2]}>
+        <boxGeometry args={[MAIN_TV_PLACEMENT.bracket.width, MAIN_TV_PLACEMENT.bracket.height, MAIN_TV_PLACEMENT.bracket.v[1] - MAIN_TV_PLACEMENT.bracket.v[0]]} />
+        <meshStandardMaterial color="#3b3d40" roughness={.5} metalness={.6} />
       </mesh>
+      {/* The three doors, open 90 degrees with their swings; all right-handed. */}
+      {FIRST_FLOOR_DOOR_SWINGS.map(door => <DoorSwingView key={door.id} door={door} />)}
       {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(v0 + v1) / 2]} receiveShadow>
         <boxGeometry args={[u1 - u0, CUT_HEIGHT, v1 - v0]} />
         <meshStandardMaterial color={PARTITION_COLOR} roughness={.95} />

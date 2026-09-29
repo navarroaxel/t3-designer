@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, BATHROOM_DOOR, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -258,4 +258,62 @@ test('the bathroom has a 0.70 m door on its north-east wall, toward the wardrobe
     const blocks = u0 < BATHROOM_DOOR.u[1] - 1e-9 && u1 > BATHROOM_DOOR.u[0] + 1e-9 && v0 < BATHROOM_DOOR.v[1] - 1e-9 && v1 > BATHROOM_DOOR.v[0] + 1e-9
     assert.ok(!blocks, 'the door opening is free of walls')
   }
+})
+
+test('the bathroom door is hinged on the wardrobe side and swings into the bathroom', () => {
+  assert.equal(BATHROOM_DOOR_SWING.hingeU, BATHROOM_DOOR.u[0])
+  // The leaf, 0.70 m long, swings toward lower v: into the bathroom, not the hall.
+  const leafEnd = BATHROOM_DOOR_SWING.hingeV - BATHROOM_DOOR_SWING.radius
+  assert.ok(leafEnd > FIRST_FLOOR_BATHROOM.v[0] + .3, 'the open leaf stays inside the bathroom')
+  assert.ok(Math.abs(BATHROOM_DOOR_SWING.hingeU - FIRST_FLOOR_BATHROOM.u[0] - .05) < 1e-9, '5 cm from the wardrobe')
+})
+
+test('the main room\'s wall steps back 20 cm along the hall, which is wider there than beside the secondary room', () => {
+  const { main, secondary } = FRONT_ROOMS
+  assert.ok(Math.abs(MAIN_ROOM_SETBACK - .2) < 1e-9)
+  // The wall between the main and secondary rooms stays where it was; the stretch past the secondary room is 20 cm further north-east.
+  const before = FIRST_FLOOR_PARTITIONS.find(([u0, u1, v0]) => Math.abs(u0 - main.u[0]) < 1e-9 && Math.abs(u1 - secondary.u[1]) < 1e-9 && Math.abs(v0 - (main.v[0] - .12)) < 1e-9)
+  const after = FIRST_FLOOR_PARTITIONS.find(([u0, , v0]) => Math.abs(u0 - secondary.u[1]) < 1e-9 && Math.abs(v0 - (main.v[0] - .12 + .2)) < 1e-9)
+  assert.ok(before && after)
+  // The hall is wider along the main room's wall than the 0.59 m of the stretch between the bathroom and the room's old wall.
+  const hallWidth = after![2] + .12 - (FIRST_FLOOR_BATHROOM.v[1] + .12) - .12 + .12
+  assert.ok(hallWidth - (main.v[0] - (FIRST_FLOOR_BATHROOM.v[1] + .12)) > .19)
+})
+
+test('the main room\'s 0.80 m wenge door is on the wall that steps back, and all three doors are right-handed and swing clear', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(MAIN_DOOR.u[1] - MAIN_DOOR.u[0], .8)
+  // On the stepped-back wall, past the secondary room's back face and inside the main room's depth.
+  assert.ok(MAIN_DOOR.u[0] >= FRONT_ROOMS.secondary.u[1] + .12 - 1e-9 && MAIN_DOOR.u[1] <= FRONT_ROOMS.main.u[1] + 1e-9)
+  near(MAIN_DOOR.v[1], FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK)
+  for (const [u0, u1, v0, v1] of FIRST_FLOOR_PARTITIONS) {
+    const blocks = u0 < MAIN_DOOR.u[1] - 1e-9 && u1 > MAIN_DOOR.u[0] + 1e-9 && v0 < MAIN_DOOR.v[1] - 1e-9 && v1 > MAIN_DOOR.v[0] + 1e-9
+    assert.ok(!blocks, 'the main door opening is free of walls')
+  }
+  // Right hand for someone coming in along `open`. The house frame [u, v] is right-handed seen from above (v is u turned
+  // 90 degrees counter-clockwise), so the walker's left is (-open_v, open_u); hinged on the right, the closed leaf
+  // extends from the hinge toward that left.
+  assert.equal(FIRST_FLOOR_DOOR_SWINGS.length, 3)
+  for (const door of FIRST_FLOOR_DOOR_SWINGS) {
+    near(-door.open[1], door.closed[0]); near(door.open[0], door.closed[1])
+    near(Math.hypot(...door.closed), 1); near(Math.hypot(...door.open), 1)
+  }
+})
+
+test('the 55 inch TV is a 16:9 screen hung on the shared wall, centred on it, facing the main room', () => {
+  const near = (a: number, b: number, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} vs ${b}`)
+  // 55 inches diagonal: 1.218 m by 0.685 m.
+  near(Math.hypot(TV_SIZE.width, TV_SIZE.height), 55 * .0254)
+  near(TV_SIZE.width / TV_SIZE.height, 16 / 9)
+  near(TV_SIZE.width, 1.218, .002); near(TV_SIZE.height, .685, .002)
+  assert.equal(MAIN_TV.model, 'Samsung OLED S90')
+  const { main, secondary } = FRONT_ROOMS
+  // Centred on the wall shared with the secondary room, along its length.
+  near((MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (main.u[0] + secondary.u[1]) / 2)
+  assert.ok(MAIN_TV_PLACEMENT.u[0] > main.u[0] && MAIN_TV_PLACEMENT.u[1] < secondary.u[1])
+  // On the main room's side, held off the wall by its bracket.
+  near(MAIN_TV_PLACEMENT.bracket.v[0], main.v[0]); near(MAIN_TV_PLACEMENT.v[0], main.v[0] + .03)
+  assert.ok(MAIN_TV_PLACEMENT.v[1] < main.v[1])
+  // It hangs clear of the floor and stays under the 1.5 m cut, so it shows whole.
+  assert.ok(MAIN_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .5 && MAIN_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 1.5)
 })

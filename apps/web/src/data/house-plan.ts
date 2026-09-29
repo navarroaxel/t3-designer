@@ -207,8 +207,8 @@ export const FIRST_FLOOR_BATHROOM = {
  */
 export const BATHROOM_DOOR_WIDTH = .7
 export const BATHROOM_DOOR_COLOR = '#c8a06a'
-/** Distance from the wardrobe's back panel to the door: assumed, the owner said only "closer to the wardrobe". */
-export const BATHROOM_DOOR_OFFSET = .15
+/** Distance from the wardrobe's back panel to the door (owner: 5 cm). */
+export const BATHROOM_DOOR_OFFSET = .05
 const bathroomDoorU0 = FIRST_FLOOR_BATHROOM.u[0] + BATHROOM_DOOR_OFFSET
 export const BATHROOM_DOOR = {
   u: [bathroomDoorU0, bathroomDoorU0 + BATHROOM_DOOR_WIDTH] as [number, number],
@@ -216,12 +216,38 @@ export const BATHROOM_DOOR = {
   y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] as [number, number],
 }
 
+/**
+ * It opens inward with the right hand, seen from the hall: the hinges are on the right, which is the
+ * wardrobe end (facing south-west, the right hand points north-west, toward lower u), and the leaf
+ * swings into the bathroom.
+ */
+export const BATHROOM_DOOR_SWING = { hingeU: BATHROOM_DOOR.u[0], hingeV: BATHROOM_DOOR.v[0], radius: BATHROOM_DOOR_WIDTH }
+
+/** The main room's wall along the hall steps back this far (owner), so the hall is wider there. */
+export const MAIN_ROOM_SETBACK = .2
+
+/**
+ * The main room's door (owner): 0.80 m wide, wenge, on the wall that steps back, centred on the stretch
+ * of it past the joint with the secondary room's wall.
+ */
+export const MAIN_DOOR_WIDTH = .8
+const mainDoorSpan: [number, number] = [FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1]]
+export const MAIN_DOOR = {
+  u: [(mainDoorSpan[0] + mainDoorSpan[1]) / 2 - MAIN_DOOR_WIDTH / 2, (mainDoorSpan[0] + mainDoorSpan[1]) / 2 + MAIN_DOOR_WIDTH / 2] as [number, number],
+  v: [FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK - PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK] as [number, number],
+  y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] as [number, number],
+}
+
 /** Interior walls of the first floor as [u0, u1, v0, v1]. */
 export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
   // Between the two rooms, along the main room's depth.
-  [FRONT_ROOMS.main.u[0], FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS, FRONT_ROOMS.main.v[0]],
+  [FRONT_ROOMS.main.u[0], FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS, FRONT_ROOMS.main.v[0]],
+  // Past the secondary room, along the hall, the main room's wall steps back 20 cm, widening the hall.
+  [FRONT_ROOMS.secondary.u[1], MAIN_DOOR.u[0], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK],
+  [MAIN_DOOR.u[1], FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK],
+  [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK],
   // The main room's back wall.
-  [FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[1]],
+  [FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[1]],
   // The secondary room's back wall, beside the wardrobe's recess.
   // Two short returns either side of the door.
   [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, SECONDARY_DOOR.v[0]],
@@ -245,4 +271,39 @@ export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
 export const KITCHEN_LIVING = {
   u: [FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, 4 - WALL_THICKNESS] as [number, number],
   v: [FIRST_FLOOR_BATHROOM.v[0], NE_INNER] as [number, number],
+}
+
+/**
+ * The three doors open with the right hand, seen by someone coming in from the hall, and swing into the room.
+ * A hinge point, the direction across the closed opening and the direction the open leaf points, all in [u, v].
+ */
+export type DoorSwing = { id: string; hinge: PlanPoint; closed: PlanPoint; open: PlanPoint; radius: number; color: string }
+export const MAIN_DOOR_COLOR = '#3d2b22'
+export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
+  // Main room: coming in facing north-east the right hand is south-east (higher u); the leaf swings into the room.
+  { id: 'main', hinge: [MAIN_DOOR.u[1], MAIN_DOOR.v[1]], closed: [-1, 0], open: [0, 1], radius: MAIN_DOOR_WIDTH, color: MAIN_DOOR_COLOR },
+  // Secondary room: facing north-west the right hand is north-east (higher v); the leaf swings toward the window.
+  { id: 'secondary', hinge: [SECONDARY_DOOR.u[0], SECONDARY_DOOR.v[1]], closed: [0, -1], open: [-1, 0], radius: SECONDARY_DOOR_WIDTH, color: SECONDARY_DOOR_COLOR },
+  // Bathroom: facing south-west the right hand is north-west (lower u); the leaf swings into the bathroom.
+  { id: 'bathroom', hinge: [BATHROOM_DOOR_SWING.hingeU, BATHROOM_DOOR_SWING.hingeV], closed: [1, 0], open: [0, -1], radius: BATHROOM_DOOR_WIDTH, color: BATHROOM_DOOR_COLOR },
+]
+
+/**
+ * The main room's TV (owner): a Samsung OLED S90 of 55 inches, hung on a wall bracket, centred on the wall
+ * it shares with the secondary room and facing the main room. A 55 inch 16:9 screen is 1.218 m by 0.685 m
+ * (the diagonal is 1.397 m); the body is about 0.03 m thick and the bracket holds it about 0.03 m off the wall.
+ * The height of its centre, 1.1 m, is assumed.
+ */
+export const MAIN_TV = { model: 'Samsung OLED S90', inches: 55, aspect: [16, 9] as const, thickness: .03, standoff: .03, centreHeight: 1.1 }
+const TV_DIAGONAL = MAIN_TV.inches * .0254
+const TV_HYPOT = Math.hypot(MAIN_TV.aspect[0], MAIN_TV.aspect[1])
+export const TV_SIZE = { width: TV_DIAGONAL * MAIN_TV.aspect[0] / TV_HYPOT, height: TV_DIAGONAL * MAIN_TV.aspect[1] / TV_HYPOT }
+/** Plan footprint of the TV and its bracket, on the main room's face of the shared wall: [u0, u1, v0, v1]. */
+const sharedWallMiddleU = (FRONT_ROOMS.main.u[0] + FRONT_ROOMS.secondary.u[1]) / 2
+export const MAIN_TV_PLACEMENT = {
+  u: [sharedWallMiddleU - TV_SIZE.width / 2, sharedWallMiddleU + TV_SIZE.width / 2] as [number, number],
+  /** The wall's face on the main room's side is at main.v[0]. */
+  v: [FRONT_ROOMS.main.v[0] + MAIN_TV.standoff, FRONT_ROOMS.main.v[0] + MAIN_TV.standoff + MAIN_TV.thickness] as [number, number],
+  bracket: { v: [FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[0] + MAIN_TV.standoff] as [number, number], width: .4, height: .3 },
+  y: [FLOOR_HEIGHT + MAIN_TV.centreHeight - TV_SIZE.height / 2, FLOOR_HEIGHT + MAIN_TV.centreHeight + TV_SIZE.height / 2] as [number, number],
 }
