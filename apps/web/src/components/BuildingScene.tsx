@@ -18,6 +18,9 @@ export type BuildingSceneProps = {
   showNeighbors: boolean
   showSunPath: boolean
   showLabels: boolean
+  showPanels: boolean
+  /** Each panel's lit share of the beam at the chosen moment, or null at night. */
+  panelShade: Record<string, number> | null
   floor: FloorView
   view: { mode: '3d' | 'top'; revision: number }
 }
@@ -107,7 +110,7 @@ function Camera({ view }: Pick<BuildingSceneProps, 'view'>) {
 export function BuildingScene(props: BuildingSceneProps) {
   const { t } = useTranslation('workspace')
   const { formatNumber } = useLocale()
-  const { instant, sun, showNeighbors, showSunPath, showLabels, view, floor } = props
+  const { instant, sun, showNeighbors, showSunPath, showLabels, showPanels, panelShade, view, floor } = props
   const elements = useRef(new Map<string, HTMLDivElement>())
   const labels: BuildingLabel[] = showLabels ? [
     { id: 'building', position: [-1, 16, -18] as [number, number, number], text: BUILDING_SITE.address.split(' · ')[0], subtitle: t('building.location'), kind: 'building' as const },
@@ -123,7 +126,7 @@ export function BuildingScene(props: BuildingSceneProps) {
       <fog attach="fog" args={[sun.isDaylight ? '#e7eae2' : '#667482', 155, 350]} />
       <Sunlight sun={sun} />
       <SiteGround />
-      <BuildingContext showNeighbors={showNeighbors} floor={floor} />
+      <BuildingContext showNeighbors={showNeighbors} showPanels={showPanels} panelShade={panelShade} floor={floor} />
       {showSunPath && <SolarOrbit instant={instant} sun={sun} />}
       <Camera view={view} />
       <BuildingLabelProjection labels={labels} elements={elements} />

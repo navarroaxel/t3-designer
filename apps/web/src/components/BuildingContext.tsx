@@ -1,13 +1,15 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Line } from '@react-three/drei'
 import { BufferGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, InstancedMesh, Object3D, ShapeGeometry } from 'three'
-import { SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
+import { SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
+import { REAR_LOT_WALL_COLOR } from '../data/neighbor-fronts'
 import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
 import { HouseFacade } from './HouseFacade'
 import { HouseShell } from './HouseShell'
 import type { Floor } from '../data/house-plan'
 import { NeighborFacades } from './NeighborFacades'
+import { SolarPanels } from './SolarPanels'
 
 const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
@@ -40,7 +42,13 @@ function roofGeometry(building: BuildingFootprint, roofDatum = building) {
   const positions: number[] = []
   // Complex/courtyard buildings keep a flat inferred roof rather than bridge holes.
   const rise = building.holes?.length || p.length > 18 ? 0 : Math.min(5, building.roofHeight)
-  const heightAt = (point: SitePoint) => building.height + (rise > .4 ? rise * Math.max(0, 1 - Math.abs(across(point) - middle) / ((max - min) / 2)) : .08)
+  // A single-pitch roof rises linearly across the footprint; otherwise a gable or a flat roof.
+  const { slope } = building
+  const along = ([x, z]: SitePoint) => slope ? x * slope.direction[0] + z * slope.direction[1] : 0
+  const alongValues = slope ? p.map(along) : [0, 1], lo = Math.min(...alongValues), hi = Math.max(...alongValues)
+  const heightAt = (point: SitePoint) => slope
+    ? building.height + slope.rise * (along(point) - lo) / (hi - lo)
+    : building.height + (rise > .4 ? rise * Math.max(0, 1 - Math.abs(across(point) - middle) / ((max - min) / 2)) : .08)
   for (const ring of rise > 0.4 ? [split(1), split(-1)] : [p]) {
     if (ring.length < 3) continue
     const shape = new ShapeGeometry(polygonShape(ring, rise > 0.4 ? [] : building.holes))
@@ -76,12 +84,14 @@ const WHITE_PAINT = '#ecebe5'
  * (the owner's photo predates the repaint); the rest of the house is brick. */
 function finishFor(building: BuildingFootprint): Finish {
   if (building.id.endsWith('-TANK-STEEL')) return { wall: '#d3d8dc', roof: '#e4e8eb', roughness: .38, metalness: .3 }
-  // The rear neighbour is blue so that it never reads as part of the house.
-  if (building.id === 'NEIGHBOR-B') return { wall: '#9db6cc', roof: '#86a1bb', roughness: .92, metalness: 0 }
+  // The lot behind is painted light yellow, which also keeps it from reading as part of the house.
+  if (building.id === 'NEIGHBOR-B') return { wall: REAR_LOT_WALL_COLOR, roof: '#cbbd8c', roughness: .92, metalness: 0 }
+  if (building.id.endsWith('-CANTILEVER')) return { wall: '#c9b58a', roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
   if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
-  if (building.id === 'NEIGHBOR-D' || building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
-  if (building.id === 'NEIGHBOR-A' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
+  if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
+  if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
+  if (building.id === 'NEIGHBOR-A' || building.id === 'NEIGHBOR-A-REAR' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
   if (isHouse(building)) return { wall: '#a5533b', roof: building.isTarget ? WHITE_PAINT : '#d9d2c0', roughness: .92, metalness: 0 }
   return { wall: '#d0d3c8', roof: '#88938d', roughness: .92, metalness: 0 }
 }
@@ -144,6 +154,10 @@ export function SiteGround() {
     </mesh>
     <mesh geometry={parcel} rotation={[-Math.PI / 2, 0, 0]} position={[0, .022, 0]} receiveShadow><meshStandardMaterial color="#c6d0b6" roughness={1} /></mesh>
     <Boxes boxes={roads} color="#c4c7bf" castShadow={false} />
+    {/* Outlines of the other lots of the block; the surveyed ones are drawn a little firmer. */}
+    {SITE_LOTS.filter(lot => lot.footprint !== SITE_PARCEL.footprint && lot.number !== 8).map(lot =>
+      <Line key={lot.number} points={[...lot.footprint, lot.footprint[0]].map(([x, z]) => [x, .07, z])}
+        color={lot.source === 'survey' ? '#8f9a7d' : '#b3b9a6'} lineWidth={lot.source === 'survey' ? 1.2 : .8} />)}
     <Line points={[...SITE_PARCEL.footprint, SITE_PARCEL.footprint[0]].map(([x, z]) => [x, .09, z])} color="#a29b72" lineWidth={1} dashed dashSize={.6} gapSize={.4} />
   </>
 }
@@ -152,9 +166,11 @@ export function SiteGround() {
  * physical obstacles used by the sunlight pass. */
 export type FloorView = 'exterior' | Floor
 
-export function BuildingContext({ visible = true, showNeighbors = true, floor = 'exterior' }: {
+export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, panelShade = null, floor = 'exterior' }: {
   visible?: boolean
   showNeighbors?: boolean
+  showPanels?: boolean
+  panelShade?: Record<string, number> | null
   floor?: FloorView
 }) {
   const house = useMemo(() => SITE_BUILDINGS.filter(isHouse), [])
@@ -162,8 +178,10 @@ export function BuildingContext({ visible = true, showNeighbors = true, floor = 
   const physical = useMemo(() => <>
     {house.map(building => <Volume key={building.id} building={building} />)}
     <HouseFacade physical />
+    {/* Hiding the panels also removes their shadows: they are part of the physical obstacles only while shown. */}
+    {showPanels && <SolarPanels physical />}
     {neighbors.map(building => <Volume key={building.id} building={building} />)}
-  </>, [house, neighbors])
+  </>, [house, neighbors, showPanels])
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>
@@ -171,6 +189,7 @@ export function BuildingContext({ visible = true, showNeighbors = true, floor = 
         ? <>
             {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
             <HouseFacade />
+            {showPanels && <SolarPanels shade={panelShade} />}
           </>
         : <HouseShell floor={floor} />}
       {showNeighbors && <NeighborFacades />}

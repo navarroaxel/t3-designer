@@ -31,6 +31,7 @@ Open the Vite URL shown in the terminal, normally
    north, at about 79° in December and 32° in June.
 3. Switch to **Top view** to see how far each neighbour's shadow reaches.
 4. Use **Floors** to cut the house open at the ground floor or the first floor. Only the exterior walls are modelled so far.
+5. Tick **Panels** to show the planned array of 16 panels (9.92 kWp) on the azotea. Their shading and energy are not calculated yet.
 
 The solar controls calculate locally; changing the date or time does not call an
 external API. Time follows `America/Argentina/Buenos_Aires` (UTC-3, no daylight
@@ -47,21 +48,26 @@ saving).
 Coordinates are metres, with x east, y up and z south. The origin is the centre
 of the Google Earth view that frames the house. See the
 [architecture guide](docs/architecture/architecture.md) and the
-[solar model](docs/model/solar-model.md).
+[solar model](docs/model/solar-model.md) and the
+[generation estimate](docs/model/generation.md).
 
 ## The model and its limits
 
-The site was measured from **Google Earth imagery captured on 2021-09-24**
-and from the owner's dimensions:
+The site comes from the owner's dimensions, the **municipal survey sketches** of the
+lots, Street View and **Google Earth imagery captured on 2021-09-24**:
 
-- **Upper block (rooftop):** 10 m deep by 8.5 m wide, two floors, flat roof at 6.4 m.
-- **Rear ground-floor band:** 3.5 m deep, with a left arm (2.75 m), a light well
-  (2.5 m) and the terrace with grill (3.25 m) on the right seen from the street.
-- **Lot:** 13.5 m by 8.5 m, rotated about 45° from north.
-- **Neighbours:** footprints estimated from the imagery; heights from floor
-  counts at 3.2 m per floor.
+- **Lot:** 8.95 m of front, 13.50 m and 13.70 m deep, 8.70 m at the rear (survey sketch),
+  rotated about 45° from north. The house fills it.
+- **House:** 9 m deep, two floors, flat roof at 6.4 m. The roof is 10 m deep counting a
+  1 m cantilever in front, level with the balcony, and the azotea is 8.5 m wide between
+  the parapets.
+- **Rear ground-floor band:** 4.5 m deep, with a left arm, a light well (2.5 m) and the
+  terrace with grill on the right seen from the street.
+- **Neighbours:** the lot on the north-east, the corner and the lot behind come from their
+  survey sketches; their buildings are estimated from Street View. The other lots of the
+  block come from the block plan, digitised by eye, with default heights.
 
-This is a shading model, **not a survey**. Expect about ±1 m on footprints.
+This is a shading model, **not a survey**. Expect about ±1 m on the buildings of the lots that have no survey.
 Roofs are flat; parapets, trees, the terrace grill and anything built after 2021
 are not modelled. Sunlight and shadows are a **visual study**, not a certified
 insolation, energy or measured irradiance report.

@@ -22,17 +22,17 @@ upper block.
 
 | Volume | Size | Level | Provenance |
 | --- | --- | --- | --- |
-| Upper block (azotea) | 10 m deep, 8.5 m wide | roof slab at 6.4 m | Owner |
-| Rear ground-floor band | 3.5 m deep: left arm 2.75 m, light well 2.5 m, terrace 3.25 m | 3.2 m | Owner (depth trimmed from 3.95 m to fit the 13.5 m lot) |
-| Lot | 13.5 m by 8.5 m | | Owner |
+| Upper block | 9 m deep, 8.5 m wide, two floors | roof slab at 6.4 m | Owner (the 10 m of the azotea include a 1 m cantilever) |
+| Roof cantilever | 1 m past the street line, 8.5 m wide, 0.5 m thick; it ends level with the first-floor balcony, and the front parapet stands on its edge | slab top at 6.4 m | Owner |
+| Rear ground-floor band | 4.5 m deep outside: left arm 2.75 m, light well 2.5 m, terrace 3.25 m | 3.2 m | Owner (3.95 m inside, plus the walls, to fit the 13.5 m lot) |
+| Lot | 8.95 m of front, 13.50 m deep on the north-east side, 13.70 m on the south-west side, 8.70 m at the rear: 120.03 m2. The south-west boundary leans 0.25 m, and the house's wall stands on it | | Municipal survey sketch |
 | Side and rear parapets | 0.15 m thick | 1.1 m above the roof | Estimated from the azotea photo |
 | Front parapet | 0.15 m thick, tiled | 0.8 m above the roof | Estimated from Street View |
 | Concrete tank block | 1.6 m by 1.6 m, against the rear wall, south-west of centre | 1.2 to 2.25 m above the roof, on a slab at 0.9 to 1.2 m, held up by three legs (one at the front on the south-west side, two at the back against the rear parapet) | Footprint: owner. Heights and position: estimated |
 | Steel tank | 1 m diameter, on the concrete block | up to 3.75 m above the roof | Estimated |
-| Neighbour A (north-east) | brick street wall (2.1 m) with a green railing on the street line, a front patio about 2 m deep, then a one-floor house | house 3.8 m, wall 2.1 m | Patio depth: owner. The rest: estimated from Street View |
-| Neighbour C (south-west corner) | two-floor block in front (6.6 m), one floor (3 m) with a terrace toward the cross street | on the street line, chamfered corner | Estimated from Street View |
-| Neighbour D (garage house beyond A) | one floor, green garage doors, sheet-metal canopy | 3.3 m | Estimated from Street View |
-| Neighbour B (rear) | one floor, drawn in blue so it never reads as part of the house | 3.2 m | Estimated |
+| Lot 7, north-east neighbour (A) | 9.00 m of front. Next to the house, a brick street wall (2.1 m) with a green railing on the street line, a front patio about 2 m deep and a one-floor house (3.8 m); then a garage with green doors, two cars deep (about 9 m), under a sheet-metal roof pitched about 10 degrees, rising from 2.7 m at the street to 4.3 m, and a taller two-level volume behind it (about 5.6 m) | 3.8 m, 2.7 to 4.3 m and 5.6 m | Lot: municipal survey sketch. Buildings: estimated from Street View |
+| Lot 9, the corner (C) | Three flats in horizontal property, each with its own door. 10.70 m of front to the corner, a 5.95 m ochava. A two-floor block (6.6 m) next to the house and a one-floor front (3 m) toward the cross street | 6.6 m and 3 m | Lot: municipal survey sketch. Buildings: estimated from Street View |
+| Lot 10, behind | 7.80 m wide and 28.40 m long, a one-floor house with a garage door on the cross street. It shares its front wall with the rear boundary of lots 7, 8 and 9. Drawn in blue so it never reads as part of the house | 3.3 m | Lot: municipal survey sketch. Building: estimated from Street View |
 
 ## Front elevation
 
@@ -56,8 +56,8 @@ first floor. `src/data/house-plan.ts` holds the plans and `HouseShell.tsx` draws
 them. Only the exterior walls are modelled, so the rooms are empty.
 
 - Exterior walls are assumed to be 0.3 m thick and slabs 0.2 m. Neither is measured.
-- The ground-floor outline includes the rooms under the rear terrace and the left arm, with the entrance recess and the light well left open. It is 103.1 m2.
-- The first floor is the 10 m by 8.5 m block, 85 m2, with the 3 m balcony door and the window on the street side.
+- The ground-floor outline includes the rooms under the rear terrace and the left arm, with the entrance recess and the light well left open. It is 100.6 m2.
+- The first floor is the 9 m by 8.5 m block, 76.5 m2, with the 3 m balcony door and the window on the street side. The roof's 1 m cantilever is not a floor.
 - The cut hides the upper floors, but they still cast their shadows on the cut floor, because the sunlight pass always uses the whole house.
 - Interior walls, stairs, doors and windows other than the ones on the street front are not modelled yet.
 
@@ -67,6 +67,22 @@ The azotea floor, the inside of the parapets and the concrete tank block are pai
 white. The owner's photo of the azotea predates the repaint (red floor membrane,
 green tank), so trust the owner over the photo for colour. The steel tank is
 stainless steel. The house roofs are white (azotea) and sand (rear wings), and neighbour B is blue. The facade is exposed brick with tan tiled slabs.
+
+## The block
+
+The whole block is drawn: 24 lots around a free courtyard, with the four streets around it.
+The lots come from the block plan, a hand sketch at about 5.6 pixels per metre, with the
+lengths of the street fronts and the widths of the streets.
+
+| Part | Provenance |
+| --- | --- |
+| Lots 7, 8, 9 and 10 | Their municipal survey sketches, exact. Their sides agree with each other to the centimetre: the house's 13.50 m side is lot 7's, its 13.70 m side is the corner's, and the lot behind is 28.40 m long, the sum of the three rear boundaries |
+| The other 20 lots | The block plan, digitised by eye, good to a metre or two |
+| Streets and their widths, the block's outer dimensions | The block plan |
+| Buildings of the other 20 lots | Not known. Each is one prism standing in the band nearest its street, 13.5 m deep, 3.3 m high (6.4 m for lot 11, which Street View shows with two floors). The rest of each lot stays free |
+
+Buildings shorter than the panels cannot shade them, so these heights only matter for a
+building that turns out to be three floors or more. The data is in `apps/web/src/data/block.ts`.
 
 ## Left out on purpose
 
@@ -79,6 +95,7 @@ trees, wires and the terrace grill. None of them shades the azotea noticeably.
 2. Parapet height on the sides and rear, and whether the front parapet is 0.8 m.
 3. Distance from the tank block to the rear wall and to the south-west wall.
 4. Whether the light well is open to the sky and where its edges are.
-5. Whether A and D have an upper level set back behind their fronts, as the photos suggest.
+5. Whether lot 7 and the lots beyond it have an upper level set back behind their fronts, as the photos suggest, and the real heights of the buildings of the other lots.
 6. The plans of both floors: interior walls, stairs, and the windows on the side and rear walls.
 7. The real thickness of the exterior walls.
+8. The panel layout: see [solar-array.md](solar-array.md).

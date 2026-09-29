@@ -1,12 +1,12 @@
 import { Line } from '@react-three/drei'
-import { HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
+import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW } from '../data/building-site'
 
 /**
  * Front elevation of the house, read from Street View (August 2025).
  * House frame: local x runs toward the rear (u), local z toward the south-west
  * (-v), y is up from the ground-floor level. The street front is at u = -5 and
- * the facade is 8.5 m wide, v in [-4.25, 4.25]. Positions come from the photo
- * scaled to the 8.5 m frontage (about 93 px/m); expect roughly +/-0.2 m.
+ * the facade is 8.95 m wide, v in [-4.475, 4.475]. Positions come from the photo
+ * scaled to the frontage (about 93 px/m); expect roughly +/-0.2 m.
  */
 const FRONT = -5
 const FLOOR = 3.2
@@ -19,8 +19,6 @@ const ENTRY_FRONT = FRONT + 1
 const slabs: Part[] = [
   // First-floor balcony slab, projecting about 1 m over the pavement.
   { u: FRONT - .5, depth: 1, v: [-4.6, 4.6], y: [FLOOR - .3, FLOOR], color: '#c9b58a' },
-  // Roof slab fascia, projecting about 0.8 m.
-  { u: FRONT - .4, depth: .8, v: [-4.6, 4.6], y: [2 * FLOOR - .5, 2 * FLOOR], color: '#c9b58a' },
 ]
 
 const openings: Part[] = [
@@ -54,7 +52,7 @@ export function HouseFacade({ physical = false }: { physical?: boolean }) {
       <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT - 1, 4.6]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT, -4.6]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - 1, 4.6], [FRONT, 4.6]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(2 * FLOOR + 1.2, [[-5, -4.25], [-5, 4.25]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(2 * FLOOR + 1.2, [[-6, -HOUSE_HALF_WIDTH], [-6, HOUSE_HALF_WIDTH]])} color="#3f4a44" lineWidth={1.4} />
     </>}
   </group>
 }
