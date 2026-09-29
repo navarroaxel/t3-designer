@@ -116,7 +116,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
   // [height above ground, floors]. Owner floor counts: house 2, A 1, the lot behind 1, C 2.
   const expected: Record<string, [number, number]> = {
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
-    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SINK': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
+    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SHELF': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
     'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
     'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [3.7, 1],
@@ -295,16 +295,20 @@ test('the terrace has a masonry grill with a grate at its back, centred between 
   closeTo((Math.min(...vs) + Math.max(...vs)) / 2, (wallInner + railInner) / 2, .05)
 })
 
-test('the terrace has a masonry sink to the left of the grill, seen from the rear, at the same back line', () => {
-  const grill = byId('HOUSE-TERRACE-GRILL'), sink = byId('HOUSE-TERRACE-SINK'), basin = byId('HOUSE-TERRACE-SINK-BASIN')
+test('the terrace sink is a Toscana Vena shelf from the railing wall to the grill, with the basin set into it', () => {
+  const grill = byId('HOUSE-TERRACE-GRILL'), shelf = byId('HOUSE-TERRACE-SHELF'), basin = byId('HOUSE-TERRACE-SINK-BASIN'), rail = byId('HOUSE-TERRACE-RAIL')
   const vs = (item: BuildingFootprint) => item.footprint.map(point => siteToHouse(point)[1]), us = (item: BuildingFootprint) => item.footprint.map(point => siteToHouse(point)[0])
-  // Facing the rear (toward higher u) the left hand is north-east, higher v: the sink is beyond the grill on that side, close to it.
-  closeTo(Math.min(...vs(sink)) - Math.max(...vs(grill)), .05, .01)
-  closeTo(Math.max(...vs(sink)) - Math.min(...vs(sink)), .6, .01)
-  closeTo(Math.max(...us(sink)), Math.max(...us(grill)), .01)
-  // Between the grill and the railing wall, with the basin inside the block.
-  const rail = byId('HOUSE-TERRACE-RAIL')
-  assert.ok(Math.max(...vs(sink)) < Math.min(...vs(rail)) + 1e-6, 'clear of the railing wall')
-  assert.ok(Math.min(...vs(basin)) > Math.min(...vs(sink)) && Math.max(...vs(basin)) < Math.max(...vs(sink)))
-  closeTo(sink.height - (sink.base ?? 0), .85, 1e-9)
+  // Facing the rear (toward higher u) the left hand is north-east, higher v: the shelf lies from the grill to the railing wall.
+  closeTo(Math.min(...vs(shelf)), Math.max(...vs(grill)), .01)
+  closeTo(Math.max(...vs(shelf)), Math.min(...vs(rail)), .01)
+  closeTo(Math.max(...us(shelf)), Math.max(...us(grill)), .01)
+  closeTo(Math.max(...us(shelf)) - Math.min(...us(shelf)), .5, .01)
+  // A thin shelf at the grill's height, not a block: its underside is well above the terrace.
+  closeTo(shelf.height - (shelf.base ?? 0), .03, 1e-9)
+  closeTo(shelf.height, grill.base! + .85, 1e-9)
+  assert.ok((shelf.base ?? 0) - byId('HOUSE-TERRACE').height > .7)
+  // The basin sits inside the shelf's plan, in the sink's place.
+  assert.ok(Math.min(...vs(basin)) > Math.min(...vs(shelf)) && Math.max(...vs(basin)) < Math.max(...vs(shelf)))
+  assert.ok(Math.min(...us(basin)) > Math.min(...us(shelf)) && Math.max(...us(basin)) < Math.max(...us(shelf)))
+  closeTo(basin.base ?? 0, shelf.height, 1e-9)
 })

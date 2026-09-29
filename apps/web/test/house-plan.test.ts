@@ -465,12 +465,12 @@ test('the living and laundry doors are white aluminium frames with glass, and on
   assert.deepEqual(FIRST_FLOOR_DOOR_SWINGS.filter(door => door.glazed).map(door => door.id).sort(), ['laundry', 'living'])
 })
 
-test('the laundry door is 0.80 m, single-leaf, right-handed and 1.15 m from the party wall, on the rear wall', () => {
+test('the laundry door is 0.80 m, single-leaf, right-handed and 1.30 m from the party wall, on the rear wall', () => {
   const near = (a: number, b: number, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} vs ${b}`)
   const door = OPENINGS.first.find(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - .8) < 1e-9)!
   near(door.y[1] - door.y[0], 2.1)
-  // 1.15 m from the party wall's inner face (v = 4.175) to the door's nearer edge.
-  near(KITCHEN_LIVING.v[1] - door.v[1], 1.15)
+  // 1.30 m from the party wall's inner face (v = 4.175) to the door's nearer edge.
+  near(KITCHEN_LIVING.v[1] - door.v[1], 1.3)
   assert.ok(door.v[0] >= KITCHEN_LIVING.v[0] && door.v[1] <= KITCHEN_LIVING.v[1])
   for (const other of OPENINGS.first.filter(opening => opening.u === 4 && opening !== door)) assert.ok(other.v[1] < door.v[0] || other.v[0] > door.v[1], 'clear of the other openings')
   const swing = FIRST_FLOOR_DOOR_SWINGS.find(item => item.id === 'laundry')!
