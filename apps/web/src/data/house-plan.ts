@@ -201,6 +201,19 @@ export const FIRST_FLOOR_BATHROOM = {
   u: [bathroomU0, bathroomU0 + BATHROOM.depth] as [number, number],
   v: [FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[0] + BATHROOM.width] as [number, number],
 }
+/**
+ * The bathroom's door (owner): 0.70 m wide, natural oak, on its north-east wall, centred on it, looking
+ * onto the hall that lies between the main room's back wall and the kitchen-living.
+ */
+export const BATHROOM_DOOR_WIDTH = .7
+export const BATHROOM_DOOR_COLOR = '#c8a06a'
+const bathroomMiddleU = (FIRST_FLOOR_BATHROOM.u[0] + FIRST_FLOOR_BATHROOM.u[1]) / 2
+export const BATHROOM_DOOR = {
+  u: [bathroomMiddleU - BATHROOM_DOOR_WIDTH / 2, bathroomMiddleU + BATHROOM_DOOR_WIDTH / 2] as [number, number],
+  v: [FIRST_FLOOR_BATHROOM.v[1], FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS] as [number, number],
+  y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] as [number, number],
+}
+
 /** Interior walls of the first floor as [u0, u1, v0, v1]. */
 export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
   // Between the two rooms, along the main room's depth.
@@ -212,7 +225,9 @@ export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
   [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, SECONDARY_DOOR.v[0]],
   [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, SECONDARY_DOOR.v[1], FRONT_ROOMS.secondary.v[1]],
   // The north-east wall of the wardrobe and the bathroom, running from the room's back face to the bathroom's back wall.
-  [FRONT_ROOMS.secondary.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[1], SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS],
+  // Split around the bathroom's door, which opens onto the hall.
+  [FRONT_ROOMS.secondary.u[1], BATHROOM_DOOR.u[0], SECONDARY_WARDROBE.v[1], SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS],
+  [BATHROOM_DOOR.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[1], SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS],
   // The wardrobe's back panel, which is the bathroom's front wall.
   [SECONDARY_WARDROBE.u[1], SECONDARY_WARDROBE.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[0], SECONDARY_WARDROBE.v[1]],
   // The bathroom's back wall.

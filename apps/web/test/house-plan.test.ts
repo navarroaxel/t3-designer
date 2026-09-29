@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, BATHROOM_DOOR, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -242,4 +242,18 @@ test('the kitchen-living is one long room from party wall to party wall behind t
   assert.ok(FIRST_FLOOR_PARTITIONS.every(([u0]) => u0 < KITCHEN_LIVING.u[0]))
   // The terrace door and the light-well window are in it.
   for (const opening of OPENINGS.first.filter(item => item.u === 4)) assert.ok(opening.v[0] >= KITCHEN_LIVING.v[0] && opening.v[1] <= KITCHEN_LIVING.v[1])
+})
+
+test('the bathroom has a 0.70 m door on its north-east wall, centred, facing the hall', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(BATHROOM_DOOR.u[1] - BATHROOM_DOOR.u[0], .7)
+  near((BATHROOM_DOOR.u[0] + BATHROOM_DOOR.u[1]) / 2, (FIRST_FLOOR_BATHROOM.u[0] + FIRST_FLOOR_BATHROOM.u[1]) / 2)
+  // On the wall that faces the rest of the house, not the party wall.
+  near(BATHROOM_DOOR.v[0], FIRST_FLOOR_BATHROOM.v[1])
+  // The hall lies beyond it: the main room's back wall (u = -0.16 to -0.04) is behind the door's edge, not across it.
+  assert.ok(BATHROOM_DOOR.v[1] < FRONT_ROOMS.main.v[0])
+  for (const [u0, u1, v0, v1] of FIRST_FLOOR_PARTITIONS) {
+    const blocks = u0 < BATHROOM_DOOR.u[1] - 1e-9 && u1 > BATHROOM_DOOR.u[0] + 1e-9 && v0 < BATHROOM_DOOR.v[1] - 1e-9 && v1 > BATHROOM_DOOR.v[0] + 1e-9
+    assert.ok(!blocks, 'the door opening is free of walls')
+  }
 })

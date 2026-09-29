@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { ExtrudeGeometry } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, FIRST_FLOOR_PARTITIONS, SECONDARY_BED, SECONDARY_DOOR, WARDROBE_LEAVES, SECONDARY_DOOR_COLOR, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, FIRST_FLOOR_PARTITIONS, BATHROOM_DOOR, BATHROOM_DOOR_COLOR, SECONDARY_BED, SECONDARY_DOOR, WARDROBE_LEAVES, SECONDARY_DOOR_COLOR, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type Floor, type PlanPoint,
 } from '../data/house-plan'
 import { polygonShape } from '../lib/polygon-shape'
@@ -85,6 +85,11 @@ export function HouseShell({ floor }: { floor: Floor }) {
       <mesh position={[(SECONDARY_DOOR.u[0] + SECONDARY_DOOR.u[1]) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(SECONDARY_DOOR.v[0] + SECONDARY_DOOR.v[1]) / 2]} receiveShadow>
         <boxGeometry args={[.04, CUT_HEIGHT, SECONDARY_DOOR.v[1] - SECONDARY_DOOR.v[0]]} />
         <meshStandardMaterial color={SECONDARY_DOOR_COLOR} roughness={.6} />
+      </mesh>
+      {/* The bathroom's natural-oak door, closed, on the hall side. */}
+      <mesh position={[(BATHROOM_DOOR.u[0] + BATHROOM_DOOR.u[1]) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(BATHROOM_DOOR.v[0] + BATHROOM_DOOR.v[1]) / 2]} receiveShadow>
+        <boxGeometry args={[BATHROOM_DOOR.u[1] - BATHROOM_DOOR.u[0], CUT_HEIGHT, .04]} />
+        <meshStandardMaterial color={BATHROOM_DOOR_COLOR} roughness={.6} />
       </mesh>
       {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(v0 + v1) / 2]} receiveShadow>
         <boxGeometry args={[u1 - u0, CUT_HEIGHT, v1 - v0]} />
