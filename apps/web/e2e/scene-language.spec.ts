@@ -6,21 +6,16 @@ test.use({
   launchOptions: { args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--use-gl=angle'] },
 })
 
-test('rendered room labels and asset details update without replacing the canvas', async ({ page }) => {
+test('scene labels update without replacing the canvas', async ({ page }) => {
   test.setTimeout(60_000)
-  await page.goto('/#apartment')
+  await page.goto('/#building')
   await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 })
   await page.getByRole('checkbox', { name: 'Labels', exact: true }).check()
-  await expect(page.locator('.labels-overlay .room-label').filter({ hasText: 'Bedroom 1' })).toBeVisible()
+  await expect(page.locator('.labels-overlay .cardinal-label').filter({ hasText: /^W$/ })).toBeAttached()
+  await expect(page.locator('.labels-overlay .building-model-label')).toContainText('Tapalque')
   await page.locator('canvas').evaluate(element => element.setAttribute('data-original-canvas', 'true'))
   await setLanguage(page, 'fr')
-  await expect(page.locator('.labels-overlay .room-label').filter({ hasText: 'Chambre 1' })).toBeVisible()
+  await expect(page.locator('.labels-overlay .cardinal-label').filter({ hasText: /^O$/ })).toBeAttached()
+  await expect(page.locator('.building-location small')).toHaveText('Buenos Aires · Argentine')
   await expect(page.locator('canvas')).toHaveAttribute('data-original-canvas', 'true')
-  await page.locator('.inspector-tabs button').nth(2).click()
-  await page.locator('.asset-row').first().click()
-  await expect(page.locator('.asset-details')).toContainText('P06 / P11')
-  await setLanguage(page, 'en')
-  await expect(page.locator('.asset-details h2')).toHaveText('Fridge-freezer')
-  await expect(page.locator('.asset-details')).toContainText('Estimated dimensions')
-  await expect(page.locator('.asset-details a')).toHaveAttribute('href', '/models/current/fridge-freezer.glb')
 })

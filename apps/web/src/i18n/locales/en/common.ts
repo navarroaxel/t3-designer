@@ -1,15 +1,11 @@
 export default {
   app: {
-    eyebrow: 'Quimper / Architecture studio',
-    areaLabel: 'Reported Carrez area',
-    navigation: 'Choose project view',
+    eyebrow: 'Tapalque / Solar study',
     loading: 'Opening {{workspace}}…',
     title: 'T3 Designer · {{workspace}}',
   },
   workspaces: {
-    apartment: { title: 'Apartment daylight', badge: 'Estimated measurements', nav: 'Apartment' },
-    building: { title: 'Building and surroundings', badge: 'IGN + visual reconstruction', nav: 'Building and sun' },
-    documentation: { title: 'Documentation', badge: 'Data and sources', nav: 'Documentation' },
+    building: { title: 'House and surroundings', badge: 'Measured from Google Earth' },
   },
   settings: {
     title: 'Settings',

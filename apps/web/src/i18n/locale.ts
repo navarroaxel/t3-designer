@@ -37,7 +37,7 @@ export function numberFormatter(locale: Locale, digits = 0) {
 
 /** UI language never changes the geographic study's civil timezone. */
 export function dateFormatter(locale: Locale, options: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat(formattingLocales[locale], { ...options, timeZone: 'Europe/Paris' })
+  return new Intl.DateTimeFormat(formattingLocales[locale], { ...options, timeZone: 'America/Argentina/Buenos_Aires' })
 }
 
 export function compassBearing(locale: Locale, azimuth: number) {

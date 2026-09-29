@@ -1,7 +1,7 @@
 /** Solar geometry: NOAA/Meeus equations, with east-positive longitude.
  * See docs/model/solar-model.md for sources, coordinate conventions and limitations.
  */
-export const DEFAULT_TIME_ZONE = 'Europe/Paris'
+export const DEFAULT_TIME_ZONE = 'America/Argentina/Buenos_Aires'
 
 const RAD = Math.PI / 180
 const MINUTE_MS = 60_000

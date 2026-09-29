@@ -1,15 +1,11 @@
 export default {
   app: {
-    eyebrow: 'Quimper / Studio d’architecture',
-    areaLabel: 'Surface Carrez déclarée',
-    navigation: 'Choisir une vue du projet',
+    eyebrow: 'Tapalque / Étude solaire',
     loading: 'Ouverture : {{workspace}}…',
     title: 'T3 Designer · {{workspace}}',
   },
   workspaces: {
-    apartment: { title: 'Ensoleillement de l’appartement', badge: 'Dimensions estimées', nav: 'Appartement' },
-    building: { title: 'Bâtiment et environs', badge: 'IGN + reconstruction visuelle', nav: 'Bâtiment et soleil' },
-    documentation: { title: 'Documentation', badge: 'Données et sources', nav: 'Documentation' },
+    building: { title: 'Maison et environs', badge: 'Mesuré avec Google Earth' },
   },
   settings: {
     title: 'Paramètres',

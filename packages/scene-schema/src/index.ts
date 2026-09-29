@@ -1,2 +1,0 @@
-export * from './apartment.ts'
-export * from './project.ts'

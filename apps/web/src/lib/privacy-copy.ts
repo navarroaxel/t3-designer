@@ -35,7 +35,7 @@ type PrivacyCopy = {
 
 const cnilComplaints = 'https://www.cnil.fr/fr/plaintes'
 
-/** Separate from the dossier's translation catalogs; operational facts have one source. */
+/** Separate from the app's translation catalogs; operational facts have one source. */
 export const privacyCopy: Record<'es' | 'en' | 'fr', PrivacyCopy> = {
   es: {
     preferences: 'Preferencias de privacidad',
@@ -81,8 +81,8 @@ export const privacyCopy: Record<'es' | 'en' | 'fr', PrivacyCopy> = {
         id: 'analytics',
         title: 'Medición de audiencia opcional',
         paragraphs: [
-          'Con tu consentimiento, Umami mide visitas, navegación entre las secciones, cambios de vista, aperturas del estudio solar, consultas del dossier y clics de descarga de archivos GLB. La finalidad es entender el uso del sitio y mejorar sus funciones. La base jurídica de esta medición es tu consentimiento, conforme al artículo 6.1.a del RGPD.',
-          'Se usan secciones y eventos predefinidos, sin enviar nombres, emails, texto libre, contenido del dossier, coordenadas GPS ni identificadores personales personalizados. Las direcciones de analytics no incluyen parámetros ni fragmentos; tampoco enviamos la página de procedencia. No grabamos sesiones, movimientos del cursor ni cada ajuste de los controles.',
+          'Con tu consentimiento, Umami mide visitas y aperturas del estudio solar. La finalidad es entender el uso del sitio y mejorar sus funciones. La base jurídica de esta medición es tu consentimiento, conforme al artículo 6.1.a del RGPD.',
+          'Se usan secciones y eventos predefinidos, sin enviar nombres, emails, texto libre, coordenadas GPS ni identificadores personales personalizados. Las direcciones de analytics no incluyen parámetros ni fragmentos; tampoco enviamos la página de procedencia. No grabamos sesiones, movimientos del cursor ni cada ajuste de los controles.',
           'Las solicitudes llegan al servidor con datos de conexión, como la dirección IP y cabeceras del navegador. Umami puede obtener de ellos información técnica y una ubicación aproximada: país, región o ciudad, según la configuración. No se solicita geolocalización al navegador.',
         ],
       },
@@ -183,8 +183,8 @@ export const privacyCopy: Record<'es' | 'en' | 'fr', PrivacyCopy> = {
         id: 'analytics',
         title: 'Optional audience measurement',
         paragraphs: [
-          'With your consent, Umami measures visits, navigation between sections, view changes, opening the solar study, consulting the dossier and clicks to download GLB files. The purpose is to understand website usage and improve its features. The legal basis for this measurement is your consent under Article 6(1)(a) of the GDPR.',
-          'Only predefined sections and events are used. Events do not contain names, emails, free text, dossier content, GPS coordinates or custom personal identifiers. Analytics addresses exclude query parameters and fragments; we also omit the referring page. We do not record sessions, cursor movements or each control adjustment.',
+          'With your consent, Umami measures visits and openings of the solar study. The purpose is to understand website usage and improve its features. The legal basis for this measurement is your consent under Article 6(1)(a) of the GDPR.',
+          'Only predefined sections and events are used. Events do not contain names, emails, free text, GPS coordinates or custom personal identifiers. Analytics addresses exclude query parameters and fragments; we also omit the referring page. We do not record sessions, cursor movements or each control adjustment.',
           'Requests reach the server with connection data such as IP addresses and browser headers. Umami may derive technical information and an approximate location from them: country, region or city, depending on configuration. We do not request browser geolocation.',
         ],
       },
@@ -285,8 +285,8 @@ export const privacyCopy: Record<'es' | 'en' | 'fr', PrivacyCopy> = {
         id: 'analytics',
         title: 'Mesure d’audience facultative',
         paragraphs: [
-          'Avec votre consentement, Umami mesure les visites, la navigation entre les sections, les changements de vue, l’ouverture de l’étude solaire, la consultation du dossier et les clics de téléchargement de fichiers GLB. La finalité est de comprendre l’utilisation du site et d’améliorer ses fonctions. Cette mesure repose sur votre consentement, conformément à l’article 6, paragraphe 1, point a, du RGPD.',
-          'Seuls des sections et événements prédéfinis sont utilisés, sans transmettre de noms, d’emails, de texte libre, de contenu du dossier, de coordonnées GPS ni d’identifiants personnels personnalisés. Les adresses de mesure excluent les paramètres et fragments ; la page de provenance est également omise. Nous n’enregistrons ni les sessions, ni les mouvements du curseur, ni chaque réglage des contrôles.',
+          'Avec votre consentement, Umami mesure les visites et l’ouverture de l’étude solaire. La finalité est de comprendre l’utilisation du site et d’améliorer ses fonctions. Cette mesure repose sur votre consentement, conformément à l’article 6, paragraphe 1, point a, du RGPD.',
+          'Seuls des sections et événements prédéfinis sont utilisés, sans transmettre de noms, d’emails, de texte libre, de coordonnées GPS ni d’identifiants personnels personnalisés. Les adresses de mesure excluent les paramètres et fragments ; la page de provenance est également omise. Nous n’enregistrons ni les sessions, ni les mouvements du curseur, ni chaque réglage des contrôles.',
           'Les requêtes arrivent au serveur avec des données de connexion, telles que l’adresse IP et les en-têtes du navigateur. Umami peut en déduire des informations techniques et une localisation approximative : pays, région ou ville, selon la configuration. Nous ne demandons pas la géolocalisation du navigateur.',
         ],
       },

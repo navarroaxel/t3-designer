@@ -30,10 +30,10 @@ test('locale formats measurements and compass bearings without changing geometry
   assert.equal(compassBearing('en', -90), 'W')
 })
 
-test('all display languages retain Quimper civil time and daylight saving', () => {
+test('all display languages keep Buenos Aires civil time, without daylight saving', () => {
   for (const locale of ['es', 'en', 'fr'] as const) {
     const formatter = dateFormatter(locale, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' })
-    assert.equal(formatter.format(new Date('2026-06-21T12:00:00Z')), '14:00')
-    assert.equal(formatter.format(new Date('2026-12-21T12:00:00Z')), '13:00')
+    assert.equal(formatter.format(new Date('2026-06-21T12:00:00Z')), '09:00')
+    assert.equal(formatter.format(new Date('2026-12-21T12:00:00Z')), '09:00')
   }
 })

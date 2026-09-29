@@ -1,10 +1,7 @@
 import { lazy, Suspense, useEffect, useState, type MouseEvent } from 'react'
 import { useSolarStudy } from './lib/useSolarStudy'
-import { useApartmentView } from './lib/useApartmentView'
-import { t3Apartment } from './data/t3'
 import { workspaceFromHash, type WorkspaceView } from './lib/workspace-view'
 import { useTranslation } from 'react-i18next'
-import { useLocale } from './i18n/useLocale'
 import { listenForLanguageChanges } from './i18n/preferences'
 import { ApplicationSettings } from './components/ApplicationSettings'
 import { listenForThemeChanges } from './lib/theme'
@@ -15,23 +12,19 @@ import { isPrivacyPath, PRIVACY_PATH } from './lib/privacy-route'
 import { privacyCopy } from './lib/privacy-copy'
 
 const BuildingExplorer = lazy(() => import('./components/BuildingExplorer').then(module => ({ default: module.BuildingExplorer })))
-const ApartmentExplorer = lazy(() => import('./components/ApartmentExplorer').then(module => ({ default: module.ApartmentExplorer })))
-const DossierExplorer = lazy(() => import('./components/DossierExplorer').then(module => ({ default: module.DossierExplorer })))
 
 export default function App() {
   const { t, i18n } = useTranslation('common')
   const privacy = privacyCopy[i18n.resolvedLanguage === 'es' || i18n.resolvedLanguage === 'fr' ? i18n.resolvedLanguage : 'en']
-  const { formatNumber } = useLocale()
   const solar = useSolarStudy()
-  const apartmentView = useApartmentView()
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() => workspaceFromHash(window.location.hash))
   const [privacyPage, setPrivacyPage] = useState(() => isPrivacyPath(window.location.pathname))
   const { setPlaying } = solar
   useEffect(listenForLanguageChanges, [])
   useEffect(listenForThemeChanges, [])
   useEffect(() => {
-    analytics.view(privacyPage ? null : workspaceView, !privacyPage && (workspaceView === 'building' || (workspaceView === 'apartment' && apartmentView.panel === 'sun')))
-  }, [workspaceView, apartmentView.panel, privacyPage])
+    analytics.view(privacyPage ? null : workspaceView, !privacyPage)
+  }, [workspaceView, privacyPage])
   useEffect(() => {
     document.title = t('app.title', { workspace: privacyPage ? privacy.policy : t(`workspaces.${workspaceView}.title`) })
   }, [t, workspaceView, privacyPage, privacy.policy])
@@ -68,7 +61,7 @@ export default function App() {
   }
 
   return (
-    <main className={`designer${privacyPage ? ' privacy-designer' : workspaceView === 'documentation' ? ' documentation-designer' : ''}`}>
+    <main className={`designer${privacyPage ? ' privacy-designer' : ''}`}>
       <header className="app-header">
         <div className="project-heading">
           <span className="eyebrow">{t('app.eyebrow')}</span>
@@ -77,15 +70,11 @@ export default function App() {
         <div className="header-actions">
           <div className="project-details">
             <span className="estimate-badge"><span /> {t(`workspaces.${workspaceView}.badge`)}</span>
-            <div className="area-stat"><strong>{formatNumber(t3Apartment.metadata.reportedCarrezArea, 2)} m²</strong><span>{t('app.areaLabel')}</span></div>
           </div>
           <ApplicationSettings />
         </div>
       </header>
 
-      <nav className="workspace-switcher" aria-label={t('app.navigation')}>
-        {(['apartment', 'building', 'documentation'] as const).map(view => <button key={view} aria-pressed={!privacyPage && workspaceView === view} onClick={() => switchWorkspace(view)}>{t(`workspaces.${view}.nav`)}</button>)}
-      </nav>
       <PrivacyControls onOpenPrivacy={openPrivacy} privacyPage={privacyPage} />
       {privacyPage ? <PrivacyPage workspace={workspaceView} onReturn={event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
@@ -93,11 +82,7 @@ export default function App() {
         switchWorkspace(workspaceView)
       }} /> : <>
       <Suspense fallback={<div className="workspace-loading" role="status">{t('app.loading', { workspace: t(`workspaces.${workspaceView}.title`) })}</div>}>
-      {workspaceView === 'documentation'
-        ? <DossierExplorer onOpenApartment={() => { apartmentView.setPanel('rooms'); switchWorkspace('apartment') }} onOpenBuilding={() => switchWorkspace('building')} />
-        : workspaceView === 'building'
-        ? <BuildingExplorer solar={solar} onOpenApartment={() => { apartmentView.setPanel('sun'); switchWorkspace('apartment') }} />
-        : <ApartmentExplorer solar={solar} state={apartmentView} />}
+      <BuildingExplorer solar={solar} />
       </Suspense>
       </>}
     </main>

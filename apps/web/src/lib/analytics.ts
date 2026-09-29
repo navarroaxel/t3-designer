@@ -41,7 +41,7 @@ let queue: object[] = []
 const pending = new Set<AbortController>()
 let permittedPayloads = new WeakSet<object>()
 let currentView: AnalyticsView | null = isPrivacyPath(window.location.pathname) ? null : workspaceFromHash(window.location.hash)
-let solarVisible = currentView === 'building' || currentView === 'apartment'
+let solarVisible = currentView === 'building'
 let lastView: AnalyticsView | undefined
 let lastSolar: AnalyticsView | undefined
 
@@ -200,9 +200,8 @@ function flushView() {
     lastSolar = undefined
     send()
     if (previous) send({ name: 'view_changed' })
-    if (currentView === 'documentation') send({ name: 'dossier_opened' })
   }
-  if (solarVisible && currentView !== 'documentation') {
+  if (solarVisible) {
     if (lastSolar !== currentView) {
       lastSolar = currentView
       send({ name: 'solar_opened' })
@@ -299,7 +298,6 @@ export const analytics = {
     start()
     flushView()
   },
-  downloadGlb() { send({ name: 'glb_download' }) },
 }
 
 reconcile()

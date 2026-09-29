@@ -6,7 +6,7 @@ const themeKey = 't3-designer.theme'
 test.use({ locale: 'en-GB', colorScheme: 'light' })
 
 test('follows system appearance until a manual preference overrides it', async ({ page }) => {
-  await page.goto('/#documentation')
+  await page.goto('/#building')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   const dialog = await openSettings(page)
   const appearance = dialog.getByRole('combobox', { name: appearanceLabel })
@@ -55,11 +55,11 @@ test('persists appearance and language while preserving the current workspace', 
 })
 
 test('synchronizes appearance across tabs and returns to system on removal or clear', async ({ page, context }) => {
-  await page.goto('/#documentation')
+  await page.goto('/#building')
   const firstDialog = await openSettings(page)
   const firstAppearance = firstDialog.getByRole('combobox', { name: appearanceLabel })
   const other = await context.newPage()
-  await other.goto('/#apartment')
+  await other.goto('/#building')
   const otherDialog = await openSettings(other)
   const otherAppearance = otherDialog.getByRole('combobox', { name: appearanceLabel })
 
@@ -91,7 +91,7 @@ test('synchronizes appearance across tabs and returns to system on removal or cl
 })
 
 test('keeps keyboard focus in the modal and returns it after Escape or backdrop dismissal', async ({ page }) => {
-  await page.goto('/#documentation')
+  await page.goto('/#building')
   const trigger = page.locator('.settings-trigger')
   await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
   await trigger.focus()
@@ -133,14 +133,14 @@ test('ignores invalid stored appearance and allows changes when storage is block
       localStorage.setItem(key, 'unsupported')
     }
   }, themeKey)
-  await page.goto('/#documentation')
+  await page.goto('/#building')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   const dialog = await openSettings(page)
   await expect(dialog.getByRole('combobox', { name: appearanceLabel })).toHaveValue('system')
 
   await page.evaluate(() => sessionStorage.setItem('block-preferences', 'true'))
   await page.reload()
-  await expect(page.locator('.dossier-hero')).toBeVisible()
+  await expect(page.locator('.building-viewport')).toBeVisible()
   await openSettings(page)
   await dialog.getByRole('combobox', { name: appearanceLabel }).selectOption('dark')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
@@ -154,7 +154,7 @@ test('ignores invalid stored appearance and allows changes when storage is block
 
 test('settings and their controls remain usable on a narrow viewport', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 })
-  await page.goto('/#documentation')
+  await page.goto('/#building')
   const dialog = await openSettings(page)
   await dialog.getByRole('combobox', { name: languageLabel }).selectOption('fr')
   await dialog.getByRole('combobox', { name: appearanceLabel }).selectOption('dark')

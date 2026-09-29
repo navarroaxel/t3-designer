@@ -33,19 +33,17 @@ Revocation, rejection, expiry, and storage failure invalidate the controller's t
 
 ## Data and event contract
 
-Tracking is limited to a small set of app-defined view names and actions. Payloads are rebuilt from permitted values rather than spreading a browser URL, document title, DOM attributes, or a caller-supplied object. Raw query strings and hashes, dossier content, names, emails, coordinates, and personal IDs are excluded. `referrer` is always empty. No screen dimensions or browser language are added to the JSON payload. UI translations never become arbitrary analytics values.
+Tracking is limited to a small set of app-defined view names and actions. Payloads are rebuilt from permitted values rather than spreading a browser URL, document title, DOM attributes, or a caller-supplied object. Raw query strings and hashes, names, emails, coordinates, and personal IDs are excluded. `referrer` is always empty. No screen dimensions or browser language are added to the JSON payload. UI translations never become arbitrary analytics values.
 
-`view` is one of `apartment`, `building`, or `documentation`. Virtual URLs are respectively `/apartment`, `/building`, and `/documentation`; they do not copy the address bar. Titles are the fixed strings `T3 Designer · Apartment`, `T3 Designer · Building`, and `T3 Designer · Documentation`.
+`view` is `building`. Its virtual URL is `/building`; it does not copy the address bar. The title is the fixed string `T3 Designer · Building`.
 
 | Record | Trigger | Custom data |
 | --- | --- | --- |
 | Pageview (no `name`) | Current workspace after acceptance/script readiness, then each changed workspace | None |
 | `view_changed` | Workspace changes after the initial accepted pageview | `{ view }`, the destination |
 | `solar_opened` | A solar study becomes visible, including an already visible study when analytics starts | `{ view }` |
-| `dossier_opened` | The dossier workspace becomes visible while accepted | `{ view: 'documentation' }` |
-| `glb_download` | Activation of an existing GLB download link | `{ view }`; no asset/file identifier |
 
-The pageview and matching named action answer different questions; they are intentionally distinct records. There is no additional custom “visit” event: Umami uses its server-side visit grouping. React StrictMode, remounts, and selecting the current workspace must not duplicate a view. Closing and reopening a solar panel is a new opening. Sliders, camera motion, animation frames, room contents, and dossier text are not recorded. A download event measures activation, not a verified completed file transfer.
+The pageview and matching named action answer different questions; they are intentionally distinct records. There is no additional custom “visit” event: Umami uses its server-side visit grouping. React StrictMode, remounts, and selecting the current workspace must not duplicate a view. Closing and reopening a solar panel is a new opening. Sliders, camera motion, and animation frames are not recorded.
 
 The app does not call `identify`, set a distinct ID, or enable replay, heatmaps, performance recording, or session recording. It uses the [manual tracking API](https://docs.umami.is/docs/tracker-functions) as `track(() => payload)`, returning only permitted fields and ignoring the supplied browser-derived defaults. The callback form preserves payload identity in 3.4.0; `track(object)` clones the object and would fail the controller's one-use identity check.
 
@@ -101,6 +99,6 @@ pnpm test:analytics
 
 `pnpm check:all` also runs the dedicated production analytics suite; it is not silently omitted with the development-only browser run.
 
-The dedicated analytics suite creates a production build in `/tmp` with an explicitly configured loopback hostname and a synthetic UUID used only by intercepted tests. Ordinary development mode always disables analytics, even with all four variables supplied. Browser verification includes keyboard navigation, mobile layout, SPA transitions, GLB interactions, sanitized bodies/headers, late script completion, and app usability with analytics blocked. Passing local tests does not validate DNS, proxy IP trust, geolocation, retention, or a deployed privacy notice.
+The dedicated analytics suite creates a production build in `/tmp` with an explicitly configured loopback hostname and a synthetic UUID used only by intercepted tests. Ordinary development mode always disables analytics, even with all four variables supplied. Browser verification includes keyboard navigation, mobile layout, sanitized bodies/headers, late script completion, and app usability with analytics blocked. Passing local tests does not validate DNS, proxy IP trust, geolocation, retention, or a deployed privacy notice.
 
 The production suite has 28 scenarios, including `/privacy` direct links and reloads, three languages, keyboard/mobile reading, separate-tab links, history and preserved solar selections, and zero analytics on that page with stored consent. A successful application build with the supplied empty Website ID is deployable with analytics disabled; supplying an ID alone does not complete the infrastructure/privacy activation checklist above.

@@ -94,9 +94,9 @@ test('only current, unexpired consent records with the minimal schema are recogn
   ]) assert.equal(readConsent(raw, now), null, String(raw))
 })
 
-test('views and four events have exact constant-only payloads, never caller properties', () => {
+test('the view and both events have exact constant-only payloads, never caller properties', () => {
   const config = resolveAnalyticsConfig(env, location, true)!
-  const views = { apartment: 'Apartment', building: 'Building', documentation: 'Documentation' } as const
+  const views = { building: 'Building' } as const
   for (const [view, title] of Object.entries(views)) {
     const base = {
       website: env.VITE_UMAMI_WEBSITE_ID,
@@ -106,7 +106,7 @@ test('views and four events have exact constant-only payloads, never caller prop
       referrer: '',
     }
     assert.deepEqual(buildPayload(config, view as AnalyticsView), base)
-    for (const name of ['view_changed', 'solar_opened', 'dossier_opened', 'glb_download'] as const) {
+    for (const name of ['view_changed', 'solar_opened'] as const) {
       // The runtime boundary must discard surplus JS properties even when TS callers cannot supply them.
       const event = { name, data: { email: 'person@example.invalid' }, url: '/secret?token=private', id: 'user-1', title: 'Private title' }
       assert.deepEqual(buildPayload(config, view as AnalyticsView, event), { ...base, name, data: { view } })

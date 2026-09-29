@@ -169,12 +169,6 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.11.0)
-      '@t3-designer/geometry':
-        specifier: workspace:*
-        version: link:packages/geometry
-      '@t3-designer/scene-schema':
-        specifier: workspace:*
-        version: link:packages/scene-schema
       '@types/node':
         specifier: ^24.13.6
         version: 24.13.6
@@ -205,12 +199,6 @@ importers:
       '@react-three/fiber':
         specifier: ^9.8.0
         version: 9.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.0)
-      '@t3-designer/geometry':
-        specifier: workspace:*
-        version: link:../../packages/geometry
-      '@t3-designer/scene-schema':
-        specifier: workspace:*
-        version: link:../../packages/scene-schema
       i18next:
         specifier: 26.4.2
         version: 26.4.2(typescript@6.0.3)
@@ -254,26 +242,6 @@ importers:
       vite:
         specifier: ^8.3.1
         version: 8.3.1(@types/node@24.13.6)
-
-  packages/geometry:
-    dependencies:
-      '@t3-designer/scene-schema':
-        specifier: workspace:*
-        version: link:../scene-schema
-    devDependencies:
-      '@types/node':
-        specifier: ^24.13.6
-        version: 24.13.6
-
-  packages/scene-schema:
-    dependencies:
-      zod:
-        specifier: ^4.6.5
-        version: 4.6.5
-    devDependencies:
-      '@types/node':
-        specifier: ^24.13.6
-        version: 24.13.6
 
 packages:
 

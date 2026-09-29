@@ -1,4 +1,5 @@
 import { BUILDING_SITE } from '../data/building-site'
+import { seasonPresets } from '../lib/seasons'
 import { getLocalMinutes, type SolarPathPoint } from '../lib/solar'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { useTranslation } from 'react-i18next'
@@ -41,12 +42,7 @@ export function SolarControls({ solar }: { solar: SolarStudy }) {
   const { t } = useTranslation('workspace')
   const { formatDate, formatTime, formatNumber } = useLocale()
   const { moment, sun, day, time, zone, playing, setPlaying, changeDate, changeTime, resolution, bearing, daylightHours, daylightRemainder } = solar
-  const seasons = [
-    { key: 'solar.spring', date: '03-20' },
-    { key: 'solar.summer', date: '06-21' },
-    { key: 'solar.autumn', date: '09-22' },
-    { key: 'solar.winter', date: '12-21' },
-  ] as const
+  const seasons = seasonPresets(BUILDING_SITE.latitude)
   return <div className="solar-controls">
         <div className={`sun-status ${sun.isDaylight ? '' : 'sun-status-night'}`}>
           <span className="sun-status-icon"><SunGlyph night={!sun.isDaylight} /></span>
@@ -62,12 +58,12 @@ export function SolarControls({ solar }: { solar: SolarStudy }) {
           {seasons.map(season => <button key={season.date} aria-pressed={moment.date.slice(5) === season.date} onClick={() => changeDate(`${moment.date.slice(0, 4)}-${season.date}`)}>{t(season.key)}<small>{formatDate(new Date(`${moment.date.slice(0, 4)}-${season.date}T12:00:00Z`), { day: 'numeric', month: 'short' })}</small></button>)}
         </div>
 
-        <div className="solar-time-heading"><label htmlFor="solar-time">{t('solar.localTime')}</label><span>{zone} · Europe/Paris</span></div>
-        <div className="solar-clock-row"><input id="solar-time" aria-label={t('solar.quimperLocalTime')} type="time" value={time} onChange={event => { if (event.target.value) { const [hours, minutes] = event.target.value.split(':').map(Number); changeTime(hours * 60 + minutes) } }} /><button className={`day-play ${playing ? 'playing' : ''}`} aria-label={playing ? t('solar.pauseDay') : t('solar.playDay')} aria-pressed={playing} onClick={() => setPlaying(previous => !previous)}>
+        <div className="solar-time-heading"><label htmlFor="solar-time">{t('solar.localTime')}</label><span>{zone} · America/Argentina/Buenos_Aires</span></div>
+        <div className="solar-clock-row"><input id="solar-time" aria-label={t('solar.localTimeAria')} type="time" value={time} onChange={event => { if (event.target.value) { const [hours, minutes] = event.target.value.split(':').map(Number); changeTime(hours * 60 + minutes) } }} /><button className={`day-play ${playing ? 'playing' : ''}`} aria-label={playing ? t('solar.pauseDay') : t('solar.playDay')} aria-pressed={playing} onClick={() => setPlaying(previous => !previous)}>
           <svg viewBox="0 0 16 16" aria-hidden="true">{playing ? <path d="M4 3h3v10H4zM9 3h3v10H9z" /> : <path d="m5 2 9 6-9 6z" />}</svg>
         </button></div>
         <label className="sr-only" htmlFor="solar-time-slider">{t('solar.moveTime')}</label>
-        <input className="solar-time-slider" id="solar-time-slider" type="range" min={0} max={1439} step={1} value={moment.minutes} aria-valuetext={`${time}, ${t('solar.quimperLocalTime')}`} onChange={event => changeTime(Number(event.target.value))} />
+        <input className="solar-time-slider" id="solar-time-slider" type="range" min={0} max={1439} step={1} value={moment.minutes} aria-valuetext={`${time}, ${t('solar.localTimeAria')}`} onChange={event => changeTime(Number(event.target.value))} />
         <div className="time-scale" aria-hidden="true"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:59</span></div>
         <div className="playback-caption">{playing ? t('solar.dayProgress') : t('solar.playFullDay')}<span>{t('solar.fullDaySpeed')}</span></div>
         {moment.adjusted && <p className="solar-time-note" role="status">{t('solar.adjustedTime', { time })}</p>}

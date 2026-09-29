@@ -4,14 +4,11 @@ import frCommon from './locales/fr/common.ts'
 import esWorkspace from './locales/es/workspace.ts'
 import enWorkspace from './locales/en/workspace.ts'
 import frWorkspace from './locales/fr/workspace.ts'
-import esDossier from './locales/es/dossier.ts'
-import enDossier from './locales/en/dossier.ts'
-import frDossier from './locales/fr/dossier.ts'
 
 export const resources = {
-  es: { common: esCommon, workspace: esWorkspace, dossier: esDossier },
-  en: { common: enCommon, workspace: enWorkspace, dossier: enDossier },
-  fr: { common: frCommon, workspace: frWorkspace, dossier: frDossier },
+  es: { common: esCommon, workspace: esWorkspace },
+  en: { common: enCommon, workspace: enWorkspace },
+  fr: { common: frCommon, workspace: frWorkspace },
 } as const
 
 /** Preserve keys/structure, while allowing each locale to supply its own words. */

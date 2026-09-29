@@ -82,13 +82,13 @@ export function resolveAnalyticsConfig(
   return { scriptUrl: script.href, hostUrl, collectorUrl: `${hostUrl}/api/send`, websiteId, hostname }
 }
 
-export const analyticsViews = ['apartment', 'building', 'documentation'] as const
+export const analyticsViews = ['building'] as const
 export type AnalyticsView = typeof analyticsViews[number]
-export type AnalyticsEvent = { name: 'view_changed' | 'solar_opened' | 'dossier_opened' | 'glb_download' }
-const names = new Set(['view_changed', 'solar_opened', 'dossier_opened', 'glb_download'])
-const titles: Record<AnalyticsView, string> = { apartment: 'Apartment', building: 'Building', documentation: 'Documentation' }
+export type AnalyticsEvent = { name: 'view_changed' | 'solar_opened' }
+const names = new Set(['view_changed', 'solar_opened'])
+const titles: Record<AnalyticsView, string> = { building: 'Building' }
 
-/** Construct from constants only. Never spread DOM, URL, dossier or caller-supplied data. */
+/** Construct from constants only. Never spread DOM, URL or caller-supplied data. */
 export function buildPayload(config: AnalyticsConfig, view: AnalyticsView, event?: AnalyticsEvent) {
   if (!analyticsViews.includes(view) || (event && !names.has(event.name))) return null
   return {

@@ -126,66 +126,7 @@
 .cardinal-north { color: #a16e51; font-weight: 750; }
 .sun-position-label { display: block; transform: translateY(-25px); font-size: 10px; white-space: nowrap; background: #fff8de; color: #9a7738; padding: 4px 7px; border-radius: 4px; }
 
-/* The same solar controls drive the exterior and the apartment. */
-.apartment-workspace { grid-template-columns: minmax(0, 1fr) 304px; }
-.apartment-workspace .apartment-inspector { padding: 22px 20px; }
-.apartment-viewport .apartment-moment-tag { top: 78px; }
-.apartment-context-toggle { position: absolute; top: 81px; right: 22px; z-index: 30; display: flex; align-items: center; gap: 7px; min-height: 37px; padding: 8px 11px; border: 1px solid #d7dfce; border-radius: 5px; background: #fffef7eb; color: #637457; font-size: 10px; }
-.apartment-context-toggle > span { font-size: 17px; line-height: 1; }
-.apartment-context-toggle[aria-pressed=true] { background: #e8efde; border-color: #b9c8aa; color: #49613b; }
-.apartment-context-toggle:hover { background: #edf2e5; }
-.apartment-location-card { padding-bottom: 23px; margin-bottom: 22px; border-bottom: 1px solid #e5e9dc; }
-.apartment-location-card .eyebrow { font-size: 8px; color: #8c896c; }
-.apartment-location-card h2 { font-size: 20px; text-transform: none; letter-spacing: -.03em; color: #43553b; font-weight: 550; margin: 9px 0; }
-.apartment-location-card p { font-size: 11px; line-height: 1.75; color: #738467; margin: 0 0 12px; }
-.apartment-location-card p small { font-size: 9px; color: #a28f6c; }
-.building-section-options { display: grid; grid-template-columns: .9fr 1.1fr 1fr; gap: 3px; padding: 3px; border-radius: 5px; background: #eff1e9; }
-.building-section-options button { padding: 9px 3px; border: 0; border-radius: 4px; color: #829176; font-size: 9px; background: transparent; }
-.building-section-options button[aria-pressed=true] { background: #fffefa; color: #4d6340; box-shadow: 0 1px 5px #3541390c; }
-.apartment-locate { display: block; padding: 10px 0; margin: 2px 0 5px; border: 0; background: transparent; color: #728664; font-size: 10px; text-align: left; }
-.apartment-locate:hover { color: #3e5c2e; }
-.apartment-enter { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 11px 12px; border: 1px solid #647b55; border-radius: 5px; background: #647b55; color: #fffefa; font-size: 10px; text-align: left; gap: 7px; }
-.apartment-enter:hover { background: #4f683e; }
-.apartment-enter span { font-size: 15px; }
-.apartment-key { width: 7px; height: 7px; display: inline-block; border-radius: 2px; background: #e7a552; margin-left: 8px; }
-.solar-room-focus h2 { font-size: 9px; margin-bottom: 10px; }
-.solar-room-focus > div { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-.solar-room-focus button { border: 1px solid #e0e6d7; border-radius: 5px; background: #f8f9f3; color: #7a8a6d; font-size: 10px; padding: 9px 5px; }
-.solar-room-focus button:hover { background: #edf2e5; }
-.solar-room-focus button[aria-pressed=true] { border-color: #becfb0; background: #eaf0e2; color: #4f663f; }
-.solar-room-focus p { color: #939d87; font-size: 10px; line-height: 1.6; margin: 10px 0 0; }
+/* Solar controls for the exterior scene. */
 .solar-interior-note { background: #f4f5ed; border-radius: 5px; padding: 12px; margin-top: 21px; }
 .solar-interior-note strong { color: #758468; font-size: 10px; font-weight: 550; }
 .solar-interior-note p { margin: 5px 0 0; color: #919b85; font-size: 9px; line-height: 1.7; }
-.apartment-inspector .evidence-notes a { color: #60784e; text-underline-offset: 3px; }
-@media (max-width: 1120px) {
-  .apartment-workspace { grid-template-columns: minmax(0, 1fr) 278px; }
-  .apartment-workspace .apartment-inspector { padding: 20px 17px; }
-}
-@media (max-width: 900px) {
-  .apartment-viewport .viewport-top { flex-wrap: wrap; align-items: flex-start; gap: 12px; }
-  .apartment-viewport .apartment-moment-tag { top: 120px; }
-  .apartment-context-toggle { top: 122px; }
-}
-@media (max-width: 760px) {
-  .apartment-workspace { grid-template-columns: 1fr; }
-  .apartment-workspace .apartment-inspector { padding: 22px; }
-  .apartment-viewport .viewport-top { flex-wrap: nowrap; }
-  .apartment-viewport .apartment-moment-tag { top: 78px; left: 12px; right: auto; }
-  .apartment-context-toggle { top: 81px; right: 12px; }
-  .building-section-options button, .solar-room-focus button { min-height: 39px; font-size: 10px; }
-  .apartment-location-card p, .apartment-enter { font-size: 11px; }
-  .apartment-locate { min-height: 36px; }
-}
-@media (max-width: 450px) {
-  .apartment-viewport .viewport-top { flex-wrap: wrap; gap: 12px; }
-  .apartment-viewport .apartment-moment-tag { top: 107px; }
-  .apartment-context-toggle { top: 108px; }
-  .apartment-moment-tag { padding: 7px 9px; }
-  .apartment-workspace .apartment-inspector { padding: 22px 18px; }
-  .apartment-viewport .scene-guide > span { font-size: 10px; }
-}
-.solar-room-focus .apartment-orientation { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 10px; padding-top: 10px; }
-.apartment-orientation span { display: flex; flex-direction: column; gap: 4px; font-size: 9px; color: #929b84; }
-.apartment-orientation b { font-size: 10px; font-weight: 550; color: #778568; }
-.apartment-orientation small { display: block; width: 100%; color: #a4967b; font-size: 8px; margin-top: 1px; }
