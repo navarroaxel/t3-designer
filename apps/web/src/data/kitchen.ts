@@ -18,7 +18,7 @@ const cut = FLOOR_HEIGHT + CUT_HEIGHT
 
 export const KITCHEN_SIZES = {
   baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .6, fridgeDepth: .65,
-  counterDepth: 1, counterLength: 2.2, aisle: 1.1, overhang: .3, stool: .36, stoolHeight: .65,
+  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, stool: .36, stoolHeight: .65,
 }
 const S = KITCHEN_SIZES
 const floor = FLOOR_HEIGHT
@@ -32,16 +32,18 @@ export const COUNTER_V: [number, number] = [baseV[0] - S.aisle - S.counterDepth,
 const counterU: [number, number] = [frontU, frontU + S.counterLength]
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
-const OAK = '#d8bf98', DARK = '#3a3c3f', WHITE = '#e9e7e2', STOOL = '#cdb07a'
+const OAK = '#d8bf98', SILVER = '#b9bdc1', WHITE = '#e9e7e2', STOOL = '#cdb07a'
 
 export const KITCHEN_BOXES: KitchenBox[] = [
   { id: 'column', u: columnU, v: [wallV - S.columnDepth, wallV], y: [floor, cut], color: '#4b4d50' },
-  { id: 'fridge', u: fridgeU, v: [wallV - S.fridgeDepth, wallV], y: [floor, cut], color: DARK },
+  // The fridge is metal, silver (owner).
+  { id: 'fridge', u: fridgeU, v: [wallV - S.fridgeDepth, wallV], y: [floor, cut], color: SILVER },
   { id: 'base', u: baseU, v: baseV, y: [floor, floor + S.baseHeight], color: OAK },
   { id: 'worktop', u: baseU, v: [baseV[0] - .02, baseV[1]], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
-  // The oven is built into the base, with its front on the aisle side; the cooktop sits on the worktop above it.
-  { id: 'oven', u: [baseU[1] - .6, baseU[1] - .05], v: [baseV[0] - .015, baseV[0]], y: [floor + .25, floor + .8], color: '#2b2c2e' },
-  { id: 'cooktop', u: [baseU[1] - .62, baseU[1] - .03], v: [baseV[0] + .05, baseV[0] + .55], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .01], color: '#111213' },
+  // The oven is built into the base, with its front on the aisle side, and the cooktop sits on the worktop above it: both start
+  // 45 cm from the wall behind the bathroom (owner), which the hall shares.
+  { id: 'oven', u: [frontU + S.stoveFromHall, frontU + S.stoveFromHall + S.ovenWidth], v: [baseV[0] - .015, baseV[0]], y: [floor + .25, floor + .8], color: '#2b2c2e' },
+  { id: 'cooktop', u: [frontU + S.stoveFromHall, frontU + S.stoveFromHall + S.cooktopWidth], v: [baseV[0] + .05, baseV[0] + .55], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .01], color: '#111213' },
   { id: 'counter', u: counterU, v: COUNTER_V, y: [floor, floor + S.baseHeight], color: WHITE },
   { id: 'counter-top', u: counterU, v: [COUNTER_V[0] - S.overhang, COUNTER_V[1]], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The sink is in the second counter (owner), a ceramic basin flush with the top, with a brass tap at its back edge.

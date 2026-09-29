@@ -101,7 +101,7 @@ function KitchenPiece({ box }: { box: KitchenBox }) {
   useEffect(() => () => map?.dispose(), [map])
   return <mesh position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow>
     <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
-    <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={map ? .35 : .6} metalness={box.id === 'fridge' ? .3 : 0} />
+    <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={box.id === 'fridge' ? .28 : map ? .35 : .6} metalness={box.id === 'fridge' ? .85 : 0} />
   </mesh>
 }
 

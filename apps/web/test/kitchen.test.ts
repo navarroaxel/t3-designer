@@ -77,3 +77,15 @@ test('the sink is in the second counter, inside its top, with a tap at its back 
   assert.ok(tap.v[0] >= sink.v[1] - 1e-9 && tap.v[1] <= top.v[1], 'the tap is behind the basin, on the counter')
   assert.ok(tap.u[0] >= sink.u[0] && tap.u[1] <= sink.u[1], 'centred on it')
 })
+
+test('the oven and the cooktop start 45 cm from the wall on the hall side, on the run along the party wall', () => {
+  for (const id of ['oven', 'cooktop']) assert.ok(Math.abs(box(id).u[0] - KITCHEN_LIVING.u[0] - .45) < 1e-9, `${id} is 45 cm from the wall`)
+  // The oven is in the base and the cooktop above it, between that wall and the fridge.
+  assert.ok(box('oven').u[1] < box('fridge').u[0] && box('cooktop').u[1] < box('fridge').u[0])
+  assert.ok(overlap(box('oven').u, box('base').u) > .5 && Math.abs(box('oven').v[1] - box('base').v[0]) < 1e-9)
+})
+
+test('the fridge is silver metal: a light, neutral grey', () => {
+  const [red, green, blue] = [1, 3, 5].map(index => parseInt(box('fridge').color.slice(index, index + 2), 16))
+  assert.ok(red > 150 && Math.abs(red - green) < 12 && Math.abs(green - blue) < 12, 'a light grey with no strong tint')
+})
