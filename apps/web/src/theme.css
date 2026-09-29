@@ -89,6 +89,12 @@
     .day-play.playing { background: var(--ui-warm-surface); color: var(--ui-warm); border-color: #776540; }
     .status-derived { background: #293b43; color: #afcbd6; }
 
+    /* Generation panel: the tooltip is a raised, lighter surface with a border, so it stands out from the dark panel. */
+    .month-tooltip { background: #3b4c3f; color: #f1f5ec; border: 1px solid #6f8666; box-shadow: 0 10px 26px #000b; }
+    .month-tooltip strong { color: var(--ui-warm); }
+    .month-bar-button:hover span, .month-bar-button:focus-visible span { background: #cfe3b3; }
+    .month-bar-button:focus-visible { outline-color: var(--settings-accent); }
+
     .privacy-controls, .privacy-page { color: var(--settings-text); }
     .privacy-text-button, .privacy-page a { color: var(--settings-accent); }
     .privacy-text-button:hover { color: var(--settings-text); }

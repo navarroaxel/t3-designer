@@ -146,8 +146,16 @@
 .power-chart { margin-top: 4px; }
 .generation-year { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 12px; border-top: 1px solid #e6eade; }
 .generation-year strong { font-size: 13px; font-weight: 560; letter-spacing: -.01em; }
-.month-bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; height: 62px; align-items: end; }
+.month-bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; height: 62px; align-items: end; position: relative; }
 .month-bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
-.month-bar span { display: block; width: 100%; background: #b6c99c; border-radius: 2px 2px 0 0; }
+.month-bar { position: relative; }
+.month-bar-button { display: flex; align-items: flex-end; width: 100%; flex: 1; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.month-bar-button:focus-visible { outline: 2px solid #5e7c4a; outline-offset: 2px; }
+.month-bar-button:hover span, .month-bar-button:focus-visible span { background: #8fae6e; }
+.month-tooltip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); z-index: 3; display: flex; flex-direction: column; gap: 2px; min-width: 128px; padding: 7px 9px; border-radius: 6px; background: #22301f; color: #eef2e6; font-size: 11px; line-height: 1.3; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,.28); pointer-events: none; }
+.month-tooltip strong { font-size: 11px; text-transform: capitalize; }
+.month-tooltip-start { left: 0; transform: none; }
+.month-tooltip-end { left: auto; right: 0; transform: none; }
+.month-bar-button span { display: block; width: 100%; background: #b6c99c; border-radius: 2px 2px 0 0; }
 .month-bar small { font-size: 8px; color: #98a08d; }
 .generation-caveat { margin-top: 4px; }

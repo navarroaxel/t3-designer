@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
+import type { MonthResult } from '../lib/pv/model'
 import type { Generation } from '../lib/useGeneration'
 import type { SolarStudy } from '../lib/useSolarStudy'
 
@@ -27,16 +29,31 @@ function PowerChart({ generation, minutes, label }: { generation: Generation; mi
   </div>
 }
 
-/** Energy of a typical day in each month. */
+/** Energy of a typical day in each month; hovering or focusing a bar shows the month's estimate. */
 function MonthBars({ generation, label }: { generation: Generation; label: string }) {
-  const { formatDate } = useLocale()
+  const { t } = useTranslation('workspace')
+  const { formatDate, formatNumber } = useLocale()
+  const [active, setActive] = useState<number | null>(null)
   const { year } = generation
   if (!year) return null
   const top = Math.max(...year.months.map(month => month.acKwhPerDay))
-  return <div className="month-bars" role="img" aria-label={label}>
+  const monthName = (month: number, style: 'long' | 'narrow') => formatDate(new Date(Date.UTC(2026, month, 15, 12)), { month: style })
+  const describe = (month: MonthResult) => t('building.genMonthTooltip', {
+    month: monthName(month.month, 'long'), energy: formatNumber(month.acKwh), perDay: formatNumber(month.acKwhPerDay, 1),
+  })
+  return <div className="month-bars" role="group" aria-label={label}>
     {year.months.map(month => <div key={month.month} className="month-bar">
-      <span style={{ height: `${Math.max(3, month.acKwhPerDay / top * 100)}%` }} />
-      <small aria-hidden="true">{formatDate(new Date(Date.UTC(2026, month.month, 15, 12)), { month: 'narrow' })}</small>
+      <button type="button" className="month-bar-button" aria-label={describe(month)} aria-describedby={active === month.month ? 'month-tooltip' : undefined}
+        onMouseEnter={() => setActive(month.month)} onMouseLeave={() => setActive(current => current === month.month ? null : current)}
+        onFocus={() => setActive(month.month)} onBlur={() => setActive(current => current === month.month ? null : current)}>
+        <span style={{ height: `${Math.max(3, month.acKwhPerDay / top * 100)}%` }} />
+      </button>
+      <small aria-hidden="true">{monthName(month.month, 'narrow')}</small>
+      {active === month.month && <div id="month-tooltip" role="tooltip" className={`month-tooltip${month.month < 2 ? ' month-tooltip-start' : month.month > 9 ? ' month-tooltip-end' : ''}`}>
+        <strong>{monthName(month.month, 'long')}</strong>
+        <span>{t('building.genMonthEnergy', { energy: formatNumber(month.acKwh) })}</span>
+        <span>{t('building.genMonthPerDay', { perDay: formatNumber(month.acKwhPerDay, 1) })}</span>
+      </div>}
     </div>)}
   </div>
 }
