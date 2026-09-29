@@ -1,6 +1,7 @@
 import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import { CORNER_FACES, CROSS_STREET_PARTS, OCHAVA_PARTS, facePoint, type CornerPart } from '../data/corner-front'
+import { CORNER_23_FACES, OPPOSITE_SLABS, cornerTrim } from '../data/opposite-fronts'
 import { REAR_LOT_FRONT } from '../data/neighbor-fronts'
 
 /**
@@ -65,6 +66,12 @@ export function NeighborFacades() {
     {/* Lot 9, the corner: the chamfer and the face on the cross street. */}
     <CornerFace face={CORNER_FACES.ochava} parts={OCHAVA_PARTS} />
     <CornerFace face={CORNER_FACES.crossStreet} parts={CROSS_STREET_PARTS} />
+    {/* Across the street: lot 23's base and visor, and lot 24's fence and party walls. */}
+    {CORNER_23_FACES.map(face => <CornerFace key={`${face[0]}`} face={face} parts={cornerTrim(face)} />)}
+    {OPPOSITE_SLABS.map(slab => <mesh key={`${slab.u}-${slab.v}-${slab.y}`} position={[(slab.u[0] + slab.u[1]) / 2, (slab.y[0] + slab.y[1]) / 2, -(slab.v[0] + slab.v[1]) / 2]} receiveShadow castShadow>
+      <boxGeometry args={[slab.u[1] - slab.u[0], slab.y[1] - slab.y[0], slab.v[1] - slab.v[0]]} />
+      <meshStandardMaterial color={slab.color} roughness={.85} />
+    </mesh>)}
     {/* Lot 10, behind: its light-yellow front on the cross street, with the garage door and the side door. */}
     {REAR_LOT_FRONT.parts.map(part => {
       const [u0, u1] = part.u, [y0, y1] = part.y
