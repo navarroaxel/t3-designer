@@ -34,6 +34,11 @@ export interface BuildingFootprint {
   base?: number;
   /** Extra roof relief above `height`; zero for flat roofs. */
   roofHeight: number;
+  /**
+   * A single-pitch roof: from the eave at `height` the surface rises by `rise` metres across the
+   * footprint, toward `direction` (a unit vector in site axes). Without it the roof is flat.
+   */
+  slope?: { direction: [number, number]; rise: number };
   groundAltitude: number | null;
   groundOffset: number;
   floors: number | null;
@@ -106,6 +111,12 @@ export const ENTRY_RECESS = { setback: ENTRY_SETBACK, outer: ENTRY_OUTER, inner:
 /** Depth of the rear ground-floor band on each side, from the street line at u = -5 to the rear boundary. */
 export const HOUSE_REAR = { northEast: REAR_NE, southWest: REAR_SW } as const;
 
+/** Give a building a single-pitch roof rising toward `direction` by `rise` metres. */
+const withSlope = (item: BuildingFootprint, direction: [number, number], rise: number): BuildingFootprint =>
+  ({ ...item, slope: { direction, rise } });
+/** Site-axes unit vector of the house frame's u axis, toward the rear. */
+const REAR_DIRECTION: [number, number] = [Math.SQRT1_2, Math.SQRT1_2];
+
 const building = (
   id: string,
   label: string,
@@ -174,6 +185,8 @@ const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
 // Where lot 7 (A) splits: a walled front patio next to the house, then the garage house.
 const A_PATIO_END = 7.975;
 const NEIGHBOUR_WALL = .15;
+/** Pitch of the sheet-metal roof of lot 7's garage: the owner says clearly more than 5 degrees. */
+export const GARAGE_ROOF_DEGREES = 10;
 
 export const SITE_BUILDINGS: BuildingFootprint[] = [
   // Ground floor and upper floor, with the entrance recess cut out of the front.
@@ -189,10 +202,14 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', poly([southWest(AZOTEA_REAR), southWest(REAR_SW), [REAR_SW, TERRACE_INNER], [AZOTEA_REAR, TERRACE_INNER]]), FLOOR_HEIGHT, 1),
   // Lot 7 (A), 9.00 m of front. Street View (Aug 2025): next to the house a brick wall with a
   // green railing on the street line, a front patio about 2 m deep and a one-floor house behind
-  // it; then a garage house with green doors and a sheet-metal canopy.
+  // it; then a garage with green doors under a sheet-metal roof.
   building('NEIGHBOR-A', 'Vecino A (NE)', rect(-3, 8.3, HALF_WIDTH, A_PATIO_END), 3.8, 1),
   building('NEIGHBOR-A-WALL', 'Vecino A · muro de calle', rect(-5, -5 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), 2.1, 0),
-  building('NEIGHBOR-A-GARAGE', 'Vecino A · casa del garaje', rect(-5, 8.3, A_PATIO_END, 13.475), 3.3, 1),
+  // The garage is two cars deep, about 9 m, under a sheet-metal roof that rises about 10 degrees from
+  // its 2.7 m eave at the street toward the back; behind it stands a taller two-level volume.
+  withSlope(building('NEIGHBOR-A-GARAGE', 'Vecino A · garaje de chapa', rect(-5, 4, A_PATIO_END, 13.475), 2.7, 1),
+    REAR_DIRECTION, 9 * Math.tan(GARAGE_ROOF_DEGREES * Math.PI / 180)),
+  building('NEIGHBOR-A-REAR', 'Vecino A · volumen trasero', rect(4, 8.3, A_PATIO_END, 13.475), 5.6, 2),
   // Lot 10, behind: 7.80 m by 28.40 m, a one-floor house. It shares its front wall with the
   // rear boundary of lots 7, 8 and 9.
   building('NEIGHBOR-B', 'Vecino del fondo', poly(lotPolygon(10)), 3.3, 1),

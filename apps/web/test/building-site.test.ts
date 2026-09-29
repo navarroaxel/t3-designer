@@ -115,7 +115,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
   // [height above ground, floors]. Owner floor counts: house 2, A 1, the lot behind 1, C 2.
   const expected: Record<string, [number, number]> = {
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
-    'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [3.3, 1], 'NEIGHBOR-B': [3.3, 1],
+    'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
   }
   // The other lots of the block: one prism each, 3.3 m by default, 6.4 m where Street View shows two floors.
@@ -143,6 +143,22 @@ test('the entrance is set back 1 m between a 0.5 m flush wall and a pier, and th
   closeTo(Math.min(...us(entry).map(([u]) => u)), -5, .02)
   closeTo(area(entry.footprint), 1 * (3.975 - .85), .02)
   closeTo(entry.base!, 3.0, .001)
+})
+
+test('the sheet-metal roof of the garage of lot 7 is a single pitch of more than 5 degrees, rising toward the back', () => {
+  const garage = byId('NEIGHBOR-A-GARAGE')
+  assert.ok(garage.slope, 'has a pitch')
+  const us = garage.footprint.map(point => houseFrame(point)[0])
+  const depth = Math.max(...us) - Math.min(...us)
+  const degrees = Math.atan(garage.slope!.rise / depth) * 180 / Math.PI
+  closeTo(depth, 9, .02)
+  assert.ok(degrees > 5 && degrees < 15, `pitch ${degrees.toFixed(1)} degrees`)
+  // It rises toward the rear (the house frame's +u), and stays under the taller volume behind it.
+  closeTo(garage.slope!.direction[0], Math.SQRT1_2, 1e-12)
+  closeTo(garage.slope!.direction[1], Math.SQRT1_2, 1e-12)
+  assert.ok(garage.height + garage.slope!.rise < byId('NEIGHBOR-A-REAR').height)
+  // The other buildings are flat.
+  assert.equal(SITE_BUILDINGS.filter(item => item.slope).length, 1)
 })
 
 test('every front stands on the same street line, u = -5, and A keeps a 2 m patio', () => {

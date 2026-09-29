@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Line } from '@react-three/drei'
 import { BufferGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, InstancedMesh, Object3D, ShapeGeometry } from 'three'
 import { SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
+import { REAR_LOT_WALL_COLOR } from '../data/neighbor-fronts'
 import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
 import { HouseFacade } from './HouseFacade'
@@ -41,7 +42,13 @@ function roofGeometry(building: BuildingFootprint, roofDatum = building) {
   const positions: number[] = []
   // Complex/courtyard buildings keep a flat inferred roof rather than bridge holes.
   const rise = building.holes?.length || p.length > 18 ? 0 : Math.min(5, building.roofHeight)
-  const heightAt = (point: SitePoint) => building.height + (rise > .4 ? rise * Math.max(0, 1 - Math.abs(across(point) - middle) / ((max - min) / 2)) : .08)
+  // A single-pitch roof rises linearly across the footprint; otherwise a gable or a flat roof.
+  const { slope } = building
+  const along = ([x, z]: SitePoint) => slope ? x * slope.direction[0] + z * slope.direction[1] : 0
+  const alongValues = slope ? p.map(along) : [0, 1], lo = Math.min(...alongValues), hi = Math.max(...alongValues)
+  const heightAt = (point: SitePoint) => slope
+    ? building.height + slope.rise * (along(point) - lo) / (hi - lo)
+    : building.height + (rise > .4 ? rise * Math.max(0, 1 - Math.abs(across(point) - middle) / ((max - min) / 2)) : .08)
   for (const ring of rise > 0.4 ? [split(1), split(-1)] : [p]) {
     if (ring.length < 3) continue
     const shape = new ShapeGeometry(polygonShape(ring, rise > 0.4 ? [] : building.holes))
@@ -77,13 +84,14 @@ const WHITE_PAINT = '#ecebe5'
  * (the owner's photo predates the repaint); the rest of the house is brick. */
 function finishFor(building: BuildingFootprint): Finish {
   if (building.id.endsWith('-TANK-STEEL')) return { wall: '#d3d8dc', roof: '#e4e8eb', roughness: .38, metalness: .3 }
-  // The rear neighbour is blue so that it never reads as part of the house.
-  if (building.id === 'NEIGHBOR-B') return { wall: '#9db6cc', roof: '#86a1bb', roughness: .92, metalness: 0 }
+  // The lot behind is painted light yellow, which also keeps it from reading as part of the house.
+  if (building.id === 'NEIGHBOR-B') return { wall: REAR_LOT_WALL_COLOR, roof: '#cbbd8c', roughness: .92, metalness: 0 }
   if (building.id.endsWith('-CANTILEVER')) return { wall: '#c9b58a', roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
   if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
-  if (building.id === 'NEIGHBOR-A-GARAGE' || building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
-  if (building.id === 'NEIGHBOR-A' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
+  if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
+  if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
+  if (building.id === 'NEIGHBOR-A' || building.id === 'NEIGHBOR-A-REAR' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
   if (isHouse(building)) return { wall: '#a5533b', roof: building.isTarget ? WHITE_PAINT : '#d9d2c0', roughness: .92, metalness: 0 }
   return { wall: '#d0d3c8', roof: '#88938d', roughness: .92, metalness: 0 }
 }
