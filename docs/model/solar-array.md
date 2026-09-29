@@ -27,10 +27,10 @@ The planned array is defined in `apps/web/src/data/solar-array.ts` and drawn by
 | Height of the low edge above the azotea slab | 1.25 m | The 1.1 m parapets shade panels below their top, so the height sets how much the parapets matter. |
 | Direction of the slope | Faces the street (north-west), low edge at the front | Sets the angle to the sun. |
 | Row gap and panel gap | 0.55 m and 0.01 m | Sets how much one row shades the next in low winter sun. |
-| Front overhang | The front row projects 0.85 m past the front wall, to the inner face of the front parapet on the roof's front edge | The owner says it is cantilevered; the amount is assumed. It moves the whole array. |
+| Front overhang | The front row projects 0.775 m past the front wall, to the inner face of the front parapet on the roof's front edge | The owner says it is cantilevered; the amount is assumed. It moves the whole array. |
 | Row of 4 | Rests on the north-east wall, flush with its outer face; it fits between the water tank slab and that wall | Where it sits against the tank. |
 | Rows of 6 | Rest on the south-west wall, flush with its outer face, leaving 1.6 m free on the north-east side | Sets which rows the side sun reaches. |
-| Space behind | About 1.2 m between the back row and the rear parapet, beside the tank | Access; the tank does not shade the rows in front of it. |
+| Space behind | About 1.1 m between the back row and the rear parapet, beside the tank | Access; the tank does not shade the rows in front of it. |
 | Which panels form each series | Not decided | With one inverter input per series, a shaded panel limits its whole series. |
 
 ## What the model checks

@@ -1,12 +1,12 @@
 import { Line } from '@react-three/drei'
-import { HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
+import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW } from '../data/building-site'
 
 /**
  * Front elevation of the house, read from Street View (August 2025).
  * House frame: local x runs toward the rear (u), local z toward the south-west
  * (-v), y is up from the ground-floor level. The street front is at u = -5 and
- * the facade is 8.5 m wide, v in [-4.25, 4.25]. Positions come from the photo
- * scaled to the 8.5 m frontage (about 93 px/m); expect roughly +/-0.2 m.
+ * the facade is 8.95 m wide, v in [-4.475, 4.475]. Positions come from the photo
+ * scaled to the frontage (about 93 px/m); expect roughly +/-0.2 m.
  */
 const FRONT = -5
 const FLOOR = 3.2
@@ -52,7 +52,7 @@ export function HouseFacade({ physical = false }: { physical?: boolean }) {
       <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT - 1, 4.6]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - 1, -4.6], [FRONT, -4.6]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - 1, 4.6], [FRONT, 4.6]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(2 * FLOOR + 1.2, [[-6, -4.25], [-6, 4.25]])} color="#3f4a44" lineWidth={1.4} />
+      <Line points={rail(2 * FLOOR + 1.2, [[-6, -HOUSE_HALF_WIDTH], [-6, HOUSE_HALF_WIDTH]])} color="#3f4a44" lineWidth={1.4} />
     </>}
   </group>
 }

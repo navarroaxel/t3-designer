@@ -1,4 +1,4 @@
-import { ROOF_LEVEL } from './building-site.ts'
+import { HOUSE_HALF_WIDTH, PARAPET_THICKNESS, ROOF_FRONT, ROOF_LEVEL, houseSouthWestEdge } from './building-site.ts'
 
 /**
  * The planned solar array on the azotea: 16 panels of 620 Wp in three rows, one
@@ -37,13 +37,12 @@ export const ROW_GAP = .55
  * How far the front row projects past the front wall (the street line, u = -5), toward
  * the front edge of the roof slab, which is a 1 m cantilever level with the balcony.
  * The owner says the panels are cantilevered from the wall; the amount is assumed:
- * their low edge stops at the inner face of the 0.15 m front parapet, 0.85 m out.
+ * their low edge stops at the inner face of the front parapet.
  */
-export const FRONT_OVERHANG = .85
+export const FRONT_OVERHANG = -5 - (ROOF_FRONT + PARAPET_THICKNESS)
 /** Outer faces of the walls the rows rest against. */
 const STREET_LINE = -5
-const NORTH_EAST_WALL_OUTER_FACE = 4.25
-const SOUTH_WEST_WALL_OUTER_FACE = -4.25
+const NORTH_EAST_WALL_OUTER_FACE = HOUSE_HALF_WIDTH
 
 export type Panel = {
   id: string
@@ -82,7 +81,8 @@ export function buildPanels(): Panel[] {
     const count = ROW_COUNTS[row]
     const rowWidth = count * widthM + (count - 1) * PANEL_GAP
     // The row of 4 rests against the north-east wall (left); the two rows of 6 against the south-west wall (right).
-    const vStart = row === 'back' ? NORTH_EAST_WALL_OUTER_FACE : SOUTH_WEST_WALL_OUTER_FACE + rowWidth
+    // That wall leans slightly, so a row rests on it at the middle of the row's depth.
+    const vStart = row === 'back' ? NORTH_EAST_WALL_OUTER_FACE : houseSouthWestEdge(uFront + depth / 2) + rowWidth
     const u: PlanRange = [uFront, uFront + depth]
     const panels: Panel[] = []
     for (let i = 0; i < count; i++) {

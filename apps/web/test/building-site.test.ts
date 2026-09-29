@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
+import { genericBuildings } from '../src/data/block.ts'
+import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
   return Math.abs(ring.reduce((sum, a, index) => {
@@ -71,20 +72,25 @@ test('one target locates the house at Tapalque, Buenos Aires', () => {
 
 test('the upper block, rear band and lot keep the owner’s dimensions', () => {
   const block = byId('HOUSE'), arm = byId('HOUSE-ARM'), terrace = byId('HOUSE-TERRACE')
-  // The block plus the strip over the recessed entrance make up the 9 m x 8.5 m house, and the
-  // 1 m cantilever in front brings the roof to 10 m x 8.5 m.
-  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 9 * 8.5, .05)
-  closeTo(area(byId('HOUSE-CANTILEVER').footprint), 1 * 8.5, .05)
-  // The rear band is 4.5 m outside, which is the owner's 3.95 m inside plus the walls.
-  closeTo(area(arm.footprint), 4.5 * 2.75, .05)
-  closeTo(area(terrace.footprint), 4.5 * 3.25, .05)
-  closeTo(area(SITE_PARCEL.footprint), 13.5 * 8.5, .05)
-  closeTo(SITE_PARCEL.area, 13.5 * 8.5, .01)
+  // The house fills the lot's 8.95 m front. The block plus the strip over the recessed entrance make up
+  // 9 m of house, and the 1 m cantilever in front brings the roof to 10 m.
+  // The south-west wall stands on the lot's boundary, which leans 0.25 m over the depth of the lot, so the
+  // house is 8.95 m wide at the street line and a little narrower behind it.
+  closeTo(houseSouthWestEdge(-5), -4.475, 1e-9)
+  closeTo(houseSouthWestEdge(8.7), -4.225, 1e-9)
+  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 9 * (4.475 - houseSouthWestEdge(-.5)), .02)
+  closeTo(area(byId('HOUSE-CANTILEVER').footprint), 1 * (4.475 - houseSouthWestEdge(-5.5)), .02)
+  // The rear band: the owner's 3.95 m inside plus the walls, from the street line to the rear boundary.
+  closeTo(area(arm.footprint), (8.5 - 4) * (4.475 - 1.5), .05)
+  closeTo(area(terrace.footprint), (8.6 - 4) * (-1 - houseSouthWestEdge((4 + 8.6) / 2)), .02)
+  // The lot polygon comes from the municipal sketch: 120.03 m2.
+  closeTo(area(SITE_PARCEL.footprint), 120.03, .02)
+  closeTo(SITE_PARCEL.area, 120.03, .02)
   validateRing(SITE_PARCEL.footprint, 'lot')
   for (const id of HOUSE_PARTS) {
     for (const point of byId(id).footprint) {
       const [u, v] = houseFrame(point)
-      assert.ok(u >= -5.01 && u <= 8.51 && Math.abs(v) <= 4.26, `${id}: inside the 13.5 m x 8.5 m lot`)
+      assert.ok(u >= -5.01 && u <= 8.71 && Math.abs(v) <= 4.48, `${id}: inside the 13.5 m x 8.95 m lot`)
     }
   }
   // The terrace is on the right seen from the street, the south-west side.
@@ -96,20 +102,24 @@ test('the light well is an open void between the terrace and the left arm', () =
   const site = houseToSite(6.25, .25) // the middle of the 2.5 m x 4.5 m notch
   assert.ok(contains(site, SITE_PARCEL.footprint))
   for (const building of groundVolumes) assert.equal(contains(site, building.footprint), false, `${building.id} must leave the well open`)
-  closeTo(area(SITE_PARCEL.footprint) - HOUSE_PARTS.reduce((sum, id) => sum + area(byId(id).footprint), 0), 2.5 * 4.5, .1)
+  // What the house leaves free of the lot is the well (2.5 m wide, about 4.6 m deep) plus thin slivers
+  // along the boundaries that lean away from the house's straight walls.
+  const free = area(SITE_PARCEL.footprint) - HOUSE_PARTS.reduce((sum, id) => sum + area(byId(id).footprint), 0)
+  assert.ok(free > 2.5 * 4.4 && free < 2.5 * 4.6 + 3, `free area ${free.toFixed(2)} m2`)
 })
 
 const isRooftop = (building: BuildingFootprint) => /^HOUSE-(PARAPET|TANK)/.test(building.id)
 const groundVolumes = SITE_BUILDINGS.filter(building => !isRooftop(building))
 
 test('heights follow the reported floor counts, refined by Street View where it shows more', () => {
-  // [height above ground, floors]. Owner floor counts: house 2, A 1, B 1, C 2, D 1.
+  // [height above ground, floors]. Owner floor counts: house 2, A 1, the lot behind 1, C 2.
   const expected: Record<string, [number, number]> = {
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
-    'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-B': [3.2, 1],
+    'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [3.3, 1], 'NEIGHBOR-B': [3.3, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
-    'NEIGHBOR-D': [3.3, 1],
   }
+  // The other lots of the block: one prism each, 3.3 m by default, 6.4 m where Street View shows two floors.
+  for (const { lot } of genericBuildings()) expected[`LOT-${String(lot.number).padStart(2, '0')}`] = [lot.height, lot.floors]
   assert.deepEqual(groundVolumes.map(building => building.id).sort(), Object.keys(expected).sort())
   for (const building of groundVolumes) {
     closeTo(building.height, expected[building.id][0], .001)
@@ -124,26 +134,26 @@ test('the entrance is set back 1 m between a 0.5 m flush wall and a pier, and th
   const block = byId('HOUSE'), entry = byId('HOUSE-ENTRY')
   const us = (building: BuildingFootprint) => building.footprint.map(point => houseFrame(point))
   const has = (u: number, v: number) => us(block).some(([pu, pv]) => Math.abs(pu - u) < .02 && Math.abs(pv - v) < .02)
-  // Recess: back wall 1 m behind the line, from the pier (v = 0.85) to the return wall (v = 3.75)...
-  assert.ok(has(-4, .85) && has(-4, 3.75), 'entrance wall 1 m behind the line')
+  // Recess: back wall 1 m behind the line, from the pier (v = 0.85) to the return wall (v = 3.975)...
+  assert.ok(has(-4, .85) && has(-4, 3.975), 'entrance wall 1 m behind the line')
   // ...a 0.5 m wall stays on the line next to the neighbour, and the garage stands on the line.
-  assert.ok(has(-5, 3.75) && has(-5, 4.25), '0.5 m flush wall at the north-east end')
-  assert.ok(has(-5, .85) && has(-5, -4.25), 'pier and garage on the street line')
+  assert.ok(has(-5, 3.975) && has(-5, 4.475), '0.5 m flush wall at the north-east end')
+  assert.ok(has(-5, .85) && has(-5, -4.475), 'pier and garage on the street line')
   // The upper floor overhangs the recess up to the line.
   closeTo(Math.min(...us(entry).map(([u]) => u)), -5, .02)
-  closeTo(area(entry.footprint), 1 * (3.75 - .85), .02)
+  closeTo(area(entry.footprint), 1 * (3.975 - .85), .02)
   closeTo(entry.base!, 3.0, .001)
 })
 
 test('every front stands on the same street line, u = -5, and A keeps a 2 m patio', () => {
   const frontOf = (id: string) => Math.min(...byId(id).footprint.map(point => houseFrame(point)[0]))
-  for (const id of ['HOUSE', 'NEIGHBOR-A-WALL', 'NEIGHBOR-C-UPPER', 'NEIGHBOR-C-FRONT', 'NEIGHBOR-D']) {
+  for (const id of ['HOUSE', 'NEIGHBOR-A-WALL', 'NEIGHBOR-A-GARAGE', 'NEIGHBOR-C-UPPER', 'NEIGHBOR-C-FRONT']) {
     closeTo(frontOf(id), -5, .02)
   }
   // A's house stands 2 m behind its street wall.
   closeTo(frontOf('NEIGHBOR-A'), -3, .02)
-  // C's frontage runs from the house to the cross street.
-  closeTo(Math.min(...byId('NEIGHBOR-C-FRONT').footprint.map(point => houseFrame(point)[1])), -14, .02)
+  // The corner lot's building runs on to the corner where the street lines meet.
+  closeTo(Math.min(...byId('NEIGHBOR-C-FRONT').footprint.map(point => houseFrame(point)[1])), -15.175, .02)
 })
 
 test('the roof is 10 m deep counting a 1 m cantilever that ends on the balcony line', () => {
@@ -171,7 +181,7 @@ test('rooftop obstacles stand on the azotea slab and inside its outline', () => 
     assert.ok(item.base! >= block.height - .001, `${item.id}: rests on or above the roof slab`)
     for (const point of item.footprint) {
       const [u, v] = houseFrame(point)
-      assert.ok(u >= -6.01 && u <= 4.01 && Math.abs(v) <= 4.26, `${item.id}: inside the 10 m x 8.5 m azotea`)
+      assert.ok(u >= -6.01 && u <= 4.01 && v >= houseSouthWestEdge(u) - .01 && v <= 4.476, `${item.id}: inside the 10 m roof, between the walls on the lot boundaries`)
     }
   }
   // The concrete tank rests on three legs that stay under its slab.
