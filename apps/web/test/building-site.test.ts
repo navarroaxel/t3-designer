@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { genericBuildings } from '../src/data/block.ts'
+import { OPPOSITE_LOTS } from '../src/data/opposite-block.ts'
 import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
@@ -115,10 +116,20 @@ test('heights follow the reported floor counts, refined by Street View where it 
   // [height above ground, floors]. Owner floor counts: house 2, A 1, the lot behind 1, C 2.
   const expected: Record<string, [number, number]> = {
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
+    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SHELF': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
     'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
+    'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [3.7, 1],
+    'NEIGHBOR-C-TANK-ROOM': [6.2, 1], 'NEIGHBOR-C-TANK': [7.4, 0],
   }
   // The other lots of the block: one prism each, 3.3 m by default, 6.4 m where Street View shows two floors.
+  // The block across the street: each lot is one prism, 3.3 m by default; lot 24 (2 floors) and lot 23
+  // (3.4 m) are surveyed, with a roof room and a roof tank.
+  for (const { number, height, floors, extras } of OPPOSITE_LOTS) {
+    const id = `OPP-${String(number).padStart(2, '0')}`
+    expected[id] = [height, floors ?? 1]
+    for (const extra of extras ?? []) expected[`${id}-${extra.suffix}`] = [extra.height, 1]
+  }
   for (const { lot } of genericBuildings()) expected[`LOT-${String(lot.number).padStart(2, '0')}`] = [lot.height, lot.floors]
   assert.deepEqual(groundVolumes.map(building => building.id).sort(), Object.keys(expected).sort())
   for (const building of groundVolumes) {
@@ -238,7 +249,10 @@ test('building rings are finite and simple, and no ground footprints overlap', (
     }
     return hits * step * step
   }
+  // A volume standing on top of another (its base at the other's roof) is not an overlap.
+  const stacked = (a: BuildingFootprint, b: BuildingFootprint) => (a.base ?? 0) >= b.height - .01 || (b.base ?? 0) >= a.height - .01
   for (const [index, a] of groundVolumes.entries()) for (const b of groundVolumes.slice(index + 1)) {
+    if (stacked(a, b)) continue
     assert.ok(overlapArea(a, b) < .05, `${a.id} overlaps ${b.id} by ${overlapArea(a, b).toFixed(2)} m²`)
   }
 })
@@ -249,6 +263,52 @@ test('road geometry remains finite, metric and clipped to the local context', ()
   for (const road of SITE_ROADS) {
     assert.ok(road.width > 0 && Number.isFinite(road.width), `${road.id}: real width`)
     assert.ok(road.points.length >= 2)
-    assert.ok(road.points.every(point => point.length === 2 && point.every(value => Number.isFinite(value) && Math.abs(value) <= 110.001)), `${road.id}: clipped local metric points`)
+    assert.ok(road.points.every(point => point.length === 2 && point.every(value => Number.isFinite(value) && Math.abs(value) <= 200)), `${road.id}: clipped local metric points`)
   }
+})
+
+test('the terrace has a 1.6 m wall on the corner\'s party wall and a 1.1 m railing over the light well', () => {
+  const wall = byId('HOUSE-TERRACE-WALL'), rail = byId('HOUSE-TERRACE-RAIL'), terrace = byId('HOUSE-TERRACE')
+  closeTo(wall.height - (wall.base ?? 0), 1.6, 1e-9)
+  closeTo(rail.height - (rail.base ?? 0), 1.1, 1e-9)
+  closeTo(wall.base ?? 0, terrace.height, 1e-9)
+  closeTo(rail.base ?? 0, terrace.height, 1e-9)
+  // The wall runs along the south-west edge, the railing along the inner side (v = -1), both over the terrace's 4.6 m.
+  const us = (item: BuildingFootprint) => item.footprint.map(point => siteToHouse(point)[0])
+  closeTo(Math.min(...us(wall)), 4, .01); closeTo(Math.max(...us(wall)), 8.6, .01)
+  closeTo(Math.min(...us(rail)), 4, .01); closeTo(Math.max(...us(rail)), 8.6, .01)
+  for (const point of rail.footprint) assert.ok(siteToHouse(point)[1] <= -.99 && siteToHouse(point)[1] >= -1.16)
+})
+
+test('the terrace has a masonry grill with a grate at its back, centred between its two walls', () => {
+  const grill = byId('HOUSE-TERRACE-GRILL'), grate = byId('HOUSE-TERRACE-GRILL-GRATE'), terrace = byId('HOUSE-TERRACE')
+  const us = grill.footprint.map(point => siteToHouse(point)[0]), vs = grill.footprint.map(point => siteToHouse(point)[1])
+  closeTo(grill.height - (grill.base ?? 0), .85, 1e-9)
+  closeTo(grill.base ?? 0, terrace.height, 1e-9)
+  closeTo(grate.base ?? 0, grill.height, 1e-9)
+  closeTo(Math.max(...vs) - Math.min(...vs), 1.2, .01); closeTo(Math.max(...us) - Math.min(...us), .55, .01)
+  // At the back: against the rear end of the terrace, and inside it.
+  assert.ok(Math.max(...us) > 8.4 && Math.max(...us) <= 8.6)
+  const wall = byId('HOUSE-TERRACE-WALL'), rail = byId('HOUSE-TERRACE-RAIL')
+  const wallInner = Math.max(...wall.footprint.map(point => siteToHouse(point)[1])), railInner = Math.min(...rail.footprint.map(point => siteToHouse(point)[1]))
+  assert.ok(Math.min(...vs) > wallInner - 1e-6 && Math.max(...vs) < railInner + 1e-6, 'between the party-wall wall and the railing wall')
+  closeTo((Math.min(...vs) + Math.max(...vs)) / 2, (wallInner + railInner) / 2, .05)
+})
+
+test('the terrace sink is a Toscana Vena shelf from the railing wall to the grill, with the basin set into it', () => {
+  const grill = byId('HOUSE-TERRACE-GRILL'), shelf = byId('HOUSE-TERRACE-SHELF'), basin = byId('HOUSE-TERRACE-SINK-BASIN'), rail = byId('HOUSE-TERRACE-RAIL')
+  const vs = (item: BuildingFootprint) => item.footprint.map(point => siteToHouse(point)[1]), us = (item: BuildingFootprint) => item.footprint.map(point => siteToHouse(point)[0])
+  // Facing the rear (toward higher u) the left hand is north-east, higher v: the shelf lies from the grill to the railing wall.
+  closeTo(Math.min(...vs(shelf)), Math.max(...vs(grill)), .01)
+  closeTo(Math.max(...vs(shelf)), Math.min(...vs(rail)), .01)
+  closeTo(Math.max(...us(shelf)), Math.max(...us(grill)), .01)
+  closeTo(Math.max(...us(shelf)) - Math.min(...us(shelf)), .5, .01)
+  // A thin shelf at the grill's height, not a block: its underside is well above the terrace.
+  closeTo(shelf.height - (shelf.base ?? 0), .03, 1e-9)
+  closeTo(shelf.height, grill.base! + .85, 1e-9)
+  assert.ok((shelf.base ?? 0) - byId('HOUSE-TERRACE').height > .7)
+  // The basin sits inside the shelf's plan, in the sink's place.
+  assert.ok(Math.min(...vs(basin)) > Math.min(...vs(shelf)) && Math.max(...vs(basin)) < Math.max(...vs(shelf)))
+  assert.ok(Math.min(...us(basin)) > Math.min(...us(shelf)) && Math.max(...us(basin)) < Math.max(...us(shelf)))
+  closeTo(basin.base ?? 0, shelf.height, 1e-9)
 })

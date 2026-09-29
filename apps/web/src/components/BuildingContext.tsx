@@ -1,15 +1,20 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Line } from '@react-three/drei'
 import { BufferGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, InstancedMesh, Object3D, ShapeGeometry } from 'three'
+import { TOSCANA_VENA_COLOR } from '../data/house-plan'
+import { OPPOSITE_COLORS } from '../data/opposite-fronts'
 import { SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
 import { REAR_LOT_WALL_COLOR } from '../data/neighbor-fronts'
 import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
 import { HouseFacade } from './HouseFacade'
-import { HouseShell } from './HouseShell'
+import { HouseShell, HouseShellPhysical } from './HouseShell'
 import type { Floor } from '../data/house-plan'
 import { NeighborFacades } from './NeighborFacades'
 import { SolarPanels } from './SolarPanels'
+
+/** The house's prisms that the hollow shell replaces in the shadow pass. */
+const HOLLOW_HOUSE_PARTS = new Set(['HOUSE', 'HOUSE-ENTRY', 'HOUSE-ARM', 'HOUSE-TERRACE'])
 
 const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
@@ -88,9 +93,21 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'NEIGHBOR-B') return { wall: REAR_LOT_WALL_COLOR, roof: '#cbbd8c', roughness: .92, metalness: 0 }
   if (building.id.endsWith('-CANTILEVER')) return { wall: '#c9b58a', roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
-  if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
+  if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+|TERRACE-(WALL|RAIL|GRILL))$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
   if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
+  // The houses across the street, from Street View: the corner white, the house opposite black.
+  if (building.id === 'OPP-23') return { wall: OPPOSITE_COLORS.cornerWall, roof: OPPOSITE_COLORS.cornerRoof, roughness: .92, metalness: 0 }
+  if (building.id === 'OPP-24') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
+  if (building.id === 'OPP-24-ROOM') return { wall: OPPOSITE_COLORS.roomWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
+  // The terrace's sink: a Toscana Vena shelf with a dark basin set into it.
+  if (building.id === 'HOUSE-TERRACE-SINK-BASIN') return { wall: '#4d5155', roof: '#4d5155', roughness: .4, metalness: .3 }
+  if (building.id === 'HOUSE-TERRACE-SHELF') return { wall: TOSCANA_VENA_COLOR, roof: TOSCANA_VENA_COLOR, roughness: .55, metalness: 0 }
+  // The terrace grill: brick body, dark cast-iron grate.
+  if (building.id === 'HOUSE-TERRACE-GRILL-GRATE') return { wall: '#2a2a2c', roof: '#2a2a2c', roughness: .5, metalness: .6 }
+  if (building.id === 'HOUSE-TERRACE-GRILL') return { wall: '#a5533b', roof: '#8a4a36', roughness: .95, metalness: 0 }
+  // Fibre-cement water tanks: the corner's (a cylinder on its room) and the one on lot 23's roof.
+  if (building.id === 'NEIGHBOR-C-TANK' || building.id === 'OPP-23-TANK') return { wall: '#a9a8a0', roof: '#b9b8b0', roughness: .95, metalness: 0 }
   if (building.id === 'NEIGHBOR-A' || building.id === 'NEIGHBOR-A-REAR' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
   if (isHouse(building)) return { wall: '#a5533b', roof: building.isTarget ? WHITE_PAINT : '#d9d2c0', roughness: .92, metalness: 0 }
   return { wall: '#d0d3c8', roof: '#88938d', roughness: .92, metalness: 0 }
@@ -175,13 +192,17 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
 }) {
   const house = useMemo(() => SITE_BUILDINGS.filter(isHouse), [])
   const neighbors = useMemo(() => SITE_BUILDINGS.filter(building => !house.includes(building)), [house])
+  // Light sees the house as a hollow shell, so its solid prisms are replaced in the shadow pass: the main block, the
+  // entrance upper floor and the rear ground-floor bands. Roof obstacles, the cantilever and the terrace walls stay.
+  const solids = useMemo(() => house.filter(building => !HOLLOW_HOUSE_PARTS.has(building.id)), [house])
   const physical = useMemo(() => <>
-    {house.map(building => <Volume key={building.id} building={building} />)}
+    {solids.map(building => <Volume key={building.id} building={building} />)}
+    <HouseShellPhysical />
     <HouseFacade physical />
     {/* Hiding the panels also removes their shadows: they are part of the physical obstacles only while shown. */}
     {showPanels && <SolarPanels physical />}
     {neighbors.map(building => <Volume key={building.id} building={building} />)}
-  </>, [house, neighbors, showPanels])
+  </>, [solids, neighbors, showPanels])
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>
@@ -191,7 +212,13 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
             <HouseFacade />
             {showPanels && <SolarPanels shade={panelShade} />}
           </>
-        : <HouseShell floor={floor} />}
+        : <>
+            <HouseShell floor={floor} />
+            {/* The balcony belongs to the first floor: its slab and railing stay in that cut. */}
+            {floor === 'first' && <HouseFacade balconyOnly />}
+            {/* The terrace's walls stand at first-floor level: they belong to that cut. */}
+            {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL|GRILL(-GRATE)?|SHELF|SINK-BASIN)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+          </>}
       {showNeighbors && <NeighborFacades />}
       {showNeighbors && neighbors.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
     </>}

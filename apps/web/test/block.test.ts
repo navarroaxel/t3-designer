@@ -144,8 +144,9 @@ test('buildings of different lots never overlap', () => {
   }
 })
 
+// The four streets around the house's block, and the street behind the block across the street (as wide as the front one).
 test('the streets use the widths of the block plan', () => {
-  assert.deepEqual(blockStreets().map(street => street.width), [STREET_WIDTHS.front, STREET_WIDTHS.southWest, STREET_WIDTHS.northEast, STREET_WIDTHS.back])
+  assert.deepEqual(blockStreets().map(street => street.width), [STREET_WIDTHS.front, STREET_WIDTHS.southWest, STREET_WIDTHS.northEast, STREET_WIDTHS.front, STREET_WIDTHS.back])
   assert.deepEqual(STREET_WIDTHS, { front: 17.32, southWest: 17.32, northEast: 17.32, back: 12 })
   // The front street's centre line runs half a street width in front of the street line.
   closeTo(blockStreets()[0].points[0][0], -5 - 17.32 / 2, 1e-9)
