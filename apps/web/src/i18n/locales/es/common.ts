@@ -5,7 +5,7 @@ export default {
     title: 'T3 Designer · {{workspace}}',
   },
   workspaces: {
-    building: { title: 'Casa y entorno', badge: 'Medido con Google Earth' },
+    building: { title: 'Casa y entorno' },
   },
   settings: {
     title: 'Ajustes',

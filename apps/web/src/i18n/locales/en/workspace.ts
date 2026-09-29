@@ -34,7 +34,6 @@ const workspace = {
     genCaveat: 'An estimate. Clear-sky physics anchored to NASA POWER’s 20-year climate for this place, the shading of the modelled surroundings, and typical losses. Expect ±10 to 15% on the year. Distant buildings and the weather of a given day are not included.',
     floors: 'Floors', floorExterior: 'Whole house', floorGround: 'Ground floor', floorFirst: 'First floor',
     floorNote: 'Cut at 1.5 m above the floor. Exterior walls only, assumed 0.3 m thick; interior walls are not modelled yet.',
-    footerTitle: 'House + sun', footerDescription: 'Measured from Google Earth imagery (2021) · Approximate heights and neighbouring footprints',
   },
   solar: {
     chartAria: 'Sun altitude through the day; the marker shows the selected time', dayOfYear: 'Day of the year',

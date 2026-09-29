@@ -36,8 +36,7 @@
       outline-color: var(--settings-accent);
     }
 
-    .workspace-loading, .eyebrow, .stage-label, .app-footer, .footer-label, .wall-height span, .building-footer > a { color: var(--settings-muted); }
-    .estimate-badge { color: var(--ui-warm); background: var(--ui-warm-surface); }
+    .workspace-loading, .eyebrow, .stage-label, .wall-height span { color: var(--settings-muted); }
     .viewport { border-color: var(--settings-border); background: #1b241d; }
     .viewport:has(.canvas-fallback):not(:has(canvas)) :is(.model-caption, .version, .scene-guide, .scene-guide > small,
       .building-location, .building-location .eyebrow, .building-location small) {

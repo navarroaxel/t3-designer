@@ -69,9 +69,6 @@ export default function App() {
           {privacyPage ? <div className="privacy-brand-heading">T3 Designer</div> : <h1>T3 Designer <span className="stage-label">{t(`workspaces.${workspaceView}.title`)}</span></h1>}
         </div>
         <div className="header-actions">
-          <div className="project-details">
-            <span className="estimate-badge"><span /> {t(`workspaces.${workspaceView}.badge`)}</span>
-          </div>
           <LanguageToggle />
           <ApplicationSettings />
         </div>

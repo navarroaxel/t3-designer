@@ -80,6 +80,5 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
         </details>
       </aside>
     </div>
-    <footer className="app-footer building-footer"><span className="footer-label">{t('building.footerTitle')}</span><p>{t('building.footerDescription')}</p></footer>
   </>
 }
