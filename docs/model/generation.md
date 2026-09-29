@@ -12,6 +12,10 @@ How the app turns the array and the sun into kWh. Code: `apps/web/src/lib/pv/`, 
 6. **Cell temperature** (NOCT), **bypass-diode** behaviour along each series string of 8, losses, and **inverter clipping** at 10 kW (`model.ts`).
 7. **Day and year**: `simulateDay` every 10 min; `simulateYear` sums the 12 mid-month days.
 
+## Reading the monthly bars
+
+Each bar shows the energy of a typical day of that month. Hovering or focusing a bar (mouse or keyboard) opens a tooltip with the month's estimate, in kWh a month and kWh a day; the same text is the bar's accessible name.
+
 ## Result (current data)
 
 About 1.48 MWh per kWp per year (~14.7 MWh for 9.92 kWp), ~7.5 kWh/kWp on a clear December day, ~2.8 in June. Shading costs well under 1% because the panels sit above the parapets and the neighbours are low.
