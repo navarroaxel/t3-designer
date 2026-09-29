@@ -94,7 +94,7 @@ The corner lot beside the house shows two more faces (`apps/web/src/data/corner-
 
 - **Lot 24**, opposite the house: 8.50 m of front, 15.4 m deep. Two floors (6.4 m) set back about 3 m behind a fenced garden, with a small room on the roof (9 m) (Street View).
 - **Lot 23**, the corner: 9.74 m of front on the cross street, a 5.98 m chamfer. The sketch is old; Street View shows a one-floor house (3.4 m) along the street, with a small fibre-cement tank on the roof.
-- **Lot 25**: 8.66 m of front, 24 m deep, a building on the south-west side that reaches the rear. Its height is not known.
+- **Lot 25**: 8.66 m of front, 24 m deep, a building on the south-west side that reaches the rear. Its height is not known. Its front (Street View) is a 3.4 m brick wall on the street line with stone panels and a barred window, and a black garage gate under a sloped metal visor.
 
 ## Left out on purpose
 
