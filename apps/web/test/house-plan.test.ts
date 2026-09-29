@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -308,8 +308,8 @@ test('the 55 inch TV is a 16:9 screen hung on the shared wall, centred on it, fa
   near(TV_SIZE.width, 1.218, .002); near(TV_SIZE.height, .685, .002)
   assert.equal(MAIN_TV.model, 'Samsung OLED S90')
   const { main, secondary } = FRONT_ROOMS
-  // Centred on the wall shared with the secondary room, along its length.
-  near((MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (main.u[0] + secondary.u[1]) / 2)
+  // Centred between the front wall and the hall-side wall (the room's whole depth), and still on the shared wall.
+  near((MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (main.u[0] + main.u[1]) / 2)
   assert.ok(MAIN_TV_PLACEMENT.u[0] > main.u[0] && MAIN_TV_PLACEMENT.u[1] < secondary.u[1])
   // On the main room's side, held off the wall by its bracket.
   near(MAIN_TV_PLACEMENT.bracket.v[0], main.v[0]); near(MAIN_TV_PLACEMENT.v[0], main.v[0] + .03)
@@ -352,4 +352,46 @@ test('the closet has a 0.60 m wardrobe along the whole party wall with neighbour
   // The whole depth of the room, from the front wall to the back wall.
   near(MAIN_ROOM_CLOSET_WARDROBE.u[0], FRONT_ROOMS.main.u[0]); near(MAIN_ROOM_CLOSET_WARDROBE.u[1], FRONT_ROOMS.main.u[1])
   near(MAIN_ROOM_CLOSET_WARDROBE.v[0] - MAIN_ROOM_DRYWALL[3], .9)
+})
+
+test('the closet wardrobe has sliding panels on two tracks that cover its length with small overlaps', () => {
+  const [u0, u1] = MAIN_ROOM_CLOSET_WARDROBE.u
+  assert.equal(CLOSET_SLIDING_PANELS.length, 5)
+  assert.ok(Math.abs(CLOSET_SLIDING_PANELS[0].u[0] - u0) < 1e-9 && Math.abs(CLOSET_SLIDING_PANELS[4].u[1] - u1) < 1e-9)
+  for (const [index, panel] of CLOSET_SLIDING_PANELS.entries()) {
+    // On the aisle side of the wardrobe, on one of two tracks, alternating.
+    assert.ok(panel.v[1] <= MAIN_ROOM_CLOSET_WARDROBE.v[0] + 1e-9, 'in front of the wardrobe, not inside it')
+    assert.equal(panel.front, index % 2 === 0)
+    if (index > 0) {
+      const previous = CLOSET_SLIDING_PANELS[index - 1]
+      assert.ok(panel.u[0] < previous.u[1], 'neighbouring panels overlap a little, with no gap')
+      assert.notEqual(panel.v[0], previous.v[0], 'and run on different tracks')
+    }
+  }
+})
+
+test('the queen bed has its head on the drywall wall, centred like the TV, and leaves the room usable', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(MAIN_BED.u[1] - MAIN_BED.u[0], 1.6); near(MAIN_BED.v[1] - MAIN_BED.v[0], 2)
+  // Head against the drywall's face toward the TV, and centred on the same line as the TV.
+  near(MAIN_BED.v[1], MAIN_ROOM_DRYWALL[2])
+  near((MAIN_BED.u[0] + MAIN_BED.u[1]) / 2, (MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2)
+  // Within the drywall's length, so the wall is behind its whole head.
+  assert.ok(MAIN_BED.u[0] >= MAIN_ROOM_DRYWALL[0] && MAIN_BED.u[1] <= MAIN_ROOM_DRYWALL[1])
+  // At least a metre of floor between the foot and the TV, and the hall door swing (0.8 m) stays clear.
+  assert.ok(MAIN_BED.v[0] - (FRONT_ROOMS.main.v[0] + .06) >= 1)
+  assert.ok(MAIN_BED.u[1] < MAIN_DOOR.u[0] - .3)
+})
+
+test('the 65 inch TV in the living hangs on the party wall on the bathroom\'s side, centred on the living\'s depth', () => {
+  const near = (a: number, b: number, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} vs ${b}`)
+  near(Math.hypot(LIVING_TV_SIZE.width, LIVING_TV_SIZE.height), 65 * .0254)
+  near(LIVING_TV_SIZE.width, 1.439, .002); near(LIVING_TV_SIZE.height, .809, .002)
+  assert.equal(LIVING_TV.inches, 65)
+  // On the south-west party wall (the bathroom's side), held off it by its bracket, facing into the living.
+  near(LIVING_TV_PLACEMENT.bracket.v[0], KITCHEN_LIVING.v[0]); near(LIVING_TV_PLACEMENT.v[0], KITCHEN_LIVING.v[0] + .03)
+  // Centred on the living's depth, between the bathroom's back wall and the rear wall.
+  near((LIVING_TV_PLACEMENT.u[0] + LIVING_TV_PLACEMENT.u[1]) / 2, (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2)
+  assert.ok(LIVING_TV_PLACEMENT.u[0] > KITCHEN_LIVING.u[0] && LIVING_TV_PLACEMENT.u[1] < KITCHEN_LIVING.u[1])
+  assert.ok(LIVING_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .5 && LIVING_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 1.5)
 })

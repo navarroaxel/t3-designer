@@ -250,6 +250,25 @@ export const MAIN_ROOM_CLOSET_WARDROBE = {
   v: [MAIN_ROOM_CLOSET.v[1] - CLOSET_WARDROBE.depth, MAIN_ROOM_CLOSET.v[1]] as [number, number],
 }
 
+/**
+ * The closet wardrobe has sliding doors (owner). The number of panels is assumed: five of about 0.91 m, which
+ * overlap a little and run on two tracks, the odd ones on the track nearer the aisle. Spans are along u.
+ */
+export const CLOSET_SLIDING_DOORS = { panels: 5, overlap: .03, thickness: .02, trackGap: .025 }
+export type SlidingPanel = { u: [number, number]; v: [number, number]; front: boolean }
+export const CLOSET_SLIDING_PANELS: SlidingPanel[] = Array.from({ length: CLOSET_SLIDING_DOORS.panels }, (_, index) => {
+  const [u0, u1] = MAIN_ROOM_CLOSET_WARDROBE.u
+  const width = (u1 - u0) / CLOSET_SLIDING_DOORS.panels
+  const front = index % 2 === 0
+  // The wardrobe's face toward the aisle is at v[0]; the front track is the nearer one.
+  const vFace = MAIN_ROOM_CLOSET_WARDROBE.v[0] - (front ? 0 : CLOSET_SLIDING_DOORS.thickness + CLOSET_SLIDING_DOORS.trackGap)
+  return {
+    u: [Math.max(u0, u0 + index * width - CLOSET_SLIDING_DOORS.overlap / 2), Math.min(u1, u0 + (index + 1) * width + CLOSET_SLIDING_DOORS.overlap / 2)] as [number, number],
+    v: [vFace - CLOSET_SLIDING_DOORS.thickness, vFace] as [number, number],
+    front,
+  }
+})
+
 /** The main room's wall along the hall steps back this far (owner), so the hall is wider there. */
 export const MAIN_ROOM_SETBACK = .2
 
@@ -318,8 +337,8 @@ export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
 ]
 
 /**
- * The main room's TV (owner): a Samsung OLED S90 of 55 inches, hung on a wall bracket, centred on the wall
- * it shares with the secondary room and facing the main room. A 55 inch 16:9 screen is 1.218 m by 0.685 m
+ * The main room's TV (owner): a Samsung OLED S90 of 55 inches, hung on a wall bracket, hung on the wall it shares with the secondary room, centred
+ * between the front wall and the hall-side wall, and facing the main room. A 55 inch 16:9 screen is 1.218 m by 0.685 m
  * (the diagonal is 1.397 m); the body is about 0.03 m thick and the bracket holds it about 0.03 m off the wall.
  * The height of its centre, 1.1 m, is assumed.
  */
@@ -328,11 +347,42 @@ const TV_DIAGONAL = MAIN_TV.inches * .0254
 const TV_HYPOT = Math.hypot(MAIN_TV.aspect[0], MAIN_TV.aspect[1])
 export const TV_SIZE = { width: TV_DIAGONAL * MAIN_TV.aspect[0] / TV_HYPOT, height: TV_DIAGONAL * MAIN_TV.aspect[1] / TV_HYPOT }
 /** Plan footprint of the TV and its bracket, on the main room's face of the shared wall: [u0, u1, v0, v1]. */
-const sharedWallMiddleU = (FRONT_ROOMS.main.u[0] + FRONT_ROOMS.secondary.u[1]) / 2
+// Centred between the front wall and the hall-side wall, across the room's whole depth (owner), not on the shorter
+// stretch it shares with the secondary room; it still hangs on that shared stretch.
+const sharedWallMiddleU = (FRONT_ROOMS.main.u[0] + FRONT_ROOMS.main.u[1]) / 2
 export const MAIN_TV_PLACEMENT = {
   u: [sharedWallMiddleU - TV_SIZE.width / 2, sharedWallMiddleU + TV_SIZE.width / 2] as [number, number],
   /** The wall's face on the main room's side is at main.v[0]. */
   v: [FRONT_ROOMS.main.v[0] + MAIN_TV.standoff, FRONT_ROOMS.main.v[0] + MAIN_TV.standoff + MAIN_TV.thickness] as [number, number],
   bracket: { v: [FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[0] + MAIN_TV.standoff] as [number, number], width: .4, height: .3 },
   y: [FLOOR_HEIGHT + MAIN_TV.centreHeight - TV_SIZE.height / 2, FLOOR_HEIGHT + MAIN_TV.centreHeight + TV_SIZE.height / 2] as [number, number],
+}
+
+/**
+ * A queen bed in the main room (owner): 1.60 m by 2.00 m and 0.5 m high, its head against the drywall wall,
+ * on the side of the TV, and centred like the TV, between the front wall and the hall-side wall.
+ */
+export const QUEEN_BED = { width: 1.6, length: 2, height: .5 }
+const mainRoomMiddleU = (FRONT_ROOMS.main.u[0] + FRONT_ROOMS.main.u[1]) / 2
+export const MAIN_BED = {
+  u: [mainRoomMiddleU - QUEEN_BED.width / 2, mainRoomMiddleU + QUEEN_BED.width / 2] as [number, number],
+  /** The head is on the drywall's face toward the TV, at MAIN_ROOM_DRYWALL v[0]. */
+  v: [MAIN_ROOM_DRYWALL[2] - QUEEN_BED.length, MAIN_ROOM_DRYWALL[2]] as [number, number],
+}
+
+/**
+ * The living's TV (owner): a Samsung OLED of 65 inches (1.439 m by 0.809 m), hung on the party wall with the
+ * corner, on the bathroom's side, and centred on the living's depth. The height of its centre, 1.05 m, is
+ * assumed; it keeps the TV under the 1.5 m cut.
+ */
+export const LIVING_TV = { model: 'Samsung OLED', inches: 65, thickness: .03, standoff: .03, centreHeight: 1.05 }
+const LIVING_TV_DIAGONAL = LIVING_TV.inches * .0254
+export const LIVING_TV_SIZE = { width: LIVING_TV_DIAGONAL * 16 / TV_HYPOT, height: LIVING_TV_DIAGONAL * 9 / TV_HYPOT }
+const livingMiddleU = (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2
+export const LIVING_TV_PLACEMENT = {
+  u: [livingMiddleU - LIVING_TV_SIZE.width / 2, livingMiddleU + LIVING_TV_SIZE.width / 2] as [number, number],
+  /** The party wall's face inside the living is at KITCHEN_LIVING v[0]. */
+  v: [KITCHEN_LIVING.v[0] + LIVING_TV.standoff, KITCHEN_LIVING.v[0] + LIVING_TV.standoff + LIVING_TV.thickness] as [number, number],
+  bracket: { v: [KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[0] + LIVING_TV.standoff] as [number, number], width: .4, height: .3 },
+  y: [FLOOR_HEIGHT + LIVING_TV.centreHeight - LIVING_TV_SIZE.height / 2, FLOOR_HEIGHT + LIVING_TV.centreHeight + LIVING_TV_SIZE.height / 2] as [number, number],
 }
