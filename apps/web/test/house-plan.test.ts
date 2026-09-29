@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -325,8 +325,31 @@ test('a 0.10 m drywall wall divides the main room, 1.5 m from the party wall wit
   near(v1 - v0, .1)
   // 1.5 m from the party wall's inner face (v = 4.175) to the drywall's near face.
   near(main.v[1] - v1, 1.5)
-  // It runs the room's depth, parallel to the party wall, and stays inside the room.
-  near(u0, main.u[0]); near(u1, main.u[1])
+  // It runs from the back wall toward the street and stops 0.70 m short of the front wall: the closet's only way in.
+  near(u0 - main.u[0], .7); near(u1, main.u[1])
   assert.ok(v0 > main.v[0] && v1 < main.v[1])
   assert.ok(FIRST_FLOOR_PARTITIONS.some(wall => wall === MAIN_ROOM_DRYWALL))
+})
+
+test('the walk-in closet is the 1.5 m strip along the party wall, reached only through a 0.70 m passage at the front', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  const { main } = FRONT_ROOMS
+  near(MAIN_ROOM_CLOSET.v[1] - MAIN_ROOM_CLOSET.v[0], 1.5)
+  near(MAIN_ROOM_CLOSET.v[1], main.v[1])
+  // Its passage is the gap between the front wall and the end of the drywall, 0.70 m wide.
+  near(MAIN_ROOM_DRYWALL[0] - main.u[0], .7)
+  // No door anywhere on the closet: no door swing or opening lies along the drywall.
+  for (const door of FIRST_FLOOR_DOOR_SWINGS) assert.ok(door.hinge[1] < MAIN_ROOM_CLOSET.v[0] || door.hinge[1] > MAIN_ROOM_CLOSET.v[1] + 1, `${door.id} is not the closet's`)
+  // The balcony door lies partly in the closet's strip, next to the passage.
+  const balcony = OPENINGS.first.find(opening => opening.u === -5 && opening.v[1] - opening.v[0] > 2.9)!
+  assert.ok(balcony.v[1] > MAIN_ROOM_CLOSET.v[0] && balcony.v[0] < MAIN_ROOM_CLOSET.v[0])
+})
+
+test('the closet has a 0.60 m wardrobe along the whole party wall with neighbour A, leaving 0.90 m to walk', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(MAIN_ROOM_CLOSET_WARDROBE.v[1] - MAIN_ROOM_CLOSET_WARDROBE.v[0], .6)
+  near(MAIN_ROOM_CLOSET_WARDROBE.v[1], MAIN_ROOM_CLOSET.v[1])
+  // The whole depth of the room, from the front wall to the back wall.
+  near(MAIN_ROOM_CLOSET_WARDROBE.u[0], FRONT_ROOMS.main.u[0]); near(MAIN_ROOM_CLOSET_WARDROBE.u[1], FRONT_ROOMS.main.u[1])
+  near(MAIN_ROOM_CLOSET_WARDROBE.v[0] - MAIN_ROOM_DRYWALL[3], .9)
 })

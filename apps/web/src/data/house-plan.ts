@@ -225,14 +225,30 @@ export const BATHROOM_DOOR_SWING = { hingeU: BATHROOM_DOOR.u[0], hingeV: BATHROO
 
 /**
  * A drywall (durlock) wall that divides the main room in two (owner), parallel to the party wall with
- * neighbour A and 1.5 m from it. The 1.5 m is taken from the party wall's inner face to the drywall's near
- * face, and the drywall is 0.10 m thick. It runs the room's depth, front wall to back wall.
+ * neighbour A and 1.5 m from it, taken from the party wall's inner face to the drywall's near face. It is
+ * 0.10 m thick and runs from the back wall toward the street, stopping 0.70 m short of the front wall,
+ * next to the balcony door: that gap is the only way into the walk-in closet, which has no door.
  */
-export const DRYWALL = { distanceFromPartyWall: 1.5, thickness: .1 }
+export const DRYWALL = { distanceFromPartyWall: 1.5, thickness: .1, passage: .7 }
 export const MAIN_ROOM_DRYWALL: [number, number, number, number] = [
-  FRONT_ROOMS.main.u[0], FRONT_ROOMS.main.u[1],
+  FRONT_ROOMS.main.u[0] + DRYWALL.passage, FRONT_ROOMS.main.u[1],
   NE_INNER - DRYWALL.distanceFromPartyWall - DRYWALL.thickness, NE_INNER - DRYWALL.distanceFromPartyWall,
 ]
+/** The main room's walk-in closet: the 1.5 m strip along the party wall, entered by the passage at the front. */
+export const MAIN_ROOM_CLOSET = {
+  u: [FRONT_ROOMS.main.u[0], FRONT_ROOMS.main.u[1]] as [number, number],
+  v: [NE_INNER - DRYWALL.distanceFromPartyWall, NE_INNER] as [number, number],
+}
+
+/**
+ * The closet's built-in wardrobe (owner): 0.60 m deep along the whole party wall with neighbour A, the room's
+ * full depth. It leaves 0.90 m of the closet's 1.5 m free to walk along.
+ */
+export const CLOSET_WARDROBE = { depth: .6, height: 2.4 }
+export const MAIN_ROOM_CLOSET_WARDROBE = {
+  u: [MAIN_ROOM_CLOSET.u[0], MAIN_ROOM_CLOSET.u[1]] as [number, number],
+  v: [MAIN_ROOM_CLOSET.v[1] - CLOSET_WARDROBE.depth, MAIN_ROOM_CLOSET.v[1]] as [number, number],
+}
 
 /** The main room's wall along the hall steps back this far (owner), so the hall is wider there. */
 export const MAIN_ROOM_SETBACK = .2

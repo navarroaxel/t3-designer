@@ -3,7 +3,7 @@ import { Line } from '@react-three/drei'
 import { ExtrudeGeometry } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_WARDROBE, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type DoorSwing, type Floor, type PlanPoint,
 } from '../data/house-plan'
 import { polygonShape } from '../lib/polygon-shape'
@@ -79,6 +79,11 @@ export function HouseShell({ floor }: { floor: Floor }) {
       {/* The secondary room's built-in wardrobe, sectioned at the cut like the walls. */}
       <mesh position={[(SECONDARY_WARDROBE.u[0] + SECONDARY_WARDROBE.u[1]) / 2, FLOOR_HEIGHT + Math.min(WARDROBE.height, CUT_HEIGHT) / 2, -(SECONDARY_WARDROBE.v[0] + SECONDARY_WARDROBE.v[1]) / 2]} receiveShadow>
         <boxGeometry args={[WARDROBE.depth, Math.min(WARDROBE.height, CUT_HEIGHT), WARDROBE.width]} />
+        <meshStandardMaterial color={WARDROBE_COLOR} roughness={.85} />
+      </mesh>
+      {/* The closet's wardrobe along the whole party wall with neighbour A, sectioned at the cut. */}
+      <mesh position={[(MAIN_ROOM_CLOSET_WARDROBE.u[0] + MAIN_ROOM_CLOSET_WARDROBE.u[1]) / 2, FLOOR_HEIGHT + Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT) / 2, -(MAIN_ROOM_CLOSET_WARDROBE.v[0] + MAIN_ROOM_CLOSET_WARDROBE.v[1]) / 2]} receiveShadow>
+        <boxGeometry args={[MAIN_ROOM_CLOSET_WARDROBE.u[1] - MAIN_ROOM_CLOSET_WARDROBE.u[0], Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT), MAIN_ROOM_CLOSET_WARDROBE.v[1] - MAIN_ROOM_CLOSET_WARDROBE.v[0]]} />
         <meshStandardMaterial color={WARDROBE_COLOR} roughness={.85} />
       </mesh>
       {/* The wardrobe's three doors of two leaves, on its face toward the room. */}
