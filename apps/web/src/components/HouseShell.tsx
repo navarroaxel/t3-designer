@@ -69,8 +69,17 @@ export function HouseShell({ floor }: { floor: Floor }) {
       </mesh>)}
       {/* A single bed in the secondary room. */}
       <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + SINGLE_BED.height / 2, -(SECONDARY_BED.v[0] + SECONDARY_BED.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[SINGLE_BED.length, SINGLE_BED.height, SINGLE_BED.width]} />
+        <boxGeometry args={[SINGLE_BED.width, SINGLE_BED.height, SINGLE_BED.length]} />
         <meshStandardMaterial color={BED_COLOR} roughness={.9} />
+      </mesh>
+      {/* Headboard against the party wall and a pillow, so the head end reads at a glance. */}
+      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + .45, -(SECONDARY_BED.v[0] + .03)]} receiveShadow>
+        <boxGeometry args={[SINGLE_BED.width, .9, .06]} />
+        <meshStandardMaterial color="#8b6b4a" roughness={.8} />
+      </mesh>
+      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + SINGLE_BED.height + .06, -(SECONDARY_BED.v[0] + .35)]} receiveShadow>
+        <boxGeometry args={[.6, .12, .4]} />
+        <meshStandardMaterial color="#f4f1ea" roughness={.95} />
       </mesh>
       {/* The room's wenge door, closed, sectioned at the cut. */}
       <mesh position={[(SECONDARY_DOOR.u[0] + SECONDARY_DOOR.u[1]) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(SECONDARY_DOOR.v[0] + SECONDARY_DOOR.v[1]) / 2]} receiveShadow>
