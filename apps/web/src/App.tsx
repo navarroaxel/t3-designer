@@ -75,7 +75,6 @@ export default function App() {
         </div>
       </header>
 
-      <PrivacyControls onOpenPrivacy={openPrivacy} privacyPage={privacyPage} />
       {privacyPage ? <PrivacyPage workspace={workspaceView} onReturn={event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
         event.preventDefault()
@@ -85,6 +84,7 @@ export default function App() {
       <BuildingExplorer solar={solar} />
       </Suspense>
       </>}
+      <PrivacyControls onOpenPrivacy={openPrivacy} privacyPage={privacyPage} />
     </main>
   )
 }

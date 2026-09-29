@@ -17,6 +17,8 @@ const workspace = {
     labelOverlayAria: 'Étiquette de la maison, points cardinaux et position du soleil',
     sunLabel: 'Soleil · {{altitude}}°', north: 'N', south: 'S', east: 'E', west: 'O',
     buildingPart: 'Maison', contextKey: 'Environnement',
+    floors: 'Étages', floorExterior: 'Maison entière', floorGround: 'Rez-de-chaussée', floorFirst: 'Premier étage',
+    floorNote: 'Coupe à 1,5 m au-dessus du sol. Murs extérieurs seulement, épaisseur supposée de 0,3 m ; les cloisons intérieures ne sont pas encore modélisées.',
     footerTitle: 'Maison + soleil', footerDescription: 'Mesuré sur des images Google Earth (2021) · Hauteurs et emprises des voisins approximatives',
   },
   solar: {

@@ -17,6 +17,8 @@ const workspace = {
     labelOverlayAria: 'House label, compass directions and sun position',
     sunLabel: 'Sun · {{altitude}}°', north: 'N', south: 'S', east: 'E', west: 'W',
     buildingPart: 'House', contextKey: 'Surroundings',
+    floors: 'Floors', floorExterior: 'Whole house', floorGround: 'Ground floor', floorFirst: 'First floor',
+    floorNote: 'Cut at 1.5 m above the floor. Exterior walls only, assumed 0.3 m thick; interior walls are not modelled yet.',
     footerTitle: 'House + sun', footerDescription: 'Measured from Google Earth imagery (2021) · Approximate heights and neighbouring footprints',
   },
   solar: {

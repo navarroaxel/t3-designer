@@ -17,6 +17,8 @@ const workspace = {
     labelOverlayAria: 'Rótulo de la casa, puntos cardinales y posición del sol',
     sunLabel: 'Sol · {{altitude}}°', north: 'N', south: 'S', east: 'E', west: 'O',
     buildingPart: 'Casa', contextKey: 'Entorno',
+    floors: 'Pisos', floorExterior: 'Casa completa', floorGround: 'Planta baja', floorFirst: 'Primer piso',
+    floorNote: 'Corte a 1,5 m sobre el piso. Solo muros exteriores, de 0,3 m supuestos; los tabiques interiores todavía no están modelados.',
     footerTitle: 'Casa + sol', footerDescription: 'Medido sobre imágenes de Google Earth (2021) · Alturas y huellas de vecinos aproximadas',
   },
   solar: {

@@ -58,7 +58,7 @@ export const BUILDING_SITE = {
   "attribution": "Google Earth imagery, 2021-09-24 · measurements by the owner"
 } as const;
 
-const FLOOR_HEIGHT = 3.2;
+export const FLOOR_HEIGHT = 3.2;
 
 /**
  * House frame: u runs toward the rear (south-east, away from the street),

@@ -1,4 +1,4 @@
-.privacy-controls { padding: 0 32px 24px; color: #354139; }
+.privacy-controls { padding: 20px 32px 24px; color: #354139; }
 .privacy-links { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 5px 18px; }
 .privacy-text-button { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: #405634; font-size: 12px; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
 .privacy-text-button:hover { color: #243d1b; }
@@ -42,7 +42,7 @@
   .privacy-banner > .privacy-choices { min-width: 0; max-width: 520px; }
 }
 @media (max-width: 560px) {
-  .privacy-controls { padding: 0 16px 20px; }
+  .privacy-controls { padding: 16px 16px 20px; }
   .privacy-links { justify-content: flex-start; }
   .privacy-banner { padding: 17px; }
   .privacy-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 9px; }

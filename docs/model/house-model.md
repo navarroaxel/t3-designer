@@ -49,6 +49,18 @@ owner pointed out. The house of neighbour A is the exception only because it sit
 behind a 2 m patio; its street wall is on the line. The neighbouring fronts are drawn by `NeighborFacades.tsx`
 from two Street View photos, at about 0.3 m of accuracy.
 
+## Floors and cutaway
+
+The floor selector shows the house sectioned 1.5 m above the ground floor or the
+first floor. `src/data/house-plan.ts` holds the plans and `HouseShell.tsx` draws
+them. Only the exterior walls are modelled, so the rooms are empty.
+
+- Exterior walls are assumed to be 0.3 m thick and slabs 0.2 m. Neither is measured.
+- The ground-floor outline includes the rooms under the rear terrace and the left arm, with the entrance recess and the light well left open. It is 103.1 m2.
+- The first floor is the 10 m by 8.5 m block, 85 m2, with the 3 m balcony door and the window on the street side.
+- The cut hides the upper floors, but they still cast their shadows on the cut floor, because the sunlight pass always uses the whole house.
+- Interior walls, stairs, doors and windows other than the ones on the street front are not modelled yet.
+
 ## Finishes
 
 The azotea floor, the inside of the parapets and the concrete tank block are painted
@@ -68,3 +80,5 @@ trees, wires and the terrace grill. None of them shades the azotea noticeably.
 3. Distance from the tank block to the rear wall and to the south-west wall.
 4. Whether the light well is open to the sky and where its edges are.
 5. Whether A and D have an upper level set back behind their fronts, as the photos suggest.
+6. The plans of both floors: interior walls, stairs, and the windows on the side and rear walls.
+7. The real thickness of the exterior walls.

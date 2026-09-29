@@ -130,3 +130,9 @@
 .solar-interior-note { background: #f4f5ed; border-radius: 5px; padding: 12px; margin-top: 21px; }
 .solar-interior-note strong { color: #758468; font-size: 10px; font-weight: 550; }
 .solar-interior-note p { margin: 5px 0 0; color: #919b85; font-size: 9px; line-height: 1.7; }
+
+/* Floor selector: reuses the season buttons with three columns. */
+.floor-selector { margin: 0 0 22px; }
+.floor-selector .eyebrow { font-size: 9px; color: #9c895f; }
+.season-presets.floor-presets { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 9px 0 10px; }
+.floor-note { margin: 0; font-size: 10px; line-height: 1.6; color: #829077; }

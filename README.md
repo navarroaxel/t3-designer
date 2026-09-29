@@ -30,6 +30,7 @@ Open the Vite URL shown in the terminal, normally
 2. Jump between the four seasons. In Buenos Aires the noon sun is always to the
    north, at about 79° in December and 32° in June.
 3. Switch to **Top view** to see how far each neighbour's shadow reaches.
+4. Use **Floors** to cut the house open at the ground floor or the first floor. Only the exterior walls are modelled so far.
 
 The solar controls calculate locally; changing the date or time does not call an
 external API. Time follows `America/Argentina/Buenos_Aires` (UTC-3, no daylight

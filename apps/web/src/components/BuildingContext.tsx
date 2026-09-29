@@ -1,28 +1,18 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Line } from '@react-three/drei'
-import { BufferGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, InstancedMesh, Object3D, Path, Shape, ShapeGeometry } from 'three'
+import { BufferGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, InstancedMesh, Object3D, ShapeGeometry } from 'three'
 import { SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
+import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
 import { HouseFacade } from './HouseFacade'
+import { HouseShell } from './HouseShell'
+import type { Floor } from '../data/house-plan'
 import { NeighborFacades } from './NeighborFacades'
 
 const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
 
 type Box = { position: [number, number, number]; scale: [number, number, number]; angle?: number }
-
-function polygonShape(points: SitePoint[], holes: SitePoint[][] = []) {
-  const shape = new Shape()
-  points.forEach(([x, z], i) => i ? shape.lineTo(x, -z) : shape.moveTo(x, -z))
-  shape.closePath()
-  shape.holes = holes.map(ring => {
-    const path = new Path()
-    ring.forEach(([x, z], i) => i ? path.lineTo(x, -z) : path.moveTo(x, -z))
-    path.closePath()
-    return path
-  })
-  return shape
-}
 
 /** Roof silhouettes are inferred, not supplied by IGN. Split at the ridge
  * before triangulation so the low-pitch target roof casts a coherent shadow. */
@@ -160,9 +150,12 @@ export function SiteGround() {
 
 /** Site-space building context. Hiding the neighbours never changes the
  * physical obstacles used by the sunlight pass. */
-export function BuildingContext({ visible = true, showNeighbors = true }: {
+export type FloorView = 'exterior' | Floor
+
+export function BuildingContext({ visible = true, showNeighbors = true, floor = 'exterior' }: {
   visible?: boolean
   showNeighbors?: boolean
+  floor?: FloorView
 }) {
   const house = useMemo(() => SITE_BUILDINGS.filter(isHouse), [])
   const neighbors = useMemo(() => SITE_BUILDINGS.filter(building => !house.includes(building)), [house])
@@ -174,8 +167,12 @@ export function BuildingContext({ visible = true, showNeighbors = true }: {
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>
-      {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
-      <HouseFacade />
+      {floor === 'exterior'
+        ? <>
+            {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+            <HouseFacade />
+          </>
+        : <HouseShell floor={floor} />}
       {showNeighbors && <NeighborFacades />}
       {showNeighbors && neighbors.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
     </>}

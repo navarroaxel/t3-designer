@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BuildingScene } from './BuildingScene'
 import { SolarControls, SolarMomentTag } from './SolarControls'
 import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL } from '../data/building-site'
+import type { FloorView } from './BuildingContext'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
@@ -16,6 +17,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   const [showNeighbors, setShowNeighbors] = useState(true)
   const [showSunPath, setShowSunPath] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
+  const [floor, setFloor] = useState<FloorView>('exterior')
   const [view, setView] = useState<{ mode: '3d' | 'top'; revision: number }>({ mode: '3d', revision: 0 })
   function resetView(mode: '3d' | 'top') {
     setView(previous => ({ mode, revision: previous.revision + 1 }))
@@ -24,7 +26,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   return <>
     <div className="workspace building-workspace">
       <section className={`viewport building-viewport ${sun.isDaylight ? 'is-day' : 'is-night'}`} aria-label={t('building.sceneAria')}>
-        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} view={view} />
+        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} floor={floor} view={view} />
         <div className="viewport-top building-viewport-top">
           <div className="building-location"><span className="eyebrow">{t('building.locationEyebrow')}</span><strong>{BUILDING_SITE.address.split(' · ')[0]}</strong><small>{t('building.location')}</small></div>
           <div className="view-buttons" role="group" aria-label={t('building.camera')}>
@@ -46,6 +48,14 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
       </section>
 
       <aside className="inspector solar-inspector" aria-label={t('building.solarStudy')}>
+        <section className="floor-selector" aria-label={t('building.floors')}>
+          <span className="eyebrow">{t('building.floors')}</span>
+          <div className="season-presets floor-presets" role="group" aria-label={t('building.floors')}>
+            {([['exterior', 'building.floorExterior'], ['ground', 'building.floorGround'], ['first', 'building.floorFirst']] as const).map(([option, key]) =>
+              <button key={option} aria-pressed={floor === option} onClick={() => { setFloor(option); resetView('3d') }}>{t(key)}</button>)}
+          </div>
+          {floor !== 'exterior' && <p className="floor-note">{t('building.floorNote')}</p>}
+        </section>
         <div className="solar-heading"><span className="eyebrow">{t('building.solarStudy')}</span><h2>{t('building.annualLightLine1')}<br /> {t('building.annualLightLine2')}</h2><p>{t('building.sharedMoment')}</p></div>
 
         <SolarControls solar={solar} />
