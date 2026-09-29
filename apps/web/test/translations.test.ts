@@ -15,7 +15,7 @@ function placeholders(value: string) {
 
 test('every locale has exactly the source keys and interpolation arguments', () => {
   const source = flatten(resources.es)
-  for (const locale of ['en', 'fr'] as const) {
+  for (const locale of ['en'] as const) {
     const translated = flatten(resources[locale])
     assert.deepEqual(Object.keys(translated).sort(), Object.keys(source).sort(), `${locale} key parity`)
     for (const [key, value] of Object.entries(translated)) {
@@ -28,7 +28,7 @@ test('every locale has exactly the source keys and interpolation arguments', () 
 test('all bundled messages resolve without fallback or leaking interpolation tokens', async () => {
   const instance = createInstance()
   await instance.init({ resources, fallbackLng: false, initAsync: false, interpolation: { escapeValue: false } })
-  for (const locale of ['es', 'en', 'fr'] as const) {
+  for (const locale of ['es', 'en'] as const) {
     for (const namespace of ['common', 'workspace'] as const) {
       const catalog = resources[locale][namespace]
       for (const [key, value] of Object.entries(flatten(catalog))) {

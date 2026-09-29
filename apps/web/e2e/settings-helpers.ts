@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 
-export const languageLabel = /^(Language|Idioma|Langue)$/
+export const languageLabel = /^(Language|Idioma)$/
 export const appearanceLabel = /^(Appearance|Apariencia|Apparence)$/
 
 export async function openSettings(page: Page) {
@@ -15,7 +15,7 @@ export async function closeSettings(page: Page) {
   await expect(page.locator('.settings-dialog')).not.toBeVisible()
 }
 
-export async function setLanguage(page: Page, language: 'auto' | 'es' | 'en' | 'fr') {
+export async function setLanguage(page: Page, language: 'auto' | 'es' | 'en') {
   const dialog = await openSettings(page)
   await dialog.getByRole('combobox', { name: languageLabel }).selectOption(language)
   await closeSettings(page)

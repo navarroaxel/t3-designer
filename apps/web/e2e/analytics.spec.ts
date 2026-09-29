@@ -405,7 +405,6 @@ test('mobile choices and privacy controls remain keyboard accessible', async ({ 
 const privacyLanguages = [
   { locale: 'en-GB', language: 'en', heading: 'Privacy policy' },
   { locale: 'es-AR', language: 'es', heading: 'Política de privacidad' },
-  { locale: 'fr-FR', language: 'fr', heading: 'Politique de confidentialité' },
 ] as const
 
 for (const variant of privacyLanguages) {

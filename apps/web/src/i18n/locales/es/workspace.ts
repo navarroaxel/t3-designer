@@ -34,7 +34,6 @@ const workspace = {
     genCaveat: 'Es una estimación. Física de cielo despejado anclada al clima de 20 años de NASA POWER para este lugar, la sombra del entorno modelado y pérdidas típicas. Esperá ±10 a 15% en el año. No incluye edificios lejanos ni el clima de un día en particular.',
     floors: 'Pisos', floorExterior: 'Casa completa', floorGround: 'Planta baja', floorFirst: 'Primer piso',
     floorNote: 'Corte a 1,5 m sobre el piso. Solo muros exteriores, de 0,3 m supuestos; los tabiques interiores todavía no están modelados.',
-    footerTitle: 'Casa + sol', footerDescription: 'Medido sobre imágenes de Google Earth (2021) · Alturas y huellas de vecinos aproximadas',
   },
   solar: {
     chartAria: 'Altura del sol a lo largo del día; la marca señala la hora elegida',

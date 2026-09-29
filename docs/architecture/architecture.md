@@ -15,7 +15,7 @@ Three.js, through React Three Fiber, draws the scene.
 | `apps/web/src/components/BuildingContext.tsx` | Volumes, ground, streets and lot |
 | `apps/web/src/components/HouseFacade.tsx` | Front elevation: openings, balcony slab, roof fascia and railings |
 | `apps/web/src/components/SolarControls.tsx` | Date, time, season and daily-path controls |
-| `apps/web/src/i18n` | Spanish, English and French catalogs |
+| `apps/web/src/i18n` | Spanish and English catalogs |
 
 ## Coordinate and visibility contracts
 

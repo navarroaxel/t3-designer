@@ -12,7 +12,7 @@ export function PrivacyControls({ onOpenPrivacy, privacyPage = false }: {
 }) {
   const { i18n } = useTranslation('common')
   const language = i18n.resolvedLanguage
-  const copy = privacyCopy[language === 'fr' || language === 'en' ? language : 'es']
+  const copy = privacyCopy[language === 'en' ? language : 'es']
   const state = useSyncExternalStore(analytics.subscribe, analytics.getSnapshot)
   const id = useId()
   const dialog = useRef<HTMLDialogElement>(null)

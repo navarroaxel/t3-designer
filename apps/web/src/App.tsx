@@ -4,6 +4,7 @@ import { workspaceFromHash, type WorkspaceView } from './lib/workspace-view'
 import { useTranslation } from 'react-i18next'
 import { listenForLanguageChanges } from './i18n/preferences'
 import { ApplicationSettings } from './components/ApplicationSettings'
+import { LanguageToggle } from './components/LanguageToggle'
 import { listenForThemeChanges } from './lib/theme'
 import { PrivacyControls } from './components/PrivacyControls'
 import { analytics } from './lib/analytics'
@@ -15,7 +16,7 @@ const BuildingExplorer = lazy(() => import('./components/BuildingExplorer').then
 
 export default function App() {
   const { t, i18n } = useTranslation('common')
-  const privacy = privacyCopy[i18n.resolvedLanguage === 'es' || i18n.resolvedLanguage === 'fr' ? i18n.resolvedLanguage : 'en']
+  const privacy = privacyCopy[i18n.resolvedLanguage === 'es' ? i18n.resolvedLanguage : 'en']
   const solar = useSolarStudy()
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() => workspaceFromHash(window.location.hash))
   const [privacyPage, setPrivacyPage] = useState(() => isPrivacyPath(window.location.pathname))
@@ -68,9 +69,7 @@ export default function App() {
           {privacyPage ? <div className="privacy-brand-heading">T3 Designer</div> : <h1>T3 Designer <span className="stage-label">{t(`workspaces.${workspaceView}.title`)}</span></h1>}
         </div>
         <div className="header-actions">
-          <div className="project-details">
-            <span className="estimate-badge"><span /> {t(`workspaces.${workspaceView}.badge`)}</span>
-          </div>
+          <LanguageToggle />
           <ApplicationSettings />
         </div>
       </header>
