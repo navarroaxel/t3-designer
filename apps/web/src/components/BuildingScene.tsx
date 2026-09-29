@@ -7,6 +7,7 @@ import { BuildingContext, SiteGround, type FloorView } from './BuildingContext'
 import { BuildingLabelOverlay, BuildingLabelProjection, type BuildingLabel } from './BuildingLabels'
 import { getLocalDate, getSolarDay, type SolarPosition } from '../lib/solar'
 import { advanceCameraTransition, type CameraTransition } from '../lib/camera-transition'
+import { defaultCamera } from '../lib/default-camera'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
 import { WebGLGuard } from './WebGLGuard'
@@ -82,8 +83,9 @@ function Camera({ view }: Pick<BuildingSceneProps, 'view'>) {
     const control = controls.current
     if (!control) return
     const factor = Math.max(1, .95 / (Math.max(1, size.width) / Math.max(1, size.height)))
-    const position = view.mode === 'top' ? new Vector3(0, 125 * factor, .01) : new Vector3(-69 * factor, 55 * factor, 80 * factor)
-    const targetPosition = new Vector3(0, 3, 0)
+    const placement = defaultCamera(view.mode, factor)
+    const position = new Vector3(...placement.position)
+    const targetPosition = new Vector3(...placement.target)
     control.enableDamping = false
     control.update()
     if (!initialized.current) { camera.position.copy(position); control.target.copy(targetPosition); initialized.current = true }
@@ -114,7 +116,7 @@ export function BuildingScene(props: BuildingSceneProps) {
   ] : []
   return <div className="building-scene-surface">
     <WebGLGuard fallback={<div className="canvas-fallback">{t('building.canvasFallback')}</div>}>
-    <Canvas frameloop="demand" shadows="percentage" camera={{ fov: 43, near: .2, far: 1600, position: [-69, 55, 80] }} dpr={[1, 1.6]}
+    <Canvas frameloop="demand" shadows="percentage" camera={{ fov: 43, near: .2, far: 1600, position: defaultCamera('3d').position }} dpr={[1, 1.6]}
       fallback={<div className="canvas-fallback">{t('building.canvasFallback')}</div>}
       aria-label={t('building.canvasAria')}>
       <color attach="background" args={[sun.isDaylight ? '#e7eae2' : '#667482']} />
