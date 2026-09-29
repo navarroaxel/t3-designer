@@ -36,7 +36,7 @@ type PrivacyCopy = {
 const cnilComplaints = 'https://www.cnil.fr/fr/plaintes'
 
 /** Separate from the app's translation catalogs; operational facts have one source. */
-export const privacyCopy: Record<'es' | 'en' | 'fr', PrivacyCopy> = {
+export const privacyCopy: Record<'es' | 'en', PrivacyCopy> = {
   es: {
     preferences: 'Preferencias de privacidad',
     policy: 'Política de privacidad',
@@ -237,108 +237,6 @@ export const privacyCopy: Record<'es' | 'en' | 'fr', PrivacyCopy> = {
         title: 'Changes to this policy',
         paragraphs: [
           'The review date identifies the published information. Material changes to measurement or its purposes will be explained on this page and new consent will be requested where appropriate.',
-        ],
-      },
-    ],
-  },
-  fr: {
-    preferences: 'Préférences de confidentialité',
-    policy: 'Politique de confidentialité',
-    title: 'Mesure d’audience facultative',
-    introduction: 'Avec votre accord, nous utilisons Umami pour compter les visites et comprendre quelles fonctions de T3 Designer sont utiles. Avant votre acceptation, nous ne chargeons pas le traceur et n’envoyons aucune requête de mesure d’audience. Vous pouvez refuser et continuer à utiliser toute l’application.',
-    accept: 'Accepter la mesure d’audience',
-    reject: 'Refuser la mesure d’audience',
-    withdraw: 'Retirer mon accord',
-    close: 'Fermer la confidentialité',
-    backToApp: 'Revenir à T3 Designer',
-    pageIntro: 'Cette politique explique comment T3 Designer traite les données lors de votre visite, à quelles fins et comment exercer vos droits. La mesure d’audience est facultative et se gère séparément des enregistrements utilisés pour exploiter le site.',
-    pageAnalyticsOff: 'Cette page de confidentialité ne fait pas l’objet d’une mesure d’audience. Votre choix s’applique à votre retour dans l’application.',
-    contents: 'Sur cette page',
-    reviewedOnLabel: 'Dernière révision',
-    contactLabel: 'Contact pour la confidentialité',
-    choiceTitle: 'Votre choix',
-    choice: {
-      pending: 'Vous n’avez pas encore donné votre accord.',
-      accepted: 'Vous avez accepté la mesure d’audience facultative.',
-      rejected: 'Vous avez refusé la mesure d’audience facultative.',
-    },
-    status: {
-      available: '',
-      config: 'La mesure d’audience est désactivée : la configuration de ce site est désactivée ou incomplète.',
-      signals: 'Votre navigateur transmet Do Not Track ou Global Privacy Control. Nous respectons ce signal et maintenons la mesure d’audience désactivée.',
-      storage: 'Votre préférence ne peut pas être enregistrée ou lue de manière sûre. La mesure d’audience reste désactivée.',
-      tracker: 'Le traceur est indisponible ou bloqué. L’application continue de fonctionner.',
-    },
-    active: 'Mesure d’audience activée avec votre accord.',
-    inactive: 'Mesure d’audience désactivée.',
-    lifetime: 'Votre choix de mesure d’audience, la version de cette politique et sa date d’expiration sont conservés dans votre navigateur pendant {months} mois. Vous pouvez modifier votre choix à tout moment. À l’expiration, la mesure s’arrête et votre accord est à nouveau demandé.',
-    version: 'Version de la politique',
-    sections: [
-      {
-        id: 'controller',
-        title: 'Responsable et contact',
-        paragraphs: [
-          `${privacyDetails.controllerName} est le responsable du traitement des données de T3 Designer. Pour toute question de confidentialité ou pour exercer vos droits, utilisez les coordonnées indiquées sur cette page.`,
-        ],
-      },
-      {
-        id: 'analytics',
-        title: 'Mesure d’audience facultative',
-        paragraphs: [
-          'Avec votre consentement, Umami mesure les visites et l’ouverture de l’étude solaire. La finalité est de comprendre l’utilisation du site et d’améliorer ses fonctions. Cette mesure repose sur votre consentement, conformément à l’article 6, paragraphe 1, point a, du RGPD.',
-          'Seuls des sections et événements prédéfinis sont utilisés, sans transmettre de noms, d’emails, de texte libre, de coordonnées GPS ni d’identifiants personnels personnalisés. Les adresses de mesure excluent les paramètres et fragments ; la page de provenance est également omise. Nous n’enregistrons ni les sessions, ni les mouvements du curseur, ni chaque réglage des contrôles.',
-          'Les requêtes arrivent au serveur avec des données de connexion, telles que l’adresse IP et les en-têtes du navigateur. Umami peut en déduire des informations techniques et une localisation approximative : pays, région ou ville, selon la configuration. Nous ne demandons pas la géolocalisation du navigateur.',
-        ],
-      },
-      {
-        id: 'choices',
-        title: 'Consentement et préférences locales',
-        paragraphs: [
-          'La mesure commence uniquement après acceptation. Le refus ne limite pas l’accès à l’application. Vous pouvez retirer votre accord à tout moment dans « Préférences de confidentialité » ; les nouveaux envois s’arrêtent sans perdre le travail ouvert. Le retrait ne remet pas en cause la licéité des traitements antérieurs et n’efface pas automatiquement les données déjà reçues.',
-          `Nous respectons Do Not Track et Global Privacy Control et ne cherchons pas à contourner les bloqueurs. Votre choix de mesure d’audience, la version de la politique et sa date d’expiration sont conservés uniquement dans ce navigateur pendant ${CONSENT_MONTHS} mois. Ce délai est distinct de la conservation des données sur le serveur.`,
-          'Si vous choisissez une langue, l’application la mémorise également localement jusqu’à la sélection du mode « Automatique » ou à l’effacement des données du site. Cette préférence fonctionnelle n’est pas transmise comme événement de mesure d’audience.',
-        ],
-      },
-      {
-        id: 'operational-logs',
-        title: 'Journaux opérationnels',
-        paragraphs: [
-          'L’infrastructure produit des enregistrements techniques pour maintenir la disponibilité, protéger le service et diagnostiquer les incidents. Les journaux Traefik contiennent des adresses IP et des en-têtes et sont centralisés dans Loki.',
-          'Ces enregistrements peuvent être produits lors de votre visite même si vous refusez Umami. La préférence de mesure d’audience ne les désactive pas. Ils ne sont pas présentés comme anonymes ni comme faisant partie de la mesure facultative.',
-        ],
-      },
-      {
-        id: 'hosting',
-        title: 'Hébergement et destinataires',
-        paragraphs: [
-          `L’infrastructure d’hébergement se trouve à Helsinki, en Finlande (Union européenne), chez ${privacyDetails.hostingProvider}. Umami et les journaux centralisés y sont également hébergés, dans l’infrastructure administrée par le responsable du traitement.`,
-          'Les destinataires sont le responsable du traitement et les prestataires d’infrastructure intervenant dans la fourniture du service. Le périmètre des accès de support et les éventuels transferts internationaux supplémentaires restent en cours de vérification ; les traitements ne sont pas présentés comme entièrement limités aux pays d’hébergement indiqués.',
-        ],
-      },
-      {
-        id: 'retention',
-        title: 'Conservation des données',
-        paragraphs: [
-          `Loki est configuré pour conserver les journaux opérationnels pendant ${privacyDetails.operationalLogsRetentionDays} jours. Ce délai concerne les journaux centralisés dans Loki, et non toutes les copies présentes dans l’infrastructure.`,
-          'L’activation d’Umami pour T3 est en attente. Sa durée de conservation et de suppression doit être définie et vérifiée avant l’activation de la mesure.',
-          'La conservation des journaux locaux et des sauvegardes reste à vérifier. Aucun délai de suppression automatique n’a été vérifié pour ces copies.',
-        ],
-      },
-      {
-        id: 'rights',
-        title: 'Vos droits',
-        paragraphs: [
-          'Vous pouvez demander l’accès, la rectification, l’effacement et la limitation du traitement de vos données. Vous pouvez également exercer les droits d’opposition et de portabilité lorsqu’ils s’appliquent. Pour toute demande, contactez le responsable aux coordonnées indiquées ci-dessus.',
-          'Seules les informations nécessaires au traitement de la demande seront sollicitées, y compris pour confirmer votre identité en cas de doute raisonnable. Certaines données de mesure peuvent ne pas permettre de relier une visite à une personne ; si cela empêche de donner suite à une demande, le motif sera expliqué. La mesure d’audience n’est pas enrichie dans le seul but d’identifier les visiteurs.',
-          'Vous pouvez introduire une réclamation auprès de l’autorité de protection des données compétente, notamment la CNIL en France. L’application ne prend aucune décision automatisée produisant des effets juridiques ou similaires significatifs sur les visiteurs.',
-        ],
-        links: [{ label: 'Adresser une plainte à la CNIL', href: cnilComplaints }],
-      },
-      {
-        id: 'changes',
-        title: 'Modifications de cette politique',
-        paragraphs: [
-          'La date de révision identifie les informations publiées. Les modifications importantes de la mesure ou de ses finalités seront expliquées sur cette page et un nouveau consentement sera demandé lorsque cela est nécessaire.',
         ],
       },
     ],

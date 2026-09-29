@@ -27,6 +27,5 @@ export default {
     changed: 'Idioma cambiado a {{language}}',
     es: 'Español',
     en: 'English',
-    fr: 'Français',
   },
 } as const

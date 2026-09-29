@@ -64,7 +64,7 @@ test('the structured data is valid JSON describing the app', () => {
   assert.ok(json, 'JSON-LD present')
   const data = JSON.parse(json)
   assert.equal(data['@type'], 'WebApplication')
-  assert.deepEqual(data.inLanguage, ['es', 'en', 'fr'])
+  assert.deepEqual(data.inLanguage, ['es', 'en'])
   assert.equal(data.isAccessibleForFree, true)
 })
 

@@ -11,7 +11,7 @@ export function PrivacyPage({ workspace, onReturn }: {
   onReturn: (event: MouseEvent<HTMLAnchorElement>) => void
 }) {
   const { i18n } = useTranslation('common')
-  const locale = i18n.resolvedLanguage === 'es' || i18n.resolvedLanguage === 'fr' ? i18n.resolvedLanguage : 'en'
+  const locale = i18n.resolvedLanguage === 'es' ? i18n.resolvedLanguage : 'en'
   const copy = privacyCopy[locale]
   const heading = useRef<HTMLHeadingElement>(null)
 

@@ -1,9 +1,9 @@
-export const supportedLocales = ['es', 'en', 'fr'] as const
+export const supportedLocales = ['es', 'en'] as const
 export type Locale = typeof supportedLocales[number]
 export type LanguagePreference = Locale | 'auto'
 export const fallbackLocale: Locale = 'en'
 export const languageStorageKey = 't3-designer.language'
-export const formattingLocales: Record<Locale, string> = { es: 'es-ES', en: 'en-GB', fr: 'fr-FR' }
+export const formattingLocales: Record<Locale, string> = { es: 'es-ES', en: 'en-GB' }
 
 export function isLocale(value: unknown): value is Locale {
   return supportedLocales.some(locale => locale === value)

@@ -34,11 +34,11 @@ test('persists appearance and language while preserving the current workspace', 
   await page.locator('#solar-time').fill('15:30')
   const dialog = await openSettings(page)
   await dialog.getByRole('combobox', { name: appearanceLabel }).selectOption('dark')
-  await dialog.getByRole('combobox', { name: languageLabel }).selectOption('fr')
-  await expect(dialog.getByRole('button', { name: 'Fermer les paramètres', exact: true })).toBeVisible()
+  await dialog.getByRole('combobox', { name: languageLabel }).selectOption('es')
+  await expect(dialog.getByRole('button', { name: 'Cerrar ajustes', exact: true })).toBeVisible()
   await expect(dialog.locator('.settings-feedback')).toHaveAttribute('role', 'status')
   await expect(dialog.locator('.settings-feedback')).not.toHaveText('')
-  await dialog.getByRole('button', { name: 'Fermer les paramètres', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Cerrar ajustes', exact: true }).click()
   await expect(dialog).not.toBeVisible()
   await expect(page.locator('#solar-date')).toHaveValue('2026-12-21')
   await expect(page.locator('#solar-time')).toHaveValue('15:30')
@@ -47,11 +47,11 @@ test('persists appearance and language while preserving the current workspace', 
 
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es')
   await expect(page).toHaveURL(/#building$/)
   await openSettings(page)
   await expect(dialog.getByRole('combobox', { name: appearanceLabel })).toHaveValue('dark')
-  await expect(dialog.getByRole('combobox', { name: languageLabel })).toHaveValue('fr')
+  await expect(dialog.getByRole('combobox', { name: languageLabel })).toHaveValue('es')
 })
 
 test('synchronizes appearance across tabs and returns to system on removal or clear', async ({ page, context }) => {
@@ -156,7 +156,7 @@ test('settings and their controls remain usable on a narrow viewport', async ({ 
   await page.setViewportSize({ width: 320, height: 568 })
   await page.goto('/#building')
   const dialog = await openSettings(page)
-  await dialog.getByRole('combobox', { name: languageLabel }).selectOption('fr')
+  await dialog.getByRole('combobox', { name: languageLabel }).selectOption('es')
   await dialog.getByRole('combobox', { name: appearanceLabel }).selectOption('dark')
   for (const element of [dialog, ...await dialog.getByRole('combobox').all()]) {
     const bounds = await element.boundingBox()
@@ -167,7 +167,7 @@ test('settings and their controls remain usable on a narrow viewport', async ({ 
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(568)
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
-  await dialog.getByRole('button', { name: 'Fermer les paramètres', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Cerrar ajustes', exact: true }).click()
   await expect(dialog).not.toBeVisible()
   await expect(page.locator('.settings-trigger')).toBeFocused()
 })

@@ -8,7 +8,7 @@ The port uses local React components and T3 colors without a sibling-repository
 runtime dependency.
 
 General contains Appearance (System, Light, Dark) and Language (Browser language,
-Español, English, Français). All labels and feedback follow the selected language.
+Español, English). All labels and feedback follow the selected language.
 Changes take effect immediately, persist locally, and synchronize across tabs on
 the same origin. If storage is blocked, changes still apply to the current page
 and the modal reports that they could not be saved.

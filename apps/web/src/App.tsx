@@ -15,7 +15,7 @@ const BuildingExplorer = lazy(() => import('./components/BuildingExplorer').then
 
 export default function App() {
   const { t, i18n } = useTranslation('common')
-  const privacy = privacyCopy[i18n.resolvedLanguage === 'es' || i18n.resolvedLanguage === 'fr' ? i18n.resolvedLanguage : 'en']
+  const privacy = privacyCopy[i18n.resolvedLanguage === 'es' ? i18n.resolvedLanguage : 'en']
   const solar = useSolarStudy()
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() => workspaceFromHash(window.location.hash))
   const [privacyPage, setPrivacyPage] = useState(() => isPrivacyPath(window.location.pathname))
