@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -104,15 +104,15 @@ test('outlines that are not axis-aligned are rejected', () => {
   assert.throws(() => wallBoxes([[0, 0], [4, 1], [4, 5], [0, 5]], [], 0, 1), /axis-aligned/)
 })
 
-test('the rear wall has a 1.78 m door centred on the terrace and a 1.64 m by 2.3 m window centred on the light well', () => {
+test('the rear wall has a 1.78 m door centred on the terrace and a 2.3 m by 1.64 m window centred on the light well', () => {
   const rear = OPENINGS.first.filter(opening => opening.u === 4)
   assert.equal(rear.length, 2)
   const [door, window] = rear.sort((a, b) => a.v[0] - b.v[0])
   assert.ok(Math.abs(door.v[1] - door.v[0] - 1.78) < 1e-9)
   assert.ok(Math.abs((door.v[0] + door.v[1]) / 2 - (houseSouthWestEdge(1.8) - 1) / 2) < 1e-9, 'door centred on the terrace')
-  assert.ok(Math.abs(window.v[1] - window.v[0] - 1.64) < 1e-9)
+  assert.ok(Math.abs(window.v[1] - window.v[0] - 2.3) < 1e-9)
   assert.ok(Math.abs((window.v[0] + window.v[1]) / 2 - .25) < 1e-9, 'window centred on the light well (v = -1 to 1.5)')
-  assert.ok(Math.abs(window.y[1] - window.y[0] - 2.3) < 1e-9)
+  assert.ok(Math.abs(window.y[1] - window.y[0] - 1.64) < 1e-9)
   // The openings are cut out of the rear wall of the first floor.
   const boxes = wallBoxes(FIRST_OUTLINE, OPENINGS.first, FLOOR_HEIGHT, FLOOR_HEIGHT + CUT_HEIGHT)
   assert.ok(boxes.length > 4)
@@ -122,7 +122,8 @@ test('the front rooms of the first floor have the owner\'s sizes and fit inside 
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   const { main, secondary } = FRONT_ROOMS
   near(main.v[1] - main.v[0], 5.12); near(main.u[1] - main.u[0], 4.54)
-  near(secondary.v[1] - secondary.v[0], 3.09); near(secondary.u[1] - secondary.u[0], 3.41)
+  near(secondary.u[1] - secondary.u[0], 3.41)
+  assert.ok(Math.abs(secondary.v[1] - secondary.v[0] - 3.09) < .12, 'the leaning party wall costs about 0.1 m')
   // The main room is on the north-east (left from the street) and holds the 3 m balcony door.
   assert.ok(main.v[0] > secondary.v[1])
   const balcony = OPENINGS.first.find(opening => opening.u === -5 && opening.v[1] - opening.v[0] > 2.9)!
@@ -134,4 +135,111 @@ test('the front rooms of the first floor have the owner\'s sizes and fit inside 
   // Both rooms sit within the first floor's outline.
   assert.ok(secondary.v[0] >= houseSouthWestEdge(-5) + WALL_THICKNESS - .05)
   assert.ok(main.v[1] <= 4.475 - WALL_THICKNESS + 1e-9)
+})
+
+test('the first-floor slab covers the entrance recess, which the ground outline leaves open', () => {
+  const [, , , recessTop] = ENTRY_RECESS_OUTLINE
+  // 1 m deep between the entrance's pier and the flush wall.
+  assert.ok(Math.abs(polygonArea(ENTRY_RECESS_OUTLINE)) > 1 && Math.abs(polygonArea(ENTRY_RECESS_OUTLINE)) < 4)
+  const us = ENTRY_RECESS_OUTLINE.map(point => point[0]), vs = ENTRY_RECESS_OUTLINE.map(point => point[1])
+  assert.ok(Math.abs(Math.max(...us) - Math.min(...us) - 1) < 1e-9)
+  // The recess lies inside the first floor's block, over the main room's side of the front.
+  assert.ok(Math.min(...vs) >= -4.475 && Math.max(...vs) <= 4.475 && recessTop[0] <= 4)
+  // Ground outline plus recess fills the front of the first-floor block: the notch is exactly this rectangle.
+  const groundFrontVs = GROUND_OUTLINE.filter(point => point[0] <= -4 && point[0] >= -5).map(point => point[1])
+  assert.ok(groundFrontVs.includes(Math.max(...vs)) && groundFrontVs.includes(Math.min(...vs)))
+})
+
+test('the secondary room has a 0.60 m by 2.16 m wardrobe recessed behind its back face, flush with the party wall', () => {
+  const { secondary } = FRONT_ROOMS
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(SECONDARY_WARDROBE.u[1] - SECONDARY_WARDROBE.u[0], .6)
+  near(SECONDARY_WARDROBE.v[1] - SECONDARY_WARDROBE.v[0], 2.16)
+  // Opposite the window, recessed behind the room's back face, on the party-wall (south-west) side.
+  near(SECONDARY_WARDROBE.u[0], secondary.u[1])
+  near(SECONDARY_WARDROBE.v[0], secondary.v[0])
+  assert.ok(SECONDARY_WARDROBE.v[1] < secondary.v[1], 'it leaves part of the wall free')
+  // The room keeps its size.
+  near(secondary.u[1] - secondary.u[0], 3.41)
+  assert.ok(Math.abs(secondary.v[1] - secondary.v[0] - 3.09) < .12, 'the leaning party wall costs about 0.1 m')
+})
+
+test('the bathroom is 2.16 m by 1.50 m, behind the wardrobe and against the party wall', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  const { secondary } = FRONT_ROOMS
+  near(FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0], 2.16)
+  near(FIRST_FLOOR_BATHROOM.u[1] - FIRST_FLOOR_BATHROOM.u[0], 1.5)
+  // Flush with the party wall, as wide as the wardrobe, and on the far side of the room's back wall.
+  near(FIRST_FLOOR_BATHROOM.v[0], secondary.v[0])
+  near(FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0], SECONDARY_WARDROBE.v[1] - SECONDARY_WARDROBE.v[0])
+  // It starts after the wardrobe's recess and the wardrobe's 0.12 m back panel.
+  near(FIRST_FLOOR_BATHROOM.u[0], SECONDARY_WARDROBE.u[1] + .12)
+  // It stays clear of the main room and inside the first floor's block (u up to 4).
+  assert.ok(FIRST_FLOOR_BATHROOM.v[1] + .12 < FRONT_ROOMS.main.v[0] - .12)
+  assert.ok(FIRST_FLOOR_BATHROOM.u[1] + .12 <= 4)
+  // Its back wall is one of the partitions, closing the full width plus the north-east wall.
+  assert.ok(FIRST_FLOOR_PARTITIONS.some(([u0, , v0, v1]) => Math.abs(u0 - FIRST_FLOOR_BATHROOM.u[1]) < 1e-9 && v0 <= FIRST_FLOOR_BATHROOM.v[0] + 1e-9 && v1 >= FIRST_FLOOR_BATHROOM.v[1]))
+})
+
+test('the secondary room\'s 0.70 m door is on the back wall, next to the wardrobe on its north-east side', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  const { secondary } = FRONT_ROOMS
+  near(SECONDARY_DOOR.v[1] - SECONDARY_DOOR.v[0], .7)
+  near(SECONDARY_DOOR.u[0], secondary.u[1])
+  assert.ok(SECONDARY_DOOR.v[0] >= SECONDARY_WARDROBE.v[1], 'to the left of the wardrobe, seen from the window')
+  assert.ok(SECONDARY_DOOR.v[1] <= secondary.v[1], 'and inside the room\'s width')
+  // No partition blocks the door.
+  for (const [u0, u1, v0, v1] of FIRST_FLOOR_PARTITIONS) {
+    const overlapsU = u0 < SECONDARY_DOOR.u[1] - 1e-9 && u1 > SECONDARY_DOOR.u[0] + 1e-9
+    const overlapsV = v0 < SECONDARY_DOOR.v[1] - 1e-9 && v1 > SECONDARY_DOOR.v[0] + 1e-9
+    assert.ok(!(overlapsU && overlapsV), 'the door opening is free of walls')
+  }
+})
+
+test('the single bed has its head against the party wall, centred on it, and clears the wardrobe and the door', () => {
+  const { secondary } = FRONT_ROOMS
+  const near = (p: number, q: number) => assert.ok(Math.abs(p - q) < 1e-9, `${p} vs ${q}`)
+  assert.ok(SECONDARY_BED.u[0] >= secondary.u[0] - 1e-9 && SECONDARY_BED.u[1] <= secondary.u[1])
+  assert.ok(SECONDARY_BED.v[0] >= secondary.v[0] - 1e-9 && SECONDARY_BED.v[1] <= secondary.v[1])
+  // 1 plaza: 0.90 m by 1.90 m, the long side running away from the wall.
+  near(SECONDARY_BED.u[1] - SECONDARY_BED.u[0], .9); near(SECONDARY_BED.v[1] - SECONDARY_BED.v[0], 1.9)
+  // Head against the party wall, and centred on the wall's length (the room's depth).
+  near(SECONDARY_BED.v[0], secondary.v[0])
+  near((SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, (secondary.u[0] + secondary.u[1]) / 2)
+  // The wardrobe's leaves stay clear, and so does the door on the back wall.
+  assert.ok(SECONDARY_WARDROBE.u[0] - SECONDARY_BED.u[1] >= 1)
+  assert.ok(SECONDARY_BED.v[1] < SECONDARY_DOOR.v[0])
+})
+
+test('nothing in the secondary room or the bathroom enters the party wall', () => {
+  const inner = FIRST_OUTLINE[0][1] + WALL_THICKNESS
+  for (const [name, v0] of [
+    ['room', FRONT_ROOMS.secondary.v[0]], ['wardrobe', SECONDARY_WARDROBE.v[0]], ['bed', SECONDARY_BED.v[0]], ['bathroom', FIRST_FLOOR_BATHROOM.v[0]],
+  ] as const) assert.ok(v0 >= inner - 1e-9, `${name} stays inside the party wall's inner face`)
+  // The door still fits in the wall beside the wardrobe.
+  assert.ok(SECONDARY_DOOR.v[0] >= SECONDARY_WARDROBE.v[1] + .12 - 1e-9 && SECONDARY_DOOR.v[1] <= FRONT_ROOMS.secondary.v[1] + 1e-9)
+})
+
+test('the wardrobe has three doors of two leaves that fill its width without overlapping', () => {
+  assert.equal(WARDROBE_LEAVES.length, 6)
+  for (const [index, [v0, v1]] of WARDROBE_LEAVES.entries()) {
+    assert.ok(v1 > v0 && v0 >= SECONDARY_WARDROBE.v[0] && v1 <= SECONDARY_WARDROBE.v[1], `leaf ${index} inside the wardrobe`)
+    if (index > 0) assert.ok(v0 >= WARDROBE_LEAVES[index - 1][1], `leaf ${index} clear of the previous one`)
+  }
+  const width = WARDROBE_LEAVES[0][1] - WARDROBE_LEAVES[0][0]
+  assert.ok(Math.abs(width - (2.16 / 6 - .005)) < 1e-9, 'six equal leaves')
+})
+
+test('the kitchen-living is one long room from party wall to party wall behind the bathroom', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(KITCHEN_LIVING.v[0], FIRST_FLOOR_BATHROOM.v[0])
+  near(KITCHEN_LIVING.v[1], 4.475 - .3)
+  near(KITCHEN_LIVING.u[0], FIRST_FLOOR_BATHROOM.u[1] + .12)
+  // 8.2 m across and about 2.7 m deep: a long room.
+  assert.ok(KITCHEN_LIVING.v[1] - KITCHEN_LIVING.v[0] > 8 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] > 2.5 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] < 3)
+  // The wall in front of it runs the whole width; nothing partitions the room itself.
+  assert.ok(FIRST_FLOOR_PARTITIONS.some(([u0, , v0, v1]) => Math.abs(u0 - FIRST_FLOOR_BATHROOM.u[1]) < 1e-9 && v0 <= KITCHEN_LIVING.v[0] + 1e-9 && v1 >= KITCHEN_LIVING.v[1] - 1e-9))
+  assert.ok(FIRST_FLOOR_PARTITIONS.every(([u0]) => u0 < KITCHEN_LIVING.u[0]))
+  // The terrace door and the light-well window are in it.
+  for (const opening of OPENINGS.first.filter(item => item.u === 4)) assert.ok(opening.v[0] >= KITCHEN_LIVING.v[0] && opening.v[1] <= KITCHEN_LIVING.v[1])
 })

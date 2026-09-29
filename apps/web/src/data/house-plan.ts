@@ -31,12 +31,18 @@ export const GROUND_OUTLINE: PlanPoint[] = [
 // First floor: the 9 m x 8.5 m block under the azotea (the roof adds a 1 m cantilever in front); the house fills the 8.95 m lot.
 export const FIRST_OUTLINE: PlanPoint[] = [[-5, SW], [4, SW], [4, HALF], [-5, HALF]]
 
+/**
+ * The entrance recess is open at ground level, but the first floor is built over it (HOUSE-ENTRY), so
+ * the first-floor slab covers it too: the ground outline plus this rectangle.
+ */
+export const ENTRY_RECESS_OUTLINE: PlanPoint[] = [[-5, inner], [-5 + setback, inner], [-5 + setback, outer], [-5, outer]]
+
 export const OUTLINES: Record<Floor, PlanPoint[]> = { ground: GROUND_OUTLINE, first: FIRST_OUTLINE }
 export const FLOOR_LEVEL: Record<Floor, number> = { ground: 0, first: FLOOR_HEIGHT }
 
-const REAR_DOOR_WIDTH = 1.78, REAR_WINDOW_WIDTH = 1.64, REAR_WINDOW_HEIGHT = 2.3
+const REAR_DOOR_WIDTH = 1.78, REAR_WINDOW_WIDTH = 2.3, REAR_WINDOW_HEIGHT = 1.64
 /** The window's sill is assumed: the owner gave its size, not its height above the floor. */
-const REAR_WINDOW_SILL = .3
+const REAR_WINDOW_SILL = .9
 const TERRACE_CENTRE = (SW + -1) / 2
 const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
 
@@ -54,7 +60,7 @@ export const OPENINGS: Record<Floor, Opening[]> = {
     { u: -5, v: [.1, 3.1], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] }, // 3 m balcony door
     { u: -5, v: [SECONDARY_WINDOW_CENTRE - 1.02, SECONDARY_WINDOW_CENTRE + 1.02], y: [FLOOR_HEIGHT + .7, FLOOR_HEIGHT + 1.6] }, // 2.04 m window of the secondary room
     // Rear wall, u = 4 (owner): a 1.78 m balcony door centred on the terrace, which spans from the south-west
-    // wall to v = -1, and a 1.64 m by 2.3 m window centred on the ground-floor light well (v = -1 to 1.5).
+    // wall to v = -1, and a 2.3 m wide by 1.64 m high window centred on the ground-floor light well (v = -1 to 1.5).
     { u: 4, v: [TERRACE_CENTRE - REAR_DOOR_WIDTH / 2, TERRACE_CENTRE + REAR_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
     { u: 4, v: [LIGHT_WELL_CENTRE - REAR_WINDOW_WIDTH / 2, LIGHT_WELL_CENTRE + REAR_WINDOW_WIDTH / 2], y: [FLOOR_HEIGHT + REAR_WINDOW_SILL, FLOOR_HEIGHT + REAR_WINDOW_SILL + REAR_WINDOW_HEIGHT] },
   ],
@@ -130,14 +136,70 @@ export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number,
 export const PARTITION_THICKNESS = .12
 const INNER_FRONT = -5 + WALL_THICKNESS
 const MAIN_ROOM = { width: 5.12, depth: 4.54 }
-const SECONDARY_ROOM = { width: 3.09, depth: 3.41 }
+const SECONDARY_ROOM = { width: 3.09, depth: 3.41 } // 3.09 m at the front; see FRONT_ROOMS for the drawn width
 const NE_INNER = HALF - WALL_THICKNESS
 export const FRONT_ROOMS = {
   main: { u: [INNER_FRONT, INNER_FRONT + MAIN_ROOM.depth] as [number, number], v: [NE_INNER - MAIN_ROOM.width, NE_INNER] as [number, number] },
   secondary: {
     u: [INNER_FRONT, INNER_FRONT + SECONDARY_ROOM.depth] as [number, number],
-    v: [NE_INNER - MAIN_ROOM.width - PARTITION_THICKNESS - SECONDARY_ROOM.width, NE_INNER - MAIN_ROOM.width - PARTITION_THICKNESS] as [number, number],
+    // On the south-west the room is bounded by the party wall as drawn, at its mean position: the lot leans,
+    // so the room is about 0.1 m narrower than the 3.09 m taken at the front, and nothing may enter the wall.
+    v: [SW + WALL_THICKNESS, NE_INNER - MAIN_ROOM.width - PARTITION_THICKNESS] as [number, number],
   },
+}
+/**
+ * The secondary room's built-in wardrobe (owner): 0.60 m deep and 2.16 m wide, recessed into the wall
+ * behind the room's back face, facing the window, and flush with the party wall on the south-west. It
+ * takes its depth from the bathroom behind it, so the room keeps its size.
+ */
+export const WARDROBE = { depth: .6, width: 2.16, height: 2.4 }
+/** Three doors of two leaves each across the wardrobe's width: six leaves, each with a 5 mm reveal. */
+export const WARDROBE_DOORS = { doors: 3, leavesPerDoor: 2, reveal: .005 }
+export const SECONDARY_WARDROBE = {
+  u: [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + WARDROBE.depth] as [number, number],
+  v: [FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[0] + WARDROBE.width] as [number, number],
+}
+
+/** Leaf spans along v, each [v0, v1], from the party wall outward. */
+const LEAF_COUNT = WARDROBE_DOORS.doors * WARDROBE_DOORS.leavesPerDoor
+export const WARDROBE_LEAVES: [number, number][] = Array.from({ length: LEAF_COUNT }, (_, index) => {
+  const width = WARDROBE.width / LEAF_COUNT
+  return [SECONDARY_WARDROBE.v[0] + index * width + WARDROBE_DOORS.reveal / 2, SECONDARY_WARDROBE.v[0] + (index + 1) * width - WARDROBE_DOORS.reveal / 2] as [number, number]
+})
+
+/**
+ * The secondary room's door (owner): 0.70 m wide, wenge-textured, on the room's back wall to the north-east
+ * (left, seen from the window) of the wardrobe, centred in the 0.81 m of wall left beside it.
+ */
+export const SECONDARY_DOOR_WIDTH = .7
+export const SECONDARY_DOOR_COLOR = '#3d2b22'
+const doorSpan: [number, number] = [SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, FRONT_ROOMS.secondary.v[1]]
+export const SECONDARY_DOOR = {
+  u: [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS] as [number, number],
+  v: [(doorSpan[0] + doorSpan[1]) / 2 - SECONDARY_DOOR_WIDTH / 2, (doorSpan[0] + doorSpan[1]) / 2 + SECONDARY_DOOR_WIDTH / 2] as [number, number],
+  y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] as [number, number],
+}
+
+/**
+ * A single bed in the secondary room (owner: one 1-plaza bed): 0.90 m by 1.90 m and 0.5 m high, with its
+ * head against the party wall (south-west) and centred on that wall's length.
+ */
+export const SINGLE_BED = { width: .9, length: 1.9, height: .5 }
+const roomMiddleU = (FRONT_ROOMS.secondary.u[0] + FRONT_ROOMS.secondary.u[1]) / 2
+export const SECONDARY_BED = {
+  u: [roomMiddleU - SINGLE_BED.width / 2, roomMiddleU + SINGLE_BED.width / 2] as [number, number],
+  v: [FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[0] + SINGLE_BED.length] as [number, number],
+}
+
+/**
+ * The bathroom (owner): behind the wardrobe, against the party wall, 2.16 m along the front and
+ * 1.50 m deep inside, after the wardrobe's 0.60 m that it gives up.
+ */
+export const BATHROOM = { width: 2.16, depth: 1.5 }
+const bathroomU0 = SECONDARY_WARDROBE.u[1] + PARTITION_THICKNESS
+export const FIRST_FLOOR_BATHROOM = {
+  u: [bathroomU0, bathroomU0 + BATHROOM.depth] as [number, number],
+  v: [FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[0] + BATHROOM.width] as [number, number],
 }
 /** Interior walls of the first floor as [u0, u1, v0, v1]. */
 export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
@@ -145,6 +207,25 @@ export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
   [FRONT_ROOMS.main.u[0], FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS, FRONT_ROOMS.main.v[0]],
   // The main room's back wall.
   [FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[1]],
-  // The secondary room's back wall.
-  [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[1]],
+  // The secondary room's back wall, beside the wardrobe's recess.
+  // Two short returns either side of the door.
+  [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, SECONDARY_DOOR.v[0]],
+  [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, SECONDARY_DOOR.v[1], FRONT_ROOMS.secondary.v[1]],
+  // The north-east wall of the wardrobe and the bathroom, running from the room's back face to the bathroom's back wall.
+  [FRONT_ROOMS.secondary.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[1], SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS],
+  // The wardrobe's back panel, which is the bathroom's front wall.
+  [SECONDARY_WARDROBE.u[1], SECONDARY_WARDROBE.u[1] + PARTITION_THICKNESS, SECONDARY_WARDROBE.v[0], SECONDARY_WARDROBE.v[1]],
+  // The bathroom's back wall.
+  // The bathroom's back wall continues from party wall to party wall: behind it is the kitchen-living.
+  [FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.v[0], NE_INNER],
 ]
+
+
+/**
+ * The kitchen-living (owner): one long room from party wall to party wall, between that wall and the
+ * rear wall of the first floor. It holds the terrace door and the light-well window.
+ */
+export const KITCHEN_LIVING = {
+  u: [FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, 4 - WALL_THICKNESS] as [number, number],
+  v: [FIRST_FLOOR_BATHROOM.v[0], NE_INNER] as [number, number],
+}
