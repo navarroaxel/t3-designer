@@ -166,10 +166,11 @@ export function SiteGround() {
  * physical obstacles used by the sunlight pass. */
 export type FloorView = 'exterior' | Floor
 
-export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, floor = 'exterior' }: {
+export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, panelShade = null, floor = 'exterior' }: {
   visible?: boolean
   showNeighbors?: boolean
   showPanels?: boolean
+  panelShade?: Record<string, number> | null
   floor?: FloorView
 }) {
   const house = useMemo(() => SITE_BUILDINGS.filter(isHouse), [])
@@ -188,7 +189,7 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
         ? <>
             {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
             <HouseFacade />
-            {showPanels && <SolarPanels />}
+            {showPanels && <SolarPanels shade={panelShade} />}
           </>
         : <HouseShell floor={floor} />}
       {showNeighbors && <NeighborFacades />}

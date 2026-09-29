@@ -48,7 +48,8 @@ saving).
 Coordinates are metres, with x east, y up and z south. The origin is the centre
 of the Google Earth view that frames the house. See the
 [architecture guide](docs/architecture/architecture.md) and the
-[solar model](docs/model/solar-model.md).
+[solar model](docs/model/solar-model.md) and the
+[generation estimate](docs/model/generation.md).
 
 ## The model and its limits
 

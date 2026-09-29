@@ -1,0 +1,41 @@
+/**
+ * Parameters of the photovoltaic model. Each one is either stated by the owner or a
+ * typical value that should be replaced by the datasheet or measurements; the
+ * provenance is in docs/model/generation.md.
+ */
+export const PV_SYSTEM = {
+  /** Atmosphere. Linke turbidity 3.0 reproduces NASA's clear-sky monthly totals within 3 %. */
+  site: { altitudeM: 25, linkeTurbidity: 3 },
+  /** Overcast sky: no direct beam; the diffuse light is this share of the clear-sky global. */
+  overcastTransmittance: .25,
+  /** Reflectance of the painted white azotea under the raised panels. It barely matters at 5 degrees. */
+  albedo: .5,
+  /** ASHRAE incidence-angle loss coefficient of the glass. */
+  iamB0: .05,
+  temperature: {
+    /** Nominal operating cell temperature, degrees C. */
+    noct: 45,
+    /** Power change per kelvin above 25 degrees C. Typical of N-type modules. */
+    coefficientPerK: -.003,
+    /** Day and night swing around the monthly mean, peaking mid-afternoon. */
+    dailySwingK: 4.5,
+    peakHour: 15,
+  },
+  /**
+   * Losses other than shading, temperature and the inverter, as factors. All are typical values:
+   * dust on the glass, DC cables, mismatch between panels beyond the shading, first-year light
+   * degradation, lower efficiency in weak light and spectrum, and the inverter's availability and tracking.
+   */
+  losses: { soiling: .98, wiring: .985, mismatch: .99, quality: .99, weakLight: .985, availability: .99 },
+  /** 10 kW Deye inverter. The efficiency is typical; the clipping limit is its rating. */
+  inverter: { efficiency: .97, maxAcW: 10_000 },
+  /**
+   * The two series of 8 panels, by panel id. The owner says two series; which panels form
+   * each one is assumed: the front row and the two south-west panels of the middle row, then
+   * the rest of the middle row and the back row.
+   */
+  strings: [
+    ['front-1', 'front-2', 'front-3', 'front-4', 'front-5', 'front-6', 'middle-5', 'middle-6'],
+    ['middle-1', 'middle-2', 'middle-3', 'middle-4', 'back-1', 'back-2', 'back-3', 'back-4'],
+  ],
+} as const

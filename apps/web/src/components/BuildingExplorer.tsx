@@ -3,6 +3,8 @@ import { BuildingScene } from './BuildingScene'
 import { SolarControls, SolarMomentTag } from './SolarControls'
 import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL } from '../data/building-site'
 import type { FloorView } from './BuildingContext'
+import { GenerationPanel } from './GenerationPanel'
+import { useGeneration } from '../lib/useGeneration'
 import { ARRAY_WATTS, PANELS, PANEL_SPEC, ROWS, ROW_COUNTS, TILT_DEGREES } from '../data/solar-array'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +17,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   const { t } = useTranslation('workspace')
   const { formatNumber, formatDate } = useLocale()
   const { sun, instant } = solar
+  const generation = useGeneration(solar)
   const [showNeighbors, setShowNeighbors] = useState(true)
   const [showSunPath, setShowSunPath] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
@@ -28,7 +31,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   return <>
     <div className="workspace building-workspace">
       <section className={`viewport building-viewport ${sun.isDaylight ? 'is-day' : 'is-night'}`} aria-label={t('building.sceneAria')}>
-        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} showPanels={showPanels} floor={floor} view={view} />
+        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} showPanels={showPanels} panelShade={generation.panelShade} floor={floor} view={view} />
         <div className="viewport-top building-viewport-top">
           <div className="building-location"><span className="eyebrow">{t('building.locationEyebrow')}</span><strong>{BUILDING_SITE.address.split(' · ')[0]}</strong><small>{t('building.location')}</small></div>
           <div className="view-buttons" role="group" aria-label={t('building.camera')}>
@@ -64,6 +67,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
           <strong>{t('building.arraySummary', { panels: formatNumber(PANELS.length), watts: formatNumber(PANEL_SPEC.watts), kwp: formatNumber(ARRAY_WATTS / 1000, 2) })}</strong>
           <p className="array-note">{t('building.arrayLayout', { rows: ROWS.map(row => ROW_COUNTS[row]).join(' + '), tilt: formatNumber(TILT_DEGREES) })}</p>
         </section>
+        <GenerationPanel solar={solar} generation={generation} />
         <div className="solar-heading"><span className="eyebrow">{t('building.solarStudy')}</span><h2>{t('building.annualLightLine1')}<br /> {t('building.annualLightLine2')}</h2><p>{t('building.sharedMoment')}</p></div>
 
         <SolarControls solar={solar} />

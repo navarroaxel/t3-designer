@@ -141,3 +141,19 @@
 .array-summary { margin: 0 0 22px; display: flex; flex-direction: column; gap: 6px; }
 .array-summary .eyebrow { font-size: 9px; color: #9c895f; }
 .array-summary strong { font-size: 13px; font-weight: 560; letter-spacing: -.01em; }
+
+/* Generation panel. */
+.generation { margin: 0 0 22px; display: flex; flex-direction: column; gap: 6px; }
+.generation .eyebrow { font-size: 9px; color: #9c895f; }
+.generation-total { display: flex; align-items: baseline; gap: 6px; }
+.generation-total strong { font-size: 30px; font-weight: 470; letter-spacing: -.04em; }
+.generation-total span { font-size: 12px; }
+.generation-total small { font-size: 10px; color: #829077; margin-left: 4px; }
+.power-chart { margin-top: 4px; }
+.generation-year { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 12px; border-top: 1px solid #e6eade; }
+.generation-year strong { font-size: 13px; font-weight: 560; letter-spacing: -.01em; }
+.month-bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; height: 62px; align-items: end; }
+.month-bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+.month-bar span { display: block; width: 100%; background: #b6c99c; border-radius: 2px 2px 0 0; }
+.month-bar small { font-size: 8px; color: #98a08d; }
+.generation-caveat { margin-top: 4px; }
