@@ -51,7 +51,7 @@ export function HouseFacade({ physical = false }: { physical?: boolean }) {
       {/* Rear wall of the first floor, facing the terrace and the light well: glass in its openings. */}
       {OPENINGS.first.filter(opening => opening.u > 0).map(opening => <mesh key={`${opening.v}`} position={[opening.u + .02, (opening.y[0] + opening.y[1]) / 2, -(opening.v[0] + opening.v[1]) / 2]}>
         <boxGeometry args={[.04, opening.y[1] - opening.y[0], opening.v[1] - opening.v[0]]} />
-        <meshStandardMaterial color="#2b3a48" roughness={.3} metalness={.2} />
+        <meshStandardMaterial color="#a9b8bf" roughness={.08} metalness={.35} transparent opacity={.8} />
       </mesh>)}
       {openings.map(part => <Box key={`${part.v}-${part.y}`} part={part} castShadow={false} />)}
       {/* Balcony railing at the slab edge, and the open railing above the front parapet. */}
