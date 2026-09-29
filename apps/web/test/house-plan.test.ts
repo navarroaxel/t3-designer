@@ -244,10 +244,12 @@ test('the kitchen-living is one long room from party wall to party wall behind t
   for (const opening of OPENINGS.first.filter(item => item.u === 4)) assert.ok(opening.v[0] >= KITCHEN_LIVING.v[0] && opening.v[1] <= KITCHEN_LIVING.v[1])
 })
 
-test('the bathroom has a 0.70 m door on its north-east wall, centred, facing the hall', () => {
+test('the bathroom has a 0.70 m door on its north-east wall, toward the wardrobe, facing the hall', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   near(BATHROOM_DOOR.u[1] - BATHROOM_DOOR.u[0], .7)
-  near((BATHROOM_DOOR.u[0] + BATHROOM_DOOR.u[1]) / 2, (FIRST_FLOOR_BATHROOM.u[0] + FIRST_FLOOR_BATHROOM.u[1]) / 2)
+  // Closer to the wardrobe than to the bathroom's back wall, and inside the wall's length.
+  assert.ok(BATHROOM_DOOR.u[0] - FIRST_FLOOR_BATHROOM.u[0] < FIRST_FLOOR_BATHROOM.u[1] - BATHROOM_DOOR.u[1])
+  assert.ok(BATHROOM_DOOR.u[0] >= FIRST_FLOOR_BATHROOM.u[0] && BATHROOM_DOOR.u[1] <= FIRST_FLOOR_BATHROOM.u[1])
   // On the wall that faces the rest of the house, not the party wall.
   near(BATHROOM_DOOR.v[0], FIRST_FLOOR_BATHROOM.v[1])
   // The hall lies beyond it: the main room's back wall (u = -0.16 to -0.04) is behind the door's edge, not across it.

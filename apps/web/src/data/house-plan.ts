@@ -202,14 +202,16 @@ export const FIRST_FLOOR_BATHROOM = {
   v: [FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[0] + BATHROOM.width] as [number, number],
 }
 /**
- * The bathroom's door (owner): 0.70 m wide, natural oak, on its north-east wall, centred on it, looking
+ * The bathroom's door (owner): 0.70 m wide, natural oak, on its north-east wall, toward the wardrobe end, looking
  * onto the hall that lies between the main room's back wall and the kitchen-living.
  */
 export const BATHROOM_DOOR_WIDTH = .7
 export const BATHROOM_DOOR_COLOR = '#c8a06a'
-const bathroomMiddleU = (FIRST_FLOOR_BATHROOM.u[0] + FIRST_FLOOR_BATHROOM.u[1]) / 2
+/** Distance from the wardrobe's back panel to the door: assumed, the owner said only "closer to the wardrobe". */
+export const BATHROOM_DOOR_OFFSET = .15
+const bathroomDoorU0 = FIRST_FLOOR_BATHROOM.u[0] + BATHROOM_DOOR_OFFSET
 export const BATHROOM_DOOR = {
-  u: [bathroomMiddleU - BATHROOM_DOOR_WIDTH / 2, bathroomMiddleU + BATHROOM_DOOR_WIDTH / 2] as [number, number],
+  u: [bathroomDoorU0, bathroomDoorU0 + BATHROOM_DOOR_WIDTH] as [number, number],
   v: [FIRST_FLOOR_BATHROOM.v[1], FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS] as [number, number],
   y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] as [number, number],
 }
