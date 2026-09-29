@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react'
 import { Line } from '@react-three/drei'
-import { ExtrudeGeometry } from 'three'
+import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, BATHROOM_FLOOR, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FIRST_FLOOR_BATHROOM, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
-  type DoorSwing, type Floor, type PlanPoint,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FLOOR_TILING, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { polygonShape } from '../lib/polygon-shape'
 
@@ -45,6 +45,61 @@ function DoorSwingView({ door }: { door: DoorSwing }) {
     </mesh>
     <Line points={Array.from({ length: 13 }, (_, i) => point(i / 12, FLOOR_HEIGHT + .03))} color="#8a6a3a" lineWidth={1} dashed dashSize={.08} gapSize={.06} />
   </>
+}
+
+/** One repeat of a floor pattern: `rows` rows of pieces, each row shifted by `stagger` of a piece, with a faint joint. */
+function patternTexture(base: string, pattern: TilePattern) {
+  const pixelsPerMetre = 500
+  const canvas = document.createElement('canvas')
+  const length = pattern.length * pixelsPerMetre, rowHeight = pattern.width * pixelsPerMetre
+  canvas.width = length; canvas.height = pattern.rows * rowHeight
+  const context = canvas.getContext('2d')!
+  const [red, green, blue] = [1, 3, 5].map(index => parseInt(base.slice(index, index + 2), 16))
+  for (let row = 0; row < pattern.rows; row++) {
+    for (let piece = -1; piece < 1; piece++) {
+      // A little tone variation per piece, from a fixed pattern so the floor looks the same every time.
+      const shade = 1 + (((row * 7 + (piece + 2) * 3) % 5) - 2) * .025
+      const x = piece * length + row * length * pattern.stagger
+      context.fillStyle = `rgb(${Math.min(255, red * shade)}, ${Math.min(255, green * shade)}, ${Math.min(255, blue * shade)})`
+      context.fillRect(x, row * rowHeight, length, rowHeight)
+      if (pattern.veins) {
+        // Soft vertical veins, like travertine.
+        context.strokeStyle = 'rgba(120, 95, 60, .13)'; context.lineWidth = 2
+        for (let vein = 0; vein < 7; vein++) {
+          const veinX = x + ((vein * 0.61803) % 1) * length
+          context.beginPath(); context.moveTo(veinX, row * rowHeight); context.bezierCurveTo(veinX + 14, row * rowHeight + rowHeight * .3, veinX - 12, row * rowHeight + rowHeight * .7, veinX + 6, (row + 1) * rowHeight); context.stroke()
+        }
+      } else {
+        // Faint grain along the plank.
+        context.strokeStyle = 'rgba(70, 45, 20, .10)'; context.lineWidth = 1
+        for (let line = 1; line < 5; line++) {
+          context.beginPath(); context.moveTo(x, row * rowHeight + line * rowHeight / 5 + (row % 2)); context.lineTo(x + length, row * rowHeight + line * rowHeight / 5 - (piece % 2)); context.stroke()
+        }
+      }
+      context.strokeStyle = 'rgba(55, 40, 25, .55)'; context.lineWidth = Math.max(1, pattern.grout * pixelsPerMetre)
+      context.strokeRect(x, row * rowHeight, length, rowHeight)
+    }
+  }
+  const texture = new CanvasTexture(canvas)
+  texture.wrapS = texture.wrapT = RepeatWrapping
+  texture.colorSpace = SRGBColorSpace
+  return texture
+}
+
+/** One rectangle of a floor zone, with its pattern repeated at real scale. */
+function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, number, number] }) {
+  const [u0, u1, v0, v1] = rect
+  const { pattern } = zone
+  const map = useMemo(() => {
+    const texture = patternTexture(zone.color, pattern)
+    texture.repeat.set((u1 - u0) / pattern.length, (v1 - v0) / (pattern.width * pattern.rows))
+    return texture
+  }, [pattern, zone.color, u0, u1, v0, v1])
+  useEffect(() => () => map.dispose(), [map])
+  return <mesh position={[(u0 + u1) / 2, FLOOR_HEIGHT + TILE_THICKNESS / 2, -(v0 + v1) / 2]} receiveShadow>
+    <boxGeometry args={[u1 - u0, TILE_THICKNESS, v1 - v0]} />
+    <meshStandardMaterial color="#ffffff" map={map} roughness={.4} metalness={.05} />
+  </mesh>
 }
 
 function Walls({ floor, top }: { floor: Floor; top: number }) {
@@ -123,11 +178,8 @@ export function HouseShell({ floor }: { floor: Floor }) {
         <boxGeometry args={[.6, .12, .4]} />
         <meshStandardMaterial color="#f4f1ea" roughness={.95} />
       </mesh>
-      {/* The bathroom's travertine porcelain floor, over the first-floor slab. */}
-      <mesh position={[(FIRST_FLOOR_BATHROOM.u[0] + FIRST_FLOOR_BATHROOM.u[1]) / 2, FLOOR_HEIGHT + BATHROOM_FLOOR.thickness / 2, -(FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[FIRST_FLOOR_BATHROOM.u[1] - FIRST_FLOOR_BATHROOM.u[0], BATHROOM_FLOOR.thickness, FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0]]} />
-        <meshStandardMaterial color={BATHROOM_FLOOR.color} roughness={.35} metalness={.05} />
-      </mesh>
+      {/* Porcelain floors: Saing almendra planks in the bedrooms, Saing miel planks in the living, travertine in the bathroom. */}
+      {FLOOR_TILING.flatMap(zone => zone.rects.map((rect, index) => <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={rect} />))}
       {/* The TVs: OLEDs on wall brackets, one in the main room and one in the living. */}
       {[MAIN_TV_PLACEMENT, LIVING_TV_PLACEMENT].map((tv, index) => <group key={index}>
         <mesh position={[(tv.u[0] + tv.u[1]) / 2, (tv.y[0] + tv.y[1]) / 2, -(tv.v[0] + tv.v[1]) / 2]} receiveShadow>

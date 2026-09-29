@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, BATHROOM_FLOOR, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -401,4 +401,26 @@ test('the bathroom floor is a thin travertine-coloured porcelain layer', () => {
   // Travertine is a warm, light beige: red above green above blue, all fairly high.
   const [red, green, blue] = [1, 3, 5].map(index => parseInt(BATHROOM_FLOOR.color.slice(index, index + 2), 16))
   assert.ok(red > green && green > blue && blue > 140 && red < 245)
+})
+
+test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Navona natural tiles of 80 by 80 cm, without overlapping', () => {
+  const colors = Object.fromEntries(FLOOR_TILING.map(zone => [zone.id, zone.color]))
+  assert.deepEqual(Object.keys(colors).sort(), ['bathroom', 'bedrooms', 'living'])
+  assert.equal(colors.bathroom, BATHROOM_FLOOR.color)
+  // The bedrooms and the living are laid with 20 cm by 120 cm wood-look planks; the bathroom with 80 cm squares.
+  assert.ok(SAING_PLANKS.length === 1.2 && SAING_PLANKS.width === .2 && !SAING_PLANKS.veins)
+  assert.ok(NAVONA_TILES.length === .8 && NAVONA_TILES.width === .8 && NAVONA_TILES.veins, 'travertine veins, 80 by 80')
+  assert.equal(FLOOR_TILING.find(zone => zone.id === 'bathroom')!.pattern, NAVONA_TILES)
+  assert.deepEqual(FLOOR_TILING.filter(zone => zone.pattern === SAING_PLANKS).map(zone => zone.id).sort(), ['bedrooms', 'living'])
+  // Almond is light and warm; honey is darker and more saturated than the almond.
+  const luminance = (color: string) => [1, 3, 5].map(index => parseInt(color.slice(index, index + 2), 16)).reduce((sum, value) => sum + value, 0)
+  assert.ok(luminance(colors.bedrooms) > luminance(colors.living))
+  const rects = FLOOR_TILING.flatMap(zone => zone.rects.map(rect => ({ zone: zone.id, rect })))
+  for (const [index, a] of rects.entries()) for (const b of rects.slice(index + 1)) {
+    const overlapU = Math.min(a.rect[1], b.rect[1]) - Math.max(a.rect[0], b.rect[0])
+    const overlapV = Math.min(a.rect[3], b.rect[3]) - Math.max(a.rect[2], b.rect[2])
+    assert.ok(!(overlapU > 1e-6 && overlapV > 1e-6), `${a.zone} and ${b.zone} tiles overlap`)
+  }
+  // Every rectangle stays inside the first floor's block.
+  for (const { rect } of rects) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475)
 })

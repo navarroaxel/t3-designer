@@ -201,8 +201,10 @@ export const FIRST_FLOOR_BATHROOM = {
   u: [bathroomU0, bathroomU0 + BATHROOM.depth] as [number, number],
   v: [FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[0] + BATHROOM.width] as [number, number],
 }
-/** The bathroom's floor (owner): travertine-coloured porcelain tile, a thin layer over the slab. */
-export const BATHROOM_FLOOR = { color: '#d5c6a6', thickness: .012 }
+/** Floor tiles are a thin layer over the slab. */
+export const TILE_THICKNESS = .012
+/** The bathroom's floor (owner): Navona natural, a travertine-coloured porcelain tile, 80 by 80 cm. */
+export const BATHROOM_FLOOR = { color: '#d5c6a6', thickness: TILE_THICKNESS }
 
 /**
  * The bathroom's door (owner): 0.70 m wide, natural oak, on its north-east wall, toward the wardrobe end, looking
@@ -389,3 +391,30 @@ export const LIVING_TV_PLACEMENT = {
   bracket: { v: [KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[0] + LIVING_TV.standoff] as [number, number], width: .4, height: .3 },
   y: [FLOOR_HEIGHT + LIVING_TV.centreHeight - LIVING_TV_SIZE.height / 2, FLOOR_HEIGHT + LIVING_TV.centreHeight + LIVING_TV_SIZE.height / 2] as [number, number],
 }
+
+/**
+ * Porcelain floors (owner): Saing almendra in the bedrooms and Saing miel in the living, both 20 by 120 cm
+ * wood-look planks, and Navona natural (80 by 80 cm, travertine-look) in the bathroom. "The
+ * room" was taken to mean both bedrooms, the main one with its closet. Each zone is a list of rectangles
+ * [u0, u1, v0, v1] inside the walls; the hall is not tiled here because its floor was not specified.
+ */
+/** How a floor is laid: the piece's size, rows before the pattern repeats, the shift between rows and the joint. */
+export type TilePattern = { length: number; width: number; rows: number; stagger: number; grout: number; veins: boolean }
+export type FloorTiling = { id: string; color: string; rects: [number, number, number, number][]; pattern: TilePattern }
+/** Saing almendra and Saing miel (San Lorenzo Design): wood-look porcelain planks, 20 cm by 120 cm, satin. */
+export const SAING_PLANKS: TilePattern = { length: 1.2, width: .2, rows: 3, stagger: 1 / 3, grout: .003, veins: false }
+/** Navona natural (San Lorenzo Design): beige travertine-look porcelain, 80 cm by 80 cm, satin, rectified, so a fine joint. */
+export const NAVONA_TILES: TilePattern = { length: .8, width: .8, rows: 1, stagger: 0, grout: .0015, veins: true }
+export const FLOOR_TILING: FloorTiling[] = [
+  {
+    id: 'bedrooms', color: '#cbb08b', pattern: SAING_PLANKS,
+    rects: [
+      // The main room, with its closet: the 20 cm setback of the wall along the hall narrows its last stretch.
+      [FRONT_ROOMS.main.u[0], FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[1]],
+      [FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.main.u[1], FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK, FRONT_ROOMS.main.v[1]],
+      [FRONT_ROOMS.secondary.u[0], FRONT_ROOMS.secondary.u[1], FRONT_ROOMS.secondary.v[0], FRONT_ROOMS.secondary.v[1]],
+    ],
+  },
+  { id: 'living', color: '#c69a5d', pattern: SAING_PLANKS, rects: [[KITCHEN_LIVING.u[0], KITCHEN_LIVING.u[1], KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[1]]] },
+  { id: 'bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[0], FIRST_FLOOR_BATHROOM.v[1]]] },
+]
