@@ -171,3 +171,14 @@ test('settings and their controls remain usable on a narrow viewport', async ({ 
   await expect(dialog).not.toBeVisible()
   await expect(page.locator('.settings-trigger')).toBeFocused()
 })
+
+test('the header toggle switches between Spanish and English and remembers the choice', async ({ page }) => {
+  await page.goto('/#building')
+  const toggle = page.getByRole('group', { name: languageLabel })
+  await expect(toggle.getByRole('button', { name: 'English' })).toHaveAttribute('aria-pressed', 'true')
+  await toggle.getByRole('button', { name: 'Español' }).click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es')
+  await expect(toggle.getByRole('button', { name: 'Español' })).toHaveAttribute('aria-pressed', 'true')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es')
+})

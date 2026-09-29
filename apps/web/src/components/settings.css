@@ -26,6 +26,11 @@
 .settings-dialog :is(button, select):focus-visible, .settings-trigger:focus-visible { outline: 2px solid var(--settings-accent); outline-offset: 3px; }
 .settings-feedback { margin-top: 24px; font-size: 12px; }
 .settings-feedback-warning { color: var(--settings-text); }
+.language-toggle { display: inline-flex; flex-shrink: 0; border: 1px solid var(--settings-border); border-radius: 7px; overflow: hidden; }
+.language-toggle button { min-width: 44px; min-height: 44px; padding: 0 10px; border: 0; background: transparent; color: var(--settings-text); font: inherit; font-size: 11px; font-weight: 600; letter-spacing: .06em; cursor: pointer; }
+.language-toggle button:hover { background: var(--settings-accent-soft); color: var(--settings-accent); }
+.language-toggle button[aria-pressed="true"] { background: var(--settings-accent-soft); color: var(--settings-accent); }
+.language-toggle button:focus-visible { outline: 2px solid var(--settings-accent); outline-offset: -3px; }
 @media (max-width: 800px) { .header-actions { gap: 10px; } }
 @media (max-width: 600px) {
   .settings-dialog { width: calc(100vw - 20px); height: min(660px, calc(100dvh - 20px)); }

@@ -4,6 +4,7 @@ import { workspaceFromHash, type WorkspaceView } from './lib/workspace-view'
 import { useTranslation } from 'react-i18next'
 import { listenForLanguageChanges } from './i18n/preferences'
 import { ApplicationSettings } from './components/ApplicationSettings'
+import { LanguageToggle } from './components/LanguageToggle'
 import { listenForThemeChanges } from './lib/theme'
 import { PrivacyControls } from './components/PrivacyControls'
 import { analytics } from './lib/analytics'
@@ -71,6 +72,7 @@ export default function App() {
           <div className="project-details">
             <span className="estimate-badge"><span /> {t(`workspaces.${workspaceView}.badge`)}</span>
           </div>
+          <LanguageToggle />
           <ApplicationSettings />
         </div>
       </header>
