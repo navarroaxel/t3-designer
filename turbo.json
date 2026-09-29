@@ -1,24 +1,41 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalDependencies": ["tsconfig.base.json", "eslint.config.js"],
+  "globalDependencies": [
+    "tsconfig.base.json",
+    "eslint.config.js"
+  ],
   "tasks": {
     "dev": {
       "cache": false,
       "persistent": true
     },
     "build": {
-      "dependsOn": ["^build", "typecheck"],
-      "outputs": ["dist/**"]
+      "dependsOn": [
+        "^build",
+        "typecheck"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "env": [
+        "VERCEL",
+        "VERCEL_PROJECT_PRODUCTION_URL",
+        "VITE_*"
+      ]
     },
     "lint": {
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^test"],
+      "dependsOn": [
+        "^test"
+      ],
       "outputs": []
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"],
+      "dependsOn": [
+        "^typecheck"
+      ],
       "outputs": []
     }
   }

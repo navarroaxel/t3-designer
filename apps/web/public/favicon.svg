@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="T3 Designer">
+  <rect width="64" height="64" rx="14" fill="#506e40"/>
+  <circle cx="45" cy="19" r="9" fill="#f2c86b"/>
+  <path d="M11 53V33h21v-9h21v29z" fill="#f9faf6"/>
+  <rect x="17" y="39" width="7" height="14" fill="#506e40"/>
+  <rect x="38" y="30" width="9" height="8" fill="#506e40"/>
+</svg>
