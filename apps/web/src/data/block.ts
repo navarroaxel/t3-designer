@@ -1,4 +1,5 @@
 import { clipRing, type PlanPoint } from './frame.ts'
+import { OPPOSITE_BACK_U } from './opposite-block.ts'
 
 /**
  * The 24 lots of the block, in the house frame (see frame.ts).
@@ -125,8 +126,9 @@ export function blockStreets() {
   const half = (width: number) => width / 2
   return [
     { id: 'front', width: STREET_WIDTHS.front, points: [[STREET_LINE - half(STREET_WIDTHS.front), CORNER_SW - STREET_EXTENSION], [STREET_LINE - half(STREET_WIDTHS.front), CORNER_NE + STREET_EXTENSION]] as PlanPoint[] },
-    { id: 'south-west', width: STREET_WIDTHS.southWest, points: [[STREET_LINE - STREET_EXTENSION, CORNER_SW - half(STREET_WIDTHS.southWest)], [backLine(CORNER_SW) + STREET_EXTENSION, CORNER_SW - half(STREET_WIDTHS.southWest)]] as PlanPoint[] },
-    { id: 'north-east', width: STREET_WIDTHS.northEast, points: [[STREET_LINE - STREET_EXTENSION, CORNER_NE + half(STREET_WIDTHS.northEast)], [backLine(CORNER_NE) + STREET_EXTENSION, CORNER_NE + half(STREET_WIDTHS.northEast)]] as PlanPoint[] },
+    { id: 'south-west', width: STREET_WIDTHS.southWest, points: [[OPPOSITE_BACK_U - STREET_EXTENSION, CORNER_SW - half(STREET_WIDTHS.southWest)], [backLine(CORNER_SW) + STREET_EXTENSION, CORNER_SW - half(STREET_WIDTHS.southWest)]] as PlanPoint[] },
+    { id: 'north-east', width: STREET_WIDTHS.northEast, points: [[OPPOSITE_BACK_U - STREET_EXTENSION, CORNER_NE + half(STREET_WIDTHS.northEast)], [backLine(CORNER_NE) + STREET_EXTENSION, CORNER_NE + half(STREET_WIDTHS.northEast)]] as PlanPoint[] },
+    { id: 'opposite-back', width: STREET_WIDTHS.front, points: [[OPPOSITE_BACK_U - half(STREET_WIDTHS.front), CORNER_SW - STREET_EXTENSION], [OPPOSITE_BACK_U - half(STREET_WIDTHS.front), CORNER_NE + STREET_EXTENSION]] as PlanPoint[] },
     { id: 'back', width: STREET_WIDTHS.back, points: [[backLine(CORNER_SW) + half(STREET_WIDTHS.back), CORNER_SW - STREET_EXTENSION], [backLine(CORNER_NE) + half(STREET_WIDTHS.back), CORNER_NE + STREET_EXTENSION]] as PlanPoint[] },
   ]
 }

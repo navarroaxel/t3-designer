@@ -17,6 +17,8 @@
  */
 import { houseToSite, planToSite, polygonArea, type PlanPoint, type SitePoint } from './frame.ts'
 import { LOTS, blockStreets, genericBuildings } from './block.ts'
+import { OPPOSITE_LOTS } from './opposite-block.ts'
+import { CORNER_TANK, CORNER_UPPER, CROSS_STREET_END, OCHAVA_END, OCHAVA_START, cornerTankCentre } from './corner-front.ts'
 
 export type { SitePoint }
 export { HOUSE_CENTER, HOUSE_YAW, houseToSite, siteToHouse } from './frame.ts'
@@ -76,6 +78,13 @@ export const FLOOR_HEIGHT = 3.2;
 const rect = (u0: number, u1: number, v0: number, v1: number): SitePoint[] =>
   planToSite([[u0, v0], [u1, v0], [u1, v1], [u0, v1]]);
 const poly = (points: PlanPoint[]): SitePoint[] => planToSite(points);
+const squareAround = ([u, v]: PlanPoint, side: number): PlanPoint[] =>
+  [[u - side / 2, v - side / 2], [u + side / 2, v - side / 2], [u + side / 2, v + side / 2], [u - side / 2, v + side / 2]]
+const circleAround = ([u, v]: PlanPoint, radius: number, sides: number): PlanPoint[] =>
+  Array.from({ length: sides }, (_, i) => [u + radius * Math.cos(2 * Math.PI * i / sides), v + radius * Math.sin(2 * Math.PI * i / sides)] as PlanPoint)
+/** The point of the corner's cross-street face at house-frame u. */
+const crossStreetAt = (u: number): PlanPoint =>
+  [u, OCHAVA_END[1] + (u - OCHAVA_END[0]) / (CROSS_STREET_END[0] - OCHAVA_END[0]) * (CROSS_STREET_END[1] - OCHAVA_END[1])]
 const lotPolygon = (number: number): PlanPoint[] => LOTS.find(item => item.number === number)!.polygon;
 
 /** Half the width of the house: the lot has 8.95 m of front and the house fills it. */
@@ -218,10 +227,25 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('NEIGHBOR-C-UPPER', 'Vecino C · bloque de 2 plantas', poly([[-5, -8.9], [4, -8.9], southWest(4), southWest(-5)]), 6.6, 2),
   building('NEIGHBOR-C-REAR', 'Vecino C · planta baja trasera', poly([[4, -8.9], [8.5, -8.9], southWest(8.5), southWest(4)]), 3, 1),
   building('NEIGHBOR-C-FRONT', 'Vecino C · esquina',
-    poly([[-5, -8.9], [-5, -10.965], [-0.79, -15.175], [8.28, -14.825], [8.5, -8.9]]), 3, 1),
+    poly([[-5, -8.9], OCHAVA_START, OCHAVA_END, CROSS_STREET_END, [8.5, -8.9]]), 3, 1),
+  // Above the corner's ground floor (Street View): a terrace with a parapet over the chamfer, an upper
+  // room under a sheet roof, and a lower parapet toward the rear.
+  building('NEIGHBOR-C-TERRACE', 'Vecino C · terraza sobre la ochava', poly([OCHAVA_START, OCHAVA_END, [OCHAVA_END[0], CORNER_UPPER.terraceBackV], [OCHAVA_START[0], CORNER_UPPER.terraceBackV]]), CORNER_UPPER.terraceHeight, 1, false, 3),
+  building('NEIGHBOR-C-TANK-ROOM', 'Vecino C · cuarto del tanque', poly(squareAround(cornerTankCentre(), CORNER_TANK.roomSide)), CORNER_TANK.roomTop, 1, false, CORNER_UPPER.terraceHeight),
+  building('NEIGHBOR-C-TANK', 'Vecino C · tanque de fibrocemento', poly(circleAround(cornerTankCentre(), CORNER_TANK.diameter / 2, CORNER_TANK.sides)), CORNER_TANK.top, 0, false, CORNER_TANK.roomTop),
+  building('NEIGHBOR-C-ROOM', 'Vecino C · habitación alta', poly([OCHAVA_END, crossStreetAt(CORNER_UPPER.roomEndU), [CORNER_UPPER.roomEndU, -11.5], [OCHAVA_END[0], -11.5]]), CORNER_UPPER.roomHeight, 1, false, 3),
+  building('NEIGHBOR-C-PARAPET', 'Vecino C · parapeto hacia el fondo', poly([crossStreetAt(CORNER_UPPER.roomEndU), CROSS_STREET_END, [CROSS_STREET_END[0], -13.9], [CORNER_UPPER.roomEndU, -13.9]]), CORNER_UPPER.parapetHeight, 1, false, 3),
   // The other lots of the block, from the block plan: one prism each, in the band by the street.
   ...genericBuildings().map(({ lot, footprint }) =>
     building(`LOT-${String(lot.number).padStart(2, '0')}`, `Lote ${lot.number}`, poly(footprint), lot.height, lot.floors)),
+  // The block across the street, from its block plan; lot 24, opposite the house, from its survey sketch.
+  ...OPPOSITE_LOTS.flatMap(item => {
+    const id = `OPP-${String(item.number).padStart(2, '0')}`, label = `Manzana de enfrente · lote ${item.number}`
+    return [
+      building(id, label, poly(item.building), item.height, item.floors ?? 1),
+      ...(item.extras ?? []).map(extra => building(`${id}-${extra.suffix}`, `${label} · ${extra.label}`, poly(extra.ring), extra.height, 1, false, extra.base)),
+    ]
+  }),
   ...ROOFTOP_OBSTACLES,
 ];
 
@@ -244,4 +268,8 @@ export const SITE_PARCEL: { id: string; label: string; area: number; footprint: 
 
 /** Every lot of the block, with where its outline comes from. */
 export const SITE_LOTS: { number: number; source: 'survey' | 'block-plan'; footprint: SitePoint[] }[] =
-  LOTS.map(item => ({ number: item.number, source: item.source, footprint: poly(item.polygon) }));
+  [
+    ...LOTS.map(item => ({ number: item.number, source: item.source, footprint: poly(item.polygon) })),
+    // Numbered 100 + n so they do not collide with the house block's lots.
+    ...OPPOSITE_LOTS.map(item => ({ number: 100 + item.number, source: (item.number === 24 ? 'survey' : 'block-plan') as 'survey' | 'block-plan', footprint: poly(item.polygon) })),
+  ];

@@ -84,12 +84,27 @@ lengths of the street fronts and the widths of the streets.
 Buildings shorter than the panels cannot shade them, so these heights only matter for a
 building that turns out to be three floors or more. The data is in `apps/web/src/data/block.ts`.
 
+## The corner's fronts
+
+The corner lot beside the house shows two more faces (`apps/web/src/data/corner-front.ts`): the chamfer (5.95 m) and the face on the cross street (9.07 m). Doors, brick panels, windows, the cornice and the air conditioners are placed from Street View (August 2025), scaled to the doors, so expect about 0.3 m. Above the ground floor stand a terrace with a 4.3 m parapet over the chamfer, an upper room under a sheet roof (5.4 m) and a lower parapet toward the rear (3.7 m). A fibre-cement water tank, about 1 m across and 1.2 m tall, stands on a plastered room 1.6 m square on the terrace (7.4 m in all).
+
+## The block across the street
+
+`apps/web/src/data/opposite-block.ts` draws the block facing the house, from its municipal block plan (hand sketch; 86.28 m along the street, 140.16 m deep). Its lots are digitised by eye, good to a metre or two, and each building is a prism in the band nearest its street (3.3 m by default). Three lots have their survey sketch and are exact:
+
+- **Lot 24**, opposite the house: 8.50 m of front, 15.4 m deep. Two floors (6.4 m) set back about 3 m behind a fenced garden, with a small room on the roof (9 m) (Street View).
+- **Lot 23**, the corner: 9.74 m of front on the cross street, a 5.98 m chamfer. The sketch is old; Street View shows a one-floor house (3.4 m) along the street, with a small fibre-cement tank on the roof.
+- **Lot 25**: 8.66 m of front, 24 m deep, a building on the south-west side that reaches the rear. Its height is not known.
+
 ## Left out on purpose
 
 The clothesline post, vents, the air-conditioning unit under the tank slab,
 trees, wires and the terrace grill. None of them shades the azotea noticeably.
 
 ## Open questions for the owner
+
+- Heights of the lots across the street other than lots 23 and 24, and of lot 25.
+- The exact depth of the setback and of the roof room of lot 24, and the depth of lot 23's building.
 
 1. Height of the tank slab above the roof, and the total height including the steel tank.
 2. Parapet height on the sides and rear, and whether the front parapet is 0.8 m.

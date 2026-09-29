@@ -91,6 +91,8 @@ function finishFor(building: BuildingFootprint): Finish {
   if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
   if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
+  // Fibre-cement water tanks: the corner's (a cylinder on its room) and the one on lot 23's roof.
+  if (building.id === 'NEIGHBOR-C-TANK' || building.id === 'OPP-23-TANK') return { wall: '#a9a8a0', roof: '#b9b8b0', roughness: .95, metalness: 0 }
   if (building.id === 'NEIGHBOR-A' || building.id === 'NEIGHBOR-A-REAR' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
   if (isHouse(building)) return { wall: '#a5533b', roof: building.isTarget ? WHITE_PAINT : '#d9d2c0', roughness: .92, metalness: 0 }
   return { wall: '#d0d3c8', roof: '#88938d', roughness: .92, metalness: 0 }

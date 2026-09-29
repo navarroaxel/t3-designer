@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { genericBuildings } from '../src/data/block.ts'
+import { OPPOSITE_LOTS } from '../src/data/opposite-block.ts'
 import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
@@ -117,8 +118,17 @@ test('heights follow the reported floor counts, refined by Street View where it 
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
     'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
+    'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [3.7, 1],
+    'NEIGHBOR-C-TANK-ROOM': [6.2, 1], 'NEIGHBOR-C-TANK': [7.4, 0],
   }
   // The other lots of the block: one prism each, 3.3 m by default, 6.4 m where Street View shows two floors.
+  // The block across the street: each lot is one prism, 3.3 m by default; lot 24 (2 floors) and lot 23
+  // (3.4 m) are surveyed, with a roof room and a roof tank.
+  for (const { number, height, floors, extras } of OPPOSITE_LOTS) {
+    const id = `OPP-${String(number).padStart(2, '0')}`
+    expected[id] = [height, floors ?? 1]
+    for (const extra of extras ?? []) expected[`${id}-${extra.suffix}`] = [extra.height, 1]
+  }
   for (const { lot } of genericBuildings()) expected[`LOT-${String(lot.number).padStart(2, '0')}`] = [lot.height, lot.floors]
   assert.deepEqual(groundVolumes.map(building => building.id).sort(), Object.keys(expected).sort())
   for (const building of groundVolumes) {
@@ -238,7 +248,10 @@ test('building rings are finite and simple, and no ground footprints overlap', (
     }
     return hits * step * step
   }
+  // A volume standing on top of another (its base at the other's roof) is not an overlap.
+  const stacked = (a: BuildingFootprint, b: BuildingFootprint) => (a.base ?? 0) >= b.height - .01 || (b.base ?? 0) >= a.height - .01
   for (const [index, a] of groundVolumes.entries()) for (const b of groundVolumes.slice(index + 1)) {
+    if (stacked(a, b)) continue
     assert.ok(overlapArea(a, b) < .05, `${a.id} overlaps ${b.id} by ${overlapArea(a, b).toFixed(2)} m²`)
   }
 })
@@ -249,6 +262,6 @@ test('road geometry remains finite, metric and clipped to the local context', ()
   for (const road of SITE_ROADS) {
     assert.ok(road.width > 0 && Number.isFinite(road.width), `${road.id}: real width`)
     assert.ok(road.points.length >= 2)
-    assert.ok(road.points.every(point => point.length === 2 && point.every(value => Number.isFinite(value) && Math.abs(value) <= 110.001)), `${road.id}: clipped local metric points`)
+    assert.ok(road.points.every(point => point.length === 2 && point.every(value => Number.isFinite(value) && Math.abs(value) <= 200)), `${road.id}: clipped local metric points`)
   }
 })
