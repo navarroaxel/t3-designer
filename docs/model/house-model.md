@@ -102,7 +102,7 @@ The **garage**, under the secondary room, is 5.69 m deep inside (owner), against
 
 ## The ground floor's living
 
-The ground floor has a **living that is its distributor** (owner): from it one goes into the kitchen, the hall and the rest. It lies behind the back wall (the contrafrente), up to the wall that closes the rear, and it is **4.97 m wide** inside. It is measured from the party wall with neighbour A (v = -0.80 to 4.175), which takes in the hall's doorway and the well's balcony door; measured from the other side it would cut through that door. On its right, the south-west, it has a **wall of only 0.80 m** (owner); the rest of that side is open toward the kitchen. Where along the side that wall stands, against the contrafrente, is assumed. The doors to the kitchen and the other rooms are not drawn yet: their places are not known.
+The ground floor has a **living that is its distributor** (owner): from it one goes into the kitchen, the hall and the rest. It lies behind the back wall (the contrafrente), up to the wall that closes the rear, and it is **4.97 m wide** inside. It is measured from the party wall with neighbour A (v = -0.80 to 4.175), which takes in the hall's doorway and the well's balcony door; measured from the other side it would cut through that door. A wall closes it on its right, the south-west, with a **0.80 m door centred on it** (owner), taken to lead to the kitchen; only the opening is drawn, because the leaf's colour and hand are not known. The other rooms' doors are not drawn yet either.
 
 ## The stair
 

@@ -607,17 +607,22 @@ export const HALL_ARCH = {
  * The ground floor's living, which is its distributor (owner): from it one goes into the kitchen, the hall and the rest. It lies behind the back
  * wall, the contrafrente, up to the wall that closes the rear (the well's and the office's), and it is 4.97 m wide inside. Measured from the
  * party wall with neighbour A it spans v = -0.80 to 4.175, which takes in the hall's doorway in the contrafrente and the well's balcony door;
- * measured from the other side it would cut through that door. On its right, the south-west, it has a wall of only 0.80 m (owner), and the rest of
- * that side is open toward the kitchen. Where along the side that wall stands, against the contrafrente, is assumed; the owner has not said yet
- * where the kitchen's and the other rooms' doors are, so none is drawn.
+ * measured from the other side it would cut through that door. A 0.12 m wall closes it on the right, the south-west, with a 0.80 m door centred on
+ * it (owner), which is taken to lead to the kitchen; the door's leaf, colour and hand are not known, so only the opening is drawn.
  */
 export const GROUND_LIVING_WIDTH = 4.97
 export const GROUND_LIVING = {
   u: [GROUND_BACK_WALL[1], 4 - WALL_THICKNESS] as [number, number],
   v: [NE_INNER - GROUND_LIVING_WIDTH, NE_INNER] as [number, number],
 }
-export const GROUND_LIVING_WALL_LENGTH = .8
-export const GROUND_LIVING_WALL: [number, number, number, number] = [GROUND_LIVING.u[0], GROUND_LIVING.u[0] + GROUND_LIVING_WALL_LENGTH, GROUND_LIVING.v[0] - PARTITION_THICKNESS, GROUND_LIVING.v[0]]
+export const GROUND_LIVING_WALL: [number, number, number, number] = [GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0] - PARTITION_THICKNESS, GROUND_LIVING.v[0]]
+export const LIVING_KITCHEN_DOOR_WIDTH = .8
+const livingDoorMiddleU = (GROUND_LIVING.u[0] + GROUND_LIVING.u[1]) / 2
+export const LIVING_KITCHEN_DOOR = {
+  u: [livingDoorMiddleU - LIVING_KITCHEN_DOOR_WIDTH / 2, livingDoorMiddleU + LIVING_KITCHEN_DOOR_WIDTH / 2] as [number, number],
+  v: [GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]] as [number, number],
+  y: [0, 2.1] as [number, number],
+}
 
 /** Interior walls of the ground floor as [u0, u1, v0, v1]: the wall between the garage and the hall, and the contrafrente. */
 export const GROUND_PARTITIONS: [number, number, number, number][] = [
@@ -628,8 +633,9 @@ export const GROUND_PARTITIONS: [number, number, number, number][] = [
   // The back wall, split around the hall's doorway.
   [GROUND_BACK_WALL[0], GROUND_BACK_WALL[1], GROUND_BACK_WALL[2], HALL_ARCH.v[0]],
   [GROUND_BACK_WALL[0], GROUND_BACK_WALL[1], HALL_ARCH.v[1], GROUND_BACK_WALL[3]],
-  // The 0.80 m wall on the living's right (south-west); the rest of that side is open.
-  GROUND_LIVING_WALL,
+  // The wall that closes the living on the right (south-west), split around its 0.80 m door.
+  [GROUND_LIVING_WALL[0], LIVING_KITCHEN_DOOR.u[0], GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]],
+  [LIVING_KITCHEN_DOOR.u[1], GROUND_LIVING_WALL[1], GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]],
   // The office wall is split around the office door.
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], GROUND_OFFICE_WALL[2], OFFICE_DOOR.v[0]],
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], OFFICE_DOOR.v[1], GROUND_OFFICE_WALL[3]],

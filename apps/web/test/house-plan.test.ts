@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { ENTRY_RECESS, FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  BALCONY, GROUND_LIVING, GROUND_LIVING_WALL, STAIRWELL_HOLE, HALL_ARCH, RIGHT_ARM_WINDOW_WIDTH, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  BALCONY, LIVING_KITCHEN_DOOR, GROUND_LIVING, GROUND_LIVING_WALL, STAIRWELL_HOLE, HALL_ARCH, RIGHT_ARM_WINDOW_WIDTH, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -524,7 +524,7 @@ test('the ground floor has a 5.69 m deep garage and a 3.6 m wide hall to its lef
   assert.ok(garageDoor.v[0] >= GROUND_GARAGE.v[0] && garageDoor.v[1] <= GROUND_GARAGE.v[1], 'the garage door is within the garage')
   for (const opening of OPENINGS.ground.filter(item => item.u === -4)) assert.ok(opening.v[0] >= GROUND_HALL.v[0] && opening.v[1] <= GROUND_HALL.v[1], 'the entrance openings lead into the hall')
   // The interior walls of the ground floor are the garage/hall wall and the back wall, and they stay under the first floor's block.
-  assert.equal(GROUND_PARTITIONS.length, 7)
+  assert.equal(GROUND_PARTITIONS.length, 8)
   assert.ok(GROUND_BACK_WALL[1] <= 4)
 })
 
@@ -619,7 +619,7 @@ test('no loose wall stands in front of the office wall: every ground-floor wall 
   const touch = (a: [number, number, number, number], b: [number, number, number, number]) =>
     a !== b && Math.min(a[1], b[1]) - Math.max(a[0], b[0]) > -1e-6 && Math.min(a[3], b[3]) - Math.max(a[2], b[2]) > -1e-6
   for (const wall of GROUND_PARTITIONS) assert.ok(rects.some(other => touch(wall, other)), `ground wall ${wall} touches no other wall`)
-  assert.equal(GROUND_PARTITIONS.length, 7)
+  assert.equal(GROUND_PARTITIONS.length, 8)
 })
 
 test('the office has a 1.5 m window onto the light well, centred on it, cut out of the wall that runs along the well', () => {
@@ -698,10 +698,16 @@ test('the ground floor\'s living, its distributor, is 4.97 m wide, behind the ba
   assert.ok(HALL_ARCH.v[0] >= GROUND_LIVING.v[0] && HALL_ARCH.v[1] <= GROUND_LIVING.v[1], 'the hall doorway opens onto the living')
   const well = OPENINGS.ground.find(opening => opening.u === 4)!
   assert.ok(well.v[0] >= GROUND_LIVING.v[0] && well.v[1] <= GROUND_LIVING.v[1], 'the well\'s balcony door is in the living')
-  // On its right, the south-west, a wall of only 0.80 m stands at its edge, against the contrafrente; the rest of that side is open.
-  near(GROUND_LIVING_WALL[1] - GROUND_LIVING_WALL[0], .8)
+  // A wall closes it on the right, the south-west, along its whole depth, at its edge...
+  near(GROUND_LIVING_WALL[1] - GROUND_LIVING_WALL[0], GROUND_LIVING.u[1] - GROUND_LIVING.u[0])
   near(GROUND_LIVING_WALL[3], GROUND_LIVING.v[0]); near(GROUND_LIVING_WALL[3] - GROUND_LIVING_WALL[2], .12)
-  near(GROUND_LIVING_WALL[0], GROUND_LIVING.u[0])
-  assert.ok(GROUND_LIVING_WALL[1] - GROUND_LIVING.u[0] < (GROUND_LIVING.u[1] - GROUND_LIVING.u[0]) / 2, 'most of that side is open')
-  assert.ok(GROUND_PARTITIONS.includes(GROUND_LIVING_WALL))
+  // ...with a 0.80 m door centred on it: open there, and the wall stands on either side.
+  near(LIVING_KITCHEN_DOOR.u[1] - LIVING_KITCHEN_DOOR.u[0], .8)
+  near((LIVING_KITCHEN_DOOR.u[0] + LIVING_KITCHEN_DOOR.u[1]) / 2, (GROUND_LIVING_WALL[0] + GROUND_LIVING_WALL[1]) / 2)
+  for (const [u0, u1, v0, v1] of GROUND_PARTITIONS) {
+    const blocks = u0 < LIVING_KITCHEN_DOOR.u[1] - 1e-9 && u1 > LIVING_KITCHEN_DOOR.u[0] + 1e-9 && v0 < LIVING_KITCHEN_DOOR.v[1] - 1e-9 && v1 > LIVING_KITCHEN_DOOR.v[0] + 1e-9
+    assert.ok(!blocks, 'the kitchen door is free of walls')
+  }
+  const pieces = GROUND_PARTITIONS.filter(wall => wall[3] === GROUND_LIVING_WALL[3] && wall[2] === GROUND_LIVING_WALL[2])
+  assert.equal(pieces.length, 2)
 })
