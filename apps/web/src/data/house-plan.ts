@@ -624,6 +624,25 @@ export const LIVING_KITCHEN_DOOR = {
   y: [0, 2.1] as [number, number],
 }
 
+/**
+ * The pantry ("despensa", the owner's name) is one of the three rooms beyond the living's 0.80 m door, the one against the garage's wall, which is
+ * the contrafrente (owner). It is 1.73 m deep from that wall toward the rear and 3.14 m wide (owner), which is all the width between the living's
+ * wall and the south-west party wall. Its door to the hall is in the wall that runs along v, perpendicular to the living's wall (owner); the door's
+ * 0.7 m width and its centring are assumed, and only the opening is drawn. The hall is on the other side of that wall. The hall and the other two
+ * rooms are not drawn yet. The living's 0.80 m door, centred on the living's wall, now opens onto the pantry, and is to be corrected.
+ */
+export const PANTRY = { depth: 1.73, width: 3.14, doorWidth: .7 }
+export const GROUND_PANTRY = {
+  u: [GROUND_BACK_WALL[1], GROUND_BACK_WALL[1] + PANTRY.depth] as [number, number],
+  v: [GROUND_GARAGE.v[0], GROUND_LIVING_WALL[2]] as [number, number],
+}
+const pantryDoorMiddleV = (GROUND_PANTRY.v[0] + GROUND_PANTRY.v[1]) / 2
+export const PANTRY_DOOR = {
+  u: [GROUND_PANTRY.u[1], GROUND_PANTRY.u[1] + PARTITION_THICKNESS] as [number, number],
+  v: [pantryDoorMiddleV - PANTRY.doorWidth / 2, pantryDoorMiddleV + PANTRY.doorWidth / 2] as [number, number],
+  y: [0, 2.1] as [number, number],
+}
+
 /** Interior walls of the ground floor as [u0, u1, v0, v1]: the wall between the garage and the hall, and the contrafrente. */
 export const GROUND_PARTITIONS: [number, number, number, number][] = [
   // The recess wall continuing to the back wall, between the garage and the hall, split around the door between them.
@@ -636,6 +655,9 @@ export const GROUND_PARTITIONS: [number, number, number, number][] = [
   // The wall that closes the living on the right (south-west), split around its 0.80 m door.
   [GROUND_LIVING_WALL[0], LIVING_KITCHEN_DOOR.u[0], GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]],
   [LIVING_KITCHEN_DOOR.u[1], GROUND_LIVING_WALL[1], GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]],
+  // The pantry's wall toward the hall, split around its door.
+  [PANTRY_DOOR.u[0], PANTRY_DOOR.u[1], GROUND_PANTRY.v[0], PANTRY_DOOR.v[0]],
+  [PANTRY_DOOR.u[0], PANTRY_DOOR.u[1], PANTRY_DOOR.v[1], GROUND_PANTRY.v[1]],
   // The office wall is split around the office door.
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], GROUND_OFFICE_WALL[2], OFFICE_DOOR.v[0]],
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], OFFICE_DOOR.v[1], GROUND_OFFICE_WALL[3]],
