@@ -300,3 +300,8 @@
 .bill-help:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 2px; }
 .bill-tooltip { bottom: auto; top: 100%; left: 0; transform: none; margin-top: 6px; width: 280px; max-width: 80vw; white-space: normal; line-height: 1.5; font-size: 11px; font-weight: 400; z-index: 6; }
 .bill-inputs label > span, .bill-field-label { min-height: 16px; display: flex; align-items: center; }
+
+/* The tooltip's coloured markers, for the bill's two bars. */
+.month-tooltip .gen-key-without::before, .month-tooltip .gen-key-with::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border: 0; border-radius: 2px; vertical-align: baseline; }
+.month-tooltip .gen-key-without::before { background: #dcbf82; }
+.month-tooltip .gen-key-with::before { background: #a9cc88; }

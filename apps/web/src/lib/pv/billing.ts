@@ -7,8 +7,8 @@
  * as a credit on the bill. A credit larger than the month's energy charge carries over to the next month;
  * what is left at the end of the year is not counted. The fixed charge is always paid.
  *
- * The tariff, the fixed charge, the consumption and the self-consumed share are the owner's to set: the
- * defaults are placeholders until the real bill is typed in.
+ * The tariff is the owner's price per kWh; the fixed charge, the consumption and the self-consumed share are
+ * the owner's to set, and their defaults are placeholders until the real bill is typed in.
  */
 export type BillingSettings = {
   /** Price of a kWh taken from the grid, all charges and taxes included, in the local currency. */
@@ -23,7 +23,7 @@ export type BillingSettings = {
   consumption: number[]
 }
 
-export const DEFAULT_BILLING: BillingSettings = { tariff: 130, creditShare: .7, selfShare: .35, fixedCharge: 0, consumption: Array.from({ length: 12 }, () => 500) }
+export const DEFAULT_BILLING: BillingSettings = { tariff: 160, creditShare: .7, selfShare: .35, fixedCharge: 0, consumption: Array.from({ length: 12 }, () => 500) }
 
 export type BillMonth = {
   month: number

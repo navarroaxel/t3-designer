@@ -164,8 +164,8 @@ test('the bill tab compares the months with and without solar, and the inputs ar
   await expect(details.getByRole('spinbutton', { name: 'Grid pays' })).toHaveValue('70')
   await expect(details.locator('.bill-table tbody tr')).toHaveCount(12)
   const card = (label: string) => details.locator('.gen-stat', { hasText: label })
-  // 500 kWh a month at 130 a kWh, without solar: 780,000 a year.
-  await expect(card('Bill without solar')).toContainText('$780,000')
+  // 500 kWh a month at 160 a kWh, without solar: 960,000 a year.
+  await expect(card('Bill without solar')).toContainText('$960,000')
   await expect(details.getByText(/\bARS\b/)).toHaveCount(0)
   // The percentage explains itself in a tooltip.
   await details.getByRole('button', { name: 'What the percentage means' }).hover()
@@ -177,6 +177,18 @@ test('the bill tab compares the months with and without solar, and the inputs ar
   await details.getByRole('spinbutton', { name: 'Price per kWh ($)' }).fill('100')
   await details.getByRole('spinbutton', { name: 'Price per kWh ($)' }).press('Enter')
   await expect(card('Bill without solar')).toContainText('1,200,000')
+  // Every bar column reads the month, in a tooltip too.
+  const columns = details.locator('.bill-chart .year-column button')
+  await expect(columns).toHaveCount(12)
+  await expect(columns.first()).toHaveAttribute('aria-label', /^January: bill without solar \$[\d,]+, with solar \$[\d,]+$/)
+  await columns.nth(5).hover()
+  const barTip = page.getByRole('tooltip')
+  await expect(barTip).toContainText('June')
+  await expect(barTip).toContainText(/Without solar: \$[\d,]+/)
+  await expect(barTip).toContainText(/With solar: \$[\d,]+/)
+  await expect(barTip).toContainText(/kWh generated/)
+  await page.mouse.move(5, 5)
+  await expect(barTip).toHaveCount(0)
   // With solar the bill is lower, and one month can be edited on its own.
   const without = details.locator('.bill-table tbody tr').nth(6).locator('td').nth(4)
   await expect(without).toContainText('100,000')
@@ -190,6 +202,6 @@ test('the bill tab compares the months with and without solar, and the inputs ar
   await page.getByRole('dialog', { name: 'Generation in detail' }).getByRole('tab', { name: 'Bill' }).click()
   await expect(page.getByRole('spinbutton', { name: 'Price per kWh ($)' })).toHaveValue('100')
   await page.getByRole('button', { name: 'Back to the defaults' }).click()
-  await expect(page.getByRole('spinbutton', { name: 'Price per kWh ($)' })).toHaveValue('130')
+  await expect(page.getByRole('spinbutton', { name: 'Price per kWh ($)' })).toHaveValue('160')
   await expect(page.getByRole('spinbutton', { name: 'Consumption in July, kWh' })).toHaveValue('500')
 })

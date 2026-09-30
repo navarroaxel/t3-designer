@@ -19,6 +19,7 @@ export function BillView({ year }: { year: YearResult }) {
   const billing = useBilling()
   const { settings } = billing
   const [help, setHelp] = useState(false)
+  const [active, setActive] = useState<number | null>(null)
   // Only the symbol: the money is whatever currency the user thinks in.
   const money = useMemo(() => {
     const plain = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 })
@@ -72,7 +73,7 @@ export function BillView({ year }: { year: YearResult }) {
       {totals.creditLeft > 0 && <div className="gen-stat"><span>{t('building.billCreditLeft')}</span><strong>{money.format(totals.creditLeft)}</strong><em>{t('building.billCreditLeftNote')}</em></div>}
     </div>
 
-    <div className="year-chart bill-chart" role="img" aria-label={t('building.billChartAria')}>
+    <div className="year-chart bill-chart" role="group" aria-label={t('building.billChartAria')}>
       <svg viewBox={`0 0 ${FRAME.width} ${FRAME.height}`} aria-hidden="true">
         {ticks.map(tick => <g key={tick}>
           <line className="gen-grid" x1={FRAME.left} x2={FRAME.width - FRAME.right} y1={y(tick)} y2={y(tick)} />
@@ -87,6 +88,23 @@ export function BillView({ year }: { year: YearResult }) {
           </g>
         })}
       </svg>
+      <div className="year-columns">
+        {months.map(month => <div key={month.month} className="year-column" style={{ left: `${(FRAME.left + column * month.month) / FRAME.width * 100}%`, width: `${column / FRAME.width * 100}%` }}>
+          <button type="button" aria-describedby={active === month.month ? 'bill-tooltip' : undefined}
+            aria-label={t('building.billBarAria', { month: monthName(month.month, 'long'), without: money.format(month.billWithout), with: money.format(month.billWith) })}
+            onMouseEnter={() => setActive(month.month)} onMouseLeave={() => setActive(current => current === month.month ? null : current)}
+            onFocus={() => setActive(month.month)} onBlur={() => setActive(current => current === month.month ? null : current)} />
+          {active === month.month && <div id="bill-tooltip" role="tooltip" className={`month-tooltip year-tooltip${month.month < 2 ? ' month-tooltip-start' : month.month > 9 ? ' month-tooltip-end' : ''}`}>
+            <strong>{monthName(month.month, 'long')}</strong>
+            <span className="gen-key-without">{t('building.billTipWithout', { value: money.format(month.billWithout) })}</span>
+            <span className="gen-key-with">{t('building.billTipWith', { value: money.format(month.billWith) })}</span>
+            <span>{t('building.billTipSaved', { value: money.format(month.saved) })}</span>
+            <span>{t('building.billTipEnergy', { generation: formatNumber(month.generation), consumption: formatNumber(month.consumption) })}</span>
+            <span>{t('building.billTipGrid', { exported: formatNumber(month.exported), imported: formatNumber(month.imported) })}</span>
+            {month.creditLeft > 0 && <span>{t('building.billTipCredit', { value: money.format(month.creditLeft) })}</span>}
+          </div>}
+        </div>)}
+      </div>
     </div>
     <ul className="gen-legend" aria-hidden="true">
       <li className="gen-key-without">{t('building.billWithout')}</li>
