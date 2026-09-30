@@ -57,13 +57,17 @@ from two Street View photos, at about 0.3 m of accuracy.
 
 The floor selector shows the house sectioned 1.5 m above the ground floor or the
 first floor. `src/data/house-plan.ts` holds the plans and `HouseShell.tsx` draws
-them. Only the exterior walls are modelled, so the rooms are empty.
+them: the exterior walls with their doors and windows, the slabs, the interior
+walls, the doors and their swings, the stair, the floors, the fixtures and the
+furniture the owner described. The sections below say what each room holds and
+where each measure comes from.
 
-- The street front, the recess and the light well's walls are assumed to be 0.3 m thick and slabs 0.2 m. Neither is measured. The party walls are 0.3 m and shared, 0.15 m on this lot (owner).
-- The ground-floor outline includes the rooms under the rear terrace and the left arm, with the entrance recess and the light well left open. It is 100.6 m2.
-- The first floor is the 9 m by 8.5 m block, 76.5 m2, with the 3 m balcony door and the window on the street side. The roof's 1 m cantilever is not a floor.
-- The cut hides the upper floors, but they still cast their shadows on the cut floor, because the sunlight pass always uses the whole house.
-- Interior walls, stairs, doors and windows other than the ones on the street front are not modelled yet.
+- The street front, the recess and the light well's walls are assumed to be 0.3 m thick and slabs 0.2 m. Neither is measured. The party walls are 0.3 m and shared, 0.15 m on this lot (owner). The interior walls are 0.12 m (the owner says 12 to 14 cm), and the wall that closes the light well 0.18 m.
+- The ground-floor outline includes the rooms under the rear terrace and the left arm, with the entrance recess and the light well left open. It is 103.1 m2.
+- The first floor is the 9 m by 8.66 m block, 77.5 m2, with the 3 m balcony door and the window on the street side, and the balcony in front. The roof's 1 m cantilever is not a floor.
+- The ground floor's interior is modelled from the front to the light well: the garage, the hall, the pantry, the bathroom, the living, the office, the stair and the stairwell in the first-floor slab. The first floor's is modelled too: the bedrooms and their closet, the bathroom, the corridor and the kitchen-living, with the terrace and the laundry beyond it.
+- The cut hides the upper floors, but they still cast their shadows on the cut floor, because the sunlight pass always uses the whole house. That pass uses a hollow shell of the house, so light enters only through its openings (see "How light sees the house").
+- **Not modelled yet:** the hall beyond the living's 0.80 m door and the two other rooms of that side of the ground floor; the small closet under the stair; the leaf of every door that has only its opening drawn (the garage and hall doorways, the pantry's, the ground bathroom's and the living's 0.80 m door); the upper kitchen cabinets, which hang above the cut; railings along the stair and the stairwell; and anything in a room that the owner has not described. Rooms without furniture listed in this document are empty.
 
 ## Finishes
 
@@ -161,7 +165,7 @@ trees, wires and the terrace grill. None of them shades the azotea noticeably.
 3. Distance from the tank block to the rear wall and to the south-west wall.
 4. Whether the light well is open to the sky and where its edges are.
 5. Whether lot 7 and the lots beyond it have an upper level set back behind their fronts, as the photos suggest, and the real heights of the buildings of the other lots.
-6. The plans of both floors: interior walls, stairs, and the windows on the side and rear walls.
+6. The rest of the ground floor's plan: the hall beyond the living's door and the two other rooms of that side, the closet under the stair, and the leaves of the doors that have only their opening.
 7. The real thickness of the exterior walls.
 8. The panel layout: see [solar-array.md](solar-array.md).
 
