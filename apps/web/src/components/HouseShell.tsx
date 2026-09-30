@@ -167,7 +167,7 @@ function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, 
     return texture
   }, [pattern, zone.color, u0, u1, v0, v1])
   useEffect(() => () => map.dispose(), [map])
-  return <mesh position={[(u0 + u1) / 2, FLOOR_HEIGHT + TILE_THICKNESS / 2, -(v0 + v1) / 2]} receiveShadow>
+  return <mesh position={[(u0 + u1) / 2, (zone.level ?? FLOOR_HEIGHT) + TILE_THICKNESS / 2, -(v0 + v1) / 2]} receiveShadow>
     <boxGeometry args={[u1 - u0, TILE_THICKNESS, v1 - v0]} />
     <meshStandardMaterial color="#ffffff" map={map} roughness={.4} metalness={.05} />
   </mesh>
@@ -195,6 +195,8 @@ export function HouseShell({ floor }: { floor: Floor }) {
       <Slab outline={GROUND_OUTLINE} top={0} />
       <Walls floor="ground" top={CUT_HEIGHT} />
       <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={CUT_HEIGHT} />
+      {/* The ground floor's tiles: the bathroom's and the living's. */}
+      {GROUND_FLOOR_TILING.flatMap(zone => zone.rects.map((rect, index) => <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={rect} />))}
       {/* The L-shaped stair from the hall, cut at the same height as the walls. */}
       <StairBlocks top={CUT_HEIGHT} />
       {/* The office door, open, with its swing. */}

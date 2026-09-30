@@ -502,7 +502,8 @@ export const LIVING_TV_PLACEMENT = {
  */
 /** How a floor is laid: the piece's size, rows before the pattern repeats, the shift between rows and the joint. */
 export type TilePattern = { length: number; width: number; rows: number; stagger: number; grout: number; veins: boolean; veinColor?: string }
-export type FloorTiling = { id: string; color: string; rects: [number, number, number, number][]; pattern: TilePattern }
+/** `level` is the height of the floor's top; the first floor's, FLOOR_HEIGHT, when it is left out. */
+export type FloorTiling = { id: string; color: string; rects: [number, number, number, number][]; pattern: TilePattern; level?: number }
 /** Saing almendra and Saing miel (San Lorenzo Design): wood-look porcelain planks, 20 cm by 120 cm, satin. */
 export const SAING_PLANKS: TilePattern = { length: 1.2, width: .2, rows: 3, stagger: 1 / 3, grout: .003, veins: false }
 /** Navona natural (San Lorenzo Design): beige travertine-look porcelain, 80 cm by 80 cm, satin, rectified, so a fine joint. */
@@ -725,4 +726,13 @@ export const GROUND_DOOR_SWINGS: DoorSwing[] = [
  */
 export const STAIRWELL_HOLE: [number, number, number, number] = [
   FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.u[1], GROUND_HALL.v[0], NE_INNER,
+]
+
+/**
+ * The ground floor's tiles, at ground level (owner): the bathroom has the first floor's bathroom tile, Navona natural, and the living has the
+ * first floor's living floor, Saing miel. The other rooms' floors are not specified.
+ */
+export const GROUND_FLOOR_TILING: FloorTiling[] = [
+  { id: 'ground-bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: 0, rects: [[GROUND_BATHROOM.u[0], GROUND_BATHROOM.u[1], GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1]]] },
+  { id: 'ground-living', color: FLOOR_TILING.find(zone => zone.id === 'living')!.color, pattern: SAING_PLANKS, level: 0, rects: [[GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0], GROUND_LIVING.v[1]]] },
 ]

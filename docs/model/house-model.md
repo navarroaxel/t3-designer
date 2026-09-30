@@ -114,7 +114,7 @@ Beyond the living's 0.80 m door there is a hall and three rooms (owner). The one
 
 ## The ground floor's bathroom
 
-The bathroom of the ground floor (owner) is **1.75 m deep and 2.06 m wide**, against the pantry's far wall and against the south-west party wall (the medianera); its depth is taken out from the pantry's wall and its width along the party wall. It has a **0.70 m door to the hall** (owner), in its north-east wall, 10 cm from the bathroom's back wall; only the opening is drawn. Because it takes the south-west end of the pantry's far wall, the pantry's door is in the rest of that wall (the pantry door's position is assumed) and leads to the hall that runs beside the bathroom, onto which the living's 0.80 m door opens. The other two rooms of that side are not drawn yet.
+The bathroom of the ground floor (owner) is **1.75 m deep and 2.06 m wide**, against the pantry's far wall and against the south-west party wall (the medianera); its depth is taken out from the pantry's wall and its width along the party wall. It has a **0.70 m door to the hall** (owner), in its north-east wall, 10 cm from the bathroom's back wall; only the opening is drawn. Because it takes the south-west end of the pantry's far wall, the pantry's door is in the rest of that wall (the pantry door's position is assumed) and leads to the hall that runs beside the bathroom, onto which the living's 0.80 m door opens. The bathroom's floor is the first floor's bathroom tile (Navona natural), and the ground floor's living has the first floor's living floor (Saing miel) (owner). The other two rooms of that side are not drawn yet.
 
 ## The stair
 
