@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { genericBuildings } from '../src/data/block.ts'
 import { OPPOSITE_LOTS } from '../src/data/opposite-block.ts'
-import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
+import { BUILDING_SITE, ENTRY_RECESS, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
   return Math.abs(ring.reduce((sum, a, index) => {
@@ -141,18 +141,21 @@ test('heights follow the reported floor counts, refined by Street View where it 
   }
 })
 
-test('the entrance is set back 1 m between a 0.5 m flush wall and a pier, and the garage stands on the line', () => {
+test('the entrance is set back 1 m between a 0.5 m flush wall and a pier, whose end lines up with the garage wall, and the garage stands on the line', () => {
   const block = byId('HOUSE'), entry = byId('HOUSE-ENTRY')
   const us = (building: BuildingFootprint) => building.footprint.map(point => houseFrame(point))
   const has = (u: number, v: number) => us(block).some(([pu, pv]) => Math.abs(pu - u) < .02 && Math.abs(pv - v) < .02)
-  // Recess: back wall 1 m behind the line, from the pier (v = 0.85) to the return wall (v = 3.975)...
-  assert.ok(has(-4, .85) && has(-4, 3.975), 'entrance wall 1 m behind the line')
+  // Recess: back wall 1 m behind the line, from the pier to the return wall (v = 3.975). The pier's end lines up with the garage's side wall, so the
+  // recess starts where the garage's width puts it (0.75 m) and not at the earlier 0.85 m...
+  const inner = ENTRY_RECESS.inner
+  assert.ok(Math.abs(inner - .749) < .01, `the recess starts at v = ${inner}`)
+  assert.ok(has(-4, inner) && has(-4, 3.975), 'entrance wall 1 m behind the line')
   // ...a 0.5 m wall stays on the line next to the neighbour, and the garage stands on the line.
   assert.ok(has(-5, 3.975) && has(-5, 4.475), '0.5 m flush wall at the north-east end')
-  assert.ok(has(-5, .85) && has(-5, -4.475), 'pier and garage on the street line')
+  assert.ok(has(-5, inner) && has(-5, -4.475), 'pier and garage on the street line')
   // The upper floor overhangs the recess up to the line.
   closeTo(Math.min(...us(entry).map(([u]) => u)), -5, .02)
-  closeTo(area(entry.footprint), 1 * (3.975 - .85), .02)
+  closeTo(area(entry.footprint), 1 * (3.975 - inner), .02)
   closeTo(entry.base!, 3.0, .001)
 })
 

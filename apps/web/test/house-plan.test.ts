@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
+import { ENTRY_RECESS, FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  BALCONY, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  BALCONY, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -500,14 +500,17 @@ test('the laundry floor lies beyond the rear wall, on the left band, and include
   assert.ok(door.v[0] >= v0 && door.v[1] <= v1, 'the laundry door opens onto it')
 })
 
-test('the ground floor has a 5.69 m by 4.43 m garage with the hall to its left, both ending at the same back wall', () => {
+test('the ground floor has a 5.69 m by 4.5 m garage with the hall to its left, both ending at the same back wall', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
-  near(GROUND_GARAGE.u[1] - GROUND_GARAGE.u[0], 5.69); near(GROUND_GARAGE.v[1] - GROUND_GARAGE.v[0], 4.43)
-  assert.deepEqual([GARAGE.depth, GARAGE.width], [5.69, 4.43])
+  near(GROUND_GARAGE.u[1] - GROUND_GARAGE.u[0], 5.69); near(GROUND_GARAGE.v[1] - GROUND_GARAGE.v[0], 4.5)
+  assert.deepEqual([GARAGE.depth, GARAGE.width], [5.69, 4.5])
+  // The recess's side wall on the garage's side continues to the back wall, so the recess starts where the garage's wall ends.
+  near(GROUND_HALL.v[0], GROUND_GARAGE.v[1] + .3)
+  near(GROUND_HALL.v[0], ENTRY_RECESS.inner)
   // Against the south-west party wall, under the secondary room.
   near(GROUND_GARAGE.v[0], FRONT_ROOMS.secondary.v[0])
   // The hall is to the garage's left seen from the street: north-east, higher v, past a 0.12 m wall.
-  near(GROUND_HALL.v[0] - GROUND_GARAGE.v[1], .12)
+  near(GROUND_HALL.v[0] - GROUND_GARAGE.v[1], .3)
   near(GROUND_HALL.v[1], 4.475 - .3)
   // Both end at the same back wall, the "contrafrente", which runs from party wall to party wall.
   near(GROUND_HALL.u[1], GROUND_GARAGE.u[1])
@@ -518,7 +521,7 @@ test('the ground floor has a 5.69 m by 4.43 m garage with the hall to its left, 
   assert.ok(garageDoor.v[0] >= GROUND_GARAGE.v[0] && garageDoor.v[1] <= GROUND_GARAGE.v[1], 'the garage door is within the garage')
   for (const opening of OPENINGS.ground.filter(item => item.u === -4)) assert.ok(opening.v[0] >= GROUND_HALL.v[0] && opening.v[1] <= GROUND_HALL.v[1], 'the entrance openings lead into the hall')
   // The interior walls of the ground floor are the garage/hall wall and the back wall, and they stay under the first floor's block.
-  assert.equal(GROUND_PARTITIONS.length, 4)
+  assert.equal(GROUND_PARTITIONS.length, 5)
   assert.ok(GROUND_BACK_WALL[1] <= 4)
 })
 
@@ -541,9 +544,9 @@ test('the ground-floor light well has a 1.80 m balcony door, centred on it, on t
 test('the well\'s balcony-door wall continues to the left to the party wall, and the office lies behind it', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   const [u0, u1, v0, v1] = GROUND_OFFICE_WALL
-  // On the same line as the well's wall (u = 4), as thick as the exterior walls, from the well's edge to the party wall's inner face.
+  // On the same line as the well's wall (u = 4), as thick as the exterior walls, from past the well's corner to the party wall's inner face.
   near(u1, 4); near(u1 - u0, .3)
-  near(v0, 1.5); near(v1, 4.475 - .3)
+  near(v0, 1.5 + .3); near(v1, 4.475 - .3)
   // It is split around the office door: two pieces on the same line.
   const pieces = GROUND_PARTITIONS.filter(wall => wall[0] === u0 && wall[1] === u1)
   assert.equal(pieces.length, 2)
@@ -555,10 +558,12 @@ test('the well\'s balcony-door wall continues to the left to the party wall, and
   assert.ok(well.v[1] < v0 + .35, 'the balcony door lies within the well, before the wall continues')
 })
 
-test('the office door is 0.80 m, wenge, right-handed and swings into the office; the wall leaves its opening free', () => {
+test('the office door is 0.80 m, wenge, right-handed, 5 cm from the patio wall, and swings into the office', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   near(OFFICE_DOOR.v[1] - OFFICE_DOOR.v[0], .8)
-  near((OFFICE_DOOR.v[0] + OFFICE_DOOR.v[1]) / 2, (GROUND_OFFICE_WALL[2] + GROUND_OFFICE_WALL[3]) / 2)
+  // 5 cm from the wall on the patio's side (the light well's), not centred.
+  near(OFFICE_DOOR.v[0] - GROUND_OFFICE_WALL[2], .05)
+  assert.ok(Math.abs((OFFICE_DOOR.v[0] + OFFICE_DOOR.v[1]) / 2 - (GROUND_OFFICE_WALL[2] + GROUND_OFFICE_WALL[3]) / 2) > .5)
   // It is in the wall that closes the office.
   near(OFFICE_DOOR.u[1], GROUND_OFFICE_WALL[1])
   for (const [u0, u1, v0, v1] of GROUND_PARTITIONS) {
@@ -571,4 +576,29 @@ test('the office door is 0.80 m, wenge, right-handed and swings into the office;
   // Hinged on the south-west end, and the open leaf stays inside the office.
   near(swing.hinge[1], OFFICE_DOOR.v[0])
   assert.ok(swing.hinge[0] + swing.radius < GROUND_OFFICE.u[1] && swing.hinge[1] > GROUND_OFFICE.v[0] - .5)
+})
+
+test('the garage has a 0.70 m doorway to the hall, with no door for now, in the wall between them', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  near(GARAGE_DOOR.u[1] - GARAGE_DOOR.u[0], .7)
+  near(GARAGE_DOOR.v[0], GROUND_GARAGE.v[1]); near(GARAGE_DOOR.v[1] - GARAGE_DOOR.v[0], .3)
+  assert.ok(GARAGE_DOOR.u[0] > GROUND_GARAGE.u[0] && GARAGE_DOOR.u[1] < GROUND_GARAGE.u[1], 'along the wall between the garage and the hall')
+  // Only the opening: no door leaf and no swing are drawn for it.
+  assert.equal(GROUND_DOOR_SWINGS.some(item => item.id === 'garage'), false)
+  // The wall leaves the doorway free.
+  for (const [u0, u1, v0, v1] of GROUND_PARTITIONS) {
+    const blocks = u0 < GARAGE_DOOR.u[1] - 1e-9 && u1 > GARAGE_DOOR.u[0] + 1e-9 && v0 < GARAGE_DOOR.v[1] - 1e-9 && v1 > GARAGE_DOOR.v[0] + 1e-9
+    assert.ok(!blocks, 'the garage doorway is free of walls')
+  }
+})
+
+test('interior walls do not overlap the exterior walls, on either floor', () => {
+  const overlaps = (a: [number, number, number, number], box: PlanBox) => {
+    const [bu0, bu1, bv0, bv1] = [box.center[0] - box.size[0] / 2, box.center[0] + box.size[0] / 2, box.center[2] - box.size[2] / 2, box.center[2] + box.size[2] / 2]
+    return Math.min(a[1], bu1) - Math.max(a[0], bu0) > 1e-6 && Math.min(a[3], bv1) - Math.max(a[2], bv0) > 1e-6
+  }
+  const ground = wallBoxes(GROUND_OUTLINE, OPENINGS.ground, 0, 3.2)
+  for (const wall of GROUND_PARTITIONS) assert.ok(!ground.some(box => overlaps(wall, box)), `ground wall ${wall} overlaps an exterior wall`)
+  const first = wallBoxes(FIRST_OUTLINE, OPENINGS.first, 3.2, 6.4)
+  for (const wall of FIRST_FLOOR_PARTITIONS) assert.ok(!first.some(box => overlaps(wall, box)), `first-floor wall ${wall} overlaps an exterior wall`)
 })

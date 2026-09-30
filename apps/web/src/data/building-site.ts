@@ -126,7 +126,12 @@ export const TERRACE_SHELF = { depth: .5, thickness: .03, height: .85, basinWidt
 const ENTRY_SETBACK = 1;
 const ENTRY_WALL = .5; // flush wall at the north-east end
 const ENTRY_OUTER = HALF_WIDTH - ENTRY_WALL; // v of the recess's north-east return wall
-const ENTRY_INNER = .85; // v of the recess's south-west end, beside the pier
+/** The garage's width inside (owner: 4.5 m), and the 0.3 m exterior walls of the ground-floor plan. */
+export const GARAGE_WIDTH = 4.5;
+const GROUND_WALL = .3;
+// The recess's south-west end, beside the pier, lines up with the garage's side wall (owner): the plan's mean south-west wall, its 0.3 m,
+// the garage's width and the 0.3 m of the wall that continues the recess's side wall to the back.
+const ENTRY_INNER = houseSouthWestEdge((-5 + REAR_SW) / 2) + GROUND_WALL + GARAGE_WIDTH + GROUND_WALL;
 /** The entrance recess, shared with the floor plans. */
 export const ENTRY_RECESS = { setback: ENTRY_SETBACK, outer: ENTRY_OUTER, inner: ENTRY_INNER } as const;
 /** Depth of the rear ground-floor band on each side, from the street line at u = -5 to the rear boundary. */

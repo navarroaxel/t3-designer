@@ -1,4 +1,4 @@
-import { ENTRY_RECESS, FLOOR_HEIGHT, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
+import { ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
 
 /**
  * Floor plans of the house, for the cutaway views. Only the exterior walls are
@@ -490,12 +490,15 @@ export const BALCONY = { width: 7.94, depth: .86, edge: .3 }
  * The front block of the ground floor (owner). The garage, under the secondary room, is 5.69 m deep and 4.43 m wide inside,
  * against the party wall with the corner (south-west). To its left seen from the street, north-east, is the hall (the
  * "recibidor"), behind the entrance recess. Both end at the same back wall, the "contrafrente", which runs from party wall to
- * party wall; it is drawn at the depth that gives the garage its 5.69 m from the front wall's inner face. A 0.12 m wall separates
- * the garage from the hall. What lies behind the contrafrente wall is not modelled yet.
+ * party wall; it is drawn at the depth that gives the garage its 5.69 m from the front wall's inner face. The wall on the garage's side of the entrance recess continues
+ * back to the contrafrente wall and separates the garage from the hall. What lies behind the contrafrente wall is not modelled yet.
  */
-export const GARAGE = { depth: 5.69, width: 4.43 }
+export const GARAGE = { depth: 5.69, width: GARAGE_WIDTH }
 const groundBackU = INNER_FRONT + GARAGE.depth
 export const GROUND_BACK_WALL: [number, number, number, number] = [groundBackU, groundBackU + PARTITION_THICKNESS, SW + WALL_THICKNESS, NE_INNER]
+// The wall on the garage's side of the entrance recess continues to the back wall (owner), so it is the garage's side wall: 0.3 m thick
+// like the exterior walls, on the recess wall's line. The recess's width was corrected so that this wall falls where the garage's width
+// puts it: the garage is 4.5 m wide inside (owner).
 export const GROUND_GARAGE = {
   u: [INNER_FRONT, groundBackU] as [number, number],
   v: [SW + WALL_THICKNESS, SW + WALL_THICKNESS + GARAGE.width] as [number, number],
@@ -503,36 +506,54 @@ export const GROUND_GARAGE = {
 /** The hall is behind the entrance recess, whose back wall stands at u = -4 and is as thick as the exterior walls. */
 export const GROUND_HALL = {
   u: [-5 + ENTRY_RECESS.setback + WALL_THICKNESS, groundBackU] as [number, number],
-  v: [GROUND_GARAGE.v[1] + PARTITION_THICKNESS, NE_INNER] as [number, number],
+  v: [inner, NE_INNER] as [number, number],
 }
 /**
- * The wall of the light well's balcony door continues to its left, toward the north-east party wall (owner), and behind it, in the
+ * The wall of the light well's balcony door continues to its left, toward the north-east party wall (owner; drawn from the corner the exterior walls already close), and behind it, in the
  * left ground-floor band, is the office. The wall is as thick as the exterior walls, like the wall at the well, and closes the office's
  * front (u = 3.7 to 4.0). The office's size is what the band leaves inside its 0.3 m walls: 4.2 m deep by 2.4 m wide, an assumption.
  */
-export const GROUND_OFFICE_WALL: [number, number, number, number] = [4 - WALL_THICKNESS, 4, 1.5, NE_INNER]
+// It starts 0.3 m past the well's edge: the exterior walls already extend through that reflex corner, and a wall from v = 1.5 would overlap them.
+export const GROUND_OFFICE_WALL: [number, number, number, number] = [4 - WALL_THICKNESS, 4, 1.5 + WALL_THICKNESS, NE_INNER]
 export const GROUND_OFFICE = {
   u: [4, HOUSE_REAR.northEast - WALL_THICKNESS] as [number, number],
   v: [1.5 + WALL_THICKNESS, NE_INNER] as [number, number],
 }
 
 /**
- * The office's door (owner): wenge, right-handed. Its width, 0.80 m, its place, centred on the wall that closes the office, and its
- * 2.10 m height are assumed. Coming in from the rooms in front of it, facing south-east, the right hand is south-west (lower v): the
+ * The office's door (owner): wenge, right-handed, in the wall that closes the office, 5 cm from the wall on the patio's side, not centred. Its
+ * width, 0.80 m, and its 2.10 m height are assumed. Coming in from the rooms in front of it, facing south-east, the right hand is south-west (lower v): the
  * leaf is hinged on that end and swings into the office.
  */
 export const OFFICE_DOOR_WIDTH = .8
 export const OFFICE_DOOR_COLOR = '#3d2b22'
-const officeDoorCentre = (GROUND_OFFICE_WALL[2] + GROUND_OFFICE_WALL[3]) / 2
+/** 5 cm from the wall on the patio's side, the light well's (owner). */
+export const OFFICE_DOOR_FROM_PATIO_WALL = .05
+const officeDoorStart = GROUND_OFFICE_WALL[2] + OFFICE_DOOR_FROM_PATIO_WALL
 export const OFFICE_DOOR = {
   u: [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1]] as [number, number],
-  v: [officeDoorCentre - OFFICE_DOOR_WIDTH / 2, officeDoorCentre + OFFICE_DOOR_WIDTH / 2] as [number, number],
+  v: [officeDoorStart, officeDoorStart + OFFICE_DOOR_WIDTH] as [number, number],
+  y: [0, 2.1] as [number, number],
+}
+
+/**
+ * The doorway from the garage to the hall (owner): 0.70 m wide. It has no door for now, only the opening, a door arch. Its place, centred
+ * along the wall, and its 2.10 m height are assumed.
+ */
+export const GARAGE_DOOR_WIDTH = .7
+const garageDoorCentre = (GROUND_GARAGE.u[0] + groundBackU) / 2
+export const GARAGE_DOOR = {
+  u: [garageDoorCentre - GARAGE_DOOR_WIDTH / 2, garageDoorCentre + GARAGE_DOOR_WIDTH / 2] as [number, number],
+  v: [GROUND_GARAGE.v[1], inner] as [number, number],
   y: [0, 2.1] as [number, number],
 }
 
 /** Interior walls of the ground floor as [u0, u1, v0, v1]: the wall between the garage and the hall, and the contrafrente. */
 export const GROUND_PARTITIONS: [number, number, number, number][] = [
-  [GROUND_GARAGE.u[0], groundBackU, GROUND_GARAGE.v[1], GROUND_GARAGE.v[1] + PARTITION_THICKNESS],
+  // The recess wall continuing to the back wall, between the garage and the hall, split around the door between them.
+  // It starts past the recess's back wall, whose strip already runs through that corner.
+  [-5 + setback + WALL_THICKNESS, GARAGE_DOOR.u[0], GROUND_GARAGE.v[1], inner],
+  [GARAGE_DOOR.u[1], groundBackU, GROUND_GARAGE.v[1], inner],
   GROUND_BACK_WALL,
   // The office wall is split around the office door.
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], GROUND_OFFICE_WALL[2], OFFICE_DOOR.v[0]],
