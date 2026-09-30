@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { DAYS_IN_MONTH } from '../src/data/climate.ts'
-import { computeBills, DEFAULT_BILLING, loadCurve, PROFILE_PRESETS, resultOf, sanitizeBilling, type BillingInput, type BillingSettings } from '../src/lib/pv/billing.ts'
+import { annualReturn, computeBills, DEGRADATION_PER_YEAR, installCostFor, paybackOf, DEFAULT_BILLING, loadCurve, PROFILE_PRESETS, resultOf, sanitizeBilling, type BillingInput, type BillingSettings } from '../src/lib/pv/billing.ts'
 
 const flat = (value: number) => Array.from({ length: 12 }, () => value)
 /** A simple sun: `watts` from 10:00 to 14:00 every day, hourly points, so 4 h x watts a day. */
@@ -10,7 +10,7 @@ const sun = (watts: number): BillingInput => {
   return { generation: DAYS_IN_MONTH.map(days => watts * 4 / 1000 * days), curves: flat(0).map(() => curve), stepMinutes: 60 }
 }
 const settings = (patch: Partial<BillingSettings> = {}): BillingSettings =>
-  ({ tariff: 100, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, cashOut: 'off', consumption: flat(500), ...patch })
+  ({ tariff: 100, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, cashOut: 'off', consumption: flat(500), installCost: 12_500_000, costPerPanelLeftOut: 0, priceChange: 0, ...patch })
 const close = (actual: number, expected: number, tolerance = 1e-6) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} should be ${expected}`)
 
 test('the load profile is two blocks that add up to the day', () => {
@@ -166,4 +166,41 @@ test('the bottom line is a gain, or the annual electricity cost in red when the 
   // Paying in some months and being paid in others nets out over the year.
   const monthly = computeBills(sun(2000), settings({ consumption: flat(500), cashOut: 'monthly' })).totals
   close(monthly.net, monthly.gain - monthly.billWith)
+})
+
+test('the payback: years until the return repays the cost', () => {
+  // A flat return of a quarter of the cost a year (no price change) repays it in a bit over four years, because of the ageing.
+  const flatReturn = paybackOf(2_500_000, 10_000_000, 0)
+  assert.ok(flatReturn.years! > 4 && flatReturn.years! < 4.2, `years ${flatReturn.years}`)
+  close(flatReturn.returnPercent, 25)
+  assert.equal(flatReturn.returns.length, 25)
+  assert.equal(flatReturn.accumulated.length, 26)
+  close(flatReturn.accumulated[0], -10_000_000)
+  close(flatReturn.returns[1], 2_500_000 * (1 - DEGRADATION_PER_YEAR))
+  // The accumulated return at the payback year is not negative any more, and the year before it is.
+  const whole = Math.ceil(flatReturn.years!)
+  assert.ok(flatReturn.accumulated[whole] >= 0 && flatReturn.accumulated[whole - 1] < 0)
+  // A rising price shortens it, a falling one lengthens it.
+  assert.ok(paybackOf(2_500_000, 10_000_000, .3).years! < flatReturn.years!)
+  assert.ok(paybackOf(2_500_000, 10_000_000, -.05).years! > flatReturn.years!)
+  // Too small a return never repays it within the years looked at.
+  assert.equal(paybackOf(100_000, 10_000_000, 0).years, null)
+  // Nothing to repay is paid back at once.
+  assert.equal(paybackOf(1, 0, 0).years, 0)
+})
+
+test('the cost follows the panels installed only if each one saves something', () => {
+  const s = settings({ installCost: 12_500_000, costPerPanelLeftOut: 0 })
+  assert.equal(installCostFor(s, 6), 12_500_000)
+  assert.equal(installCostFor({ ...s, costPerPanelLeftOut: 300_000 }, 6), 12_500_000 - 1_800_000)
+  assert.equal(installCostFor({ ...s, costPerPanelLeftOut: 5_000_000 }, 6), 0)
+  assert.equal(DEFAULT_BILLING.installCost, 12_500_000)
+  assert.equal(sanitizeBilling({ installCost: -1 }).installCost, 0)
+  assert.equal(sanitizeBilling({ priceChange: 99 }).priceChange, 5)
+})
+
+test('the annual return is the bill saved plus the gain', () => {
+  const totals = computeBills(sun(5000), settings({ consumption: flat(100), cashOut: 'yearly' })).totals
+  close(annualReturn(totals), totals.saved + totals.gain)
+  assert.ok(annualReturn(totals) > totals.billWithout, 'a big array returns more than the bills cost')
 })

@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
-import { billingInput, CASH_OUT_MODES, computeBills, PROFILE_PRESETS, resultOf } from '../lib/pv/billing'
+import { annualReturn, billingInput, CASH_OUT_MODES, computeBills, installCostFor, paybackOf, PROFILE_PRESETS, resultOf } from '../lib/pv/billing'
 import { niceTicks } from '../lib/pv/stats'
 import type { YearResult } from '../lib/pv/model'
 import { moneyFormatter } from '../lib/money'
 import { useBilling } from '../lib/useBilling'
 import { NumberField } from './NumberField'
 import { ProfileChart } from './GenerationProfile'
+import { PaybackView } from './GenerationPayback'
 
 const FRAME = { width: 640, height: 220, left: 54, right: 8, top: 12, bottom: 24 }
 
@@ -15,7 +16,7 @@ const FRAME = { width: 640, height: 220, left: 54, right: 8, top: 12, bottom: 24
  * The electricity bill month by month with and without the array, for a two-way meter: the house's consumption,
  * what the array makes, the share the grid pays for the export, and the bill that comes out.
  */
-export function BillView({ year, month }: { year: YearResult; month: number }) {
+export function BillView({ year, month, panelsLeftOut }: { year: YearResult; month: number; panelsLeftOut: number }) {
   const { t } = useTranslation('workspace')
   const { locale, formatNumber, formatDate } = useLocale()
   const billing = useBilling()
@@ -34,6 +35,8 @@ export function BillView({ year, month }: { year: YearResult; month: number }) {
   const y = (value: number) => FRAME.top + plotHeight - value / top * plotHeight
   const base = FRAME.top + plotHeight
   const result = resultOf(totals)
+  const cost = installCostFor(settings, panelsLeftOut)
+  const payback = useMemo(() => paybackOf(annualReturn(totals), cost, settings.priceChange), [totals, cost, settings.priceChange])
   const savedPercent = totals.billWithout > 0 ? totals.saved / totals.billWithout * 100 : 0
   const meanConsumption = totals.consumption / 12
 
@@ -103,6 +106,8 @@ export function BillView({ year, month }: { year: YearResult; month: number }) {
       <div className="gen-stat"><span>{t('building.billExported')}</span><strong>{formatNumber(totals.exported)}<small>kWh</small></strong><em>{t('building.billExportedNote', { imported: formatNumber(totals.imported) })}</em></div>
       {settings.cashOut === 'off' && totals.creditLeft > 0 && <div className="gen-stat"><span>{t('building.billCreditLeft')}</span><strong>{money.format(totals.creditLeft)}</strong><em>{t('building.billCreditLeftNote')}</em></div>}
     </div>
+
+    <PaybackView payback={payback} cost={cost} settings={settings} update={billing.update} />
 
     <div className="year-chart bill-chart" role="group" aria-label={t('building.billChartAria')}>
       <svg viewBox={`0 0 ${FRAME.width} ${FRAME.height}`} aria-hidden="true">

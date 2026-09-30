@@ -4,7 +4,7 @@ import { PV_SYSTEM } from '../data/pv-system'
 import { PANELS, PANEL_SPEC, ROWS, ROW_COUNTS } from '../data/solar-array'
 import { useLocale } from '../i18n/useLocale'
 import type { DayResult, YearResult } from '../lib/pv/model'
-import { billingInput, computeBills, resultOf } from '../lib/pv/billing'
+import { PAYBACK_YEARS, annualReturn, billingInput, computeBills, installCostFor, paybackOf, resultOf } from '../lib/pv/billing'
 import { panelStats, type PanelStat } from '../lib/pv/stats'
 import { moneyFormatter } from '../lib/money'
 import { useBilling } from '../lib/useBilling'
@@ -64,6 +64,8 @@ export function PanelsView({ day, panels, year, fullYear }: { day: DayResult; pa
   const billsOf = (result: YearResult) => computeBills(billingInput(result), billing.settings).totals
   const comparison = !panels.isFull && year && fullYear ? {
     energy: year.annualKwh, fullEnergy: fullYear.annualKwh, yield: year.specificYield, fullYield: fullYear.specificYield,
+    payback: paybackOf(annualReturn(billsOf(year)), installCostFor(billing.settings, panels.total - panels.count), billing.settings.priceChange).years,
+    fullPayback: paybackOf(annualReturn(billsOf(fullYear)), installCostFor(billing.settings, 0), billing.settings.priceChange).years,
     saved: billsOf(year).saved, fullSaved: billsOf(fullYear).saved, result: resultOf(billsOf(year)), fullResult: resultOf(billsOf(fullYear)),
   } : null
 
@@ -126,6 +128,9 @@ export function PanelsView({ day, panels, year, fullYear }: { day: DayResult; pa
         <div className={`gen-stat ${comparison.result.kind === 'cost' ? 'gen-stat-cost' : ''}`}>
           <span>{t(comparison.result.kind === 'gain' ? 'building.billResultGain' : 'building.billResultCost')}</span><strong>{money.format(comparison.result.amount)}</strong>
           <em>{t('building.genVsResultNote', { full: money.format(comparison.fullResult.amount), kind: t(comparison.fullResult.kind === 'gain' ? 'building.billResultGain' : 'building.billResultCost') })}</em></div>
+        <div className="gen-stat"><span>{t('building.paybackYears')}</span>
+          <strong>{comparison.payback === null ? t('building.paybackNever', { max: PAYBACK_YEARS }) : <>{formatNumber(comparison.payback, 1)}<small>{t('building.paybackUnit')}</small></>}</strong>
+          <em>{t('building.genVsPaybackNote', { full: comparison.fullPayback === null ? t('building.paybackNever', { max: PAYBACK_YEARS }) : `${formatNumber(comparison.fullPayback, 1)}${t('building.paybackUnit')}` })}</em></div>
         <div className="gen-stat"><span>{t('building.genVsYield')}</span><strong>{formatNumber(comparison.yield)}<small>kWh/kWp</small></strong>
           <em>{t('building.genVsYieldNote', { full: formatNumber(comparison.fullYield) })}</em></div>
         <div className="gen-stat"><span>{t('building.genVsRoof')}</span><strong>{formatNumber(freedM2, 1)}<small>m²</small></strong><em>{t('building.genVsRoofNote')}</em></div>

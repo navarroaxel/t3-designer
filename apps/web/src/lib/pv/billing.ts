@@ -38,10 +38,17 @@ export type BillingSettings = {
   cashOut: CashOut
   /** The house's consumption in each month, kWh. */
   consumption: number[]
+  /** Equipment and installation of the whole planned array (all its panels), in the local currency. */
+  installCost: number
+  /** How much less the installation costs for each panel left out; 0 keeps the cost as it is. */
+  costPerPanelLeftOut: number
+  /** How much the price of a kWh changes each year, as a share (0.1 is 10%). */
+  priceChange: number
 }
 
 export const DEFAULT_BILLING: BillingSettings = {
   tariff: 160, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, cashOut: 'yearly', consumption: Array.from({ length: 12 }, () => 500),
+  installCost: 12_500_000, costPerPanelLeftOut: 0, priceChange: 0,
 }
 
 /** Daytime shares the calculator offers as starting points. */
@@ -110,6 +117,9 @@ export function sanitizeBilling(input: Partial<Record<keyof BillingSettings, unk
     fixedCharge: clamp(number(source.fixedCharge, DEFAULT_BILLING.fixedCharge), 0, 10_000_000),
     cashOut: CASH_OUT_MODES.find(mode => mode === source.cashOut) ?? DEFAULT_BILLING.cashOut,
     consumption,
+    installCost: clamp(number(source.installCost, DEFAULT_BILLING.installCost), 0, 1e12),
+    costPerPanelLeftOut: clamp(number(source.costPerPanelLeftOut, DEFAULT_BILLING.costPerPanelLeftOut), 0, 1e11),
+    priceChange: clamp(number(source.priceChange, DEFAULT_BILLING.priceChange), -.5, 5),
   }
 }
 
@@ -177,4 +187,42 @@ export function computeBills(input: BillingInput, settings: BillingSettings): { 
  */
 export function resultOf(totals: Pick<BillTotals, 'net'>): { kind: 'gain' | 'cost'; amount: number } {
   return totals.net >= 0 ? { kind: 'gain', amount: totals.net } : { kind: 'cost', amount: -totals.net }
+}
+
+/** Years the payback looks ahead. */
+export const PAYBACK_YEARS = 25
+/** How much the panels lose each year, a typical figure. */
+export const DEGRADATION_PER_YEAR = .005
+
+/** What the installation costs with `panelsLeftOut` of the planned panels not installed. */
+export const installCostFor = (settings: Pick<BillingSettings, 'installCost' | 'costPerPanelLeftOut'>, panelsLeftOut: number) =>
+  Math.max(0, settings.installCost - settings.costPerPanelLeftOut * panelsLeftOut)
+
+/** What the array is worth in a year: the bill it saves plus the cash the company pays. */
+export const annualReturn = (totals: Pick<BillTotals, 'saved' | 'gain'>) => totals.saved + totals.gain
+
+export type Payback = {
+  /** Years until the accumulated return repays the cost (fractional), or null if it does not within `PAYBACK_YEARS`. */
+  years: number | null
+  /** The return of each year, from year 1. */
+  returns: number[]
+  /** Accumulated return minus the cost, from year 0 (which is minus the cost). */
+  accumulated: number[]
+  /** The first year's return over the cost, in percent. */
+  returnPercent: number
+}
+
+/**
+ * The payback of an installation: the first year's return is repeated each year, moved by the yearly change of the price and
+ * worn down by the panels' ageing. Simple: no interest on the money and no cost of maintenance.
+ */
+export function paybackOf(firstYearReturn: number, cost: number, priceChange: number, years = PAYBACK_YEARS): Payback {
+  const returns = Array.from({ length: years }, (_, index) => firstYearReturn * (1 + priceChange) ** index * (1 - DEGRADATION_PER_YEAR) ** index)
+  const accumulated = [-cost]
+  returns.forEach((value, index) => accumulated.push(accumulated[index] + value))
+  let paid: number | null = null
+  for (let year = 1; year <= years && paid === null; year++) {
+    if (accumulated[year] >= 0) paid = cost <= 0 ? 0 : year - 1 + -accumulated[year - 1] / returns[year - 1]
+  }
+  return { years: paid, returns, accumulated, returnPercent: cost > 0 ? firstYearReturn / cost * 100 : 0 }
 }
