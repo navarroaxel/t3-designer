@@ -58,7 +58,7 @@ const workspace = {
     genLegendBars: 'Día típico de cada mes', genLegendMean: 'Media del año', genLegendMeasured: 'Tu enero medido ({{low}} a {{high}} kWh por día con seis paneles), proyectado a los {{panels}} paneles',
     genYearHint: 'Elegí un mes para llevar el estudio a su día 15. La banda es el enero que mediste con seis paneles, multiplicado hasta cubrir todo el arreglo para poder comparar el modelo con él.',
     genStatAnnual: 'Por año', genStatAnnualNote: '{{yield}} kWh por kWp',
-    genStatBest: 'Mejor mes', genStatWorst: 'Mes más flojo', genStatMonthNote: '{{perDay}} kWh por día',
+    genStatBest: 'Mejor mes', genStatWorst: 'Peor mes', genStatMonthNote: '{{perDay}} kWh por día',
     genStatYearShading: 'Sombra, en el año', genStatPeakYear: 'pico más alto: {{kw}} kW',
     genTableCaption: 'Generación estimada por mes', genColMonth: 'Mes', genColClear: 'Días despejados', genColShade: 'Sombra',
     genFactor: 'Factor de eficiencia',
