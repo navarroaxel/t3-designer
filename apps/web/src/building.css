@@ -273,3 +273,30 @@
 .panel-hit button { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 3px; }
 .panel-hit button:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 1px; }
 .panel-tooltip { bottom: auto; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4; }
+
+/* Bill tab. */
+.bill-inputs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.bill-inputs label { display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: #829077; }
+.bill-inputs input, .bill-month-input { font: inherit; font-size: 12px; font-variant-numeric: tabular-nums; padding: 5px 7px; border: 1px solid var(--gen-card-border); border-radius: 5px; background: var(--gen-card); color: inherit; text-align: right; min-width: 0; }
+.bill-inputs input:focus-visible, .bill-month-input:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 1px; }
+.bill-month-input { width: 72px; padding: 3px 5px; font-size: 11px; }
+.bill-bar-without { fill: var(--gen-clear); }
+.bill-bar-with { fill: var(--gen-typical); }
+.gen-legend .gen-key-without::before, .gen-legend .gen-key-with::before { width: 10px !important; height: 10px !important; border: 0 !important; border-radius: 2px; }
+.gen-legend .gen-key-without::before { background: var(--gen-clear); }
+.gen-legend .gen-key-with::before { background: var(--gen-typical); }
+.bill-table-wrap { overflow-x: auto; }
+.bill-table { min-width: 620px; }
+.bill-table tfoot th, .bill-table tfoot td { font-weight: 650; border-top: 2px solid var(--gen-card-border); border-bottom: 0; }
+.bill-saved { color: var(--gen-typical); font-weight: 600; }
+
+.bill-inputs .bill-field { display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: #829077; position: relative; }
+.bill-field-label { display: flex; align-items: center; gap: 5px; }
+.bill-field-label label { display: block; }
+.bill-unit-row { display: flex; align-items: center; gap: 5px; }
+.bill-unit-row input { flex: 1; min-width: 0; }
+.bill-unit-row > span { font-size: 11px; }
+.bill-help { width: 15px; height: 15px; padding: 0; border-radius: 50%; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-size: 10px; font-weight: 700; line-height: 1; cursor: help; }
+.bill-help:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 2px; }
+.bill-tooltip { bottom: auto; top: 100%; left: 0; transform: none; margin-top: 6px; width: 280px; max-width: 80vw; white-space: normal; line-height: 1.5; font-size: 11px; font-weight: 400; z-index: 6; }
+.bill-inputs label > span, .bill-field-label { min-height: 16px; display: flex; align-items: center; }

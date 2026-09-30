@@ -98,7 +98,7 @@
     .month-bar-button:hover span, .month-bar-button:focus-visible span { background: #cfe3b3; }
     .month-bar-button:focus-visible { outline-color: var(--settings-accent); }
     .gen-expand[aria-expanded='true'], .gen-metrics button[aria-pressed='true'], .gen-tabs button[aria-selected='true'] { color: #182116; }
-    .gen-context, .gen-legend, .gen-stat span, .gen-stat em, .gen-stat strong small, .gen-table thead th, .power-chart-hours { color: var(--settings-muted); }
+    .gen-context, .gen-legend, .bill-inputs label, .bill-inputs .bill-field, .gen-stat span, .gen-stat em, .gen-stat strong small, .gen-table thead th, .power-chart-hours { color: var(--settings-muted); }
     .gen-details .eyebrow, .gen-factor label { color: var(--ui-warm); }
     .gen-factor-reset { color: var(--settings-accent); }
     .gen-factor { border-color: var(--settings-border); }

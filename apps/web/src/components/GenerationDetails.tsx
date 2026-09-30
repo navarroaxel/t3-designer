@@ -7,10 +7,11 @@ import type { Generation } from '../lib/useGeneration'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { PowerChart, YearChart } from './GenerationCharts'
 import { PanelsView } from './GenerationPanels'
+import { BillView } from './GenerationBill'
 
 const KWP = ARRAY_WATTS / 1000
 const METRICS: YearMetric[] = ['perDay', 'perMonth', 'perKwp']
-type Tab = 'today' | 'year' | 'panels'
+type Tab = 'today' | 'year' | 'panels' | 'bill'
 
 function Stat({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: string }) {
   return <div className="gen-stat"><span>{label}</span><strong>{value}{unit && <small>{unit}</small>}</strong>{note && <em>{note}</em>}</div>
@@ -64,8 +65,8 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
         <h2>{t('building.genDetailsTitle')}</h2>
       </div>
       <div className="gen-tabs" role="tablist" aria-label={t('building.genDetailsTitle')}>
-        {(['today', 'year', 'panels'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
-          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : 'building.genTabPanels')}</button>)}
+        {(['today', 'year', 'panels', 'bill'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
+          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : option === 'panels' ? 'building.genTabPanels' : 'building.genTabBill')}</button>)}
       </div>
       <button ref={closeButton} type="button" className="gen-close" aria-label={t('building.genClose')} title={t('building.genClose')} onClick={onClose}>×</button>
     </header>
@@ -95,6 +96,10 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
     {tab === 'panels' && <div role="tabpanel" id="gen-panel-panels" aria-labelledby="gen-tab-panels" className="gen-tab-body">
       <p className="gen-context">{t('building.genDetailsDay', { date: formatDate(new Date(`${moment.date}T12:00:00Z`), { dateStyle: 'full', timeZone: 'UTC' }), time: solar.time })}</p>
       <PanelsView day={day} />
+    </div>}
+
+    {tab === 'bill' && <div role="tabpanel" id="gen-panel-bill" aria-labelledby="gen-tab-bill" className="gen-tab-body">
+      {year ? <BillView year={year} /> : <p className="array-note">{t('building.genCalculating')}</p>}
     </div>}
 
     {tab === 'year' && <div role="tabpanel" id="gen-panel-year" aria-labelledby="gen-tab-year" className="gen-tab-body">
