@@ -114,11 +114,15 @@ Beyond the living's 0.80 m door there is a hall and three rooms (owner). The one
 
 ## The ground floor's bathroom
 
-The bathroom of the ground floor (owner) is **1.75 m deep and 2.06 m wide**, against the pantry's far wall and against the south-west party wall (the medianera); its depth is taken out from the pantry's wall and its width along the party wall. It has a **0.70 m door to the hall** (owner), in its north-east wall, 10 cm from the bathroom's back wall; only the opening is drawn. Because it takes the south-west end of the pantry's far wall, the pantry's door is in the rest of that wall (the pantry door's position is assumed) and leads to the hall that runs beside the bathroom, onto which the living's 0.80 m door opens. The bathroom's floor is the first floor's bathroom tile (Navona natural), the ground floor's living has the first floor's living floor (Saing miel), and the office the first floor's bedroom floor (Saing almendra) (owner). The other two rooms of that side are not drawn yet.
+The bathroom of the ground floor (owner) is **1.75 m deep and 2.06 m wide**, against the pantry's far wall and against the south-west party wall (the medianera); its depth is taken out from the pantry's wall and its width along the party wall. It has a **0.70 m door to the hall** (owner), in its north-east wall, 10 cm from the bathroom's back wall; only the opening is drawn. Because it takes the south-west end of the pantry's far wall, the pantry's door is in the rest of that wall (the pantry door's position is assumed) and leads to the hall that runs beside the bathroom, onto which the living's 0.80 m door opens. The bathroom's floor is the first floor's bathroom tile (Navona natural), the ground floor's living has the first floor's living floor (Saing miel), the office the first floor's bedroom floor (Saing almendra), and the light well the bathroom's tile (owner). The other two rooms of that side are not drawn yet.
 
 ## The living's gas fireplace
 
 The ground floor's living has a **gas fireplace** (owner's photo) against the party wall with neighbour A: a black steel box open at the front, with a plinth, a stone top and a set of logs on a burner (`apps/web/src/data/fireplace.ts`). Its sizes are read from the photo and assumed (0.95 m wide, 0.38 m deep, 0.85 m high), and so is centring it on the living's depth.
+
+## The garage's solar equipment
+
+On the garage's south-west wall hangs the **three-phase 10 kW Deye inverter**, its nearer edge 1 m from the garage's back wall, the one the pantry is behind, and to its right, seen facing the wall, the **electrical board** (owner's photos; `apps/web/src/data/garage-equipment.ts`). The inverter's sizes are those of the Deye SUN-10K-G05 (0.33 m by 0.457 m and 0.185 m deep), because the model was not named: an assumption. The board is a surface-mounted, three-row unit, white with a smoked black door, drawn 0.45 m by 0.55 m and 0.12 m deep with 0.10 m from the inverter (assumed). Both hang 0.9 m off the floor, assumed, so they show whole under the cut.
 
 ## The stair
 

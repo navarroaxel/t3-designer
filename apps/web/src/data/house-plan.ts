@@ -730,10 +730,18 @@ export const STAIRWELL_HOLE: [number, number, number, number] = [
 
 /**
  * The ground floor's tiles, at ground level (owner): the bathroom has the first floor's bathroom tile, Navona natural, the living has the
- * first floor's living floor, Saing miel, and the office the first floor's bedroom floor, Saing almendra. The other rooms' floors are not specified.
+ * first floor's living floor, Saing miel, the office the first floor's bedroom floor, Saing almendra, and the light well, the pulmón, the bathroom's
+ * tile too. The other rooms' floors are not specified.
  */
+/**
+ * The ground floor's finished level, a few centimetres above the site: the lot's ground is drawn at 2.2 cm, and a floor below that would
+ * be hidden under it.
+ */
+export const GROUND_FLOOR_LEVEL = .03
 export const GROUND_FLOOR_TILING: FloorTiling[] = [
-  { id: 'ground-bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: 0, rects: [[GROUND_BATHROOM.u[0], GROUND_BATHROOM.u[1], GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1]]] },
-  { id: 'ground-office', color: FLOOR_TILING.find(zone => zone.id === 'bedrooms')!.color, pattern: SAING_PLANKS, level: 0, rects: [[GROUND_OFFICE.u[0], GROUND_OFFICE.u[1], GROUND_OFFICE.v[0], GROUND_OFFICE.v[1]]] },
-  { id: 'ground-living', color: FLOOR_TILING.find(zone => zone.id === 'living')!.color, pattern: SAING_PLANKS, level: 0, rects: [[GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0], GROUND_LIVING.v[1]]] },
+  { id: 'ground-bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_BATHROOM.u[0], GROUND_BATHROOM.u[1], GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1]]] },
+  // The light well, between the wall that closes it and the rear wall, and between its two side walls: the bathroom's tile, Navona natural.
+  { id: 'ground-well', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: GROUND_FLOOR_LEVEL, rects: [[WELL_BACK_U, HOUSE_REAR.northEast - PARTY_WALL, -1, 1.5]] },
+  { id: 'ground-office', color: FLOOR_TILING.find(zone => zone.id === 'bedrooms')!.color, pattern: SAING_PLANKS, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_OFFICE.u[0], GROUND_OFFICE.u[1], GROUND_OFFICE.v[0], GROUND_OFFICE.v[1]]] },
+  { id: 'ground-living', color: FLOOR_TILING.find(zone => zone.id === 'living')!.color, pattern: SAING_PLANKS, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0], GROUND_LIVING.v[1]]] },
 ]

@@ -3,11 +3,12 @@ import { Line } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, GROUND_DOOR_SWINGS, GROUND_FLOOR_TILING, GROUND_PARTITIONS, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SIDE_OPENINGS, SLAB_THICKNESS, STAIRWELL_HOLE, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, GROUND_PARTITIONS, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SIDE_OPENINGS, SLAB_THICKNESS, STAIRWELL_HOLE, wallBoxes,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { BATHROOM_BOXES } from '../data/bathroom'
 import { FIREPLACE_BOXES } from '../data/fireplace'
+import { GARAGE_EQUIPMENT } from '../data/garage-equipment'
 import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
 import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
 import { polygonShape } from '../lib/polygon-shape'
@@ -193,9 +194,14 @@ function Walls({ floor, top, castShadow = false }: { floor: Floor; top: number; 
 export function HouseShell({ floor }: { floor: Floor }) {
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
     {floor === 'ground' && <>
-      <Slab outline={GROUND_OUTLINE} top={0} />
+      <Slab outline={GROUND_OUTLINE} top={GROUND_FLOOR_LEVEL} />
       <Walls floor="ground" top={CUT_HEIGHT} />
       <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={CUT_HEIGHT} />
+      {/* The inverter and the electrical board on the garage's party wall. */}
+      {GARAGE_EQUIPMENT.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
+        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
+        <meshStandardMaterial color={box.color} roughness={.5} metalness={box.metalness ?? 0} />
+      </mesh>)}
       {/* The living's gas fireplace against the party wall: a black steel box with a stone top and logs. */}
       {FIREPLACE_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
         <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
