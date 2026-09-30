@@ -93,6 +93,8 @@ const workspace = {
     billResultGain: 'Gain per year', billResultGainNote: 'what the company pays you over the year, beyond what it bills you',
     billResultCost: 'Annual electricity cost', billResultCostNote: 'what you had to pay the electricity company over the year, after the credit',
     billTipGain: 'Gain: {{value}}', billColGain: 'Gain',
+    genTabInvest: 'Investment',
+    investFromBill: 'The yearly return is worked out in the Bill tab with its values: {{saved}} saved on the bills plus {{gain}} paid in cash by the company.',
     paybackTitle: 'Payback',
     paybackCost: 'Equipment and installation ($)', paybackPerPanel: 'Saved for each panel left out ($)', paybackPriceChange: 'Price change per year (%)',
     paybackYears: 'Payback', paybackUnit: ' years', paybackNever: 'More than {{max}} years',

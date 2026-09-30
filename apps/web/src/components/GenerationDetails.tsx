@@ -8,9 +8,10 @@ import type { SolarStudy } from '../lib/useSolarStudy'
 import { PowerChart, YearChart } from './GenerationCharts'
 import { PanelsView } from './GenerationPanels'
 import { BillView } from './GenerationBill'
+import { InvestmentView } from './GenerationInvestment'
 
 const METRICS: YearMetric[] = ['perDay', 'perMonth', 'perKwp']
-type Tab = 'today' | 'year' | 'panels' | 'bill'
+type Tab = 'today' | 'year' | 'panels' | 'bill' | 'invest'
 
 function Stat({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: string }) {
   return <div className="gen-stat"><span>{label}</span><strong>{value}{unit && <small>{unit}</small>}</strong>{note && <em>{note}</em>}</div>
@@ -64,8 +65,8 @@ export function GenerationDetails({ solar, generation, panels, onClose }: { sola
         <h2>{t('building.genDetailsTitle')}</h2>
       </div>
       <div className="gen-tabs" role="tablist" aria-label={t('building.genDetailsTitle')}>
-        {(['today', 'year', 'panels', 'bill'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
-          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : option === 'panels' ? 'building.genTabPanels' : 'building.genTabBill')}</button>)}
+        {(['today', 'year', 'panels', 'bill', 'invest'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
+          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : option === 'panels' ? 'building.genTabPanels' : option === 'bill' ? 'building.genTabBill' : 'building.genTabInvest')}</button>)}
       </div>
       <button ref={closeButton} type="button" className="gen-close" aria-label={t('building.genClose')} title={t('building.genClose')} onClick={onClose}>×</button>
     </header>
@@ -98,7 +99,11 @@ export function GenerationDetails({ solar, generation, panels, onClose }: { sola
     </div>}
 
     {tab === 'bill' && <div role="tabpanel" id="gen-panel-bill" aria-labelledby="gen-tab-bill" className="gen-tab-body">
-      {year ? <BillView year={year} month={month} panelsLeftOut={panels.total - panels.count} /> : <p className="array-note">{t('building.genCalculating')}</p>}
+      {year ? <BillView year={year} month={month} /> : <p className="array-note">{t('building.genCalculating')}</p>}
+    </div>}
+
+    {tab === 'invest' && <div role="tabpanel" id="gen-panel-invest" aria-labelledby="gen-tab-invest" className="gen-tab-body">
+      {year ? <InvestmentView year={year} panelsLeftOut={panels.total - panels.count} /> : <p className="array-note">{t('building.genCalculating')}</p>}
     </div>}
 
     {tab === 'year' && <div role="tabpanel" id="gen-panel-year" aria-labelledby="gen-tab-year" className="gen-tab-body">
