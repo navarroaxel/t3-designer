@@ -28,7 +28,7 @@ const parts: Part[] = [
   { v: [-7.625, -10.9], y: [.7, 2.15], color: BRICK },
   { v: [-5.825, -7.425], y: [.7, 2.15], color: OCHRE, depth: .1 },
   { v: [-9.125, -10.575], y: [1.4, 2.1], color: '#8a949a', depth: .1 },
-  { v: [-4.475, -10.9], y: [2.85, 3], color: CREAM_DARK, depth: .3 },
+  { v: [-4.33, -10.9], y: [2.85, 3], color: CREAM_DARK, depth: .3 },
   // Lot 9, first floor above the ground-floor cornice.
   { v: [-5.975, -7.475], y: [4.4, 5.8], color: OCHRE, depth: .08 },
   // Lot 7, the garage next to its patio: green side door and garage doors between brick piers. The

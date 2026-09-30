@@ -75,12 +75,12 @@ test('the array sits toward the street, its front row cantilevered past the fron
 })
 
 test('the row of 4 rests on the north-east wall and the two rows of 6 on the south-west wall', () => {
-  closeTo(rowPanels('back')[0].v[1], 4.475, 1e-9)
+  closeTo(rowPanels('back')[0].v[1], 4.33, 1e-9)
   for (const row of ['middle', 'front'] as const) {
     const panels = rowPanels(row)
     // The wall leans slightly; a row rests on it at the middle of its depth.
     closeTo(panels.at(-1)!.v[0], houseSouthWestEdge((panels[0].u[0] + panels[0].u[1]) / 2), 1e-9)
-    assert.ok(panels[0].v[1] < 4.475 - 1, `${row}: leaves room on the north-east side`)
+    assert.ok(panels[0].v[1] < 4.33 - 1, `${row}: leaves room on the north-east side`)
   }
   // Seen from the street the row of 4 is on the left and the rows of 6 are pushed to the right.
   const centre = (row: string) => rowPanels(row).reduce((sum, panel) => sum + (panel.v[0] + panel.v[1]) / 2, 0) / rowPanels(row).length
@@ -90,7 +90,7 @@ test('the row of 4 rests on the north-east wall and the two rows of 6 on the sou
 test('the array fits on the azotea and leaves room behind it', () => {
   for (const panel of PANELS) {
     assert.ok(panel.u[0] >= -6 && panel.u[1] <= 4, `${panel.id}: within the 10 m depth of the roof, cantilever included`)
-    assert.ok(panel.v[0] >= houseSouthWestEdge((panel.u[0] + panel.u[1]) / 2) - 1e-9 && panel.v[1] <= 4.475 + 1e-9, `${panel.id}: within the width of the roof`)
+    assert.ok(panel.v[0] >= houseSouthWestEdge((panel.u[0] + panel.u[1]) / 2) - 1e-9 && panel.v[1] <= 4.33 + 1e-9, `${panel.id}: within the width of the roof`)
   }
   // Space at the rear, by the water tank and behind the array, for access and maintenance.
   assert.ok(3.775 - rowPanels('back')[0].u[1] >= 1, 'room between the array and the rear parapet')

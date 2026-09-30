@@ -18,9 +18,9 @@ test('lot 24 keeps its surveyed sides and stands opposite the house lot', () => 
   near(length(a, d), 8.5, .01)
   near(length(a, b), 15.41, .01)
   near(length(d, c), 15.61, .01)
-  // The house lot runs from v = -4.475 to 4.475; the lot across is within half a metre of that.
-  near(a[1], -4.475, .5)
-  near(d[1], 4.475, .5)
+  // The house lot runs from v = -4.33 to 4.33; the lot across is within half a metre of that.
+  near(a[1], -4.33, .5)
+  near(d[1], 4.33, .5)
   // Two floors, a 3 m setback and a room on the roof.
   assert.equal(lot(24).height, 6.4)
   near(Math.max(...lot(24).building.map(point => -point[0] + OPPOSITE_BLOCK.frontU)), 13.35, .01)

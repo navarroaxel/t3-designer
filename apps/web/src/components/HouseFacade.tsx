@@ -1,12 +1,12 @@
 import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW } from '../data/building-site'
-import { BALCONY, OPENINGS } from '../data/house-plan'
+import { BALCONY, OPENINGS, SIDE_OPENINGS } from '../data/house-plan'
 
 /**
  * Front elevation of the house, read from Street View (August 2025).
  * House frame: local x runs toward the rear (u), local z toward the south-west
  * (-v), y is up from the ground-floor level. The street front is at u = -5 and
- * the facade is 8.95 m wide, v in [-4.475, 4.475]. Positions come from the photo
+ * the facade is 8.66 m wide, v in [-4.33, 4.33]. Positions come from the photo
  * scaled to the frontage (about 93 px/m); expect roughly +/-0.2 m.
  */
 const FRONT = -5
@@ -55,8 +55,13 @@ export function HouseFacade({ physical = false, balconyOnly = false }: { physica
     </>}
     {!physical && !balconyOnly && <>
       {/* Rear wall of the first floor, facing the terrace and the light well: glass in its openings. */}
-      {OPENINGS.first.filter(opening => opening.u > 0).map(opening => <mesh key={`${opening.v}`} position={[opening.u + .02, (opening.y[0] + opening.y[1]) / 2, -(opening.v[0] + opening.v[1]) / 2]}>
+      {[...OPENINGS.ground, ...OPENINGS.first].filter(opening => opening.u > 0).map(opening => <mesh key={`${opening.v}-${opening.y}`} position={[opening.u + .02, (opening.y[0] + opening.y[1]) / 2, -(opening.v[0] + opening.v[1]) / 2]}>
         <boxGeometry args={[.04, opening.y[1] - opening.y[0], opening.v[1] - opening.v[0]]} />
+        <meshStandardMaterial color="#a9b8bf" roughness={.08} metalness={.35} transparent opacity={.8} />
+      </mesh>)}
+      {/* The windows onto the light well (the office's, and the right arm's), in the walls that run along the well: glass on the well's face. */}
+      {SIDE_OPENINGS.ground.map(opening => <mesh key={`${opening.u}-${opening.y}`} position={[(opening.u[0] + opening.u[1]) / 2, (opening.y[0] + opening.y[1]) / 2, -(opening.v + (opening.v > .25 ? -.02 : .02))]}>
+        <boxGeometry args={[opening.u[1] - opening.u[0], opening.y[1] - opening.y[0], .04]} />
         <meshStandardMaterial color="#a9b8bf" roughness={.08} metalness={.35} transparent opacity={.8} />
       </mesh>)}
       {openings.map(part => <Box key={`${part.v}-${part.y}`} part={part} castShadow={false} />)}

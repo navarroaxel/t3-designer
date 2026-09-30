@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { genericBuildings } from '../src/data/block.ts'
 import { OPPOSITE_LOTS } from '../src/data/opposite-block.ts'
-import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
+import { BUILDING_SITE, ENTRY_RECESS, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
   return Math.abs(ring.reduce((sum, a, index) => {
@@ -73,25 +73,25 @@ test('one target locates the house at Tapalque, Buenos Aires', () => {
 
 test('the upper block, rear band and lot keep the owner’s dimensions', () => {
   const block = byId('HOUSE'), arm = byId('HOUSE-ARM'), terrace = byId('HOUSE-TERRACE')
-  // The house fills the lot's 8.95 m front. The block plus the strip over the recessed entrance make up
+  // The house fills the lot's 8.66 m front. The block plus the strip over the recessed entrance make up
   // 9 m of house, and the 1 m cantilever in front brings the roof to 10 m.
   // The south-west wall stands on the lot's boundary, which leans 0.25 m over the depth of the lot, so the
-  // house is 8.95 m wide at the street line and a little narrower behind it.
-  closeTo(houseSouthWestEdge(-5), -4.475, 1e-9)
+  // house is 8.66 m wide at the street line and a little narrower behind it.
+  closeTo(houseSouthWestEdge(-5), -4.33, 1e-9)
   closeTo(houseSouthWestEdge(8.7), -4.225, 1e-9)
-  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 9 * (4.475 - houseSouthWestEdge(-.5)), .02)
-  closeTo(area(byId('HOUSE-CANTILEVER').footprint), 1 * (4.475 - houseSouthWestEdge(-5.5)), .02)
+  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 9 * (4.33 - houseSouthWestEdge(-.5)), .02)
+  closeTo(area(byId('HOUSE-CANTILEVER').footprint), 1 * (4.33 - houseSouthWestEdge(-5.5)), .02)
   // The rear band: the owner's 3.95 m inside plus the walls, from the street line to the rear boundary.
-  closeTo(area(arm.footprint), (8.5 - 4) * (4.475 - 1.5), .05)
+  closeTo(area(arm.footprint), (8.5 - 4) * (4.33 - 1.5), .05)
   closeTo(area(terrace.footprint), (8.6 - 4) * (-1 - houseSouthWestEdge((4 + 8.6) / 2)), .02)
-  // The lot polygon comes from the municipal sketch: 120.03 m2.
-  closeTo(area(SITE_PARCEL.footprint), 120.03, .02)
-  closeTo(SITE_PARCEL.area, 120.03, .02)
+  // The lot polygon: the municipal sketch's sides and rear with the owner's 8.66 m front, 118.06 m2 (the sketch's 8.95 m front gave 120.03 m2).
+  closeTo(area(SITE_PARCEL.footprint), 118.06, .02)
+  closeTo(SITE_PARCEL.area, 118.06, .02)
   validateRing(SITE_PARCEL.footprint, 'lot')
   for (const id of HOUSE_PARTS) {
     for (const point of byId(id).footprint) {
       const [u, v] = houseFrame(point)
-      assert.ok(u >= -5.01 && u <= 8.71 && Math.abs(v) <= 4.48, `${id}: inside the 13.5 m x 8.95 m lot`)
+      assert.ok(u >= -5.01 && u <= 8.71 && Math.abs(v) <= 4.48, `${id}: inside the 13.5 m x 8.66 m lot`)
     }
   }
   // The terrace is on the right seen from the street, the south-west side.
@@ -118,7 +118,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
     'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SHELF': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
     'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
-    'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
+    'HOUSE-WELL-BACK': [3.2, 1], 'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
     'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [3.7, 1],
     'NEIGHBOR-C-TANK-ROOM': [6.2, 1], 'NEIGHBOR-C-TANK': [7.4, 0],
   }
@@ -141,18 +141,21 @@ test('heights follow the reported floor counts, refined by Street View where it 
   }
 })
 
-test('the entrance is set back 1 m between a 0.5 m flush wall and a pier, and the garage stands on the line', () => {
+test('the entrance is set back 1 m between a 0.5 m flush wall and a pier, whose end lines up with the garage wall, and the garage stands on the line', () => {
   const block = byId('HOUSE'), entry = byId('HOUSE-ENTRY')
   const us = (building: BuildingFootprint) => building.footprint.map(point => houseFrame(point))
   const has = (u: number, v: number) => us(block).some(([pu, pv]) => Math.abs(pu - u) < .02 && Math.abs(pv - v) < .02)
-  // Recess: back wall 1 m behind the line, from the pier (v = 0.85) to the return wall (v = 3.975)...
-  assert.ok(has(-4, .85) && has(-4, 3.975), 'entrance wall 1 m behind the line')
+  // Recess: back wall 1 m behind the line, from the pier to the return wall (v = 3.83). The pier's end lines up with the garage's side wall, so the
+  // recess starts where the hall's 3.7 m puts it (0.48 m) and not at the earlier 0.85 m...
+  const inner = ENTRY_RECESS.inner
+  assert.ok(Math.abs(inner - .48) < .01, `the recess starts at v = ${inner}`)
+  assert.ok(has(-4, inner) && has(-4, 3.83), 'entrance wall 1 m behind the line')
   // ...a 0.5 m wall stays on the line next to the neighbour, and the garage stands on the line.
-  assert.ok(has(-5, 3.975) && has(-5, 4.475), '0.5 m flush wall at the north-east end')
-  assert.ok(has(-5, .85) && has(-5, -4.475), 'pier and garage on the street line')
+  assert.ok(has(-5, 3.83) && has(-5, 4.33), '0.5 m flush wall at the north-east end')
+  assert.ok(has(-5, inner) && has(-5, -4.33), 'pier and garage on the street line')
   // The upper floor overhangs the recess up to the line.
   closeTo(Math.min(...us(entry).map(([u]) => u)), -5, .02)
-  closeTo(area(entry.footprint), 1 * (3.975 - .85), .02)
+  closeTo(area(entry.footprint), 1 * (3.83 - inner), .02)
   closeTo(entry.base!, 3.0, .001)
 })
 

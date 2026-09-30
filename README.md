@@ -56,7 +56,7 @@ of the Google Earth view that frames the house. See the
 The site comes from the owner's dimensions, the **municipal survey sketches** of the
 lots, Street View and **Google Earth imagery captured on 2021-09-24**:
 
-- **Lot:** 8.95 m of front, 13.50 m and 13.70 m deep, 8.70 m at the rear (survey sketch),
+- **Lot:** 8.66 m of front (owner), 13.50 m and 13.70 m deep, 8.70 m at the rear (survey sketch),
   rotated about 45° from north. The house fills it.
 - **House:** 9 m deep, two floors, flat roof at 6.4 m. The roof is 10 m deep counting a
   1 m cantilever in front, level with the balcony, and the azotea is 8.5 m wide between

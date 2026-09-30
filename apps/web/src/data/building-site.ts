@@ -8,7 +8,7 @@
  * The roof (10 m x 8.5 m, rotated 45 deg from north) was measured from the scale
  * bar of a top-down view. It spans 9 m of house plus a 1 m cantilever over the
  * pavement, ending on the same line as the first-floor balcony. The lot follows the
- * municipal survey sketches (8.95 m of front, 13.50 m and 13.70 m deep), and so do
+ * municipal survey sketches (8.66 m of front, 13.50 m and 13.70 m deep), and so do
  * the neighbouring lots 7, 9 and 10; the rest of the block comes from the block plan,
  * digitised by eye (see block.ts). The rear ground-floor band, terrace and light well
  * follow the owner's dimensions. Heights follow floor counts given by the
@@ -87,12 +87,14 @@ const crossStreetAt = (u: number): PlanPoint =>
   [u, OCHAVA_END[1] + (u - OCHAVA_END[0]) / (CROSS_STREET_END[0] - OCHAVA_END[0]) * (CROSS_STREET_END[1] - OCHAVA_END[1])]
 const lotPolygon = (number: number): PlanPoint[] => LOTS.find(item => item.number === number)!.polygon;
 
-/** Half the width of the house: the lot has 8.95 m of front and the house fills it. */
-export const HOUSE_HALF_WIDTH = 4.475;
+/** Half the width of the house: the lot has 8.66 m of front (owner) and the house fills it. */
+export const HOUSE_HALF_WIDTH = 4.33;
+/** The party walls, the medianeras, are 30 cm thick and shared: 15 cm stand on each lot (owner). The house's walls on the side lots are 15 cm. */
+export const PARTY_WALL = .15;
 const HALF_WIDTH = HOUSE_HALF_WIDTH;
 /**
  * The south-west boundary of the lot leans toward the house: it is 13.70 m deep against 13.50 m
- * on the other side, and the rear is 8.70 m wide against 8.95 m at the front. The house's
+ * on the other side, and the rear is 8.70 m wide against 8.66 m at the front. The house's
  * south-west wall stands on that boundary, so it is not parallel to the north-east one.
  */
 const SOUTH_WEST_LEAN = (HALF_WIDTH - 4.225) / 13.7;
@@ -107,6 +109,13 @@ const REAR_NE = 8.5;
 const REAR_SW = 8.6;
 // Rear ground-floor band, 4.5 m outside (3.95 m inside, between the walls): left arm | light well 2.5 m | terrace.
 const LEFT_ARM_INNER = 1.5;
+/**
+ * The ground floor's front block reaches 0.46 m past the upper floor's rear wall (owner's depths): the wall that closes the light well, and the
+ * living's and the office's, stands at u = 4.28 to 4.46, so the well starts at 4.46. Between the contrafrente's back face (1.11 m) and the rear wall's
+ * inner face (8.35 m) fit the living (3.17 m), a wall of 0.18 m and the office (3.89 m).
+ */
+export const WELL_BACK_U = 4.46;
+export const WELL_BACK_WALL = .18;
 const TERRACE_INNER = -1;
 const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
 const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
@@ -126,7 +135,12 @@ export const TERRACE_SHELF = { depth: .5, thickness: .03, height: .85, basinWidt
 const ENTRY_SETBACK = 1;
 const ENTRY_WALL = .5; // flush wall at the north-east end
 const ENTRY_OUTER = HALF_WIDTH - ENTRY_WALL; // v of the recess's north-east return wall
-const ENTRY_INNER = .85; // v of the recess's south-west end, beside the pier
+/** The hall's width inside (owner: 3.7 m). The garage's is 4.43 m (owner); what is left between them is the wall that separates them. */
+export const HALL_WIDTH = 3.7;
+export const GARAGE_WIDTH = 4.43;
+// The recess's south-west end, beside the pier, lines up with the wall that continues the recess's side wall to the back and separates the
+// garage from the hall (owner): the hall is 3.7 m wide from the party wall's inner face, so that wall's hall face, and the recess's end, fall there.
+const ENTRY_INNER = HALF_WIDTH - PARTY_WALL - HALL_WIDTH; // v of the recess's south-west end
 /** The entrance recess, shared with the floor plans. */
 export const ENTRY_RECESS = { setback: ENTRY_SETBACK, outer: ENTRY_OUTER, inner: ENTRY_INNER } as const;
 /** Depth of the rear ground-floor band on each side, from the street line at u = -5 to the rear boundary. */
@@ -171,7 +185,7 @@ const ROOF = ROOF_LEVEL;
 const PARAPET = 1.1; // white masonry parapets on the sides and rear
 const FRONT_PARAPET = .8; // tiled band on the street side
 /**
- * Thickness of the parapets: the roof is 8.95 m wide outside and the azotea 8.5 m wide
+ * Thickness of the parapets: the roof is 8.66 m wide outside and the azotea 8.5 m wide
  * between them.
  */
 export const PARAPET_THICKNESS = (2 * HALF_WIDTH - 8.5) / 2;
@@ -219,6 +233,8 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-ENTRY', 'Casa · planta alta sobre la entrada', rect(-5, -5 + ENTRY_SETBACK, ENTRY_INNER, ENTRY_OUTER), 2 * FLOOR_HEIGHT, 1, false, FLOOR_HEIGHT - .2),
   // The roof slab's 1 m cantilever in front of the facade, 0.5 m thick, level with the balcony below.
   building('HOUSE-CANTILEVER', 'Casa · voladizo de la azotea', poly([southWest(ROOF_FRONT), southWest(-5), [-5, HALF_WIDTH], [ROOF_FRONT, HALF_WIDTH]]), 2 * FLOOR_HEIGHT, 0, false, 2 * FLOOR_HEIGHT - .5),
+  // The strip of the ground floor between the upper floor's rear wall and the wall that closes the light well.
+  building('HOUSE-WELL-BACK', 'Casa · planta baja hasta el fondo del pulmón', rect(AZOTEA_REAR, WELL_BACK_U, TERRACE_INNER, LEFT_ARM_INNER), FLOOR_HEIGHT, 1),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, REAR_NE, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', poly([southWest(AZOTEA_REAR), southWest(REAR_SW), [REAR_SW, TERRACE_INNER], [AZOTEA_REAR, TERRACE_INNER]]), FLOOR_HEIGHT, 1),
   // The terrace's roof is at first-floor level. Along the corner's party wall it has a 1.6 m wall, and on the
