@@ -706,9 +706,9 @@ test('the ground floor\'s living, its distributor, is 4.97 m wide, behind the ba
   // A wall closes it on the right, the south-west, along its whole depth, at its edge...
   near(GROUND_LIVING_WALL[1] - GROUND_LIVING_WALL[0], GROUND_LIVING.u[1] - GROUND_LIVING.u[0])
   near(GROUND_LIVING_WALL[3], GROUND_LIVING.v[0]); near(GROUND_LIVING_WALL[3] - GROUND_LIVING_WALL[2], .12)
-  // ...with a 0.80 m door 10 cm from the wall the living shares with the light well, at the rear: open there, and the wall stands on either side.
+  // ...with a 0.80 m door 20 cm from the wall the living shares with the light well, at the rear: open there, and the wall stands on either side.
   near(LIVING_KITCHEN_DOOR.u[1] - LIVING_KITCHEN_DOOR.u[0], .8)
-  near(GROUND_LIVING.u[1] - LIVING_KITCHEN_DOOR.u[1], .1)
+  near(GROUND_LIVING.u[1] - LIVING_KITCHEN_DOOR.u[1], .2)
   // The door is beyond the pantry's wall, in the hall, and does not open onto the pantry.
   assert.ok(LIVING_KITCHEN_DOOR.u[0] > GROUND_PANTRY.u[1] + .12)
   for (const [u0, u1, v0, v1] of GROUND_PARTITIONS) {

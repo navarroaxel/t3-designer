@@ -626,7 +626,7 @@ export const HALL_ARCH = {
  * The ground floor's living, which is its distributor (owner): from it one goes into the kitchen, the hall and the rest. It lies behind the back
  * wall, the contrafrente, up to the wall that closes the rear (the well's and the office's), and it is 4.97 m wide inside. Measured from the
  * party wall with neighbour A it spans v = -0.80 to 4.175, which takes in the hall's doorway in the contrafrente and the well's balcony door;
- * measured from the other side it would cut through that door. A 0.12 m wall closes it on the right, the south-west, with a 0.80 m door, 10 cm from
+ * measured from the other side it would cut through that door. A 0.12 m wall closes it on the right, the south-west, with a 0.80 m door, 20 cm from
  * the wall the living shares with the light well (owner), which is taken to lead to the hall beyond; the door's leaf, colour and hand are not known, so only the opening is drawn.
  */
 export const GROUND_LIVING_WIDTH = 4.97
@@ -636,8 +636,8 @@ export const GROUND_LIVING = {
 }
 export const GROUND_LIVING_WALL: [number, number, number, number] = [GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0] - PARTITION_THICKNESS, GROUND_LIVING.v[0]]
 export const LIVING_KITCHEN_DOOR_WIDTH = .8
-/** The door's nearer edge stands 10 cm from the wall the living shares with the light well, at the rear (owner). */
-export const LIVING_KITCHEN_DOOR_FROM_REAR_WALL = .1
+/** The door's nearer edge stands 20 cm from the wall the living shares with the light well, at the rear (owner). */
+export const LIVING_KITCHEN_DOOR_FROM_REAR_WALL = .2
 const livingDoorEnd = GROUND_LIVING.u[1] - LIVING_KITCHEN_DOOR_FROM_REAR_WALL
 export const LIVING_KITCHEN_DOOR = {
   u: [livingDoorEnd - LIVING_KITCHEN_DOOR_WIDTH, livingDoorEnd] as [number, number],
