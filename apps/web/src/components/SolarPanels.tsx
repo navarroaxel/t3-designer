@@ -8,16 +8,16 @@ const GLASS_COLOR = new Color('#1d2b4a')
 const SHADED_COLOR = new Color('#8b97aa')
 
 /**
- * The 16 panels on the azotea, in the house frame (local x is u, local z is -v).
+ * The installed panels (up to 16) on the azotea, in the house frame (local x is u, local z is -v).
  * Each panel is a group tilted about the v axis, with the low edge toward the street.
- * `physical` renders only what shades: one solid box per panel, for the shadow pass. `shade` is each
+ * `installed` limits them to the panels chosen (all when null). `physical` renders only what shades: one solid box per panel, for the shadow pass. `shade` is each
  * panel's lit share of the beam; the less lit, the greyer the glass.
  */
-export function SolarPanels({ physical = false, shade = null }: { physical?: boolean; shade?: Record<string, number> | null }) {
+export function SolarPanels({ physical = false, shade = null, installed = null }: { physical?: boolean; shade?: Record<string, number> | null; installed?: ReadonlySet<string> | null }) {
   const { lengthM, widthM, thicknessM } = PANEL_SPEC
   const tilt = TILT_DEGREES * Math.PI / 180
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
-    {PANELS.map(panel => {
+    {PANELS.filter(panel => !installed || installed.has(panel.id)).map(panel => {
       const position: [number, number, number] = [
         (panel.u[0] + panel.u[1]) / 2,
         (panel.lowEdgeY + panel.highEdgeY) / 2,

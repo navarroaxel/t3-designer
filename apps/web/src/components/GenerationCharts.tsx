@@ -1,12 +1,10 @@
 import { useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ARRAY_WATTS } from '../data/solar-array'
 import { useLocale } from '../i18n/useLocale'
 import type { Generation } from '../lib/useGeneration'
 import { clock, cumulativeKwh, METRIC_UNIT, monthValue, niceTicks, type YearMetric } from '../lib/pv/stats'
 import type { MonthResult, YearResult } from '../lib/pv/model'
 
-const KWP = ARRAY_WATTS / 1000
 /** The simulated day has one point per this many minutes. */
 const STEP = 10
 
@@ -125,8 +123,8 @@ export function YearChart({ year, metric, selectedMonth, onSelect, monthName, la
   const { t } = useTranslation('workspace')
   const { formatNumber } = useLocale()
   const [active, setActive] = useState<number | null>(null)
-  const values = year.months.map(month => monthValue(month, metric, KWP))
-  const mean = metric === 'perMonth' ? year.annualKwh / 12 : year.annualKwh / 365 / (metric === 'perKwp' ? KWP : 1)
+  const values = year.months.map(month => monthValue(month, metric, year.kwp))
+  const mean = metric === 'perMonth' ? year.annualKwh / 12 : year.annualKwh / 365 / (metric === 'perKwp' ? Math.max(year.kwp, 1e-9) : 1)
   const ticks = niceTicks(Math.max(...values), 4)
   const top = ticks[ticks.length - 1]
   const frame = { width: 640, height: 240, left: 40, right: 8, top: 12, bottom: 24 }
@@ -161,7 +159,7 @@ export function YearChart({ year, metric, selectedMonth, onSelect, monthName, la
           <strong>{monthName(month.month, 'long')}</strong>
           <span>{t('building.genMonthEnergy', { energy: formatNumber(month.acKwh) })}</span>
           <span>{t('building.genMonthPerDay', { perDay: formatNumber(month.acKwhPerDay, 1) })}</span>
-          <span>{t('building.genMonthPerKwp', { value: formatNumber(month.acKwhPerDay / KWP, 2) })}</span>
+          <span>{t('building.genMonthPerKwp', { value: formatNumber(year.kwp > 0 ? month.acKwhPerDay / year.kwp : 0, 2) })}</span>
           <span>{t('building.genMonthClear', { percent: formatNumber(month.clearFraction * 100) })}</span>
           <span>{t('building.genMonthShading', { percent: formatNumber(month.shadingLossPercent, 1) })}</span>
         </div>}

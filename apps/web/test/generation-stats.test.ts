@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { ARRAY_WATTS } from '../src/data/solar-array.ts'
 import { middleOfMonth, simulateDay, simulateYear } from '../src/lib/pv/model.ts'
-import { cumulativeKwh, dayStats, monthValue, niceTicks, yearCsv } from '../src/lib/pv/stats.ts'
+import { cumulativeKwh, dayStats, monthValue, niceTicks, panelStats, yearCsv } from '../src/lib/pv/stats.ts'
 
 const kwp = ARRAY_WATTS / 1000
 
@@ -76,12 +76,11 @@ test('the efficiency factor scales the energy, and the default is the calibratio
 
 test('the day is split by string and by panel without losing or inventing energy', async () => {
   const { panelStats } = await import('../src/lib/pv/stats.ts')
-  const { PV_SYSTEM } = await import('../src/data/pv-system.ts')
   const { PANELS } = await import('../src/data/solar-array.ts')
   const day = simulateDay(middleOfMonth(11), 20)
   const { panels, strings } = panelStats(day)
   assert.equal(panels.length, PANELS.length)
-  assert.equal(strings.length, PV_SYSTEM.strings.length)
+  assert.equal(strings.length, 2)
   closeEnough(panels.reduce((sum, panel) => sum + panel.kwh, 0), day.typical.acKwh)
   closeEnough(strings.reduce((sum, item) => sum + item.kwh, 0), day.typical.acKwh)
   assert.ok(panels.every(panel => panel.string >= 0 && panel.kwh > 0 && panel.shadeLossPercent >= 0 && panel.shadeLossPercent < 100))
@@ -102,4 +101,48 @@ test('a shade window is a real stretch, never a single step', () => {
     const window = dayStats(simulateDay(middleOfMonth(month), 10), kwp).shadeWindow
     if (window) assert.ok(window[1] > window[0], `month ${month}: ${window}`)
   }
+})
+
+test('leaving panels out lowers the energy in proportion, frees the strings and never adds shade', async () => {
+  const { PANELS } = await import('../src/data/solar-array.ts')
+  const { installedKwp, panelCount, simulateSky } = await import('../src/lib/pv/model.ts')
+  const { litFractions, sitePanelsFor } = await import('../src/lib/pv/shading.ts')
+  const { sunAt } = await import('../src/lib/pv/model.ts')
+  const ids = (rows: string[]) => new Set(PANELS.filter(panel => rows.includes(panel.row)).map(panel => panel.id))
+  const tenPanels = ids(['front', 'back'])
+  assert.equal(panelCount(null), 16)
+  assert.equal(panelCount(tenPanels), 10)
+  closeEnough(installedKwp(tenPanels), 10 * 0.62)
+  const date = middleOfMonth(11)
+  const full = simulateDay(date, 20), ten = simulateDay(date, 20, undefined, tenPanels)
+  closeEnough(ten.kwp, 6.2)
+  // Ten of sixteen panels give about ten sixteenths of the energy; the sky's light on each is unchanged.
+  const ratio = ten.typical.acKwh / full.typical.acKwh
+  assert.ok(ratio > .58 && ratio < .66, `ratio ${ratio}`)
+  // A panel left out gets and yields nothing, and the split still adds up.
+  const { panels, strings } = panelStats(ten, tenPanels)
+  assert.equal(panels.filter(panel => panel.installed).length, 10)
+  assert.ok(panels.filter(panel => !panel.installed).every(panel => panel.kwh === 0 && panel.irradiation === 0))
+  closeEnough(panels.reduce((sum, panel) => sum + panel.kwh, 0), ten.typical.acKwh)
+  assert.deepEqual(strings.map(item => item.panels).reduce((a, b) => a + b), 10)
+  // Fewer panels cannot shade the rest more.
+  const sun = sunAt('2026-06-21', 11 * 60)
+  const litFull = litFractions(sun.direction as [number, number, number])
+  const litTen = litFractions(sun.direction as [number, number, number], { panels: sitePanelsFor(tenPanels) })
+  for (const id of tenPanels) assert.ok(litTen[id] >= litFull[id] - 1e-9, id)
+  // No panel installed, no energy.
+  assert.equal(simulateSky(date, 'clear', { installed: new Set() }).acKwh, 0)
+})
+
+test('with the back row out the strings are two of six, and the split still adds up', async () => {
+  const { PANELS } = await import('../src/data/solar-array.ts')
+  const twelve = new Set(PANELS.filter(panel => panel.row !== 'back').map(panel => panel.id))
+  const day = simulateDay(middleOfMonth(11), 20, undefined, twelve)
+  const { panels, strings } = panelStats(day, twelve)
+  assert.deepEqual(strings.map(item => item.panels), [6, 6])
+  closeEnough(strings[0].kwp, 3.72)
+  closeEnough(strings.reduce((sum, item) => sum + item.kwh, 0), day.typical.acKwh)
+  // Each row is a series of its own, so the strings yield almost the same.
+  assert.ok(Math.abs(strings[0].kwh / strings[1].kwh - 1) < .03)
+  assert.ok(panels.filter(panel => panel.installed).every(panel => panel.row === 'front' ? panel.string === 0 : panel.string === 1))
 })

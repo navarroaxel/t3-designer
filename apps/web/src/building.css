@@ -267,8 +267,9 @@
 .panel-cell-active { stroke-width: 2.5; stroke: var(--gen-probe); stroke-dasharray: none; }
 .panel-cell-text { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; pointer-events: none; }
 .panel-cell-sub { font-size: 10px; pointer-events: none; }
-.panel-cell-text.on-solid, .panel-cell-sub.on-solid { fill: var(--gen-on-solid); }
-.panel-cell-text.on-faint, .panel-cell-sub.on-faint { fill: var(--gen-on-faint); }
+.panel-cell-string { font-size: 18px; font-weight: 700; pointer-events: none; }
+.panel-cell-text.on-solid, .panel-cell-sub.on-solid, .panel-cell-string.on-solid { fill: var(--gen-on-solid); }
+.panel-cell-text.on-faint, .panel-cell-sub.on-faint, .panel-cell-string.on-faint { fill: var(--gen-on-faint); }
 .panel-hit { position: absolute; }
 .panel-hit button { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 3px; }
 .panel-hit button:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 1px; }
@@ -305,3 +306,12 @@
 .month-tooltip .gen-key-without::before, .month-tooltip .gen-key-with::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border: 0; border-radius: 2px; vertical-align: baseline; }
 .month-tooltip .gen-key-without::before { background: #dcbf82; }
 .month-tooltip .gen-key-with::before { background: #a9cc88; }
+
+/* Installation switches on the panels map. */
+.panel-cell-off { fill: none; stroke: var(--gen-axis); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.panel-off-text { font-size: 12px; fill: var(--gen-axis); pointer-events: none; }
+.panel-hit button[aria-pressed='false'] { background: transparent; }
+.gen-install-summary { font-weight: 600; text-transform: none; }
+.gen-metrics button:disabled { opacity: .45; cursor: default; }
+.gen-metrics button:disabled:hover { background: var(--gen-card); }
+.gen-details .eyebrow + .gen-stats { margin-top: -2px; }

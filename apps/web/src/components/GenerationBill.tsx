@@ -4,6 +4,7 @@ import { useLocale } from '../i18n/useLocale'
 import { computeBills } from '../lib/pv/billing'
 import { niceTicks } from '../lib/pv/stats'
 import type { YearResult } from '../lib/pv/model'
+import { moneyFormatter } from '../lib/money'
 import { useBilling } from '../lib/useBilling'
 import { NumberField } from './NumberField'
 
@@ -20,11 +21,7 @@ export function BillView({ year }: { year: YearResult }) {
   const { settings } = billing
   const [help, setHelp] = useState(false)
   const [active, setActive] = useState<number | null>(null)
-  // Only the symbol: the money is whatever currency the user thinks in.
-  const money = useMemo(() => {
-    const plain = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 })
-    return { format: (value: number) => `${value < 0 ? '-' : ''}$${plain.format(Math.abs(value))}` }
-  }, [locale])
+  const money = useMemo(() => moneyFormatter(locale), [locale])
   const compact = useMemo(() => new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }), [locale])
   const { months, totals } = useMemo(() => computeBills(year.months.map(month => month.acKwh), settings), [year, settings])
   const monthName = (index: number, style: 'long' | 'short') => formatDate(new Date(Date.UTC(2026, index, 15, 12)), { month: style })

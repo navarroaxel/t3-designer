@@ -7,7 +7,8 @@ import { GenerationPanel } from './GenerationPanel'
 import { GenerationDetails } from './GenerationDetails'
 import { useGeneration } from '../lib/useGeneration'
 import { usePvFactor } from '../lib/usePvFactor'
-import { ARRAY_WATTS, PANELS, PANEL_SPEC, ROWS, ROW_COUNTS, TILT_DEGREES } from '../data/solar-array'
+import { useInstalledPanels } from '../lib/useInstalledPanels'
+import { PANELS, PANEL_SPEC, ROWS, TILT_DEGREES } from '../data/solar-array'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
@@ -20,7 +21,8 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   const { formatNumber, formatDate } = useLocale()
   const { sun, instant } = solar
   const pvFactor = usePvFactor()
-  const generation = useGeneration(solar, pvFactor.factor)
+  const panels = useInstalledPanels()
+  const generation = useGeneration(solar, pvFactor.factor, panels.installed)
   const [showNeighbors, setShowNeighbors] = useState(true)
   const [showSunPath, setShowSunPath] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
@@ -36,7 +38,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   return <>
     <div className="workspace building-workspace">
       <section className={`viewport building-viewport ${sun.isDaylight ? 'is-day' : 'is-night'}`} aria-label={t('building.sceneAria')}>
-        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} showPanels={showPanels} panelShade={generation.panelShade} floor={floor} view={view} />
+        <BuildingScene instant={instant} sun={sun} showNeighbors={showNeighbors} showSunPath={showSunPath} showLabels={showLabels} showPanels={showPanels} panelShade={generation.panelShade} installedPanels={panels.installed} floor={floor} view={view} />
         <div className="viewport-top building-viewport-top">
           <div className="building-location"><span className="eyebrow">{t('building.locationEyebrow')}</span><strong>{BUILDING_SITE.address.split(' · ')[0]}</strong><small>{t('building.location')}</small></div>
           <div className="view-buttons" role="group" aria-label={t('building.camera')}>
@@ -46,7 +48,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
           </div>
         </div>
         <SolarMomentTag solar={solar} />
-        {showDetails && <GenerationDetails solar={solar} generation={generation} onClose={closeDetails} />}
+        {showDetails && <GenerationDetails solar={solar} generation={generation} panels={panels} onClose={closeDetails} />}
         <div className="viewport-bottom building-viewport-bottom">
           <div className="scene-guide"><span><i className="target-key" /> {t('building.buildingPart')} <i className="neighbor-key" /> {t('building.contextKey')}</span><small>{t('building.navigationHelp')}</small></div>
           <fieldset className="display-options building-layers">
@@ -70,8 +72,9 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
         </section>
         <section className="array-summary" aria-label={t('building.arrayTitle')}>
           <span className="eyebrow">{t('building.arrayTitle')}</span>
-          <strong>{t('building.arraySummary', { panels: formatNumber(PANELS.length), watts: formatNumber(PANEL_SPEC.watts), kwp: formatNumber(ARRAY_WATTS / 1000, 2) })}</strong>
-          <p className="array-note">{t('building.arrayLayout', { rows: ROWS.map(row => ROW_COUNTS[row]).join(' + '), tilt: formatNumber(TILT_DEGREES) })}</p>
+          <strong>{t('building.arraySummary', { panels: formatNumber(panels.count), watts: formatNumber(PANEL_SPEC.watts), kwp: formatNumber(generation.day.kwp, 2) })}</strong>
+          {!panels.isFull && <p className="array-note">{t('building.arrayPartial', { count: panels.count, total: panels.total })}</p>}
+          <p className="array-note">{t('building.arrayLayout', { rows: ROWS.map(row => PANELS.filter(panel => panel.row === row && panels.isIn(panel.id)).length).filter(count => count > 0).join(' + '), tilt: formatNumber(TILT_DEGREES) })}</p>
         </section>
         <GenerationPanel solar={solar} generation={generation} factor={pvFactor} expanded={showDetails} onExpand={() => setShowDetails(open => !open)} />
         <div className="solar-heading"><span className="eyebrow">{t('building.solarStudy')}</span><h2>{t('building.annualLightLine1')}<br /> {t('building.annualLightLine2')}</h2><p>{t('building.sharedMoment')}</p></div>

@@ -112,6 +112,19 @@ export function toSitePanel(panel: Panel, samples = SAMPLES): SitePanel {
 
 export const SITE_PANELS: SitePanel[] = PANELS.map(panel => toSitePanel(panel))
 
+const subsets = new Map<string, SitePanel[]>()
+/**
+ * The panels that are installed, for the shading: they shade each other, so leaving some out changes what the
+ * rest receive. `null` means the whole planned array.
+ */
+export function sitePanelsFor(enabled: ReadonlySet<string> | null): SitePanel[] {
+  if (!enabled) return SITE_PANELS
+  const key = SITE_PANELS.filter(panel => enabled.has(panel.id)).map(panel => panel.id).join(',')
+  let subset = subsets.get(key)
+  if (!subset) { subset = SITE_PANELS.filter(panel => enabled.has(panel.id)); subsets.set(key, subset) }
+  return subset
+}
+
 /** Only prisms rising above the lowest panel can ever shade one: rays go up. */
 const lowestPanel = Math.min(...PANELS.map(panel => panel.lowEdgeY))
 export const OBSTACLES: Prism[] = SITE_BUILDINGS.map(toPrism).filter(prism => prism.top > lowestPanel)
