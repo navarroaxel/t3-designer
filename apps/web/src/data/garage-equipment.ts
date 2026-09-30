@@ -1,19 +1,18 @@
 import { GROUND_GARAGE } from './house-plan.ts'
 
 /**
- * The solar equipment on the garage's wall (owner): a three-phase 10 kW Deye inverter hung on the south-west party wall, its nearer edge 1 m
+ * The solar equipment on the garage's wall (owner): the three-phase 10 kW Deye hybrid inverter, model SUN-10K-SG05LP3-EU-SM2, hung on the south-west party wall, its nearer edge 1 m
  * from the garage's back wall (the wall the pantry is behind), and to its right, seen facing the wall, the electrical board. Facing that wall
  * the right hand is toward the front of the house, toward lower u.
  *
- * The inverter's sizes are those of the Deye SUN-10K-G05, 0.33 m wide, 0.457 m high and 0.185 m deep, which is an assumption: the owner did not
- * name the model. The board is the surface-mounted, three-row unit of the owner's photo, white with a smoked black door: 0.45 m by 0.55 m and 0.12 m
- * deep, and its 0.10 m gap from the inverter are assumed. Both hang 0.9 m off the floor (assumed) so they show whole under the 1.5 m cut.
+ * The inverter's sizes are the model's, 0.386 m wide, 0.66 m high and 0.25 m deep (the makers' figures; 35.2 kg). The board is the surface-mounted, three-row unit of the owner's photo, white with a smoked black door: 0.45 m by 0.55 m and 0.12 m
+ * deep, and its 0.10 m gap from the inverter are assumed. Both hang 0.8 m off the floor (assumed) so they show whole under the 1.5 m cut.
  * House frame [u, v], heights above the ground-floor level.
  */
 export type EquipmentBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; metalness?: number }
 
-export const INVERTER = { width: .33, height: .457, depth: .185, fromBackWall: 1, bottom: .9 }
-export const BOARD = { width: .45, height: .55, depth: .12, gap: .1, bottom: .9 }
+export const INVERTER = { width: .386, height: .66, depth: .25, fromBackWall: 1, bottom: .8 }
+export const BOARD = { width: .45, height: .55, depth: .12, gap: .1, bottom: .8 }
 
 const backFace = GROUND_GARAGE.u[1]
 const wall = GROUND_GARAGE.v[0]

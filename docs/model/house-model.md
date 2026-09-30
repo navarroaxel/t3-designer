@@ -126,7 +126,7 @@ The ground floor's living has a **gas fireplace** (owner's photo) against the pa
 
 ## The garage's solar equipment
 
-On the garage's south-west wall hangs the **three-phase 10 kW Deye inverter**, its nearer edge 1 m from the garage's back wall, the one the pantry is behind, and to its right, seen facing the wall, the **electrical board** (owner's photos; `apps/web/src/data/garage-equipment.ts`). The inverter's sizes are those of the Deye SUN-10K-G05 (0.33 m by 0.457 m and 0.185 m deep), because the model was not named: an assumption. The board is a surface-mounted, three-row unit, white with a smoked black door, drawn 0.45 m by 0.55 m and 0.12 m deep with 0.10 m from the inverter (assumed). Both hang 0.9 m off the floor, assumed, so they show whole under the cut.
+On the garage's south-west wall hangs the **three-phase 10 kW Deye hybrid inverter**, model SUN-10K-SG05LP3-EU-SM2, its nearer edge 1 m from the garage's back wall, the one the pantry is behind, and to its right, seen facing the wall, the **electrical board** (owner's photos; `apps/web/src/data/garage-equipment.ts`). The inverter's sizes are the model's: 0.386 m wide, 0.66 m high and 0.25 m deep. The board is a surface-mounted, three-row unit, white with a smoked black door, drawn 0.45 m by 0.55 m and 0.12 m deep with 0.10 m from the inverter (assumed). Both hang 0.8 m off the floor, assumed, so they show whole under the cut.
 
 ## The doorbell
 

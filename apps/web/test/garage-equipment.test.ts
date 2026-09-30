@@ -10,6 +10,8 @@ const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1
 test('the inverter hangs on the garage\'s south-west wall, 1 m from the back wall the pantry is behind', () => {
   near(box('inverter').v[0], GROUND_GARAGE.v[0])
   near(GROUND_GARAGE.u[1] - INVERTER_U[1], 1)
+  // The Deye SUN-10K-SG05LP3-EU-SM2: 386 x 660 x 250 mm.
+  near(INVERTER.width, .386); near(INVERTER.height, .66); near(INVERTER.depth, .25)
   near(INVERTER_U[1] - INVERTER_U[0], INVERTER.width)
   near(box('inverter').v[1] - box('inverter').v[0], INVERTER.depth)
   near(box('inverter').y[1] - box('inverter').y[0], INVERTER.height)
