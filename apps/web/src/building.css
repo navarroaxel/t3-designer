@@ -162,9 +162,9 @@
 
 /* Generation: shared chart colours, the sidebar's expand button and the wide details panel. */
 :root {
-  --gen-grid: #dfe4d8; --gen-axis: #8a967e; --gen-area: #dbe7c8; --gen-typical: #5e7c4a; --gen-clear: #ad8748; --gen-overcast: #7d95a0;
-  --gen-marker: #5e7c4a; --gen-marker-ring: #fffefa; --gen-probe: #6e7f60; --gen-bar: #b6c99c; --gen-bar-active: #8fae6e; --gen-bar-selected: #5e7c4a;
-  --gen-card: #f6f7f0; --gen-card-border: #e6eade; --gen-details-bg: #fffefaf5;
+  --gen-grid: #dfe4d8; --gen-axis: #8a967e; --gen-area: #dbe7c8; --gen-typical: #5e7c4a; --gen-clear: #ad8748; --gen-overcast: #2f6f94;
+  --gen-marker: #5e7c4a; --gen-on-solid: #ffffff; --gen-on-faint: #1f2a1b; --gen-marker-ring: #fffefa; --gen-probe: #6e7f60; --gen-bar: #b6c99c; --gen-bar-active: #8fae6e; --gen-bar-selected: #5e7c4a;
+  --gen-cost: #b3402f; --gen-cost-soft: #fbeeea; --gen-card: #f6f7f0; --gen-card-border: #e6eade; --gen-details-bg: #fffefaf5;
 }
 .generation-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .gen-expand, .gen-download, .gen-metrics button, .gen-tabs button { font: inherit; font-size: 10px; border: 1px solid var(--gen-card-border); background: var(--gen-card); color: inherit; border-radius: 5px; padding: 5px 9px; cursor: pointer; min-height: 26px; }
@@ -180,7 +180,7 @@
 .gen-line { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
 .gen-line-typical { stroke: var(--gen-typical); }
 .gen-line-clear { stroke: var(--gen-clear); stroke-dasharray: 3 2; stroke-width: 1.4; }
-.gen-line-overcast { stroke: var(--gen-overcast); stroke-dasharray: 1 3; stroke-linecap: round; }
+.gen-line-overcast { stroke: var(--gen-overcast); stroke-width: 2.6; stroke-dasharray: .1 6; stroke-linecap: round; }
 .gen-now-line { stroke: var(--gen-marker); stroke-width: 1; stroke-dasharray: 2 3; opacity: .7; }
 .gen-now-dot { fill: var(--gen-marker); stroke: var(--gen-marker-ring); stroke-width: 2; }
 .gen-probe-line { stroke: var(--gen-probe); stroke-width: 1; }
@@ -191,7 +191,7 @@
 .power-tooltip { bottom: auto; top: 0; transform: translateX(-50%); min-width: 150px; }
 .power-tooltip.month-tooltip-start { transform: none; }
 .power-tooltip.month-tooltip-end { transform: none; }
-.power-tooltip { --gen-typical: #a9cc88; --gen-clear: #dcbf82; --gen-overcast: #9fc0cf; }
+.power-tooltip { --gen-typical: #a9cc88; --gen-clear: #dcbf82; --gen-overcast: #9fd0ee; }
 .power-tooltip span::before, .gen-legend li::before { content: ''; display: inline-block; width: 14px; height: 0; border-top: 2px solid; margin-right: 6px; vertical-align: middle; }
 .power-tooltip span:last-child::before { display: none; }
 .gen-legend .gen-key-typical::before, .power-tooltip .gen-key-typical::before { border-color: var(--gen-typical); }
@@ -257,3 +257,92 @@
 .gen-factor-inputs input:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 2px; }
 .gen-factor-inputs span { font-size: 11px; }
 .gen-factor-reset { font: inherit; font-size: 10px; padding: 0; border: 0; background: none; color: #587747; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* Panels tab: the array seen from the street. */
+.panel-map { position: relative; max-width: 560px; align-self: center; width: 100%; }
+.panel-map svg { display: block; width: 100%; height: auto; }
+.panel-cell { fill: var(--gen-typical); stroke: var(--gen-typical); stroke-width: 1; }
+.panel-cell-shade { fill: var(--gen-clear); stroke: var(--gen-clear); }
+.panel-cell-second { stroke-dasharray: 4 2; }
+.panel-cell-active { stroke-width: 2.5; stroke: var(--gen-probe); stroke-dasharray: none; }
+.panel-cell-text { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; pointer-events: none; }
+.panel-cell-sub { font-size: 10px; pointer-events: none; }
+.panel-cell-string { font-size: 18px; font-weight: 700; pointer-events: none; }
+.panel-cell-text.on-solid, .panel-cell-sub.on-solid, .panel-cell-string.on-solid { fill: var(--gen-on-solid); }
+.panel-cell-text.on-faint, .panel-cell-sub.on-faint, .panel-cell-string.on-faint { fill: var(--gen-on-faint); }
+.panel-hit { position: absolute; }
+.panel-hit button { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 3px; }
+.panel-hit button:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 1px; }
+.panel-tooltip { bottom: auto; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4; }
+
+/* Bill tab. */
+.bill-inputs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.bill-inputs label { display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: #829077; }
+.bill-inputs input, .bill-month-input { font: inherit; font-size: 12px; font-variant-numeric: tabular-nums; padding: 5px 7px; border: 1px solid var(--gen-card-border); border-radius: 5px; background: var(--gen-card); color: inherit; text-align: right; min-width: 0; }
+.bill-inputs input:focus-visible, .bill-month-input:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 1px; }
+.bill-month-input { width: 72px; padding: 3px 5px; font-size: 11px; }
+.bill-bar-without { fill: var(--gen-clear); }
+.bill-bar-with { fill: var(--gen-typical); }
+.gen-legend .gen-key-without::before, .gen-legend .gen-key-with::before { width: 10px !important; height: 10px !important; border: 0 !important; border-radius: 2px; }
+.gen-legend .gen-key-without::before { background: var(--gen-clear); }
+.gen-legend .gen-key-with::before { background: var(--gen-typical); }
+.bill-table-wrap { overflow-x: auto; }
+.bill-table { min-width: 620px; }
+.bill-table tfoot th, .bill-table tfoot td { font-weight: 650; border-top: 2px solid var(--gen-card-border); border-bottom: 0; }
+.bill-saved { color: var(--gen-typical); font-weight: 600; }
+
+.bill-inputs .bill-field { display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: #829077; position: relative; }
+.bill-field-label { display: flex; align-items: center; gap: 5px; }
+.bill-field-label label { display: block; }
+.bill-unit-row { display: flex; align-items: center; gap: 5px; }
+.bill-unit-row input { flex: 1; min-width: 0; }
+.bill-unit-row > span { font-size: 11px; }
+.bill-help { width: 15px; height: 15px; padding: 0; border-radius: 50%; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-size: 10px; font-weight: 700; line-height: 1; cursor: help; }
+.bill-help:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 2px; }
+.bill-tooltip { bottom: auto; top: 100%; left: 0; transform: none; margin-top: 6px; width: 280px; max-width: 80vw; white-space: normal; line-height: 1.5; font-size: 11px; font-weight: 400; z-index: 6; }
+.bill-inputs label > span, .bill-field-label { min-height: 16px; display: flex; align-items: center; }
+
+/* The tooltip's coloured markers, for the bill's two bars. */
+.month-tooltip .gen-key-without::before, .month-tooltip .gen-key-with::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border: 0; border-radius: 2px; vertical-align: baseline; }
+.month-tooltip .gen-key-without::before { background: #dcbf82; }
+.month-tooltip .gen-key-with::before { background: #a9cc88; }
+
+/* Installation switches on the panels map. */
+.panel-cell-off { fill: none; stroke: var(--gen-axis); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.panel-off-text { font-size: 12px; fill: var(--gen-axis); pointer-events: none; }
+.panel-hit button[aria-pressed='false'] { background: transparent; }
+.gen-install-summary { font-weight: 600; text-transform: none; }
+.gen-metrics button:disabled { opacity: .45; cursor: default; }
+.gen-metrics button:disabled:hover { background: var(--gen-card); }
+.gen-details .eyebrow + .gen-stats { margin-top: -2px; }
+
+/* Consumption profile. */
+.bill-profile { border: 1px solid var(--gen-card-border); border-radius: 8px; padding: 10px 12px 12px; margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.bill-profile legend { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: #9c895f; font-weight: 600; padding: 0 6px; }
+.bill-profile-inputs { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+.bill-profile select { font: inherit; font-size: 12px; padding: 5px 7px; border: 1px solid var(--gen-card-border); border-radius: 5px; background: var(--gen-card); color: inherit; text-transform: capitalize; }
+.bill-profile select:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 1px; }
+.profile-chart svg { display: block; width: 100%; height: auto; }
+.profile-shared { fill: var(--gen-typical); fill-opacity: .55; }
+.profile-load { fill: none; stroke: var(--gen-clear); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.gen-legend .gen-key-load::before { border-color: var(--gen-clear); }
+.gen-legend .gen-key-shared::before { width: 12px !important; height: 10px !important; border: 0 !important; background: var(--gen-typical); opacity: .55; }
+
+/* Cash out. */
+.bill-cashout { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bill-cashout-label { font-size: 10px; color: #829077; }
+.gen-stat-key { border-color: var(--gen-typical); }
+.gen-stat-key strong { color: var(--gen-typical); }
+.gen-stat-cost { border-color: var(--gen-cost); background: var(--gen-cost-soft); }
+.gen-stat-cost strong { color: var(--gen-cost); }
+.bill-table { min-width: 720px; }
+
+.gen-stat-off { border-style: dashed; }
+.gen-stat-off strong { font-size: 15px; color: var(--gen-axis); }
+.bill-table th, .bill-table td { padding: 5px 5px; }
+.bill-table { min-width: 0; font-size: 10.5px; }
+.bill-month-input { width: 60px; }
+
+/* Payback. */
+.payback-line { fill: none; stroke: var(--gen-typical); stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.payback-zero { stroke: var(--gen-axis); stroke-width: 1.2; }

@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ARRAY_WATTS } from '../data/solar-array'
 import { useLocale } from '../i18n/useLocale'
 import { clock, cumulativeKwh, dayStats, METRIC_UNIT, monthValue, yearCsv, type YearMetric } from '../lib/pv/stats'
 import type { Generation } from '../lib/useGeneration'
+import type { InstalledPanels } from '../lib/useInstalledPanels'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { PowerChart, YearChart } from './GenerationCharts'
+import { PanelsView } from './GenerationPanels'
+import { BillView } from './GenerationBill'
+import { InvestmentView } from './GenerationInvestment'
 
-const KWP = ARRAY_WATTS / 1000
 const METRICS: YearMetric[] = ['perDay', 'perMonth', 'perKwp']
-type Tab = 'today' | 'year'
+type Tab = 'today' | 'year' | 'panels' | 'bill' | 'invest'
 
 function Stat({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: string }) {
   return <div className="gen-stat"><span>{label}</span><strong>{value}{unit && <small>{unit}</small>}</strong>{note && <em>{note}</em>}</div>
@@ -19,7 +21,7 @@ function Stat({ label, value, unit, note }: { label: string; value: string; unit
  * The wide view of the generation: the day's curve and figures, and the year's months. It floats over the
  * 3D scene, which stays visible and follows the same date and time, and closes with Escape.
  */
-export function GenerationDetails({ solar, generation, onClose }: { solar: SolarStudy; generation: Generation; onClose: () => void }) {
+export function GenerationDetails({ solar, generation, panels, onClose }: { solar: SolarStudy; generation: Generation; panels: InstalledPanels; onClose: () => void }) {
   const { t } = useTranslation('workspace')
   const { formatNumber, formatDate } = useLocale()
   const [tab, setTab] = useState<Tab>('today')
@@ -28,7 +30,7 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
   const { day, year } = generation
   const { moment } = solar
   const month = Number(moment.date.slice(5, 7)) - 1
-  const stats = useMemo(() => dayStats(day, KWP), [day])
+  const stats = useMemo(() => dayStats(day, day.kwp), [day])
   const cumulative = useMemo(() => cumulativeKwh(day.typical.acW, 10), [day])
   const monthName = (index: number, style: 'long' | 'narrow' | 'short') => formatDate(new Date(Date.UTC(2026, index, 15, 12)), { month: style })
   const kwh = (value: number) => formatNumber(value, value < 10 ? 1 : 0)
@@ -45,7 +47,7 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
   function downloadCsv() {
     if (!year) return
     const names = Array.from({ length: 12 }, (_, index) => monthName(index, 'long'))
-    const url = URL.createObjectURL(new Blob([yearCsv(year, KWP, names)], { type: 'text/csv;charset=utf-8' }))
+    const url = URL.createObjectURL(new Blob([yearCsv(year, year.kwp, names)], { type: 'text/csv;charset=utf-8' }))
     const link = document.createElement('a')
     link.href = url
     link.download = 'generation-by-month.csv'
@@ -63,8 +65,8 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
         <h2>{t('building.genDetailsTitle')}</h2>
       </div>
       <div className="gen-tabs" role="tablist" aria-label={t('building.genDetailsTitle')}>
-        {(['today', 'year'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
-          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : 'building.genTabYear')}</button>)}
+        {(['today', 'year', 'panels', 'bill', 'invest'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
+          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : option === 'panels' ? 'building.genTabPanels' : option === 'bill' ? 'building.genTabBill' : 'building.genTabInvest')}</button>)}
       </div>
       <button ref={closeButton} type="button" className="gen-close" aria-label={t('building.genClose')} title={t('building.genClose')} onClick={onClose}>×</button>
     </header>
@@ -84,11 +86,24 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
         <Stat label={t('building.genStatClear')} value={kwh(day.clear.acKwh)} unit="kWh" note={t('building.genStatClearShare', { percent: formatNumber(day.clearFraction * 100) })} />
         <Stat label={t('building.genStatOvercast')} value={kwh(day.overcast.acKwh)} unit="kWh" />
         <Stat label={t('building.genStatPeak')} value={formatNumber(stats.clearPeakKw, 1)} unit="kW" note={t('building.genStatPeakAt', { time: clock(stats.clearPeakMinutes), load: formatNumber(stats.inverterLoadPercent) })} />
-        <Stat label={t('building.genStatYield')} value={formatNumber(stats.specificYield, 1)} unit="kWh/kWp" note={t('building.genStatYieldNote', { kwp: formatNumber(KWP, 2) })} />
+        <Stat label={t('building.genStatYield')} value={formatNumber(stats.specificYield, 1)} unit="kWh/kWp" note={t('building.genStatYieldNote', { kwp: formatNumber(day.kwp, 2) })} />
         <Stat label={t('building.genStatWindow')} value={range(stats.productionWindow)} note={t('building.genStatWindowNote')} />
         <Stat label={t('building.genStatShading')} value={formatNumber(day.clearShadingLossPercent, 1)} unit="%" note={stats.shadeWindow ? t('building.genStatShadeWindow', { window: range(stats.shadeWindow) }) : t('building.genStatNoShade')} />
         <Stat label={t('building.genStatIrradiation')} value={formatNumber(day.typical.poaKwhM2, 1)} unit="kWh/m²" note={t('building.genStatIrradiationNote', { ghi: formatNumber(day.typical.ghiKwhM2, 1) })} />
       </div>
+    </div>}
+
+    {tab === 'panels' && <div role="tabpanel" id="gen-panel-panels" aria-labelledby="gen-tab-panels" className="gen-tab-body">
+      <p className="gen-context">{t('building.genDetailsDay', { date: formatDate(new Date(`${moment.date}T12:00:00Z`), { dateStyle: 'full', timeZone: 'UTC' }), time: solar.time })}</p>
+      <PanelsView day={day} panels={panels} fullYear={generation.fullYear} year={year} />
+    </div>}
+
+    {tab === 'bill' && <div role="tabpanel" id="gen-panel-bill" aria-labelledby="gen-tab-bill" className="gen-tab-body">
+      {year ? <BillView year={year} month={month} /> : <p className="array-note">{t('building.genCalculating')}</p>}
+    </div>}
+
+    {tab === 'invest' && <div role="tabpanel" id="gen-panel-invest" aria-labelledby="gen-tab-invest" className="gen-tab-body">
+      {year ? <InvestmentView year={year} panelsLeftOut={panels.total - panels.count} /> : <p className="array-note">{t('building.genCalculating')}</p>}
     </div>}
 
     {tab === 'year' && <div role="tabpanel" id="gen-panel-year" aria-labelledby="gen-tab-year" className="gen-tab-body">
@@ -122,7 +137,7 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
             {year.months.map(row => <tr key={row.month} aria-current={row.month === month ? 'true' : undefined}>
               <th scope="row">{monthName(row.month, 'long')}</th>
               <td>{formatNumber(row.acKwh)}</td><td>{formatNumber(row.acKwhPerDay, 1)}</td>
-              <td>{formatNumber(monthValue(row, 'perKwp', KWP), 2)}</td><td>{formatNumber(row.clearFraction * 100)}%</td><td>{formatNumber(row.shadingLossPercent, 1)}%</td>
+              <td>{formatNumber(monthValue(row, 'perKwp', year.kwp), 2)}</td><td>{formatNumber(row.clearFraction * 100)}%</td><td>{formatNumber(row.shadingLossPercent, 1)}%</td>
             </tr>)}
           </tbody>
         </table>

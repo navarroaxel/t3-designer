@@ -1,11 +1,12 @@
 import { BUILDING_SITE } from '../../data/building-site.ts'
 import { CLIMATE, DAYS_IN_MONTH } from '../../data/climate.ts'
 import { PV_SYSTEM } from '../../data/pv-system.ts'
-import { ARRAY_WATTS, PANELS, PANEL_SPEC } from '../../data/solar-array.ts'
+import { PANELS, PANEL_SPEC } from '../../data/solar-array.ts'
 import { getSolarPosition, localDateTimeToDate, type SolarPosition } from '../solar.ts'
 import { DARK, ineichenClearSky, type ClearSky } from './clear-sky.ts'
 import { planeIrradiance, type Vec3 } from './plane.ts'
-import { SITE_PANELS, litFractions } from './shading.ts'
+import { SITE_PANELS, litFractions, sitePanelsFor } from './shading.ts'
+import { STRING_COUNT, stringsFor } from './strings.ts'
 
 /**
  * Energy of the planned array, from the sun to the inverter.
@@ -94,6 +95,10 @@ export type Instant = {
   lit: number
   dcW: number
   acW: number
+  /** Irradiance on each panel, W/m2, in the order of PANELS. */
+  panelW: number[]
+  /** DC power of each string, W, in the order of `stringsFor`. */
+  stringDcW: number[]
 }
 
 /**
@@ -108,24 +113,33 @@ export function seriesPower(g: number[]): number {
   return best
 }
 
-const EMPTY: Instant = { ghi: 0, poa: 0, lit: 0, dcW: 0, acW: 0 }
+const EMPTY: Instant = { ghi: 0, poa: 0, lit: 0, dcW: 0, acW: 0, panelW: PANELS.map(() => 0), stringDcW: Array.from({ length: STRING_COUNT }, () => 0) }
 const panelIndex = new Map(PANELS.map((panel, index) => [panel.id, index]))
+
+/** The panels installed: a set of ids, or `null` for the whole planned array. */
+export type Installed = ReadonlySet<string> | null
+export const panelCount = (installed: Installed) => installed ? PANELS.filter(panel => installed.has(panel.id)).length : PANELS.length
+/** Installed power in kWp. */
+export const installedKwp = (installed: Installed) => panelCount(installed) * PANEL_SPEC.watts / 1000
 
 /**
  * Power of the array at one moment. `lit` gives each panel's lit share of the beam; leaving it
- * out means no shading at all.
+ * out means no shading at all. Panels that are not installed receive and deliver nothing; a string
+ * keeps only its installed panels.
  */
 export function instantPower(
-  sun: SolarPosition, sky: ClearSky, ambientC: number, lit: Record<string, number> | null, factor: number = calibration.factor,
+  sun: SolarPosition, sky: ClearSky, ambientC: number, lit: Record<string, number> | null, factor: number = calibration.factor, installed: Installed = null,
 ): Instant {
   if (sun.altitude <= 0 || sky.ghi <= 0) return EMPTY
   const direction = sun.direction as Vec3
   const irradiance = SITE_PANELS.map(panel => {
+    if (installed && !installed.has(panel.id)) return 0
     const parts = planeIrradiance({ sun: direction, normal: panel.normal, sky, albedo, iamB0, beamLit: lit ? lit[panel.id] : 1 })
     return parts.beam + parts.diffuse + parts.ground
   })
   let dc = 0
-  for (const ids of PV_SYSTEM.strings) {
+  const stringDcW: number[] = []
+  for (const ids of stringsFor(installed)) {
     const indices = ids.map(id => panelIndex.get(id)!)
     const g = indices.map(index => irradiance[index] / 1000)
     const total = indices.reduce((sum, index) => sum + irradiance[index], 0)
@@ -134,11 +148,14 @@ export function instantPower(
       ? indices.reduce((sum, index) => sum + irradiance[index] * (ambientC + (temperature.noct - 20) / 800 * irradiance[index]), 0) / total
       : ambientC
     const temperatureFactor = Math.max(0, 1 + temperature.coefficientPerK * (cell - 25))
-    dc += PANEL_SPEC.watts * seriesPower(g) * temperatureFactor
+    const stringDc = PANEL_SPEC.watts * seriesPower(g) * temperatureFactor
+    stringDcW.push(stringDc)
+    dc += stringDc
   }
   const ac = Math.min(inverter.maxAcW, dc * LOSS_FACTOR * inverter.efficiency * factor)
-  const litMean = lit ? SITE_PANELS.reduce((sum, panel) => sum + lit[panel.id], 0) / SITE_PANELS.length : 1
-  return { ghi: sky.ghi, poa: irradiance.reduce((sum, value) => sum + value, 0) / irradiance.length, lit: litMean, dcW: dc, acW: ac }
+  const present = installed ? SITE_PANELS.filter(panel => installed.has(panel.id)) : SITE_PANELS
+  const litMean = lit && present.length ? present.reduce((sum, panel) => sum + lit[panel.id], 0) / present.length : 1
+  return { ghi: sky.ghi, poa: present.length ? irradiance.reduce((sum, value) => sum + value, 0) / present.length : 0, lit: litMean, dcW: dc, acW: ac, panelW: irradiance, stringDcW }
 }
 
 // -- A day ---------------------------------------------------------------------------------------
@@ -155,30 +172,38 @@ export type SkyDay = {
   dcKwh: number
   ghiKwhM2: number
   poaKwhM2: number
+  /** Irradiation on each panel, kWh/m2, in the order of PANELS. */
+  panelPoaKwhM2: number[]
+  /** DC energy of each string, kWh, in the order of `stringsFor`. */
+  stringDcKwh: number[]
 }
 
 /** Simulate one date under one sky, with or without the shading of the surroundings. */
-export function simulateSky(date: string, state: SkyState, { shaded = true, stepMinutes = STEP, factor = calibration.factor as number } = {}): SkyDay {
-  const out: SkyDay = { state, shaded, minutes: [], acW: [], ghi: [], poa: [], lit: [], acKwh: 0, dcKwh: 0, ghiKwhM2: 0, poaKwhM2: 0 }
+export function simulateSky(date: string, state: SkyState, { shaded = true, stepMinutes = STEP, factor = calibration.factor as number, installed = null as Installed } = {}): SkyDay {
+  const out: SkyDay = { state, shaded, minutes: [], acW: [], ghi: [], poa: [], lit: [], acKwh: 0, dcKwh: 0, ghiKwhM2: 0, poaKwhM2: 0, panelPoaKwhM2: PANELS.map(() => 0), stringDcKwh: Array.from({ length: STRING_COUNT }, () => 0) }
   const hours = stepMinutes / 60
   for (let minutes = 0; minutes < 1440; minutes += stepMinutes) {
     const sun = sunAt(date, minutes)
     const sky = skyIrradiance(sun, date, state)
     // Only a clear sky has a beam to shade.
-    const shares = shaded && state === 'clear' && sun.altitude > 0 ? litFractions(sun.direction as Vec3) : null
-    const now = instantPower(sun, sky, ambientTemperature(date, minutes), shares, factor)
+    const shares = shaded && state === 'clear' && sun.altitude > 0 ? litFractions(sun.direction as Vec3, { panels: sitePanelsFor(installed) }) : null
+    const now = instantPower(sun, sky, ambientTemperature(date, minutes), shares, factor, installed)
     out.minutes.push(minutes)
     out.acW.push(now.acW); out.ghi.push(now.ghi); out.poa.push(now.poa); out.lit.push(now.lit)
     out.acKwh += now.acW * hours / 1000
     out.dcKwh += now.dcW * hours / 1000
     out.ghiKwhM2 += now.ghi * hours / 1000
     out.poaKwhM2 += now.poa * hours / 1000
+    now.panelW.forEach((watts, index) => { out.panelPoaKwhM2[index] += watts * hours / 1000 })
+    now.stringDcW.forEach((watts, index) => { out.stringDcKwh[index] += watts * hours / 1000 })
   }
   return out
 }
 
 export type DayResult = {
   date: string
+  /** Installed power, kWp. */
+  kwp: number
   /** Share of clear days in the month, from the anchoring to NASA. */
   clearFraction: number
   clear: SkyDay
@@ -186,29 +211,34 @@ export type DayResult = {
   /** The clear day without any shading, to measure what shading costs. */
   clearUnshaded: SkyDay
   /** The month's typical day: the mix of the clear and overcast days. */
-  typical: { minutes: number[]; acW: number[]; acKwh: number; ghiKwhM2: number; poaKwhM2: number; unshadedAcKwh: number }
+  typical: {
+    minutes: number[]; acW: number[]; acKwh: number; ghiKwhM2: number; poaKwhM2: number; unshadedAcKwh: number
+    panelPoaKwhM2: number[]; stringDcKwh: number[]
+  }
   /** Energy lost to shading on a clear day and on the typical day, in percent. */
   clearShadingLossPercent: number
   typicalShadingLossPercent: number
 }
 
-export function simulateDay(date: string, stepMinutes = STEP, factor: number = calibration.factor): DayResult {
+export function simulateDay(date: string, stepMinutes = STEP, factor: number = calibration.factor, installed: Installed = null): DayResult {
   const { clearFraction: w } = anchoredClearFraction(monthIndex(date))
-  const clear = simulateSky(date, 'clear', { stepMinutes, factor })
-  const clearUnshaded = simulateSky(date, 'clear', { shaded: false, stepMinutes, factor })
-  const overcast = simulateSky(date, 'overcast', { shaded: false, stepMinutes, factor })
+  const clear = simulateSky(date, 'clear', { stepMinutes, factor, installed })
+  const clearUnshaded = simulateSky(date, 'clear', { shaded: false, stepMinutes, factor, installed })
+  const overcast = simulateSky(date, 'overcast', { shaded: false, stepMinutes, factor, installed })
   const mix = (a: number, b: number) => w * a + (1 - w) * b
   const acKwh = mix(clear.acKwh, overcast.acKwh)
   const unshadedAcKwh = mix(clearUnshaded.acKwh, overcast.acKwh)
   const loss = (real: number, ideal: number) => ideal > 0 ? (1 - real / ideal) * 100 : 0
   return {
-    date, clearFraction: w, clear, overcast, clearUnshaded,
+    date, kwp: installedKwp(installed), clearFraction: w, clear, overcast, clearUnshaded,
     typical: {
       minutes: clear.minutes,
       acW: clear.acW.map((value, index) => mix(value, overcast.acW[index])),
       acKwh, unshadedAcKwh,
       ghiKwhM2: mix(clear.ghiKwhM2, overcast.ghiKwhM2),
       poaKwhM2: mix(clear.poaKwhM2, overcast.poaKwhM2),
+      panelPoaKwhM2: clear.panelPoaKwhM2.map((value, index) => mix(value, overcast.panelPoaKwhM2[index])),
+      stringDcKwh: clear.stringDcKwh.map((value, index) => mix(value, overcast.stringDcKwh[index])),
     },
     clearShadingLossPercent: loss(clear.acKwh, clearUnshaded.acKwh),
     typicalShadingLossPercent: loss(acKwh, unshadedAcKwh),
@@ -225,8 +255,14 @@ export type MonthResult = {
   acKwh: number
   ghiKwhM2PerDay: number
   shadingLossPercent: number
+  /** The month's typical day, W at each step of the year's time step. */
+  curveW: number[]
 }
 export type YearResult = {
+  /** Installed power, kWp. */
+  kwp: number
+  /** Minutes between the points of each month's curve. */
+  stepMinutes: number
   months: MonthResult[]
   annualKwh: number
   /** Annual energy per kWp installed. */
@@ -236,18 +272,18 @@ export type YearResult = {
 }
 
 /** The year, one representative day (the 15th) per month, at a coarser time step. */
-export function simulateYear(stepMinutes = 20, factor: number = calibration.factor): YearResult {
-  const days = Array.from({ length: 12 }, (_, month) => simulateDay(middleOfMonth(month), stepMinutes, factor))
+export function simulateYear(stepMinutes = 20, factor: number = calibration.factor, installed: Installed = null): YearResult {
+  const days = Array.from({ length: 12 }, (_, month) => simulateDay(middleOfMonth(month), stepMinutes, factor, installed))
   const months = days.map((day, month): MonthResult => ({
     month, clearFraction: day.clearFraction,
     acKwhPerDay: day.typical.acKwh, acKwh: day.typical.acKwh * DAYS_IN_MONTH[month],
-    ghiKwhM2PerDay: day.typical.ghiKwhM2, shadingLossPercent: day.typicalShadingLossPercent,
+    ghiKwhM2PerDay: day.typical.ghiKwhM2, shadingLossPercent: day.typicalShadingLossPercent, curveW: day.typical.acW,
   }))
   const annualKwh = months.reduce((sum, item) => sum + item.acKwh, 0)
   const unshadedKwh = days.reduce((sum, day, month) => sum + day.typical.unshadedAcKwh * DAYS_IN_MONTH[month], 0)
   return {
-    months, annualKwh,
-    specificYield: annualKwh / (ARRAY_WATTS / 1000),
+    kwp: installedKwp(installed), stepMinutes, months, annualKwh,
+    specificYield: installedKwp(installed) > 0 ? annualKwh / installedKwp(installed) : 0,
     annualShadingLossPercent: unshadedKwh > 0 ? (1 - annualKwh / unshadedKwh) * 100 : 0,
     peakKw: Math.max(...days.map(day => Math.max(...day.clear.acW))) / 1000,
   }

@@ -1,4 +1,6 @@
 import { PV_SYSTEM } from '../../data/pv-system.ts'
+import { PANELS, PANEL_SPEC } from '../../data/solar-array.ts'
+import { stringsFor } from './strings.ts'
 import type { DayResult, YearResult } from './model.ts'
 
 /** Figures read off a simulated day, for the generation panels. */
@@ -19,6 +21,8 @@ export type DayStats = {
 
 /** Power below this share of the day's peak is too little to count when looking for shade. */
 const MEANINGFUL = .1
+/** A single shaded step is a flicker, not a stretch of shade. */
+const MIN_SHADE_STEPS = 2
 
 /** Below this mean share of the beam reaching the panels, a moment counts as shaded; a thin self-shadow at dawn does not. */
 const SHADED_BELOW = .9
@@ -44,7 +48,7 @@ export function dayStats(day: DayResult, kwp: number): DayStats {
     inverterLoadPercent: clear.acW[peakIndex] / PV_SYSTEM.inverter.maxAcW * 100,
     specificYield: kwp > 0 ? typical.acKwh / kwp : 0,
     productionWindow: edges(producing),
-    shadeWindow: edges(longest),
+    shadeWindow: edges(longest.length >= MIN_SHADE_STEPS ? longest : []),
   }
 }
 
@@ -68,13 +72,13 @@ export function niceTicks(max: number, count = 4): number[] {
 export type YearMetric = 'perDay' | 'perMonth' | 'perKwp'
 
 export function monthValue(month: YearResult['months'][number], metric: YearMetric, kwp: number): number {
-  return metric === 'perDay' ? month.acKwhPerDay : metric === 'perMonth' ? month.acKwh : month.acKwhPerDay / kwp
+  return metric === 'perDay' ? month.acKwhPerDay : metric === 'perMonth' ? month.acKwh : kwp > 0 ? month.acKwhPerDay / kwp : 0
 }
 
 /** The months as CSV, always with a dot decimal so a spreadsheet in any locale can read it. */
 export function yearCsv(year: YearResult, kwp: number, monthNames: string[]): string {
   const rows = year.months.map(month => [
-    monthNames[month.month], month.acKwh.toFixed(1), month.acKwhPerDay.toFixed(2), (month.acKwhPerDay / kwp).toFixed(2),
+    monthNames[month.month], month.acKwh.toFixed(1), month.acKwhPerDay.toFixed(2), (kwp > 0 ? month.acKwhPerDay / kwp : 0).toFixed(2),
     (month.clearFraction * 100).toFixed(0), month.shadingLossPercent.toFixed(2),
   ].join(','))
   return ['month,kwh_month,kwh_day,kwh_per_kwp_day,clear_days_percent,shading_loss_percent', ...rows].join('\n') + '\n'
@@ -85,3 +89,47 @@ export const clock = (minutes: number) => `${String(Math.floor(minutes / 60)).pa
 
 /** The metric's unit, as a translation key. */
 export const METRIC_UNIT = { perDay: 'building.genUnitPerDay', perMonth: 'building.genUnitPerMonth', perKwp: 'building.genUnitPerKwp' } as const satisfies Record<YearMetric, string>
+
+export type PanelStat = {
+  id: string
+  /** False when the panel is left out of the installation. */
+  installed: boolean
+  row: 'back' | 'middle' | 'front'
+  /** 1-based, from the north-east side. */
+  index: number
+  /** Index of the string the panel is wired to, in `stringsFor`. */
+  string: number
+  /** Share of the typical day's energy attributed to this panel, kWh. */
+  kwh: number
+  /** Irradiation on the panel on the typical day, kWh/m2. */
+  irradiation: number
+  /** Beam and sky light lost to shade on the clear day, percent. */
+  shadeLossPercent: number
+}
+export type StringStat = { index: number; panels: number; kwp: number; kwh: number; specificYield: number }
+
+/**
+ * The typical day split by panel and by string. A string's energy follows its own DC output, which the
+ * bypass diodes already limit to its weakest panels; a panel gets its share of the day's AC energy in
+ * proportion to the light it receives, since every panel has the same rating.
+ */
+export function panelStats(day: DayResult, installed: ReadonlySet<string> | null = null): { panels: PanelStat[]; strings: StringStat[] } {
+  const { typical, clear, clearUnshaded } = day
+  const light = typical.panelPoaKwhM2.reduce((sum, value) => sum + value, 0)
+  const wired = stringsFor(installed)
+  const panels = PANELS.map((panel, index): PanelStat => ({
+    id: panel.id, installed: !installed || installed.has(panel.id), row: panel.row, index: panel.index,
+    string: wired.findIndex(ids => ids.includes(panel.id)),
+    kwh: light > 0 ? typical.acKwh * typical.panelPoaKwhM2[index] / light : 0,
+    irradiation: typical.panelPoaKwhM2[index],
+    shadeLossPercent: clearUnshaded.panelPoaKwhM2[index] > 0 ? Math.max(0, (1 - clear.panelPoaKwhM2[index] / clearUnshaded.panelPoaKwhM2[index]) * 100) : 0,
+  }))
+  const dc = typical.stringDcKwh.reduce((sum, value) => sum + value, 0)
+  const strings = wired.map((ids, index): StringStat => {
+    const count = ids.length
+    const kwp = count * PANEL_SPEC.watts / 1000
+    const kwh = dc > 0 ? typical.acKwh * typical.stringDcKwh[index] / dc : 0
+    return { index, panels: count, kwp, kwh, specificYield: kwp > 0 ? kwh / kwp : 0 }
+  })
+  return { panels, strings }
+}

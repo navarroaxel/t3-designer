@@ -183,11 +183,12 @@ export function SiteGround() {
  * physical obstacles used by the sunlight pass. */
 export type FloorView = 'exterior' | Floor
 
-export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, panelShade = null, floor = 'exterior' }: {
+export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, panelShade = null, installedPanels = null, floor = 'exterior' }: {
   visible?: boolean
   showNeighbors?: boolean
   showPanels?: boolean
   panelShade?: Record<string, number> | null
+  installedPanels?: ReadonlySet<string> | null
   floor?: FloorView
 }) {
   const house = useMemo(() => SITE_BUILDINGS.filter(isHouse), [])
@@ -200,9 +201,9 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
     <HouseShellPhysical />
     <HouseFacade physical />
     {/* Hiding the panels also removes their shadows: they are part of the physical obstacles only while shown. */}
-    {showPanels && <SolarPanels physical />}
+    {showPanels && <SolarPanels physical installed={installedPanels} />}
     {neighbors.map(building => <Volume key={building.id} building={building} />)}
-  </>, [solids, neighbors, showPanels])
+  </>, [solids, neighbors, showPanels, installedPanels])
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>
@@ -210,7 +211,7 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
         ? <>
             {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
             <HouseFacade />
-            {showPanels && <SolarPanels shade={panelShade} />}
+            {showPanels && <SolarPanels shade={panelShade} installed={installedPanels} />}
           </>
         : <>
             <HouseShell floor={floor} />

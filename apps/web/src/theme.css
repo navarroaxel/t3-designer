@@ -31,9 +31,9 @@
     --ui-hover: #35422f;
     --ui-warm: #d3ba83;
     --ui-warm-surface: #393324;
-    --gen-grid: #3a463a; --gen-axis: #a9b8a0; --gen-area: #3c5232; --gen-typical: #b1cf95; --gen-clear: #d3ba83; --gen-overcast: #8fb0c0;
-    --gen-marker: #b1cf95; --gen-marker-ring: #222c24; --gen-probe: #c4d6b4; --gen-bar: #5f7a4c; --gen-bar-active: #8fb270; --gen-bar-selected: #c2dfa6;
-    --gen-card: #2b362b; --gen-card-border: #45523f; --gen-details-bg: #222c24f5;
+    --gen-grid: #3a463a; --gen-axis: #a9b8a0; --gen-area: #3c5232; --gen-typical: #b1cf95; --gen-clear: #d3ba83; --gen-overcast: #9fd0ee;
+    --gen-marker: #b1cf95; --gen-on-solid: #10180e; --gen-on-faint: #f1f5ec; --gen-marker-ring: #222c24; --gen-probe: #c4d6b4; --gen-bar: #5f7a4c; --gen-bar-active: #8fb270; --gen-bar-selected: #c2dfa6;
+    --gen-cost: #f3a596; --gen-cost-soft: #4a2c27; --gen-card: #2b362b; --gen-card-border: #45523f; --gen-details-bg: #222c24f5;
 
     :is(button, input, select, a, summary):focus-visible {
       outline-color: var(--settings-accent);
@@ -98,8 +98,8 @@
     .month-bar-button:hover span, .month-bar-button:focus-visible span { background: #cfe3b3; }
     .month-bar-button:focus-visible { outline-color: var(--settings-accent); }
     .gen-expand[aria-expanded='true'], .gen-metrics button[aria-pressed='true'], .gen-tabs button[aria-selected='true'] { color: #182116; }
-    .gen-context, .gen-legend, .gen-stat span, .gen-stat em, .gen-stat strong small, .gen-table thead th, .power-chart-hours { color: var(--settings-muted); }
-    .gen-details .eyebrow, .gen-factor label { color: var(--ui-warm); }
+    .gen-context, .gen-legend, .bill-inputs label, .bill-inputs .bill-field, .bill-cashout-label, .gen-stat span, .gen-stat em, .gen-stat strong small, .gen-table thead th, .power-chart-hours { color: var(--settings-muted); }
+    .gen-details .eyebrow, .gen-factor label, .bill-profile legend { color: var(--ui-warm); }
     .gen-factor-reset { color: var(--settings-accent); }
     .gen-factor { border-color: var(--settings-border); }
     .gen-details { box-shadow: 0 18px 50px #000b; }

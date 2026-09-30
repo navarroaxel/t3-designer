@@ -39,12 +39,17 @@ export const PV_SYSTEM = {
   /** 10 kW Deye inverter. The efficiency is typical; the clipping limit is its rating. */
   inverter: { efficiency: .97, maxAcW: 10_000 },
   /**
-   * The two series of 8 panels, by panel id. The owner says two series; which panels form
-   * each one is assumed: the front row and the two south-west panels of the middle row, then
-   * the rest of the middle row and the back row.
+   * How the panels are wired: taking the installed panels in this order, up to 10 go in one series and the second
+   * series is not used; with more they are cut in half so the two series are as even as possible. The owner says two series; which panels form each one
+   * is assumed. With all 16 panels the first series is the front row and the two south-west panels of the
+   * middle row, the second the rest of the middle row and the back row (8 and 8); leaving the back row out
+   * gives the front row and the middle row (6 and 6). See `stringsFor` in lib/pv/strings.ts.
    */
-  strings: [
-    ['front-1', 'front-2', 'front-3', 'front-4', 'front-5', 'front-6', 'middle-5', 'middle-6'],
-    ['middle-1', 'middle-2', 'middle-3', 'middle-4', 'back-1', 'back-2', 'back-3', 'back-4'],
+  /** The most panels a series takes (the owner's limit); with no more than this many panels, the second series is not used. */
+  maxPanelsPerString: 10,
+  wiringOrder: [
+    'front-1', 'front-2', 'front-3', 'front-4', 'front-5', 'front-6',
+    'middle-6', 'middle-5', 'middle-4', 'middle-3', 'middle-2', 'middle-1',
+    'back-1', 'back-2', 'back-3', 'back-4',
   ],
 } as const
