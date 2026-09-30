@@ -7,6 +7,7 @@ import {
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { BATHROOM_BOXES } from '../data/bathroom'
+import { FIREPLACE_BOXES } from '../data/fireplace'
 import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
 import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
 import { polygonShape } from '../lib/polygon-shape'
@@ -195,6 +196,11 @@ export function HouseShell({ floor }: { floor: Floor }) {
       <Slab outline={GROUND_OUTLINE} top={0} />
       <Walls floor="ground" top={CUT_HEIGHT} />
       <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={CUT_HEIGHT} />
+      {/* The living's gas fireplace against the party wall: a black steel box with a stone top and logs. */}
+      {FIREPLACE_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
+        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
+        <meshStandardMaterial color={box.color} roughness={box.id === 'top' ? .8 : box.shape === 'log' ? .95 : .5} metalness={box.id.startsWith('panel') || box.id === 'plinth' ? .3 : 0} />
+      </mesh>)}
       {/* The ground floor's tiles: the bathroom's and the living's. */}
       {GROUND_FLOOR_TILING.flatMap(zone => zone.rects.map((rect, index) => <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={rect} />))}
       {/* The L-shaped stair from the hall, cut at the same height as the walls. */}
