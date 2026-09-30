@@ -98,7 +98,7 @@ export function GenerationDetails({ solar, generation, panels, onClose }: { sola
     </div>}
 
     {tab === 'bill' && <div role="tabpanel" id="gen-panel-bill" aria-labelledby="gen-tab-bill" className="gen-tab-body">
-      {year ? <BillView year={year} /> : <p className="array-note">{t('building.genCalculating')}</p>}
+      {year ? <BillView year={year} month={month} /> : <p className="array-note">{t('building.genCalculating')}</p>}
     </div>}
 
     {tab === 'year' && <div role="tabpanel" id="gen-panel-year" aria-labelledby="gen-tab-year" className="gen-tab-body">

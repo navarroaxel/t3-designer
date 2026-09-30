@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
-import { computeBills } from '../lib/pv/billing'
+import { billingInput, computeBills, PROFILE_PRESETS } from '../lib/pv/billing'
 import { niceTicks } from '../lib/pv/stats'
 import type { YearResult } from '../lib/pv/model'
 import { moneyFormatter } from '../lib/money'
 import { useBilling } from '../lib/useBilling'
 import { NumberField } from './NumberField'
+import { ProfileChart } from './GenerationProfile'
 
 const FRAME = { width: 640, height: 220, left: 54, right: 8, top: 12, bottom: 24 }
 
@@ -14,16 +15,17 @@ const FRAME = { width: 640, height: 220, left: 54, right: 8, top: 12, bottom: 24
  * The electricity bill month by month with and without the array, for a two-way meter: the house's consumption,
  * what the array makes, the share the grid pays for the export, and the bill that comes out.
  */
-export function BillView({ year }: { year: YearResult }) {
+export function BillView({ year, month }: { year: YearResult; month: number }) {
   const { t } = useTranslation('workspace')
   const { locale, formatNumber, formatDate } = useLocale()
   const billing = useBilling()
   const { settings } = billing
   const [help, setHelp] = useState(false)
   const [active, setActive] = useState<number | null>(null)
+  const [profileMonth, setProfileMonth] = useState(month)
   const money = useMemo(() => moneyFormatter(locale), [locale])
   const compact = useMemo(() => new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }), [locale])
-  const { months, totals } = useMemo(() => computeBills(year.months.map(month => month.acKwh), settings), [year, settings])
+  const { months, totals } = useMemo(() => computeBills(billingInput(year), settings), [year, settings])
   const monthName = (index: number, style: 'long' | 'short') => formatDate(new Date(Date.UTC(2026, index, 15, 12)), { month: style })
   const ticks = niceTicks(Math.max(1, ...months.map(month => Math.max(month.billWithout, month.billWith))), 4)
   const top = ticks[ticks.length - 1]
@@ -51,8 +53,6 @@ export function BillView({ year }: { year: YearResult }) {
           <span aria-hidden="true">%</span>
         </span>
       </div>
-      <label><span>{t('building.billSelf')}</span>
-        <NumberField label={t('building.billSelf')} value={settings.selfShare} scale={.01} min={0} max={100} onCommit={value => billing.update({ selfShare: value })} /></label>
       <label><span>{t('building.billFixed')}</span>
         <NumberField label={t('building.billFixed')} value={settings.fixedCharge} min={0} step={100} onCommit={value => billing.update({ fixedCharge: value })} /></label>
       <label><span>{t('building.billAllMonths')}</span>
@@ -61,11 +61,34 @@ export function BillView({ year }: { year: YearResult }) {
     <p className="array-note">{t('building.billInputsNote')}
       {!billing.isDefault && <> <button type="button" className="gen-factor-reset" onClick={billing.reset}>{t('building.billReset')}</button></>}</p>
 
+    <fieldset className="bill-profile">
+      <legend>{t('building.billProfile')}</legend>
+      <div className="gen-metrics" role="group" aria-label={t('building.billProfile')}>
+        {([['homeByDay', 'building.billProfileHomeByDay'], ['even', 'building.billProfileEven'], ['awayByDay', 'building.billProfileAwayByDay']] as const).map(([preset, key]) =>
+          <button key={preset} type="button" aria-pressed={Math.abs(settings.daytimeShare - PROFILE_PRESETS[preset]) < 1e-9} onClick={() => billing.update({ daytimeShare: PROFILE_PRESETS[preset] })}>{t(key)}</button>)}
+      </div>
+      <div className="bill-inputs bill-profile-inputs">
+        <label><span>{t('building.billProfileDayShare')}</span>
+          <NumberField label={t('building.billProfileDayShare')} value={settings.daytimeShare} scale={.01} min={0} max={100} onCommit={value => billing.update({ daytimeShare: value })} /></label>
+        <label><span>{t('building.billProfileFrom')}</span>
+          <NumberField label={t('building.billProfileFrom')} value={settings.dayStart} min={0} max={22} onCommit={value => billing.update({ dayStart: value })} /></label>
+        <label><span>{t('building.billProfileTo')}</span>
+          <NumberField label={t('building.billProfileTo')} value={settings.dayEnd} min={1} max={23} onCommit={value => billing.update({ dayEnd: value })} /></label>
+        <label><span>{t('building.billProfileMonth')}</span>
+          <select value={profileMonth} aria-label={t('building.billProfileMonth')} onChange={event => setProfileMonth(Number(event.target.value))}>
+            {year.months.map(item => <option key={item.month} value={item.month}>{monthName(item.month, 'long')}</option>)}
+          </select></label>
+      </div>
+      <ProfileChart year={year} settings={settings} month={profileMonth} />
+      <p className="array-note">{t('building.billProfileHint')}</p>
+    </fieldset>
+
     <div className="gen-stats">
       <div className="gen-stat"><span>{t('building.billWithout')}</span><strong>{money.format(totals.billWithout)}</strong><em>{t('building.billPerYear')}</em></div>
       <div className="gen-stat"><span>{t('building.billWith')}</span><strong>{money.format(totals.billWith)}</strong><em>{t('building.billPerYear')}</em></div>
       <div className="gen-stat"><span>{t('building.billSaved')}</span><strong>{money.format(totals.saved)}</strong><em>{t('building.billSavedNote', { percent: formatNumber(savedPercent) })}</em></div>
       <div className="gen-stat"><span>{t('building.billCoverage')}</span><strong>{formatNumber(totals.coverage)}<small>%</small></strong><em>{t('building.billCoverageNote', { generation: formatNumber(totals.generation), consumption: formatNumber(totals.consumption) })}</em></div>
+      <div className="gen-stat"><span>{t('building.billStatSelf')}</span><strong>{formatNumber(totals.selfPercent)}<small>%</small></strong><em>{t('building.billStatSelfNote')}</em></div>
       <div className="gen-stat"><span>{t('building.billExported')}</span><strong>{formatNumber(totals.exported)}<small>kWh</small></strong><em>{t('building.billExportedNote', { imported: formatNumber(totals.imported) })}</em></div>
       {totals.creditLeft > 0 && <div className="gen-stat"><span>{t('building.billCreditLeft')}</span><strong>{money.format(totals.creditLeft)}</strong><em>{t('building.billCreditLeftNote')}</em></div>}
     </div>
@@ -96,6 +119,7 @@ export function BillView({ year }: { year: YearResult }) {
             <span className="gen-key-without">{t('building.billTipWithout', { value: money.format(month.billWithout) })}</span>
             <span className="gen-key-with">{t('building.billTipWith', { value: money.format(month.billWith) })}</span>
             <span>{t('building.billTipSaved', { value: money.format(month.saved) })}</span>
+            <span>{t('building.billTipSelf', { kwh: formatNumber(month.selfUsed), percent: formatNumber(month.selfPercent) })}</span>
             <span>{t('building.billTipEnergy', { generation: formatNumber(month.generation), consumption: formatNumber(month.consumption) })}</span>
             <span>{t('building.billTipGrid', { exported: formatNumber(month.exported), imported: formatNumber(month.imported) })}</span>
             {month.creditLeft > 0 && <span>{t('building.billTipCredit', { value: money.format(month.creditLeft) })}</span>}

@@ -255,10 +255,14 @@ export type MonthResult = {
   acKwh: number
   ghiKwhM2PerDay: number
   shadingLossPercent: number
+  /** The month's typical day, W at each step of the year's time step. */
+  curveW: number[]
 }
 export type YearResult = {
   /** Installed power, kWp. */
   kwp: number
+  /** Minutes between the points of each month's curve. */
+  stepMinutes: number
   months: MonthResult[]
   annualKwh: number
   /** Annual energy per kWp installed. */
@@ -273,12 +277,12 @@ export function simulateYear(stepMinutes = 20, factor: number = calibration.fact
   const months = days.map((day, month): MonthResult => ({
     month, clearFraction: day.clearFraction,
     acKwhPerDay: day.typical.acKwh, acKwh: day.typical.acKwh * DAYS_IN_MONTH[month],
-    ghiKwhM2PerDay: day.typical.ghiKwhM2, shadingLossPercent: day.typicalShadingLossPercent,
+    ghiKwhM2PerDay: day.typical.ghiKwhM2, shadingLossPercent: day.typicalShadingLossPercent, curveW: day.typical.acW,
   }))
   const annualKwh = months.reduce((sum, item) => sum + item.acKwh, 0)
   const unshadedKwh = days.reduce((sum, day, month) => sum + day.typical.unshadedAcKwh * DAYS_IN_MONTH[month], 0)
   return {
-    kwp: installedKwp(installed), months, annualKwh,
+    kwp: installedKwp(installed), stepMinutes, months, annualKwh,
     specificYield: installedKwp(installed) > 0 ? annualKwh / installedKwp(installed) : 0,
     annualShadingLossPercent: unshadedKwh > 0 ? (1 - annualKwh / unshadedKwh) * 100 : 0,
     peakKw: Math.max(...days.map(day => Math.max(...day.clear.acW))) / 1000,

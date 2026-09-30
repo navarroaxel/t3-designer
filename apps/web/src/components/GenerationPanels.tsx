@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { PANELS, PANEL_SPEC, ROWS, ROW_COUNTS } from '../data/solar-array'
 import { useLocale } from '../i18n/useLocale'
 import type { DayResult, YearResult } from '../lib/pv/model'
-import { computeBills } from '../lib/pv/billing'
+import { billingInput, computeBills } from '../lib/pv/billing'
 import { panelStats, type PanelStat } from '../lib/pv/stats'
 import { moneyFormatter } from '../lib/money'
 import { useBilling } from '../lib/useBilling'
@@ -60,7 +60,7 @@ export function PanelsView({ day, panels, year, fullYear }: { day: DayResult; pa
   const freedM2 = PANELS.reduce((sum, panel, index) => sum + (panels.isIn(panel.id) ? 0 : FOOTPRINT[index]), 0)
 
   // The comparison with the whole array: the same year, and the bill of the Bill tab.
-  const savedOf = (result: YearResult) => computeBills(result.months.map(month => month.acKwh), billing.settings).totals.saved
+  const savedOf = (result: YearResult) => computeBills(billingInput(result), billing.settings).totals.saved
   const comparison = !panels.isFull && year && fullYear ? {
     energy: year.annualKwh, fullEnergy: fullYear.annualKwh, yield: year.specificYield, fullYield: fullYear.specificYield,
     saved: savedOf(year), fullSaved: savedOf(fullYear),
