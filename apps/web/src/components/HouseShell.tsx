@@ -7,6 +7,7 @@ import {
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { BATHROOM_BOXES } from '../data/bathroom'
+import { DOORBELL_BOXES } from '../data/doorbell'
 import { FIREPLACE_BOXES } from '../data/fireplace'
 import { GARAGE_EQUIPMENT } from '../data/garage-equipment'
 import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
@@ -197,6 +198,11 @@ export function HouseShell({ floor }: { floor: Floor }) {
       <Slab outline={GROUND_OUTLINE} top={GROUND_FLOOR_LEVEL} />
       <Walls floor="ground" top={CUT_HEIGHT} />
       <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={CUT_HEIGHT} />
+      {/* The UniFi doorbell beside the entrance door, on the recess's back wall. */}
+      {DOORBELL_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} castShadow>
+        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
+        <meshStandardMaterial color={box.color} roughness={.4} />
+      </mesh>)}
       {/* The inverter and the electrical board on the garage's party wall. */}
       {GARAGE_EQUIPMENT.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
         <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
