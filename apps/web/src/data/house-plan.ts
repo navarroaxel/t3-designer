@@ -1,4 +1,4 @@
-import { ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, PARTY_WALL, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
+import { ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, PARTY_WALL, WELL_BACK_U, WELL_BACK_WALL, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
 
 /**
  * Floor plans of the house, for the cutaway views. Only the exterior walls are
@@ -27,7 +27,7 @@ const HALF = HOUSE_HALF_WIDTH
 const SW = houseSouthWestEdge((-5 + HOUSE_REAR.southWest) / 2)
 const { setback, outer, inner } = ENTRY_RECESS
 export const GROUND_OUTLINE: PlanPoint[] = [
-  [-5, SW], [HOUSE_REAR.southWest, SW], [HOUSE_REAR.southWest, -1], [4, -1], [4, 1.5], [HOUSE_REAR.northEast, 1.5],
+  [-5, SW], [HOUSE_REAR.southWest, SW], [HOUSE_REAR.southWest, -1], [WELL_BACK_U, -1], [WELL_BACK_U, 1.5], [HOUSE_REAR.northEast, 1.5],
   [HOUSE_REAR.northEast, HALF], [-5, HALF], [-5, outer], [-5 + setback, outer], [-5 + setback, inner], [-5, inner],
 ]
 // First floor: the 9 m x 8.5 m block under the azotea (the roof adds a 1 m cantilever in front); the house fills the 8.95 m lot.
@@ -68,7 +68,7 @@ export const OPENINGS: Record<Floor, Opening[]> = {
     { u: -4, v: [2.21, 3.5], y: [.3, 1.85] }, // barred window, in the recess
     { u: -4, v: [1.07, 1.91], y: [0, 2.1] }, // entrance door, in the recess
     // The light well's balcony door (owner): 1.80 m wide, centred on the well (v = -1 to 1.5), on the wall that closes it, u = 4.
-    { u: 4, v: [LIGHT_WELL_CENTRE - LIGHT_WELL_DOOR_WIDTH / 2, LIGHT_WELL_CENTRE + LIGHT_WELL_DOOR_WIDTH / 2], y: [0, 2.1] },
+    { u: WELL_BACK_U, v: [LIGHT_WELL_CENTRE - LIGHT_WELL_DOOR_WIDTH / 2, LIGHT_WELL_CENTRE + LIGHT_WELL_DOOR_WIDTH / 2], y: [0, 2.1] },
   ],
   first: [
     { u: -5, v: [.1, 3.1], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] }, // 3 m balcony door
@@ -89,13 +89,13 @@ export const OPENINGS: Record<Floor, Opening[]> = {
 export const OFFICE_WINDOW_WIDTH = 1.5
 export const OFFICE_WINDOW_SILL = .9
 export const OFFICE_WINDOW_HEIGHT = 1.2
-const officeMiddleU = (4 + (HOUSE_REAR.northEast - PARTY_WALL)) / 2
+const officeMiddleU = (WELL_BACK_U + (HOUSE_REAR.northEast - PARTY_WALL)) / 2
 /**
  * The right arm of the well, on the south-west (the ground floor under the terrace), has a 1.8 m window onto the well (owner), in the wall at
  * v = -1. That it is centred on the room, and its sill and height, the same as the office window's, are assumed.
  */
 export const RIGHT_ARM_WINDOW_WIDTH = 1.8
-const rightArmMiddleU = (4 + (HOUSE_REAR.southWest - PARTY_WALL)) / 2
+const rightArmMiddleU = (WELL_BACK_U + (HOUSE_REAR.southWest - PARTY_WALL)) / 2
 export const SIDE_OPENINGS: Record<Floor, SideOpening[]> = {
   ground: [
     { v: 1.5, u: [officeMiddleU - OFFICE_WINDOW_WIDTH / 2, officeMiddleU + OFFICE_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] },
@@ -122,6 +122,8 @@ export function exteriorThickness(a: PlanPoint, b: PlanPoint): number {
   const sameV = (value: number) => Math.abs(a[1] - value) < 1e-9 && Math.abs(b[1] - value) < 1e-9
   const sameU = (value: number) => Math.abs(a[0] - value) < 1e-9 && Math.abs(b[0] - value) < 1e-9
   const onParty = sameV(SW) || sameV(HALF) || sameU(HOUSE_REAR.southWest) || sameU(HOUSE_REAR.northEast)
+  // The wall that closes the light well is a thin interior-like wall, 0.18 m (from the owner's depths).
+  if (sameU(WELL_BACK_U)) return WELL_BACK_WALL
   return onParty ? PARTY_WALL : WALL_THICKNESS
 }
 
@@ -570,9 +572,9 @@ export const GROUND_HALL = {
  * front (u = 3.7 to 4.0). The office's size is what the band leaves inside its 0.3 m walls: 4.2 m deep by 2.4 m wide, an assumption.
  */
 // It starts 0.3 m past the well's edge: the exterior walls already extend through that reflex corner, and a wall from v = 1.5 would overlap them.
-export const GROUND_OFFICE_WALL: [number, number, number, number] = [4 - WALL_THICKNESS, 4, 1.5 + WALL_THICKNESS, NE_INNER]
+export const GROUND_OFFICE_WALL: [number, number, number, number] = [WELL_BACK_U - WELL_BACK_WALL, WELL_BACK_U, 1.5 + WALL_THICKNESS, NE_INNER]
 export const GROUND_OFFICE = {
-  u: [4, HOUSE_REAR.northEast - PARTY_WALL] as [number, number],
+  u: [WELL_BACK_U, HOUSE_REAR.northEast - PARTY_WALL] as [number, number],
   v: [1.5 + WALL_THICKNESS, NE_INNER] as [number, number],
 }
 
@@ -624,19 +626,21 @@ export const HALL_ARCH = {
  * The ground floor's living, which is its distributor (owner): from it one goes into the kitchen, the hall and the rest. It lies behind the back
  * wall, the contrafrente, up to the wall that closes the rear (the well's and the office's), and it is 4.97 m wide inside. Measured from the
  * party wall with neighbour A it spans v = -0.80 to 4.175, which takes in the hall's doorway in the contrafrente and the well's balcony door;
- * measured from the other side it would cut through that door. A 0.12 m wall closes it on the right, the south-west, with a 0.80 m door centred on
- * it (owner), which is taken to lead to the kitchen; the door's leaf, colour and hand are not known, so only the opening is drawn.
+ * measured from the other side it would cut through that door. A 0.12 m wall closes it on the right, the south-west, with a 0.80 m door, 10 cm from
+ * the wall the living shares with the light well (owner), which is taken to lead to the hall beyond; the door's leaf, colour and hand are not known, so only the opening is drawn.
  */
 export const GROUND_LIVING_WIDTH = 4.97
 export const GROUND_LIVING = {
-  u: [GROUND_BACK_WALL[1], 4 - WALL_THICKNESS] as [number, number],
+  u: [GROUND_BACK_WALL[1], WELL_BACK_U - WELL_BACK_WALL] as [number, number],
   v: [NE_INNER - GROUND_LIVING_WIDTH, NE_INNER] as [number, number],
 }
 export const GROUND_LIVING_WALL: [number, number, number, number] = [GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0] - PARTITION_THICKNESS, GROUND_LIVING.v[0]]
 export const LIVING_KITCHEN_DOOR_WIDTH = .8
-const livingDoorMiddleU = (GROUND_LIVING.u[0] + GROUND_LIVING.u[1]) / 2
+/** The door's nearer edge stands 10 cm from the wall the living shares with the light well, at the rear (owner). */
+export const LIVING_KITCHEN_DOOR_FROM_REAR_WALL = .1
+const livingDoorEnd = GROUND_LIVING.u[1] - LIVING_KITCHEN_DOOR_FROM_REAR_WALL
 export const LIVING_KITCHEN_DOOR = {
-  u: [livingDoorMiddleU - LIVING_KITCHEN_DOOR_WIDTH / 2, livingDoorMiddleU + LIVING_KITCHEN_DOOR_WIDTH / 2] as [number, number],
+  u: [livingDoorEnd - LIVING_KITCHEN_DOOR_WIDTH, livingDoorEnd] as [number, number],
   v: [GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]] as [number, number],
   y: [0, 2.1] as [number, number],
 }
@@ -646,7 +650,7 @@ export const LIVING_KITCHEN_DOOR = {
  * the contrafrente (owner). It is 1.73 m deep from that wall toward the rear and 3.14 m wide (owner), which is all the width between the living's
  * wall and the south-west party wall. Its door to the hall is in the wall that runs along v, perpendicular to the living's wall (owner); the door's
  * 0.7 m width and its centring are assumed, and only the opening is drawn. The hall is on the other side of that wall. The hall and the other two
- * rooms are not drawn yet. The living's 0.80 m door, centred on the living's wall, now opens onto the pantry, and is to be corrected.
+ * rooms are not drawn yet. The living's 0.80 m door is beyond the pantry, in the hall.
  */
 export const PANTRY = { depth: 1.73, width: 3.14, doorWidth: .7 }
 export const GROUND_PANTRY = {

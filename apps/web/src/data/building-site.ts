@@ -109,6 +109,13 @@ const REAR_NE = 8.5;
 const REAR_SW = 8.6;
 // Rear ground-floor band, 4.5 m outside (3.95 m inside, between the walls): left arm | light well 2.5 m | terrace.
 const LEFT_ARM_INNER = 1.5;
+/**
+ * The ground floor's front block reaches 0.46 m past the upper floor's rear wall (owner's depths): the wall that closes the light well, and the
+ * living's and the office's, stands at u = 4.28 to 4.46, so the well starts at 4.46. Between the contrafrente's back face (1.11 m) and the rear wall's
+ * inner face (8.35 m) fit the living (3.17 m), a wall of 0.18 m and the office (3.89 m).
+ */
+export const WELL_BACK_U = 4.46;
+export const WELL_BACK_WALL = .18;
 const TERRACE_INNER = -1;
 const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
 const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
@@ -226,6 +233,8 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-ENTRY', 'Casa · planta alta sobre la entrada', rect(-5, -5 + ENTRY_SETBACK, ENTRY_INNER, ENTRY_OUTER), 2 * FLOOR_HEIGHT, 1, false, FLOOR_HEIGHT - .2),
   // The roof slab's 1 m cantilever in front of the facade, 0.5 m thick, level with the balcony below.
   building('HOUSE-CANTILEVER', 'Casa · voladizo de la azotea', poly([southWest(ROOF_FRONT), southWest(-5), [-5, HALF_WIDTH], [ROOF_FRONT, HALF_WIDTH]]), 2 * FLOOR_HEIGHT, 0, false, 2 * FLOOR_HEIGHT - .5),
+  // The strip of the ground floor between the upper floor's rear wall and the wall that closes the light well.
+  building('HOUSE-WELL-BACK', 'Casa · planta baja hasta el fondo del pulmón', rect(AZOTEA_REAR, WELL_BACK_U, TERRACE_INNER, LEFT_ARM_INNER), FLOOR_HEIGHT, 1),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, REAR_NE, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', poly([southWest(AZOTEA_REAR), southWest(REAR_SW), [REAR_SW, TERRACE_INNER], [AZOTEA_REAR, TERRACE_INNER]]), FLOOR_HEIGHT, 1),
   // The terrace's roof is at first-floor level. Along the corner's party wall it has a 1.6 m wall, and on the
