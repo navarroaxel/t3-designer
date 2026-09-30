@@ -14,9 +14,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:e2e": "pnpm --filter @t3-designer/web test:e2e",
-    "test:analytics": "pnpm --filter @t3-designer/web exec playwright test --config playwright.analytics.config.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "check:all": "pnpm check && pnpm test:e2e && pnpm test:analytics"
+    "check:all": "pnpm check && pnpm test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

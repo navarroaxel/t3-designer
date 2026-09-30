@@ -2,8 +2,6 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
-  // Analytics has a separate production-only server/configuration.
-  testIgnore: '**/analytics.spec.ts',
   // Concurrent work in this checkout must not delete another run's traces.
   outputDir: `/tmp/t3-designer-i18n-results-${process.pid}`,
   fullyParallel: true,
