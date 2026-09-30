@@ -12,14 +12,15 @@ const DAY_STEP = 10
  * hold up the opening of the page. `panelShade` is each panel's lit share of the beam at the chosen
  * moment, under a clear sky, for colouring the panels in 3D.
  */
-export function useGeneration(solar: SolarStudy) {
+export function useGeneration(solar: SolarStudy, factor: number) {
   const date = solar.moment.date
-  const day: DayResult = useMemo(() => simulateDay(date, DAY_STEP), [date])
+  const day: DayResult = useMemo(() => simulateDay(date, DAY_STEP, factor), [date, factor])
   const [year, setYear] = useState<YearResult | null>(null)
   useEffect(() => {
-    const timer = window.setTimeout(() => setYear(simulateYear()), 60)
+    // The first year waits for the first paint; a change of factor waits for the slider to rest.
+    const timer = window.setTimeout(() => setYear(simulateYear(undefined, factor)), 60)
     return () => window.clearTimeout(timer)
-  }, [])
+  }, [factor])
   const panelShade = useMemo(() => solar.sun.altitude > 0 ? litFractions(solar.sun.direction as Vec3) : null, [solar.sun])
   const index = Math.min(day.typical.acW.length - 1, Math.round(solar.moment.minutes / DAY_STEP))
   return {

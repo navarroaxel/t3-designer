@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { BuildingScene } from './BuildingScene'
 import { SolarControls, SolarMomentTag } from './SolarControls'
 import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL } from '../data/building-site'
 import type { FloorView } from './BuildingContext'
 import { GenerationPanel } from './GenerationPanel'
+import { GenerationDetails } from './GenerationDetails'
 import { useGeneration } from '../lib/useGeneration'
+import { usePvFactor } from '../lib/usePvFactor'
 import { ARRAY_WATTS, PANELS, PANEL_SPEC, ROWS, ROW_COUNTS, TILT_DEGREES } from '../data/solar-array'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { useTranslation } from 'react-i18next'
@@ -17,11 +19,14 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   const { t } = useTranslation('workspace')
   const { formatNumber, formatDate } = useLocale()
   const { sun, instant } = solar
-  const generation = useGeneration(solar)
+  const pvFactor = usePvFactor()
+  const generation = useGeneration(solar, pvFactor.factor)
   const [showNeighbors, setShowNeighbors] = useState(true)
   const [showSunPath, setShowSunPath] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
   const [showPanels, setShowPanels] = useState(true)
+  const [showDetails, setShowDetails] = useState(false)
+  const closeDetails = useCallback(() => setShowDetails(false), [])
   const [floor, setFloor] = useState<FloorView>('exterior')
   const [view, setView] = useState<{ mode: '3d' | 'top'; revision: number }>({ mode: '3d', revision: 0 })
   function resetView(mode: '3d' | 'top') {
@@ -41,6 +46,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
           </div>
         </div>
         <SolarMomentTag solar={solar} />
+        {showDetails && <GenerationDetails solar={solar} generation={generation} onClose={closeDetails} />}
         <div className="viewport-bottom building-viewport-bottom">
           <div className="scene-guide"><span><i className="target-key" /> {t('building.buildingPart')} <i className="neighbor-key" /> {t('building.contextKey')}</span><small>{t('building.navigationHelp')}</small></div>
           <fieldset className="display-options building-layers">
@@ -67,7 +73,7 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
           <strong>{t('building.arraySummary', { panels: formatNumber(PANELS.length), watts: formatNumber(PANEL_SPEC.watts), kwp: formatNumber(ARRAY_WATTS / 1000, 2) })}</strong>
           <p className="array-note">{t('building.arrayLayout', { rows: ROWS.map(row => ROW_COUNTS[row]).join(' + '), tilt: formatNumber(TILT_DEGREES) })}</p>
         </section>
-        <GenerationPanel solar={solar} generation={generation} />
+        <GenerationPanel solar={solar} generation={generation} factor={pvFactor} expanded={showDetails} onExpand={() => setShowDetails(open => !open)} />
         <div className="solar-heading"><span className="eyebrow">{t('building.solarStudy')}</span><h2>{t('building.annualLightLine1')}<br /> {t('building.annualLightLine2')}</h2><p>{t('building.sharedMoment')}</p></div>
 
         <SolarControls solar={solar} />
