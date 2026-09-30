@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { ENTRY_RECESS, FLOOR_HEIGHT, PARTY_WALL, SITE_BUILDINGS, WELL_BACK_U, WELL_BACK_WALL, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  BALCONY, GROUND_PANTRY, PANTRY, PANTRY_DOOR, LIVING_KITCHEN_DOOR, GROUND_LIVING, GROUND_LIVING_WALL, STAIRWELL_HOLE, HALL_ARCH, RIGHT_ARM_WINDOW_WIDTH, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  BALCONY, GROUND_BATHROOM, GROUND_BATHROOM_DOOR, GROUND_PANTRY, PANTRY, PANTRY_DOOR, LIVING_KITCHEN_DOOR, GROUND_LIVING, GROUND_LIVING_WALL, STAIRWELL_HOLE, HALL_ARCH, RIGHT_ARM_WINDOW_WIDTH, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -524,7 +524,7 @@ test('the ground floor has a 5.69 m deep, 4.43 m wide garage and a 3.7 m wide ha
   assert.ok(garageDoor.v[0] >= GROUND_GARAGE.v[0] && garageDoor.v[1] <= GROUND_GARAGE.v[1], 'the garage door is within the garage')
   for (const opening of OPENINGS.ground.filter(item => item.u === -4)) assert.ok(opening.v[0] >= GROUND_HALL.v[0] && opening.v[1] <= GROUND_HALL.v[1], 'the entrance openings lead into the hall')
   // The interior walls of the ground floor are the garage/hall wall and the back wall, and they stay under the first floor's block.
-  assert.equal(GROUND_PARTITIONS.length, 10)
+  assert.equal(GROUND_PARTITIONS.length, 13)
   assert.ok(GROUND_BACK_WALL[1] <= 4)
 })
 
@@ -621,7 +621,7 @@ test('no loose wall stands in front of the office wall: every ground-floor wall 
   const touch = (a: [number, number, number, number], b: [number, number, number, number]) =>
     a !== b && Math.min(a[1], b[1]) - Math.max(a[0], b[0]) > -1e-6 && Math.min(a[3], b[3]) - Math.max(a[2], b[2]) > -1e-6
   for (const wall of GROUND_PARTITIONS) assert.ok(rects.some(other => touch(wall, other)), `ground wall ${wall} touches no other wall`)
-  assert.equal(GROUND_PARTITIONS.length, 10)
+  assert.equal(GROUND_PARTITIONS.length, 13)
 })
 
 test('the office has a 1.5 m window onto the light well, centred on it, cut out of the wall that runs along the well', () => {
@@ -737,4 +737,27 @@ test('the pantry is 1.73 m deep and 3.14 m wide, against the garage\'s wall, wit
   }
   // The pantry ends before the wall that closes the rear, leaving room beyond it for the hall.
   assert.ok(GROUND_PANTRY.u[1] + .12 < GROUND_LIVING.u[1])
+})
+
+test('the ground floor\'s bathroom is 1.75 m deep and 2.06 m wide, against the pantry and the party wall, and the doors open onto the hall beside it', () => {
+  const near = (a: number, b: number, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} vs ${b}`)
+  near(GROUND_BATHROOM.u[1] - GROUND_BATHROOM.u[0], 1.75); near(GROUND_BATHROOM.v[1] - GROUND_BATHROOM.v[0], 2.06)
+  // Against the pantry's far wall (u), and against the south-west party wall (v).
+  near(GROUND_BATHROOM.u[0], GROUND_PANTRY.u[1] + .12)
+  near(GROUND_BATHROOM.v[0], GROUND_PANTRY.v[0])
+  // The pantry's door is in the rest of that wall: not into the bathroom, and it leads to the hall between the bathroom and the living's wall.
+  assert.ok(PANTRY_DOOR.v[0] > GROUND_BATHROOM.v[1] + .1, 'the pantry door does not open into the bathroom')
+  assert.ok(PANTRY_DOOR.v[1] < GROUND_PANTRY.v[1])
+  // The living's 0.80 m door opens onto that same hall, beside the bathroom and clear of it.
+  assert.ok(LIVING_KITCHEN_DOOR.v[0] > GROUND_BATHROOM.v[1], 'the living door lands in the hall')
+  assert.ok(LIVING_KITCHEN_DOOR.u[0] >= GROUND_BATHROOM.u[0] - 1e-9 && LIVING_KITCHEN_DOOR.u[1] <= GROUND_LIVING.u[1] + 1e-9)
+  // Its own door, 0.70 m, is in the wall on its north-east side, which faces the hall, and inside that wall's length.
+  near(GROUND_BATHROOM_DOOR.u[1] - GROUND_BATHROOM_DOOR.u[0], .7)
+  near(GROUND_BATHROOM_DOOR.v[0], GROUND_BATHROOM.v[1])
+  assert.ok(GROUND_BATHROOM_DOOR.u[0] > GROUND_BATHROOM.u[0] && GROUND_BATHROOM_DOOR.u[1] < GROUND_BATHROOM.u[1])
+  // The bathroom's walls join the pantry's wall and the party wall; none blocks any of the doors.
+  for (const door of [PANTRY_DOOR, LIVING_KITCHEN_DOOR, GROUND_BATHROOM_DOOR]) for (const [u0, u1, v0, v1] of GROUND_PARTITIONS) {
+    const blocks = u0 < door.u[1] - 1e-9 && u1 > door.u[0] + 1e-9 && v0 < door.v[1] - 1e-9 && v1 > door.v[0] + 1e-9
+    assert.ok(!blocks, 'no wall across a door')
+  }
 })

@@ -657,7 +657,30 @@ export const GROUND_PANTRY = {
   u: [GROUND_BACK_WALL[1], GROUND_BACK_WALL[1] + PANTRY.depth] as [number, number],
   v: [GROUND_GARAGE.v[0], GROUND_LIVING_WALL[2]] as [number, number],
 }
-const pantryDoorMiddleV = (GROUND_PANTRY.v[0] + GROUND_PANTRY.v[1]) / 2
+/**
+ * The ground floor's bathroom (owner): 1.75 m deep and 2.06 m wide, against the pantry's far wall and against the south-west party wall, the
+ * "medianera". Its depth is taken along u, out from the pantry's wall, and its width along the party wall. Its door is not known yet, so none is
+ * drawn. Because it takes the south-west end of the pantry's far wall, the pantry's door is in the rest of that wall, between the bathroom and the living's
+ * wall, and it leads to the hall that runs there: a strip beside the bathroom onto which the living's 0.80 m door opens.
+ */
+export const GROUND_BATHROOM_SIZE = { depth: 1.75, width: 2.06 }
+export const GROUND_BATHROOM = {
+  u: [GROUND_PANTRY.u[1] + PARTITION_THICKNESS, GROUND_PANTRY.u[1] + PARTITION_THICKNESS + GROUND_BATHROOM_SIZE.depth] as [number, number],
+  v: [GROUND_PANTRY.v[0], GROUND_PANTRY.v[0] + GROUND_BATHROOM_SIZE.width] as [number, number],
+}
+/**
+ * The ground bathroom's door (owner): 0.70 m wide, to the hall, which runs along the bathroom's north-east side, so it is in that wall. Its
+ * centring along the wall and its 2.10 m height are assumed; the leaf's colour and hand are not known, so only the opening is drawn.
+ */
+export const GROUND_BATHROOM_DOOR_WIDTH = .7
+const groundBathroomDoorMiddleU = (GROUND_BATHROOM.u[0] + GROUND_BATHROOM.u[1]) / 2
+export const GROUND_BATHROOM_DOOR = {
+  u: [groundBathroomDoorMiddleU - GROUND_BATHROOM_DOOR_WIDTH / 2, groundBathroomDoorMiddleU + GROUND_BATHROOM_DOOR_WIDTH / 2] as [number, number],
+  v: [GROUND_BATHROOM.v[1], GROUND_BATHROOM.v[1] + PARTITION_THICKNESS] as [number, number],
+  y: [0, 2.1] as [number, number],
+}
+/** The pantry's door is centred on the part of its far wall the bathroom leaves free. */
+const pantryDoorMiddleV = (GROUND_BATHROOM.v[1] + PARTITION_THICKNESS + GROUND_PANTRY.v[1]) / 2
 export const PANTRY_DOOR = {
   u: [GROUND_PANTRY.u[1], GROUND_PANTRY.u[1] + PARTITION_THICKNESS] as [number, number],
   v: [pantryDoorMiddleV - PANTRY.doorWidth / 2, pantryDoorMiddleV + PANTRY.doorWidth / 2] as [number, number],
@@ -676,6 +699,10 @@ export const GROUND_PARTITIONS: [number, number, number, number][] = [
   // The wall that closes the living on the right (south-west), split around its 0.80 m door.
   [GROUND_LIVING_WALL[0], LIVING_KITCHEN_DOOR.u[0], GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]],
   [LIVING_KITCHEN_DOOR.u[1], GROUND_LIVING_WALL[1], GROUND_LIVING_WALL[2], GROUND_LIVING_WALL[3]],
+  // The ground bathroom's walls: on its north-east side and at its back.
+  [GROUND_BATHROOM.u[0], GROUND_BATHROOM_DOOR.u[0], GROUND_BATHROOM.v[1], GROUND_BATHROOM.v[1] + PARTITION_THICKNESS],
+  [GROUND_BATHROOM_DOOR.u[1], GROUND_BATHROOM.u[1] + PARTITION_THICKNESS, GROUND_BATHROOM.v[1], GROUND_BATHROOM.v[1] + PARTITION_THICKNESS],
+  [GROUND_BATHROOM.u[1], GROUND_BATHROOM.u[1] + PARTITION_THICKNESS, GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1] + PARTITION_THICKNESS],
   // The pantry's wall toward the hall, split around its door.
   [PANTRY_DOOR.u[0], PANTRY_DOOR.u[1], GROUND_PANTRY.v[0], PANTRY_DOOR.v[0]],
   [PANTRY_DOOR.u[0], PANTRY_DOOR.u[1], PANTRY_DOOR.v[1], GROUND_PANTRY.v[1]],
