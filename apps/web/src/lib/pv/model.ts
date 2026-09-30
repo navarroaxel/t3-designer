@@ -116,7 +116,7 @@ const panelIndex = new Map(PANELS.map((panel, index) => [panel.id, index]))
  * out means no shading at all.
  */
 export function instantPower(
-  sun: SolarPosition, sky: ClearSky, ambientC: number, lit: Record<string, number> | null,
+  sun: SolarPosition, sky: ClearSky, ambientC: number, lit: Record<string, number> | null, factor: number = calibration.factor,
 ): Instant {
   if (sun.altitude <= 0 || sky.ghi <= 0) return EMPTY
   const direction = sun.direction as Vec3
@@ -136,7 +136,7 @@ export function instantPower(
     const temperatureFactor = Math.max(0, 1 + temperature.coefficientPerK * (cell - 25))
     dc += PANEL_SPEC.watts * seriesPower(g) * temperatureFactor
   }
-  const ac = Math.min(inverter.maxAcW, dc * LOSS_FACTOR * inverter.efficiency * calibration.factor)
+  const ac = Math.min(inverter.maxAcW, dc * LOSS_FACTOR * inverter.efficiency * factor)
   const litMean = lit ? SITE_PANELS.reduce((sum, panel) => sum + lit[panel.id], 0) / SITE_PANELS.length : 1
   return { ghi: sky.ghi, poa: irradiance.reduce((sum, value) => sum + value, 0) / irradiance.length, lit: litMean, dcW: dc, acW: ac }
 }
@@ -158,7 +158,7 @@ export type SkyDay = {
 }
 
 /** Simulate one date under one sky, with or without the shading of the surroundings. */
-export function simulateSky(date: string, state: SkyState, { shaded = true, stepMinutes = STEP } = {}): SkyDay {
+export function simulateSky(date: string, state: SkyState, { shaded = true, stepMinutes = STEP, factor = calibration.factor as number } = {}): SkyDay {
   const out: SkyDay = { state, shaded, minutes: [], acW: [], ghi: [], poa: [], lit: [], acKwh: 0, dcKwh: 0, ghiKwhM2: 0, poaKwhM2: 0 }
   const hours = stepMinutes / 60
   for (let minutes = 0; minutes < 1440; minutes += stepMinutes) {
@@ -166,7 +166,7 @@ export function simulateSky(date: string, state: SkyState, { shaded = true, step
     const sky = skyIrradiance(sun, date, state)
     // Only a clear sky has a beam to shade.
     const shares = shaded && state === 'clear' && sun.altitude > 0 ? litFractions(sun.direction as Vec3) : null
-    const now = instantPower(sun, sky, ambientTemperature(date, minutes), shares)
+    const now = instantPower(sun, sky, ambientTemperature(date, minutes), shares, factor)
     out.minutes.push(minutes)
     out.acW.push(now.acW); out.ghi.push(now.ghi); out.poa.push(now.poa); out.lit.push(now.lit)
     out.acKwh += now.acW * hours / 1000
@@ -192,11 +192,11 @@ export type DayResult = {
   typicalShadingLossPercent: number
 }
 
-export function simulateDay(date: string, stepMinutes = STEP): DayResult {
+export function simulateDay(date: string, stepMinutes = STEP, factor: number = calibration.factor): DayResult {
   const { clearFraction: w } = anchoredClearFraction(monthIndex(date))
-  const clear = simulateSky(date, 'clear', { stepMinutes })
-  const clearUnshaded = simulateSky(date, 'clear', { shaded: false, stepMinutes })
-  const overcast = simulateSky(date, 'overcast', { shaded: false, stepMinutes })
+  const clear = simulateSky(date, 'clear', { stepMinutes, factor })
+  const clearUnshaded = simulateSky(date, 'clear', { shaded: false, stepMinutes, factor })
+  const overcast = simulateSky(date, 'overcast', { shaded: false, stepMinutes, factor })
   const mix = (a: number, b: number) => w * a + (1 - w) * b
   const acKwh = mix(clear.acKwh, overcast.acKwh)
   const unshadedAcKwh = mix(clearUnshaded.acKwh, overcast.acKwh)
@@ -236,8 +236,8 @@ export type YearResult = {
 }
 
 /** The year, one representative day (the 15th) per month, at a coarser time step. */
-export function simulateYear(stepMinutes = 20): YearResult {
-  const days = Array.from({ length: 12 }, (_, month) => simulateDay(middleOfMonth(month), stepMinutes))
+export function simulateYear(stepMinutes = 20, factor: number = calibration.factor): YearResult {
+  const days = Array.from({ length: 12 }, (_, month) => simulateDay(middleOfMonth(month), stepMinutes, factor))
   const months = days.map((day, month): MonthResult => ({
     month, clearFraction: day.clearFraction,
     acKwhPerDay: day.typical.acKwh, acKwh: day.typical.acKwh * DAYS_IN_MONTH[month],

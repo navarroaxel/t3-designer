@@ -32,3 +32,10 @@ About 1.23 MWh per kWp per year (~12.2 MWh for 9.92 kWp) after the calibration, 
 - Distant buildings beyond the modelled block are not included.
 - Neighbour heights on unsurveyed lots are a default of 3.3 m.
 - Losses and temperature coefficients are typical values for the panel class, not the datasheet of the chosen model.
+
+## The generation panels
+
+The sidebar shows the day's figure, the power curve, the months as bars and the **efficiency factor**. The factor is the calibration above (0.83) made editable: a slider and a number box from 50% to 110%, remembered in the browser (`localStorage`, optional) and applied to the panels' power before the inverter, so the day, the year and the tables all follow it. It is a user setting, not data: `PV_SYSTEM.calibration.factor` stays the default, and "Back to the calibrated value" returns to it.
+
+- **Hovering the power curve** reads the moment under the pointer (typical day, clear sky, overcast and the energy so far today); a click, or Enter with the keyboard, moves the solar study to that time. Clicking a month bar moves it to that month's 15th.
+- **Expand** opens a wide panel over the 3D scene, which stays visible and follows the same date and time. *Day*: the large curve, the peak and its share of the inverter, the yield per kWp, the producing hours, the longest stretch of shade on the useful hours, and the irradiation. *Year*: the months in kWh a day, a month or per kWp a day, the year's mean, **your measured January projected to the whole array** (12 to 14 kWh a day measured with six 450 Wp panels, scaled by the ratio of installed power; it is what the calibration targets), a table by month and a CSV download.
