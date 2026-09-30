@@ -9,6 +9,8 @@ import { ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, HOUSE_HALF_WIDTH, HOUSE_REAR,
 export type PlanPoint = [number, number]
 export type Floor = 'ground' | 'first'
 export type Opening = { u: number; v: [number, number]; y: [number, number] }
+/** An opening in a wall that runs along u, at a fixed v. */
+export type SideOpening = { v: number; u: [number, number]; y: [number, number] }
 export type PlanBox = { center: [number, number, number]; size: [number, number, number] }
 
 /** Assumed thickness of the exterior brick walls; not yet measured. */
@@ -80,6 +82,19 @@ export const OPENINGS: Record<Floor, Opening[]> = {
   ],
 }
 
+/**
+ * The office's window onto the light well (owner): 1.5 m wide, centred on the office, in the wall that runs along the well (v = 1.5). Its
+ * sill, 0.9 m, and its 1.2 m height are assumed. The office is what lies between the arm's walls, u = 4 to 8.2.
+ */
+export const OFFICE_WINDOW_WIDTH = 1.5
+export const OFFICE_WINDOW_SILL = .9
+export const OFFICE_WINDOW_HEIGHT = 1.2
+const officeMiddleU = (4 + (HOUSE_REAR.northEast - WALL_THICKNESS)) / 2
+export const SIDE_OPENINGS: Record<Floor, SideOpening[]> = {
+  ground: [{ v: 1.5, u: [officeMiddleU - OFFICE_WINDOW_WIDTH / 2, officeMiddleU + OFFICE_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] }],
+  first: [],
+}
+
 export function polygonArea(ring: PlanPoint[]) {
   return ring.reduce((sum, a, i) => {
     const b = ring[(i + 1) % ring.length]
@@ -95,7 +110,7 @@ const clamp = (value: number, low: number, high: number) => Math.min(high, Math.
  * along v. Outlines must be axis-aligned. Reflex corners extend their strips so
  * no gap opens at the inside corner.
  */
-export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number, y1: number, thickness = WALL_THICKNESS): PlanBox[] {
+export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number, y1: number, thickness = WALL_THICKNESS, sideOpenings: readonly SideOpening[] = []): PlanBox[] {
   const orientation = Math.sign(polygonArea(outline))
   const count = outline.length
   const boxes: PlanBox[] = []
@@ -135,7 +150,19 @@ export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number,
     } else {
       const vLow = Math.min(a[1], a[1] + inward[1] * thickness), vHigh = Math.max(a[1], a[1] + inward[1] * thickness)
       const along = (s: number) => a[0] + dir[0] * s
-      add(Math.min(along(start), along(end)), Math.max(along(start), along(end)), y0, y1, vLow, vHigh)
+      const [uLow, uHigh] = [Math.min(along(start), along(end)), Math.max(along(start), along(end))]
+      const edgeLow = Math.min(a[0], b[0]), edgeHigh = Math.max(a[0], b[0])
+      const here = sideOpenings
+        .filter(opening => Math.abs(opening.v - a[1]) < 1e-6 && opening.u[0] >= edgeLow - 1e-6 && opening.u[1] <= edgeHigh + 1e-6)
+        .sort((p, q) => p.u[0] - q.u[0])
+      let cursor = uLow
+      for (const opening of here) {
+        add(cursor, opening.u[0], y0, y1, vLow, vHigh)
+        add(opening.u[0], opening.u[1], y0, clamp(opening.y[0], y0, y1), vLow, vHigh)
+        add(opening.u[0], opening.u[1], clamp(opening.y[1], y0, y1), y1, vLow, vHigh)
+        cursor = opening.u[1]
+      }
+      add(cursor, uHigh, y0, y1, vLow, vHigh)
     }
   })
   return boxes

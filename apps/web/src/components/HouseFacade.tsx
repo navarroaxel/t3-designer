@@ -1,6 +1,6 @@
 import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW } from '../data/building-site'
-import { BALCONY, OPENINGS } from '../data/house-plan'
+import { BALCONY, OPENINGS, SIDE_OPENINGS } from '../data/house-plan'
 
 /**
  * Front elevation of the house, read from Street View (August 2025).
@@ -57,6 +57,11 @@ export function HouseFacade({ physical = false, balconyOnly = false }: { physica
       {/* Rear wall of the first floor, facing the terrace and the light well: glass in its openings. */}
       {[...OPENINGS.ground, ...OPENINGS.first].filter(opening => opening.u > 0).map(opening => <mesh key={`${opening.v}-${opening.y}`} position={[opening.u + .02, (opening.y[0] + opening.y[1]) / 2, -(opening.v[0] + opening.v[1]) / 2]}>
         <boxGeometry args={[.04, opening.y[1] - opening.y[0], opening.v[1] - opening.v[0]]} />
+        <meshStandardMaterial color="#a9b8bf" roughness={.08} metalness={.35} transparent opacity={.8} />
+      </mesh>)}
+      {/* The office's window onto the light well, in the wall that runs along the well: glass on its outer face. */}
+      {SIDE_OPENINGS.ground.map(opening => <mesh key={`${opening.u}-${opening.y}`} position={[(opening.u[0] + opening.u[1]) / 2, (opening.y[0] + opening.y[1]) / 2, -(opening.v - .02)]}>
+        <boxGeometry args={[opening.u[1] - opening.u[0], opening.y[1] - opening.y[0], .04]} />
         <meshStandardMaterial color="#a9b8bf" roughness={.08} metalness={.35} transparent opacity={.8} />
       </mesh>)}
       {openings.map(part => <Box key={`${part.v}-${part.y}`} part={part} castShadow={false} />)}

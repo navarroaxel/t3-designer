@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { ENTRY_RECESS, FLOOR_HEIGHT, SITE_BUILDINGS, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
-  BALCONY, OFFICE_FRONT_WALL, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
+  BALCONY, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, OFFICE_FRONT_WALL, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
   polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
@@ -616,4 +616,27 @@ test('a 1.8 m wall stands in front of the office wall, centred on it and paralle
   assert.ok(GROUND_PARTITIONS.includes(OFFICE_FRONT_WALL))
   // Clear of the back wall, and inside the office wall's span: it neither touches the party wall nor the well.
   assert.ok(u0 > GROUND_BACK_WALL[1] && v0 > GROUND_OFFICE_WALL[2] && v1 < GROUND_OFFICE_WALL[3])
+})
+
+test('the office has a 1.5 m window onto the light well, centred on it, cut out of the wall that runs along the well', () => {
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
+  const window = SIDE_OPENINGS.ground[0]
+  near(window.u[1] - window.u[0], 1.5); near(OFFICE_WINDOW_WIDTH, 1.5)
+  // On the well's wall (v = 1.5) and centred on the office, whose interior runs u = 4 to 8.2.
+  near(window.v, 1.5)
+  near((window.u[0] + window.u[1]) / 2, (GROUND_OFFICE.u[0] + GROUND_OFFICE.u[1]) / 2)
+  assert.ok(window.u[0] > GROUND_OFFICE.u[0] + .5 && window.u[1] < GROUND_OFFICE.u[1] - .5, 'clear of the office\'s end walls')
+  // A window, not a door: its sill is above the floor and its head under the ceiling.
+  near(window.y[0], OFFICE_WINDOW_SILL); near(window.y[1] - window.y[0], OFFICE_WINDOW_HEIGHT)
+  assert.ok(window.y[0] > .5 && window.y[1] < 3)
+  // The wall is really open there: a point inside the opening is not solid, and the wall on either side is.
+  const boxes = wallBoxes(GROUND_OUTLINE, OPENINGS.ground, 0, 3.2, undefined, SIDE_OPENINGS.ground)
+  const solid = (point: [number, number, number]) => boxes.some(box =>
+    Math.abs(point[0] - box.center[0]) <= box.size[0] / 2 && Math.abs(point[1] - box.center[1]) <= box.size[1] / 2 && Math.abs(point[2] - box.center[2]) <= box.size[2] / 2)
+  const middle = (window.u[0] + window.u[1]) / 2, inside = window.v + .15
+  assert.equal(solid([middle, window.y[0] + .5, inside]), false, 'the window is open')
+  assert.equal(solid([middle, window.y[0] - .2, inside]), true, 'sill under the window')
+  assert.equal(solid([window.u[0] - .3, window.y[0] + .5, inside]), true, 'wall beside the window')
+  // Without the side opening the wall would be solid there: the cut is the window's doing.
+  assert.equal(wallBoxes(GROUND_OUTLINE, OPENINGS.ground, 0, 3.2).some(box => Math.abs(middle - box.center[0]) <= box.size[0] / 2 && Math.abs(window.y[0] + .5 - box.center[1]) <= box.size[1] / 2 && Math.abs(inside - box.center[2]) <= box.size[2] / 2), true)
 })
