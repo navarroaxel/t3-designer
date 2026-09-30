@@ -41,7 +41,7 @@ test('the second counter is 2.20 m by 1.00 m against the wall behind the bathroo
 })
 
 test('kitchen pieces do not overlap, except a top over its cabinet and stools under the overhang', () => {
-  const allowed = new Set(['worktop:base', 'oven:base', 'cooktop:worktop', 'counter-top:counter'])
+  const allowed = new Set(['fridge-handle:fridge-door', 'fridge-handle:fridge-freezer-door', 'fridge-dispenser:fridge-door', 'worktop:base', 'oven:base', 'cooktop:worktop', 'counter-top:counter'])
   for (const [index, a] of KITCHEN_BOXES.entries()) for (const b of KITCHEN_BOXES.slice(index + 1)) {
     const inside = overlap(a.u, b.u) > 1e-6 && overlap(a.v, b.v) > 1e-6 && overlap(a.y, b.y) > 1e-6
     if (inside) assert.ok(allowed.has(`${a.id}:${b.id}`) || allowed.has(`${b.id}:${a.id}`), `${a.id} overlaps ${b.id}`)
@@ -84,7 +84,22 @@ test('the oven and the cooktop start 45 cm from the wall on the hall side, on th
   assert.ok(overlap(box('oven').u, box('base').u) > .5 && Math.abs(box('oven').v[1] - box('base').v[0]) < 1e-9)
 })
 
-test('the fridge is silver metal: a light, neutral grey', () => {
-  const [red, green, blue] = [1, 3, 5].map(index => parseInt(box('fridge').color.slice(index, index + 2), 16))
-  assert.ok(red > 150 && Math.abs(red - green) < 12 && Math.abs(green - blue) < 12, 'a light grey with no strong tint')
+test('the fridge is the Samsung RT29K577JS8: silver doors, grey sides, two doors, a handle slot and a dispenser', () => {
+  const [red, green, blue] = [1, 3, 5].map(index => parseInt(box('fridge-door').color.slice(index, index + 2), 16))
+  assert.ok(red > 150 && Math.abs(red - green) < 12 && Math.abs(green - blue) < 12, 'silver: a light grey with no strong tint')
+  // The sides are grey, not black: a middle grey, a little darker than the doors.
+  const side = [1, 3, 5].map(index => parseInt(box('fridge').color.slice(index, index + 2), 16))
+  assert.ok(side.every(channel => channel > 110 && channel < 175) && side[0] < red, 'grey sides, darker than the doors')
+  const body = box('fridge'), door = box('fridge-door'), freezer = box('fridge-freezer-door')
+  // 0.60 m wide and 0.672 m deep; 1.635 m high, drawn up to the cut.
+  assert.ok(Math.abs(body.u[1] - body.u[0] - .6) < 1e-9)
+  assert.ok(Math.abs(body.v[1] - door.v[0] - .672) < 1e-9)
+  assert.ok(freezer.y[1] <= FLOOR_HEIGHT + CUT_HEIGHT + 1e-9 && KITCHEN_SIZES.fridgeHeight > CUT_HEIGHT)
+  // The freezer door is above the fridge door, and the handle slot is at their meeting.
+  assert.ok(freezer.y[0] >= door.y[1] && box('fridge-handle').y[1] < freezer.y[0] + .05)
+  // The dispenser is on the lower door, at about arm height, centred on it.
+  assert.ok(box('fridge-dispenser').y[1] < door.y[1] && box('fridge-dispenser').y[0] > FLOOR_HEIGHT + .5)
+  assert.ok(Math.abs((box('fridge-dispenser').u[0] + box('fridge-dispenser').u[1]) / 2 - (body.u[0] + body.u[1]) / 2) < 1e-9)
+  // The doors face the aisle (lower v), not the party wall.
+  assert.ok(door.v[0] < body.v[0] && Math.abs(body.v[1] - KITCHEN_LIVING.v[1]) < 1e-9)
 })

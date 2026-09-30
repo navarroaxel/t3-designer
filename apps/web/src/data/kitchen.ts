@@ -17,7 +17,7 @@ const frontU = KITCHEN_LIVING.u[0]
 const cut = FLOOR_HEIGHT + CUT_HEIGHT
 
 export const KITCHEN_SIZES = {
-  baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .6, fridgeDepth: .65,
+  baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .6, fridgeDepth: .672, fridgeHeight: 1.635, fridgeFreezerFrom: 1.03, fridgeDoor: .03,
   counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, stool: .36, stoolHeight: .65,
 }
 const S = KITCHEN_SIZES
@@ -32,12 +32,19 @@ export const COUNTER_V: [number, number] = [baseV[0] - S.aisle - S.counterDepth,
 const counterU: [number, number] = [frontU, frontU + S.counterLength]
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
-const OAK = '#d8bf98', SILVER = '#b9bdc1', WHITE = '#e9e7e2', STOOL = '#cdb07a'
+const OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
 
 export const KITCHEN_BOXES: KitchenBox[] = [
   { id: 'column', u: columnU, v: [wallV - S.columnDepth, wallV], y: [floor, cut], color: '#4b4d50' },
-  // The fridge is metal, silver (owner).
-  { id: 'fridge', u: fridgeU, v: [wallV - S.fridgeDepth, wallV], y: [floor, cut], color: SILVER },
+  // The fridge is the owner's Samsung RT29K577JS8, a top-freezer of 299 L with a water dispenser: 0.60 m wide, 0.672 m deep and
+  // 1.635 m high (the makers' figures), silver stainless steel at the front and grey sides (not black: owner). Its doors face the aisle, toward lower v.
+  // It is drawn up to the 1.5 m cut like the other tall pieces. The body, then the two doors, the black handle slot over the lower
+  // door and the dispenser's dark recess.
+  { id: 'fridge', u: fridgeU, v: [wallV - S.fridgeDepth + S.fridgeDoor, wallV], y: [floor + .04, cut], color: SIDE_GREY },
+  { id: 'fridge-door', u: [fridgeU[0] + .004, fridgeU[1] - .004], v: [wallV - S.fridgeDepth, wallV - S.fridgeDepth + S.fridgeDoor], y: [floor + .05, floor + S.fridgeFreezerFrom - .006], color: SILVER },
+  { id: 'fridge-freezer-door', u: [fridgeU[0] + .004, fridgeU[1] - .004], v: [wallV - S.fridgeDepth, wallV - S.fridgeDepth + S.fridgeDoor], y: [floor + S.fridgeFreezerFrom, cut], color: SILVER },
+  { id: 'fridge-handle', u: [fridgeU[0] + .06, fridgeU[1] - .06], v: [wallV - S.fridgeDepth - .004, wallV - S.fridgeDepth], y: [floor + S.fridgeFreezerFrom - .09, floor + S.fridgeFreezerFrom - .015], color: '#16171a' },
+  { id: 'fridge-dispenser', u: [(fridgeU[0] + fridgeU[1]) / 2 - .085, (fridgeU[0] + fridgeU[1]) / 2 + .085], v: [wallV - S.fridgeDepth - .004, wallV - S.fridgeDepth], y: [floor + .61, floor + .89], color: '#1b1d20' },
   { id: 'base', u: baseU, v: baseV, y: [floor, floor + S.baseHeight], color: OAK },
   { id: 'worktop', u: baseU, v: [baseV[0] - .02, baseV[1]], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The oven is built into the base, with its front on the aisle side, and the cooktop sits on the worktop above it: both start

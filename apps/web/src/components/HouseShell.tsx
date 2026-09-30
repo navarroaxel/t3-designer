@@ -6,6 +6,7 @@ import {
   CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
+import { BATHROOM_BOXES } from '../data/bathroom'
 import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
 import { polygonShape } from '../lib/polygon-shape'
 
@@ -129,7 +130,7 @@ function KitchenPiece({ box }: { box: KitchenBox }) {
   useEffect(() => () => map?.dispose(), [map])
   return <mesh position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow>
     <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
-    <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={box.id === 'fridge' ? .28 : map ? .35 : .6} metalness={box.id === 'fridge' ? .85 : 0} />
+    <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={box.id === 'fridge' ? .4 : map ? .35 : .6} metalness={box.id === 'fridge' ? .3 : 0} />
   </mesh>
 }
 
@@ -227,6 +228,13 @@ export function HouseShell({ floor }: { floor: Floor }) {
       </mesh>
       {/* Porcelain floors: Saing almendra planks in the bedrooms, Saing miel planks in the living, travertine in the bathroom. */}
       {FLOOR_TILING.flatMap(zone => zone.rects.map((rect, index) => <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={rect} />))}
+      {/* The bathroom's fixtures along the wall shared with the living: vanity with its mirror, toilet and shower. */}
+      {BATHROOM_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} scale={box.shape === 'ellipse' ? [(box.u[1] - box.u[0]) / 2, 1, (box.v[1] - box.v[0]) / 2] : [1, 1, 1]} receiveShadow>
+        {box.shape === 'ellipse'
+          ? <cylinderGeometry args={[1, box.taper ?? 1, box.y[1] - box.y[0], 40]} />
+          : <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />}
+        <meshStandardMaterial color={box.color} roughness={box.metalness ? .35 : box.id.startsWith('toilet') ? .25 : .6} metalness={box.metalness ?? 0} transparent={box.opacity !== undefined} opacity={box.opacity ?? 1} depthWrite={box.opacity === undefined} />
+      </mesh>)}
       {/* The kitchen of the living, from the owner's render, with assumed sizes. */}
       {KITCHEN_BOXES.map(box => <KitchenPiece key={box.id} box={box} />)}
       {/* The TVs: OLEDs on wall brackets, one in the main room and one in the living. */}
