@@ -7,5 +7,3 @@
 - [Deployment](deployment.md): publishing on Vercel and what to check before making it public.
 - [Solar array](model/solar-array.md): the 16 planned panels, what is stated and what is assumed.
 - [Solar model](model/solar-model.md): calculations, time rules, and limitations.
-- [Analytics and privacy](analytics.md): optional Umami, consent, `/privacy`, public configuration, events, and activation checks.
-- [Privacy infrastructure evidence](privacy-infrastructure-evidence.md): verified hosting and retention facts, with dated sources and remaining deployment checks.

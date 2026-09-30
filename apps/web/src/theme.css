@@ -104,23 +104,5 @@
     .gen-factor { border-color: var(--settings-border); }
     .gen-details { box-shadow: 0 18px 50px #000b; }
 
-    .privacy-controls, .privacy-page { color: var(--settings-text); }
-    .privacy-text-button, .privacy-page a { color: var(--settings-accent); }
-    .privacy-text-button:hover { color: var(--settings-text); }
-    .privacy-banner, .privacy-preference { background: var(--settings-surface); border-color: var(--settings-border); }
-    .privacy-dialog, .privacy-dialog-header, .privacy-close, .privacy-choices button {
-      background: var(--settings-bg); color: var(--settings-text); border-color: var(--settings-border);
-    }
-    .privacy-dialog { box-shadow: var(--settings-shadow); }
-    .privacy-dialog::backdrop { background: var(--settings-overlay); }
-    .privacy-close:hover, .privacy-choices button:hover { background: var(--ui-hover); }
-    .privacy-choices button:active { background: var(--settings-accent-soft); }
-    .privacy-status { color: var(--ui-warm); }
-    .privacy-pending { background: var(--ui-warm-surface); border-color: #776540; }
-    .privacy-dialog-body .privacy-version, .privacy-page .privacy-page-date,
-    .privacy-page .privacy-version { color: var(--settings-muted); }
-    .privacy-page-index { border-color: var(--settings-border); }
-    .privacy-controls :is(button, a):focus-visible,
-    .privacy-page :is(a, h1):focus-visible { outline-color: var(--settings-accent); }
   }
 }

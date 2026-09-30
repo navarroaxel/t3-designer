@@ -10,12 +10,12 @@ served by any static host. `vercel.json` describes the Vercel setup.
 | Output directory | `dist`, at the repository root |
 | Node.js | 24 or newer |
 | Package manager | pnpm 12.7.0, taken from the `packageManager` field |
-| Rewrites | every path falls back to `index.html`, so `/privacy` opens directly |
+| Rewrites | every path falls back to `index.html`, so any path opens the app |
 
 ## Publish
 
 1. Push the repository to GitHub, GitLab or Bitbucket and import it in Vercel, or run `npx vercel` from the repository root and answer the prompts (`npx vercel --prod` for the production URL).
-2. Leave the four `VITE_UMAMI_*` variables unset. Analytics then stays off and the consent banner says so.
+2. In the Vercel project, open **Analytics** and click **Enable**. The app already renders `<Analytics />` from `@vercel/analytics/react`; it sends nothing until that switch is on and the app is served from Vercel. Enabling Analytics does not affect existing deployments: **redeploy** afterwards (for example `npx vercel --prod`, or **Redeploy** on the latest deployment) so the new build starts tracking.
 3. Choose a project name and domain that do not contain the street number.
 
 ## If Vercel says `No Output Directory named "dist" found`
@@ -43,7 +43,7 @@ Two things depend on the deployment and are added at build time by `site-meta.ts
 
 Without a URL, as in local builds, the preview image tags are left out. There is no
 canonical link or `og:url` on purpose: the page is one HTML file for every path, so a
-fixed one would mislabel `/privacy`. `robots.txt` allows crawling; `noindex` is what
+fixed one would mislabel other routes. `robots.txt` allows crawling; `noindex` is what
 keeps a page out of the results.
 
 `public/og-image.png` is a 1200 by 630 screenshot of the app with its controls
@@ -55,4 +55,4 @@ the LinkedIn Post Inspector after a change.
 
 - The house number and exact coordinates are not in the code or the build: the street is shown as "Tapalque" and the coordinates are rounded to two decimals (about 1 km). Check that any repository you publish was committed after that change, because git history keeps earlier versions.
 - The imagery used to measure the site (Google Earth and Street View) was only read, never copied into the repository. Keep it that way.
-- The privacy notice at `/privacy` describes analytics that is disabled by default. If you enable Umami, fill in the retention and contact facts listed in [analytics.md](analytics.md) first.
+- Vercel Web Analytics is cookieless, but it is still visitor measurement. Check Vercel's documentation and your local rules on whether you need to tell visitors, because the app has no privacy notice or consent banner.

@@ -90,14 +90,14 @@ This runs lint, TypeScript checks, unit tests and the production build.
 For browser tests, install Playwright's Chromium once with
 `pnpm --filter @t3-designer/web exec playwright install chromium`.
 
-## Documentation and privacy
+## Documentation and analytics
 
 The [documentation index](docs/README.md) lists the architecture, the solar
 model, internationalization, analytics and [deployment](docs/deployment.md) notes.
 
-The app includes a `/privacy` notice and consent controls. Optional Umami
-analytics requires both public build configuration and visitor consent; the
-supplied Website ID is blank. The privacy page itself is never measured.
+Page views are measured with [Vercel Web Analytics](https://vercel.com/docs/analytics).
+It only runs on a Vercel deployment with Web Analytics enabled for the project;
+local and preview-less builds send nothing.
 
 ## License and attribution
 

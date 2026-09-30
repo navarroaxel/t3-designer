@@ -35,7 +35,7 @@ export function robotsValue(value: string | undefined): string {
  * Tags that depend on the deployment. The absolute preview image only exists once
  * the public URL is known. There is deliberately no canonical URL or `og:url`: the
  * page is one HTML file served for every path, so a fixed one would mislabel
- * `/privacy`.
+ * other routes.
  */
 export function siteMetaTags(env: { siteUrl?: string; robots?: string }): HtmlTagDescriptor[] {
   const tags: HtmlTagDescriptor[] = [
