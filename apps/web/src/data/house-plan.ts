@@ -669,13 +669,15 @@ export const GROUND_BATHROOM = {
   v: [GROUND_PANTRY.v[0], GROUND_PANTRY.v[0] + GROUND_BATHROOM_SIZE.width] as [number, number],
 }
 /**
- * The ground bathroom's door (owner): 0.70 m wide, to the hall, which runs along the bathroom's north-east side, so it is in that wall. Its
- * centring along the wall and its 2.10 m height are assumed; the leaf's colour and hand are not known, so only the opening is drawn.
+ * The ground bathroom's door (owner): 0.70 m wide, to the hall, which runs along the bathroom's north-east side, so it is in that wall, 10 cm from the
+ * bathroom's back wall. Its 2.10 m height is assumed; the leaf's colour and hand are not known, so only the opening is drawn.
  */
 export const GROUND_BATHROOM_DOOR_WIDTH = .7
-const groundBathroomDoorMiddleU = (GROUND_BATHROOM.u[0] + GROUND_BATHROOM.u[1]) / 2
+/** The door's nearer edge stands 10 cm from the bathroom's back wall, its contrafrente (owner). */
+export const GROUND_BATHROOM_DOOR_FROM_BACK_WALL = .1
+const groundBathroomDoorEnd = GROUND_BATHROOM.u[1] - GROUND_BATHROOM_DOOR_FROM_BACK_WALL
 export const GROUND_BATHROOM_DOOR = {
-  u: [groundBathroomDoorMiddleU - GROUND_BATHROOM_DOOR_WIDTH / 2, groundBathroomDoorMiddleU + GROUND_BATHROOM_DOOR_WIDTH / 2] as [number, number],
+  u: [groundBathroomDoorEnd - GROUND_BATHROOM_DOOR_WIDTH, groundBathroomDoorEnd] as [number, number],
   v: [GROUND_BATHROOM.v[1], GROUND_BATHROOM.v[1] + PARTITION_THICKNESS] as [number, number],
   y: [0, 2.1] as [number, number],
 }

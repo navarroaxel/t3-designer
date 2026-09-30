@@ -755,6 +755,8 @@ test('the ground floor\'s bathroom is 1.75 m deep and 2.06 m wide, against the p
   near(GROUND_BATHROOM_DOOR.u[1] - GROUND_BATHROOM_DOOR.u[0], .7)
   near(GROUND_BATHROOM_DOOR.v[0], GROUND_BATHROOM.v[1])
   assert.ok(GROUND_BATHROOM_DOOR.u[0] > GROUND_BATHROOM.u[0] && GROUND_BATHROOM_DOOR.u[1] < GROUND_BATHROOM.u[1])
+  // Its nearer edge is 10 cm from the bathroom's back wall, the contrafrente.
+  near(GROUND_BATHROOM.u[1] - GROUND_BATHROOM_DOOR.u[1], .1)
   // The bathroom's walls join the pantry's wall and the party wall; none blocks any of the doors.
   for (const door of [PANTRY_DOOR, LIVING_KITCHEN_DOOR, GROUND_BATHROOM_DOOR]) for (const [u0, u1, v0, v1] of GROUND_PARTITIONS) {
     const blocks = u0 < door.u[1] - 1e-9 && u1 > door.u[0] + 1e-9 && v0 < door.v[1] - 1e-9 && v1 > door.v[0] + 1e-9
