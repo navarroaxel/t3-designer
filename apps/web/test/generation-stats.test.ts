@@ -96,3 +96,10 @@ test('the day is split by string and by panel without losing or inventing energy
 function closeEnough(actual: number, expected: number) {
   assert.ok(Math.abs(actual - expected) < 1e-6 * Math.max(1, expected), `${actual} should equal ${expected}`)
 }
+
+test('a shade window is a real stretch, never a single step', () => {
+  for (const month of [0, 5, 11]) {
+    const window = dayStats(simulateDay(middleOfMonth(month), 10), kwp).shadeWindow
+    if (window) assert.ok(window[1] > window[0], `month ${month}: ${window}`)
+  }
+})

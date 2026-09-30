@@ -20,6 +20,8 @@ export type DayStats = {
 
 /** Power below this share of the day's peak is too little to count when looking for shade. */
 const MEANINGFUL = .1
+/** A single shaded step is a flicker, not a stretch of shade. */
+const MIN_SHADE_STEPS = 2
 
 /** Below this mean share of the beam reaching the panels, a moment counts as shaded; a thin self-shadow at dawn does not. */
 const SHADED_BELOW = .9
@@ -45,7 +47,7 @@ export function dayStats(day: DayResult, kwp: number): DayStats {
     inverterLoadPercent: clear.acW[peakIndex] / PV_SYSTEM.inverter.maxAcW * 100,
     specificYield: kwp > 0 ? typical.acKwh / kwp : 0,
     productionWindow: edges(producing),
-    shadeWindow: edges(longest),
+    shadeWindow: edges(longest.length >= MIN_SHADE_STEPS ? longest : []),
   }
 }
 
