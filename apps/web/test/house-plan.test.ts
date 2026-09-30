@@ -764,13 +764,17 @@ test('the ground floor\'s bathroom is 1.75 m deep and 2.06 m wide, against the p
   }
 })
 
-test('the ground floor\'s bathroom and living have the first floor\'s bathroom and living floors, at ground level', () => {
+test('the ground floor\'s bathroom, living and office have the first floor\'s bathroom, living and bedroom floors, at ground level', () => {
   const zone = (id: string) => GROUND_FLOOR_TILING.find(item => item.id === id)!
   const first = (id: string) => FLOOR_TILING.find(item => item.id === id)!
   assert.equal(zone('ground-bathroom').color, first('bathroom').color)
   assert.equal(zone('ground-bathroom').pattern, first('bathroom').pattern)
   assert.equal(zone('ground-living').color, first('living').color)
   assert.equal(zone('ground-living').pattern, first('living').pattern)
+  // The office has the bedrooms' floor, Saing almendra.
+  assert.equal(zone('ground-office').color, first('bedrooms').color)
+  assert.equal(zone('ground-office').pattern, first('bedrooms').pattern)
+  assert.deepEqual(zone('ground-office').rects[0], [GROUND_OFFICE.u[0], GROUND_OFFICE.u[1], GROUND_OFFICE.v[0], GROUND_OFFICE.v[1]])
   // At ground level, over each room's floor.
   for (const item of GROUND_FLOOR_TILING) assert.equal(item.level, 0)
   assert.deepEqual(zone('ground-bathroom').rects[0], [GROUND_BATHROOM.u[0], GROUND_BATHROOM.u[1], GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1]])

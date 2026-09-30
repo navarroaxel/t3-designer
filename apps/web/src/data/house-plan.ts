@@ -729,10 +729,11 @@ export const STAIRWELL_HOLE: [number, number, number, number] = [
 ]
 
 /**
- * The ground floor's tiles, at ground level (owner): the bathroom has the first floor's bathroom tile, Navona natural, and the living has the
- * first floor's living floor, Saing miel. The other rooms' floors are not specified.
+ * The ground floor's tiles, at ground level (owner): the bathroom has the first floor's bathroom tile, Navona natural, the living has the
+ * first floor's living floor, Saing miel, and the office the first floor's bedroom floor, Saing almendra. The other rooms' floors are not specified.
  */
 export const GROUND_FLOOR_TILING: FloorTiling[] = [
   { id: 'ground-bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: 0, rects: [[GROUND_BATHROOM.u[0], GROUND_BATHROOM.u[1], GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1]]] },
+  { id: 'ground-office', color: FLOOR_TILING.find(zone => zone.id === 'bedrooms')!.color, pattern: SAING_PLANKS, level: 0, rects: [[GROUND_OFFICE.u[0], GROUND_OFFICE.u[1], GROUND_OFFICE.v[0], GROUND_OFFICE.v[1]]] },
   { id: 'ground-living', color: FLOOR_TILING.find(zone => zone.id === 'living')!.color, pattern: SAING_PLANKS, level: 0, rects: [[GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0], GROUND_LIVING.v[1]]] },
 ]
