@@ -164,7 +164,7 @@
 :root {
   --gen-grid: #dfe4d8; --gen-axis: #8a967e; --gen-area: #dbe7c8; --gen-typical: #5e7c4a; --gen-clear: #ad8748; --gen-overcast: #2f6f94;
   --gen-marker: #5e7c4a; --gen-on-solid: #ffffff; --gen-on-faint: #1f2a1b; --gen-marker-ring: #fffefa; --gen-probe: #6e7f60; --gen-bar: #b6c99c; --gen-bar-active: #8fae6e; --gen-bar-selected: #5e7c4a;
-  --gen-card: #f6f7f0; --gen-card-border: #e6eade; --gen-details-bg: #fffefaf5;
+  --gen-cost: #b3402f; --gen-cost-soft: #fbeeea; --gen-card: #f6f7f0; --gen-card-border: #e6eade; --gen-details-bg: #fffefaf5;
 }
 .generation-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .gen-expand, .gen-download, .gen-metrics button, .gen-tabs button { font: inherit; font-size: 10px; border: 1px solid var(--gen-card-border); background: var(--gen-card); color: inherit; border-radius: 5px; padding: 5px 9px; cursor: pointer; min-height: 26px; }
@@ -333,4 +333,12 @@
 .bill-cashout-label { font-size: 10px; color: #829077; }
 .gen-stat-key { border-color: var(--gen-typical); }
 .gen-stat-key strong { color: var(--gen-typical); }
+.gen-stat-cost { border-color: var(--gen-cost); background: var(--gen-cost-soft); }
+.gen-stat-cost strong { color: var(--gen-cost); }
 .bill-table { min-width: 720px; }
+
+.gen-stat-off { border-style: dashed; }
+.gen-stat-off strong { font-size: 15px; color: var(--gen-axis); }
+.bill-table th, .bill-table td { padding: 5px 5px; }
+.bill-table { min-width: 0; font-size: 10.5px; }
+.bill-month-input { width: 60px; }

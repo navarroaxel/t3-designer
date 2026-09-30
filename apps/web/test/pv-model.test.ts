@@ -35,18 +35,21 @@ test('the two series of 8 cover every panel exactly once', () => {
   assert.deepEqual([...strings[0]].sort(), ['front-1', 'front-2', 'front-3', 'front-4', 'front-5', 'front-6', 'middle-5', 'middle-6'])
 })
 
-test('the panels left out are rewired into two even series', () => {
+test('the panels left out are rewired: one series up to ten panels, two even ones above', () => {
   const without = (row: string) => new Set(PANELS.filter(panel => panel.row !== row).map(panel => panel.id))
   // The back row out: 12 panels, two series of 6 that are the front row and the middle row.
   const twelve = stringsFor(without('back'))
   assert.deepEqual(twelve.map(ids => ids.length), [6, 6])
   assert.deepEqual([...twelve[0]].sort(), PANELS.filter(panel => panel.row === 'front').map(panel => panel.id).sort())
   assert.deepEqual([...twelve[1]].sort(), PANELS.filter(panel => panel.row === 'middle').map(panel => panel.id).sort())
-  // 10 panels: 5 and 5. 11: 6 and 5. One panel: one series holds it.
-  assert.deepEqual(stringsFor(without('middle')).map(ids => ids.length), [5, 5])
+  // 10 panels, the most a series takes: all in the first, the second unused. 11: 6 and 5. One panel: the first holds it.
+  assert.deepEqual(stringsFor(without('middle')).map(ids => ids.length), [10, 0])
   const eleven = new Set(PV_SYSTEM.wiringOrder.slice(0, 11))
   assert.deepEqual(stringsFor(eleven).map(ids => ids.length), [6, 5])
   assert.deepEqual(stringsFor(new Set(['back-1'])).map(ids => ids.length), [1, 0])
+  assert.deepEqual(stringsFor(new Set(PV_SYSTEM.wiringOrder.slice(0, 8))).map(ids => ids.length), [8, 0])
+  // No series ever holds more than the limit.
+  for (let count = 1; count <= 16; count++) for (const ids of stringsFor(new Set(PV_SYSTEM.wiringOrder.slice(0, count)))) assert.ok(ids.length <= PV_SYSTEM.maxPanelsPerString)
   // Only installed panels are wired, each once.
   const ten = without('middle')
   assert.deepEqual(stringsFor(ten).flat().sort(), [...ten].sort())

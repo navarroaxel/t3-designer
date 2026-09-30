@@ -60,10 +60,8 @@ export type BillMonth = {
   billWithout: number
   billWith: number
   saved: number
-  /** Money the company pays in cash for the surplus this month. */
-  cashOut: number
-  /** Bill saved plus cash out. */
-  benefit: number
+  /** Money the company pays in cash this month for what the array made beyond the bills (0 when nothing is left over). */
+  gain: number
   /** Credit carried into the next month, in currency. */
   creditLeft: number
 }
@@ -76,10 +74,10 @@ export type BillTotals = {
   billWithout: number
   billWith: number
   saved: number
-  /** Money the company pays for the surplus over the year. */
-  cashOut: number
-  /** What the installation is worth over the year: the bill saved plus the cash out. */
-  benefit: number
+  /** Cash the company pays over the year for the surplus. */
+  gain: number
+  /** Cash received minus the bills paid over the year: positive is a gain, negative is what the electricity cost. */
+  net: number
   /** Generation over consumption, in percent. */
   coverage: number
   /** Share of the year's generation used as it was made, percent. */
@@ -150,13 +148,13 @@ export function computeBills(input: BillingInput, settings: BillingSettings): { 
     // The surplus is paid now, kept for the year's end, or only carried over.
     const paidNow = settings.cashOut === 'monthly' ? surplus : 0
     carried = settings.cashOut === 'monthly' ? 0 : surplus
-    const cashOut = paidNow + (month === 11 && settings.cashOut === 'yearly' ? carried : 0)
+    const gain = paidNow + (month === 11 && settings.cashOut === 'yearly' ? carried : 0)
     if (month === 11 && settings.cashOut === 'yearly') carried = 0
     const billWithout = used * tariff + fixedCharge
     const saved = billWithout - billWith
     return {
       month, generation: produced, consumption: used, selfUsed, selfPercent: produced > 0 ? selfUsed / produced * 100 : 0,
-      exported, imported, billWithout, billWith, saved, cashOut, benefit: saved + cashOut, creditLeft: carried,
+      exported, imported, billWithout, billWith, saved, gain, creditLeft: carried,
     }
   })
   const sum = (pick: (month: BillMonth) => number) => months.reduce((total, month) => total + pick(month), 0)
@@ -165,10 +163,18 @@ export function computeBills(input: BillingInput, settings: BillingSettings): { 
     months,
     totals: {
       generation: totalGeneration, consumption: totalConsumption, exported: sum(month => month.exported), imported: sum(month => month.imported),
-      billWithout: sum(month => month.billWithout), billWith: sum(month => month.billWith), saved: sum(month => month.saved), cashOut: sum(month => month.cashOut), benefit: sum(month => month.benefit),
+      billWithout: sum(month => month.billWithout), billWith: sum(month => month.billWith), saved: sum(month => month.saved), gain: sum(month => month.gain), net: sum(month => month.gain) - sum(month => month.billWith),
       coverage: totalConsumption > 0 ? totalGeneration / totalConsumption * 100 : 0,
       selfPercent: totalGeneration > 0 ? sum(month => month.selfUsed) / totalGeneration * 100 : 0,
       creditLeft: carried,
     },
   }
+}
+
+/**
+ * The year's bottom line: a gain when the company pays more than it bills, otherwise the annual electricity cost, which is
+ * what had to be paid to the company over the year (after the credit and any cash out). A tie counts as a gain of nothing.
+ */
+export function resultOf(totals: Pick<BillTotals, 'net'>): { kind: 'gain' | 'cost'; amount: number } {
+  return totals.net >= 0 ? { kind: 'gain', amount: totals.net } : { kind: 'cost', amount: -totals.net }
 }

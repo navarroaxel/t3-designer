@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { PV_SYSTEM } from '../data/pv-system'
 import { PANELS, PANEL_SPEC, ROWS, ROW_COUNTS } from '../data/solar-array'
 import { useLocale } from '../i18n/useLocale'
 import type { DayResult, YearResult } from '../lib/pv/model'
-import { billingInput, computeBills } from '../lib/pv/billing'
+import { billingInput, computeBills, resultOf } from '../lib/pv/billing'
 import { panelStats, type PanelStat } from '../lib/pv/stats'
 import { moneyFormatter } from '../lib/money'
 import { useBilling } from '../lib/useBilling'
@@ -60,10 +61,10 @@ export function PanelsView({ day, panels, year, fullYear }: { day: DayResult; pa
   const freedM2 = PANELS.reduce((sum, panel, index) => sum + (panels.isIn(panel.id) ? 0 : FOOTPRINT[index]), 0)
 
   // The comparison with the whole array: the same year, and the bill of the Bill tab.
-  const savedOf = (result: YearResult) => computeBills(billingInput(result), billing.settings).totals.benefit
+  const billsOf = (result: YearResult) => computeBills(billingInput(result), billing.settings).totals
   const comparison = !panels.isFull && year && fullYear ? {
     energy: year.annualKwh, fullEnergy: fullYear.annualKwh, yield: year.specificYield, fullYield: fullYear.specificYield,
-    saved: savedOf(year), fullSaved: savedOf(fullYear),
+    saved: billsOf(year).saved, fullSaved: billsOf(fullYear).saved, result: resultOf(billsOf(year)), fullResult: resultOf(billsOf(fullYear)),
   } : null
 
   return <>
@@ -122,6 +123,9 @@ export function PanelsView({ day, panels, year, fullYear }: { day: DayResult; pa
           <em>{t('building.genVsEnergyNote', { diff: formatNumber(comparison.fullEnergy - comparison.energy), percent: formatNumber(comparison.fullEnergy > 0 ? comparison.energy / comparison.fullEnergy * 100 : 0) })}</em></div>
         <div className="gen-stat"><span>{t('building.genVsSaving')}</span><strong>{money.format(comparison.saved)}</strong>
           <em>{t('building.genVsSavingNote', { diff: money.format(comparison.fullSaved - comparison.saved), full: money.format(comparison.fullSaved) })}</em></div>
+        <div className={`gen-stat ${comparison.result.kind === 'cost' ? 'gen-stat-cost' : ''}`}>
+          <span>{t(comparison.result.kind === 'gain' ? 'building.billResultGain' : 'building.billResultCost')}</span><strong>{money.format(comparison.result.amount)}</strong>
+          <em>{t('building.genVsResultNote', { full: money.format(comparison.fullResult.amount), kind: t(comparison.fullResult.kind === 'gain' ? 'building.billResultGain' : 'building.billResultCost') })}</em></div>
         <div className="gen-stat"><span>{t('building.genVsYield')}</span><strong>{formatNumber(comparison.yield)}<small>kWh/kWp</small></strong>
           <em>{t('building.genVsYieldNote', { full: formatNumber(comparison.fullYield) })}</em></div>
         <div className="gen-stat"><span>{t('building.genVsRoof')}</span><strong>{formatNumber(freedM2, 1)}<small>m²</small></strong><em>{t('building.genVsRoofNote')}</em></div>
@@ -129,11 +133,17 @@ export function PanelsView({ day, panels, year, fullYear }: { day: DayResult; pa
     </>}
 
     <div className="gen-stats">
-      {strings.map(item => <div key={item.index} className="gen-stat">
-        <span>{t('building.genStringName', { string: item.index + 1 })}</span>
-        <strong>{formatNumber(item.kwh, item.kwh < 10 ? 1 : 0)}<small>kWh</small></strong>
-        <em>{t('building.genStringNote', { panels: item.panels, kwp: formatNumber(item.kwp, 2), yield: formatNumber(item.specificYield, 2) })}</em>
-      </div>)}
+      {strings.map(item => item.panels === 0
+        ? <div key={item.index} className="gen-stat gen-stat-off">
+            <span>{t('building.genStringName', { string: item.index + 1 })}</span>
+            <strong>{t('building.genStringUnused')}</strong>
+            <em>{t('building.genStringUnusedNote', { max: PV_SYSTEM.maxPanelsPerString })}</em>
+          </div>
+        : <div key={item.index} className="gen-stat">
+            <span>{t('building.genStringName', { string: item.index + 1 })}</span>
+            <strong>{formatNumber(item.kwh, item.kwh < 10 ? 1 : 0)}<small>kWh</small></strong>
+            <em>{t('building.genStringNote', { panels: item.panels, kwp: formatNumber(item.kwp, 2), yield: formatNumber(item.specificYield, 2) })}</em>
+          </div>)}
       <div className="gen-stat"><span>{t('building.genStatSpread')}</span><strong>{formatNumber(spread, 1)}<small>%</small></strong><em>{t('building.genStatSpreadNote', { name: name(weakest), kwh: kwhOf(weakest) })}</em></div>
       <div className="gen-stat"><span>{t('building.genStatMostShaded')}</span><strong>{name(shadiest)}</strong><em>{t('building.genPanelShade', { percent: formatNumber(shadiest.shadeLossPercent, 1) })}</em></div>
     </div>

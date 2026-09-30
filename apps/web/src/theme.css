@@ -33,7 +33,7 @@
     --ui-warm-surface: #393324;
     --gen-grid: #3a463a; --gen-axis: #a9b8a0; --gen-area: #3c5232; --gen-typical: #b1cf95; --gen-clear: #d3ba83; --gen-overcast: #9fd0ee;
     --gen-marker: #b1cf95; --gen-on-solid: #10180e; --gen-on-faint: #f1f5ec; --gen-marker-ring: #222c24; --gen-probe: #c4d6b4; --gen-bar: #5f7a4c; --gen-bar-active: #8fb270; --gen-bar-selected: #c2dfa6;
-    --gen-card: #2b362b; --gen-card-border: #45523f; --gen-details-bg: #222c24f5;
+    --gen-cost: #f3a596; --gen-cost-soft: #4a2c27; --gen-card: #2b362b; --gen-card-border: #45523f; --gen-details-bg: #222c24f5;
 
     :is(button, input, select, a, summary):focus-visible {
       outline-color: var(--settings-accent);

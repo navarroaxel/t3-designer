@@ -146,3 +146,14 @@ test('with the back row out the strings are two of six, and the split still adds
   assert.ok(Math.abs(strings[0].kwh / strings[1].kwh - 1) < .03)
   assert.ok(panels.filter(panel => panel.installed).every(panel => panel.row === 'front' ? panel.string === 0 : panel.string === 1))
 })
+
+test('with ten panels or fewer only the first string works, and the energy is unchanged by which string carries it', async () => {
+  const { PANELS } = await import('../src/data/solar-array.ts')
+  const eight = new Set(PANELS.filter(panel => panel.row === 'front').map(panel => panel.id).concat(['middle-6', 'middle-5']))
+  const day = simulateDay(middleOfMonth(11), 20, undefined, eight)
+  const { panels, strings } = panelStats(day, eight)
+  assert.deepEqual(strings.map(item => item.panels), [8, 0])
+  assert.equal(strings[1].kwh, 0)
+  closeEnough(strings[0].kwh, day.typical.acKwh)
+  assert.ok(panels.filter(panel => panel.installed).every(panel => panel.string === 0))
+})
