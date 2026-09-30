@@ -3,7 +3,7 @@ import { Line } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, GROUND_DOOR_SWINGS, GROUND_PARTITIONS, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SLAB_THICKNESS, wallBoxes,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { BATHROOM_BOXES } from '../data/bathroom'
@@ -29,6 +29,14 @@ function Slab({ outline, top, castShadow = false }: { outline: PlanPoint[]; top:
   return <mesh geometry={geometry} position={[0, top - SLAB_THICKNESS, 0]} castShadow={castShadow} receiveShadow>
     <meshStandardMaterial color={SLAB_COLOR} roughness={.95} />
   </mesh>
+}
+
+/** Interior walls between two heights, from their plan rectangles. */
+function InteriorWalls({ walls, from, to, castShadow = false }: { walls: readonly [number, number, number, number][]; from: number; to: number; castShadow?: boolean }) {
+  return <>{walls.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, (from + to) / 2, -(v0 + v1) / 2]} castShadow={castShadow} receiveShadow>
+    <boxGeometry args={[u1 - u0, to - from, v1 - v0]} />
+    <meshStandardMaterial color={PARTITION_COLOR} roughness={.95} />
+  </mesh>)}</>
 }
 
 /**
@@ -57,7 +65,7 @@ function GlazedLeaf({ centre, alongU, length, color = '#f3f2ee' }: { centre: [nu
 }
 
 /** A door open 90 degrees, with the dashed quarter circle of its swing on the floor. */
-function DoorSwingView({ door }: { door: DoorSwing }) {
+function DoorSwingView({ door, level = FLOOR_HEIGHT }: { door: DoorSwing; level?: number }) {
   const { hinge, closed, open, radius, color } = door
   const point = (fraction: number, height: number): [number, number, number] => {
     const angle = Math.PI / 2 * fraction
@@ -69,11 +77,11 @@ function DoorSwingView({ door }: { door: DoorSwing }) {
   return <>
     {door.glazed
       ? <GlazedLeaf centre={leafCentre} alongU={alongU} length={radius} color={color} />
-      : <mesh position={[leafCentre[0], FLOOR_HEIGHT + CUT_HEIGHT / 2, -leafCentre[1]]} receiveShadow>
+      : <mesh position={[leafCentre[0], level + CUT_HEIGHT / 2, -leafCentre[1]]} receiveShadow>
           <boxGeometry args={[alongU ? radius : .04, CUT_HEIGHT, alongU ? .04 : radius]} />
           <meshStandardMaterial color={color} roughness={.6} />
         </mesh>}
-    <Line points={Array.from({ length: 13 }, (_, i) => point(i / 12, FLOOR_HEIGHT + .03))} color="#8a6a3a" lineWidth={1} dashed dashSize={.08} gapSize={.06} />
+    <Line points={Array.from({ length: 13 }, (_, i) => point(i / 12, level + .03))} color="#8a6a3a" lineWidth={1} dashed dashSize={.08} gapSize={.06} />
   </>
 }
 
@@ -171,10 +179,14 @@ export function HouseShell({ floor }: { floor: Floor }) {
     {floor === 'ground' && <>
       <Slab outline={GROUND_OUTLINE} top={0} />
       <Walls floor="ground" top={CUT_HEIGHT} />
+      <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={CUT_HEIGHT} />
+      {/* The office door, open, with its swing. */}
+      {GROUND_DOOR_SWINGS.map(door => <DoorSwingView key={door.id} door={door} level={0} />)}
     </>}
     {floor === 'first' && <>
       {/* The ground floor below is shown whole, capped by the first-floor slab. */}
       <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} />
+      <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={FLOOR_HEIGHT - SLAB_THICKNESS} />
       <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} />
       {/* The first floor is built over the entrance recess, so its floor covers it. */}
       <Slab outline={ENTRY_RECESS_OUTLINE} top={FLOOR_HEIGHT} />
@@ -320,6 +332,7 @@ export function HouseShell({ floor }: { floor: Floor }) {
 export function HouseShellPhysical() {
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
     <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
+    <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
     <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} castShadow />
     <Slab outline={ENTRY_RECESS_OUTLINE} top={FLOOR_HEIGHT} castShadow />
     <Walls floor="first" top={2 * FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />

@@ -53,6 +53,8 @@ export const LAUNDRY_DOOR_WIDTH = .8
 export const LAUNDRY_DOOR_FROM_PARTY_WALL = 1.3
 const LAUNDRY_DOOR_CENTRE = HALF - WALL_THICKNESS - LAUNDRY_DOOR_FROM_PARTY_WALL - LAUNDRY_DOOR_WIDTH / 2
 const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
+/** The ground-floor balcony door onto the light well (owner). Its 2.10 m height is assumed, like the other doors'. */
+export const LIGHT_WELL_DOOR_WIDTH = 1.8
 
 /** Centre of the secondary room's window, from Street View; its width, 2.04 m, is the owner's. */
 const SECONDARY_WINDOW_CENTRE = -2.415
@@ -63,6 +65,8 @@ export const OPENINGS: Record<Floor, Opening[]> = {
     { u: -5, v: [-3.87, .14], y: [0, 2.4] }, // garage door, on the street line
     { u: -4, v: [2.21, 3.5], y: [.3, 1.85] }, // barred window, in the recess
     { u: -4, v: [1.07, 1.91], y: [0, 2.1] }, // entrance door, in the recess
+    // The light well's balcony door (owner): 1.80 m wide, centred on the well (v = -1 to 1.5), on the wall that closes it, u = 4.
+    { u: 4, v: [LIGHT_WELL_CENTRE - LIGHT_WELL_DOOR_WIDTH / 2, LIGHT_WELL_CENTRE + LIGHT_WELL_DOOR_WIDTH / 2], y: [0, 2.1] },
   ],
   first: [
     { u: -5, v: [.1, 3.1], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] }, // 3 m balcony door
@@ -481,3 +485,61 @@ export const FLOOR_TILING: FloorTiling[] = [
  * position along the front, centred on the facade, and its 0.3 m slab edge are assumed. It stays in the first-floor cutaway.
  */
 export const BALCONY = { width: 7.94, depth: .86, edge: .3 }
+
+/**
+ * The front block of the ground floor (owner). The garage, under the secondary room, is 5.69 m deep and 4.43 m wide inside,
+ * against the party wall with the corner (south-west). To its left seen from the street, north-east, is the hall (the
+ * "recibidor"), behind the entrance recess. Both end at the same back wall, the "contrafrente", which runs from party wall to
+ * party wall; it is drawn at the depth that gives the garage its 5.69 m from the front wall's inner face. A 0.12 m wall separates
+ * the garage from the hall. What lies behind the contrafrente wall is not modelled yet.
+ */
+export const GARAGE = { depth: 5.69, width: 4.43 }
+const groundBackU = INNER_FRONT + GARAGE.depth
+export const GROUND_BACK_WALL: [number, number, number, number] = [groundBackU, groundBackU + PARTITION_THICKNESS, SW + WALL_THICKNESS, NE_INNER]
+export const GROUND_GARAGE = {
+  u: [INNER_FRONT, groundBackU] as [number, number],
+  v: [SW + WALL_THICKNESS, SW + WALL_THICKNESS + GARAGE.width] as [number, number],
+}
+/** The hall is behind the entrance recess, whose back wall stands at u = -4 and is as thick as the exterior walls. */
+export const GROUND_HALL = {
+  u: [-5 + ENTRY_RECESS.setback + WALL_THICKNESS, groundBackU] as [number, number],
+  v: [GROUND_GARAGE.v[1] + PARTITION_THICKNESS, NE_INNER] as [number, number],
+}
+/**
+ * The wall of the light well's balcony door continues to its left, toward the north-east party wall (owner), and behind it, in the
+ * left ground-floor band, is the office. The wall is as thick as the exterior walls, like the wall at the well, and closes the office's
+ * front (u = 3.7 to 4.0). The office's size is what the band leaves inside its 0.3 m walls: 4.2 m deep by 2.4 m wide, an assumption.
+ */
+export const GROUND_OFFICE_WALL: [number, number, number, number] = [4 - WALL_THICKNESS, 4, 1.5, NE_INNER]
+export const GROUND_OFFICE = {
+  u: [4, HOUSE_REAR.northEast - WALL_THICKNESS] as [number, number],
+  v: [1.5 + WALL_THICKNESS, NE_INNER] as [number, number],
+}
+
+/**
+ * The office's door (owner): wenge, right-handed. Its width, 0.80 m, its place, centred on the wall that closes the office, and its
+ * 2.10 m height are assumed. Coming in from the rooms in front of it, facing south-east, the right hand is south-west (lower v): the
+ * leaf is hinged on that end and swings into the office.
+ */
+export const OFFICE_DOOR_WIDTH = .8
+export const OFFICE_DOOR_COLOR = '#3d2b22'
+const officeDoorCentre = (GROUND_OFFICE_WALL[2] + GROUND_OFFICE_WALL[3]) / 2
+export const OFFICE_DOOR = {
+  u: [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1]] as [number, number],
+  v: [officeDoorCentre - OFFICE_DOOR_WIDTH / 2, officeDoorCentre + OFFICE_DOOR_WIDTH / 2] as [number, number],
+  y: [0, 2.1] as [number, number],
+}
+
+/** Interior walls of the ground floor as [u0, u1, v0, v1]: the wall between the garage and the hall, and the contrafrente. */
+export const GROUND_PARTITIONS: [number, number, number, number][] = [
+  [GROUND_GARAGE.u[0], groundBackU, GROUND_GARAGE.v[1], GROUND_GARAGE.v[1] + PARTITION_THICKNESS],
+  GROUND_BACK_WALL,
+  // The office wall is split around the office door.
+  [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], GROUND_OFFICE_WALL[2], OFFICE_DOOR.v[0]],
+  [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], OFFICE_DOOR.v[1], GROUND_OFFICE_WALL[3]],
+]
+
+/** The ground floor's doors, drawn open like the first floor's, at ground level. */
+export const GROUND_DOOR_SWINGS: DoorSwing[] = [
+  { id: 'office', hinge: [OFFICE_DOOR.u[1], OFFICE_DOOR.v[0]], closed: [0, 1], open: [1, 0], radius: OFFICE_DOOR_WIDTH, color: OFFICE_DOOR_COLOR },
+]
