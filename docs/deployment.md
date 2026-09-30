@@ -15,7 +15,7 @@ served by any static host. `vercel.json` describes the Vercel setup.
 ## Publish
 
 1. Push the repository to GitHub, GitLab or Bitbucket and import it in Vercel, or run `npx vercel` from the repository root and answer the prompts (`npx vercel --prod` for the production URL).
-2. In the Vercel project, open **Analytics** and click **Enable**. The app already renders `<Analytics />` from `@vercel/analytics/react`; it sends nothing until that switch is on and the app is served from Vercel.
+2. In the Vercel project, open **Analytics** and click **Enable**. The app already renders `<Analytics />` from `@vercel/analytics/react`; it sends nothing until that switch is on and the app is served from Vercel. Enabling Analytics does not affect existing deployments: **redeploy** afterwards (for example `npx vercel --prod`, or **Redeploy** on the latest deployment) so the new build starts tracking.
 3. Choose a project name and domain that do not contain the street number.
 
 ## If Vercel says `No Output Directory named "dist" found`
