@@ -537,16 +537,30 @@ export const OFFICE_DOOR = {
 }
 
 /**
- * The doorway from the garage to the hall (owner): 0.70 m wide. It has no door for now, only the opening, a door arch. Its place, centred
- * along the wall, and its 2.10 m height are assumed.
+ * The doorway from the garage to the hall (owner): 0.70 m wide, 35 cm from the back wall. It has no door for now, only the opening, a door
+ * arch. Its 2.10 m height is assumed.
  */
 export const GARAGE_DOOR_WIDTH = .7
-const garageDoorCentre = (GROUND_GARAGE.u[0] + groundBackU) / 2
+/** The arch's nearer edge stands 35 cm from the back wall (owner). */
+export const GARAGE_DOOR_FROM_BACK_WALL = .35
+const garageDoorEnd = groundBackU - GARAGE_DOOR_FROM_BACK_WALL
 export const GARAGE_DOOR = {
-  u: [garageDoorCentre - GARAGE_DOOR_WIDTH / 2, garageDoorCentre + GARAGE_DOOR_WIDTH / 2] as [number, number],
+  u: [garageDoorEnd - GARAGE_DOOR_WIDTH, garageDoorEnd] as [number, number],
   v: [GROUND_GARAGE.v[1], inner] as [number, number],
   y: [0, 2.1] as [number, number],
 }
+
+/**
+ * In front of the office's wall there is another wall (owner), 1.8 m long and centred on it, parallel to it. How far in front of it, 1.0 m,
+ * and its thickness, 0.12 m like the other interior walls, are assumed.
+ */
+export const OFFICE_FRONT_WALL_LENGTH = 1.8
+export const OFFICE_FRONT_WALL_DISTANCE = 1
+const officeFrontCentre = (GROUND_OFFICE_WALL[2] + GROUND_OFFICE_WALL[3]) / 2
+export const OFFICE_FRONT_WALL: [number, number, number, number] = [
+  GROUND_OFFICE_WALL[0] - OFFICE_FRONT_WALL_DISTANCE - PARTITION_THICKNESS, GROUND_OFFICE_WALL[0] - OFFICE_FRONT_WALL_DISTANCE,
+  officeFrontCentre - OFFICE_FRONT_WALL_LENGTH / 2, officeFrontCentre + OFFICE_FRONT_WALL_LENGTH / 2,
+]
 
 /** Interior walls of the ground floor as [u0, u1, v0, v1]: the wall between the garage and the hall, and the contrafrente. */
 export const GROUND_PARTITIONS: [number, number, number, number][] = [
@@ -558,6 +572,8 @@ export const GROUND_PARTITIONS: [number, number, number, number][] = [
   // The office wall is split around the office door.
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], GROUND_OFFICE_WALL[2], OFFICE_DOOR.v[0]],
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], OFFICE_DOOR.v[1], GROUND_OFFICE_WALL[3]],
+  // The wall in front of the office's wall.
+  OFFICE_FRONT_WALL,
 ]
 
 /** The ground floor's doors, drawn open like the first floor's, at ground level. */
