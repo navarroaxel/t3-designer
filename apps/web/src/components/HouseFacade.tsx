@@ -59,8 +59,8 @@ export function HouseFacade({ physical = false, balconyOnly = false }: { physica
         <boxGeometry args={[.04, opening.y[1] - opening.y[0], opening.v[1] - opening.v[0]]} />
         <meshStandardMaterial color="#a9b8bf" roughness={.08} metalness={.35} transparent opacity={.8} />
       </mesh>)}
-      {/* The office's window onto the light well, in the wall that runs along the well: glass on its outer face. */}
-      {SIDE_OPENINGS.ground.map(opening => <mesh key={`${opening.u}-${opening.y}`} position={[(opening.u[0] + opening.u[1]) / 2, (opening.y[0] + opening.y[1]) / 2, -(opening.v - .02)]}>
+      {/* The windows onto the light well (the office's, and the right arm's), in the walls that run along the well: glass on the well's face. */}
+      {SIDE_OPENINGS.ground.map(opening => <mesh key={`${opening.u}-${opening.y}`} position={[(opening.u[0] + opening.u[1]) / 2, (opening.y[0] + opening.y[1]) / 2, -(opening.v + (opening.v > .25 ? -.02 : .02))]}>
         <boxGeometry args={[opening.u[1] - opening.u[0], opening.y[1] - opening.y[0], .04]} />
         <meshStandardMaterial color="#a9b8bf" roughness={.08} metalness={.35} transparent opacity={.8} />
       </mesh>)}

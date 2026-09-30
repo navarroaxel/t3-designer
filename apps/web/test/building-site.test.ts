@@ -146,9 +146,9 @@ test('the entrance is set back 1 m between a 0.5 m flush wall and a pier, whose 
   const us = (building: BuildingFootprint) => building.footprint.map(point => houseFrame(point))
   const has = (u: number, v: number) => us(block).some(([pu, pv]) => Math.abs(pu - u) < .02 && Math.abs(pv - v) < .02)
   // Recess: back wall 1 m behind the line, from the pier to the return wall (v = 3.975). The pier's end lines up with the garage's side wall, so the
-  // recess starts where the garage's width puts it (0.75 m) and not at the earlier 0.85 m...
+  // recess starts where the hall's 3.6 m puts it (0.575 m) and not at the earlier 0.85 m...
   const inner = ENTRY_RECESS.inner
-  assert.ok(Math.abs(inner - .749) < .01, `the recess starts at v = ${inner}`)
+  assert.ok(Math.abs(inner - .575) < .01, `the recess starts at v = ${inner}`)
   assert.ok(has(-4, inner) && has(-4, 3.975), 'entrance wall 1 m behind the line')
   // ...a 0.5 m wall stays on the line next to the neighbour, and the garage stands on the line.
   assert.ok(has(-5, 3.975) && has(-5, 4.475), '0.5 m flush wall at the north-east end')

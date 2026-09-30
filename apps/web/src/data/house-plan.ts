@@ -90,8 +90,17 @@ export const OFFICE_WINDOW_WIDTH = 1.5
 export const OFFICE_WINDOW_SILL = .9
 export const OFFICE_WINDOW_HEIGHT = 1.2
 const officeMiddleU = (4 + (HOUSE_REAR.northEast - WALL_THICKNESS)) / 2
+/**
+ * The right arm of the well, on the south-west (the ground floor under the terrace), has a 1.8 m window onto the well (owner), in the wall at
+ * v = -1. That it is centred on the room, and its sill and height, the same as the office window's, are assumed.
+ */
+export const RIGHT_ARM_WINDOW_WIDTH = 1.8
+const rightArmMiddleU = (4 + (HOUSE_REAR.southWest - WALL_THICKNESS)) / 2
 export const SIDE_OPENINGS: Record<Floor, SideOpening[]> = {
-  ground: [{ v: 1.5, u: [officeMiddleU - OFFICE_WINDOW_WIDTH / 2, officeMiddleU + OFFICE_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] }],
+  ground: [
+    { v: 1.5, u: [officeMiddleU - OFFICE_WINDOW_WIDTH / 2, officeMiddleU + OFFICE_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] },
+    { v: -1, u: [rightArmMiddleU - RIGHT_ARM_WINDOW_WIDTH / 2, rightArmMiddleU + RIGHT_ARM_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] },
+  ],
   first: [],
 }
 
@@ -589,13 +598,27 @@ export const OFFICE_FRONT_WALL: [number, number, number, number] = [
   officeFrontCentre - OFFICE_FRONT_WALL_LENGTH / 2, officeFrontCentre + OFFICE_FRONT_WALL_LENGTH / 2,
 ]
 
+/**
+ * The hall's doorway (owner): 1.2 m wide and without a door leaf, only the opening. Which wall it is in is assumed, the back wall, the
+ * contrafrente, which leads from the hall to the rest of the ground floor, and that it is centred on the hall; its 2.10 m height too.
+ */
+export const HALL_ARCH_WIDTH = 1.2
+const hallArchCentre = (GROUND_HALL.v[0] + GROUND_HALL.v[1]) / 2
+export const HALL_ARCH = {
+  u: [GROUND_BACK_WALL[0], GROUND_BACK_WALL[1]] as [number, number],
+  v: [hallArchCentre - HALL_ARCH_WIDTH / 2, hallArchCentre + HALL_ARCH_WIDTH / 2] as [number, number],
+  y: [0, 2.1] as [number, number],
+}
+
 /** Interior walls of the ground floor as [u0, u1, v0, v1]: the wall between the garage and the hall, and the contrafrente. */
 export const GROUND_PARTITIONS: [number, number, number, number][] = [
   // The recess wall continuing to the back wall, between the garage and the hall, split around the door between them.
   // It starts past the recess's back wall, whose strip already runs through that corner.
   [-5 + setback + WALL_THICKNESS, GARAGE_DOOR.u[0], GROUND_GARAGE.v[1], inner],
   [GARAGE_DOOR.u[1], groundBackU, GROUND_GARAGE.v[1], inner],
-  GROUND_BACK_WALL,
+  // The back wall, split around the hall's doorway.
+  [GROUND_BACK_WALL[0], GROUND_BACK_WALL[1], GROUND_BACK_WALL[2], HALL_ARCH.v[0]],
+  [GROUND_BACK_WALL[0], GROUND_BACK_WALL[1], HALL_ARCH.v[1], GROUND_BACK_WALL[3]],
   // The office wall is split around the office door.
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], GROUND_OFFICE_WALL[2], OFFICE_DOOR.v[0]],
   [GROUND_OFFICE_WALL[0], GROUND_OFFICE_WALL[1], OFFICE_DOOR.v[1], GROUND_OFFICE_WALL[3]],
