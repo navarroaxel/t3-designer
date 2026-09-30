@@ -164,7 +164,7 @@
 :root {
   --gen-grid: #dfe4d8; --gen-axis: #8a967e; --gen-area: #dbe7c8; --gen-typical: #5e7c4a; --gen-clear: #ad8748; --gen-overcast: #7d95a0;
   --gen-marker: #5e7c4a; --gen-marker-ring: #fffefa; --gen-probe: #6e7f60; --gen-bar: #b6c99c; --gen-bar-active: #8fae6e; --gen-bar-selected: #5e7c4a;
-  --gen-band: #ad874855; --gen-band-edge: #ad8748; --gen-card: #f6f7f0; --gen-card-border: #e6eade; --gen-details-bg: #fffefaf5;
+  --gen-card: #f6f7f0; --gen-card-border: #e6eade; --gen-details-bg: #fffefaf5;
 }
 .generation-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .gen-expand, .gen-download, .gen-metrics button, .gen-tabs button { font: inherit; font-size: 10px; border: 1px solid var(--gen-card-border); background: var(--gen-card); color: inherit; border-radius: 5px; padding: 5px 9px; cursor: pointer; min-height: 26px; }
@@ -200,7 +200,6 @@
 .gen-key-now::before { width: 8px !important; height: 8px !important; border: 0 !important; border-radius: 50%; background: var(--gen-marker); }
 .gen-key-bar::before { width: 10px !important; height: 10px !important; border: 0 !important; background: var(--gen-bar); border-radius: 2px; }
 .gen-legend .gen-key-mean::before { border-color: var(--gen-typical); border-top-style: dashed; }
-.gen-key-band::before { width: 12px !important; height: 10px !important; border: 1px solid var(--gen-band-edge) !important; background: var(--gen-band); }
 
 .gen-details { position: absolute; z-index: 40; left: 12px; right: 12px; bottom: 12px; max-width: 760px; max-height: calc(100% - 24px); overflow: auto; background: var(--gen-details-bg); border: 1px solid var(--gen-card-border); border-radius: 10px; box-shadow: 0 18px 50px #25321c33; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; backdrop-filter: blur(6px); }
 .gen-details header { display: flex; align-items: center; gap: 14px; }
@@ -229,7 +228,6 @@
 .gen-bar-selected { fill: var(--gen-bar-selected); }
 .gen-bar-active { fill: var(--gen-bar-active); }
 .gen-bar-selected.gen-bar-active { fill: var(--gen-bar-selected); }
-.gen-band { fill: var(--gen-band); stroke: var(--gen-band-edge); stroke-width: 1; stroke-dasharray: 3 2; }
 .gen-mean { stroke: var(--gen-typical); stroke-width: 1.2; stroke-dasharray: 5 3; }
 .year-columns { position: absolute; inset: 0; pointer-events: none; }
 .year-column { position: absolute; top: 4%; bottom: 8%; pointer-events: auto; }

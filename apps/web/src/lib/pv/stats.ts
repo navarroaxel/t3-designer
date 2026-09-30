@@ -1,5 +1,4 @@
 import { PV_SYSTEM } from '../../data/pv-system.ts'
-import { ARRAY_WATTS } from '../../data/solar-array.ts'
 import type { DayResult, YearResult } from './model.ts'
 
 /** Figures read off a simulated day, for the generation panels. */
@@ -86,10 +85,3 @@ export const clock = (minutes: number) => `${String(Math.floor(minutes / 60)).pa
 
 /** The metric's unit, as a translation key. */
 export const METRIC_UNIT = { perDay: 'building.genUnitPerDay', perMonth: 'building.genUnitPerMonth', perKwp: 'building.genUnitPerKwp' } as const satisfies Record<YearMetric, string>
-
-/** The owner's measured January, scaled from the six panels measured to this array, in the metric's unit. */
-export function measuredJanuary(metric: YearMetric): [number, number] {
-  const { measuredKwhPerDay, measuredKwp } = PV_SYSTEM.calibration
-  const scale = metric === 'perKwp' ? 1 / measuredKwp : ARRAY_WATTS / 1000 / measuredKwp * (metric === 'perMonth' ? 31 : 1)
-  return [measuredKwhPerDay[0] * scale, measuredKwhPerDay[1] * scale]
-}

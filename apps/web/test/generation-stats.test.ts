@@ -51,17 +51,10 @@ test('the year metrics and the CSV export', () => {
   assert.ok(lines[1].startsWith('M1,'))
 })
 
-test('the measured January is scaled to the array in each unit, and the model sits inside it', async () => {
-  const { measuredJanuary, clock } = await import('../src/lib/pv/stats.ts')
-  const [lowKwp, highKwp] = measuredJanuary('perKwp')
-  assert.ok(Math.abs(lowKwp - 12 / 2.7) < 1e-9 && Math.abs(highKwp - 14 / 2.7) < 1e-9)
-  const [lowDay, highDay] = measuredJanuary('perDay')
-  assert.ok(Math.abs(lowDay - lowKwp * kwp) < 1e-9 && Math.abs(highDay - highKwp * kwp) < 1e-9)
-  assert.ok(Math.abs(measuredJanuary('perMonth')[0] - lowDay * 31) < 1e-9)
-  // The calibration put the model in the middle of the measured range.
-  const january = simulateYear(60).months[0]
-  assert.ok(january.acKwhPerDay > lowDay * .9 && january.acKwhPerDay < highDay * 1.1)
+test('clock formats minutes of the day', async () => {
+  const { clock } = await import('../src/lib/pv/stats.ts')
   assert.equal(clock(605), '10:05')
+  assert.equal(clock(0), '00:00')
 })
 
 test('the efficiency factor scales the energy, and the default is the calibration', async () => {

@@ -1,10 +1,9 @@
 import { useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PV_SYSTEM } from '../data/pv-system'
 import { ARRAY_WATTS } from '../data/solar-array'
 import { useLocale } from '../i18n/useLocale'
 import type { Generation } from '../lib/useGeneration'
-import { clock, cumulativeKwh, measuredJanuary, METRIC_UNIT, monthValue, niceTicks, type YearMetric } from '../lib/pv/stats'
+import { clock, cumulativeKwh, METRIC_UNIT, monthValue, niceTicks, type YearMetric } from '../lib/pv/stats'
 import type { MonthResult, YearResult } from '../lib/pv/model'
 
 const KWP = ARRAY_WATTS / 1000
@@ -113,8 +112,7 @@ export function PowerChart({ generation, minutes, onSelect, size, label }: {
 }
 
 /**
- * The months as bars over a labelled axis, with the year's mean as a dashed line and the owner's measured
- * January as a band. The bars are buttons: hovering reads the month, selecting moves the study to its 15th.
+ * The months as bars over a labelled axis, with the year's mean as a dashed line. The bars are buttons: hovering reads the month, selecting moves the study to its 15th.
  */
 export function YearChart({ year, metric, selectedMonth, onSelect, monthName, label }: {
   year: YearResult
@@ -129,8 +127,7 @@ export function YearChart({ year, metric, selectedMonth, onSelect, monthName, la
   const [active, setActive] = useState<number | null>(null)
   const values = year.months.map(month => monthValue(month, metric, KWP))
   const mean = metric === 'perMonth' ? year.annualKwh / 12 : year.annualKwh / 365 / (metric === 'perKwp' ? KWP : 1)
-  const [bandLow, bandHigh] = measuredJanuary(metric)
-  const ticks = niceTicks(Math.max(...values, bandHigh), 4)
+  const ticks = niceTicks(Math.max(...values), 4)
   const top = ticks[ticks.length - 1]
   const frame = { width: 640, height: 240, left: 40, right: 8, top: 12, bottom: 24 }
   const plotWidth = frame.width - frame.left - frame.right, plotHeight = frame.height - frame.top - frame.bottom
@@ -149,7 +146,6 @@ export function YearChart({ year, metric, selectedMonth, onSelect, monthName, la
       </g>)}
       {values.map((value, month) => <rect key={month} className={`gen-bar${month === selectedMonth ? ' gen-bar-selected' : ''}${month === active ? ' gen-bar-active' : ''}`}
         x={frame.left + column * month + column * .16} width={column * .68} y={y(value)} height={Math.max(1, frame.top + plotHeight - y(value))} rx="2" />)}
-      <rect className="gen-band" x={frame.left + column * .04} width={column * .92} y={y(bandHigh)} height={y(bandLow) - y(bandHigh)} />
       <line className="gen-mean" x1={frame.left} x2={frame.width - frame.right} y1={y(mean)} y2={y(mean)} />
       {year.months.map(month => <text key={month.month} className={`gen-axis-text${month.month === selectedMonth ? ' gen-axis-selected' : ''}`}
         x={frame.left + column * (month.month + .5)} y={frame.height - 7} textAnchor="middle">{monthName(month.month, 'short')}</text>)}
@@ -168,7 +164,6 @@ export function YearChart({ year, metric, selectedMonth, onSelect, monthName, la
           <span>{t('building.genMonthPerKwp', { value: formatNumber(month.acKwhPerDay / KWP, 2) })}</span>
           <span>{t('building.genMonthClear', { percent: formatNumber(month.clearFraction * 100) })}</span>
           <span>{t('building.genMonthShading', { percent: formatNumber(month.shadingLossPercent, 1) })}</span>
-          {month.month === 0 && <span>{t('building.genMonthMeasured', { low: formatNumber(PV_SYSTEM.calibration.measuredKwhPerDay[0]), high: formatNumber(PV_SYSTEM.calibration.measuredKwhPerDay[1]) })}</span>}
         </div>}
       </div>)}
     </div>

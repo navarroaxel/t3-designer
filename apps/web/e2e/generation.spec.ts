@@ -87,9 +87,8 @@ test('the expanded panel has a day view and a year view that drive the study', a
   // The day: the wide curve and the figures read off the simulation.
   await expect(details.locator('.power-chart-large')).toBeVisible()
   for (const label of ['Typical day', 'Clear day', 'Overcast day', 'Peak, clear sky', 'Producing', 'Shading, clear day']) await expect(details.getByText(label, { exact: true }).first()).toBeVisible()
-  // The year: the metric toggle, the measured January, the table and its CSV.
+  // The year: the metric toggle, the table and its CSV.
   await details.getByRole('tab', { name: 'Year' }).click()
-  await expect(details.locator('.gen-band')).toHaveCount(1)
   await expect(details.locator('.gen-table tbody tr')).toHaveCount(12)
   await details.getByRole('button', { name: 'kWh per kWp a day', exact: true }).click()
   await expect(details.getByRole('button', { name: 'kWh per kWp a day', exact: true })).toHaveAttribute('aria-pressed', 'true')

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PV_SYSTEM } from '../data/pv-system'
-import { ARRAY_WATTS, PANELS } from '../data/solar-array'
+import { ARRAY_WATTS } from '../data/solar-array'
 import { useLocale } from '../i18n/useLocale'
 import { clock, cumulativeKwh, dayStats, METRIC_UNIT, monthValue, yearCsv, type YearMetric } from '../lib/pv/stats'
 import type { Generation } from '../lib/useGeneration'
@@ -105,7 +104,6 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
         <ul className="gen-legend" aria-hidden="true">
           <li className="gen-key-bar">{t('building.genLegendBars')}</li>
           <li className="gen-key-mean">{t('building.genLegendMean')}</li>
-          <li className="gen-key-band">{t('building.genLegendMeasured', { low: formatNumber(PV_SYSTEM.calibration.measuredKwhPerDay[0]), high: formatNumber(PV_SYSTEM.calibration.measuredKwhPerDay[1]), panels: formatNumber(PANELS.length) })}</li>
         </ul>
         <p className="array-note">{t('building.genYearHint')}</p>
         <div className="gen-stats">
