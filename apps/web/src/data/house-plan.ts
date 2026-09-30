@@ -488,6 +488,8 @@ export type FloorTiling = { id: string; color: string; rects: [number, number, n
 export const SAING_PLANKS: TilePattern = { length: 1.2, width: .2, rows: 3, stagger: 1 / 3, grout: .003, veins: false }
 /** Navona natural (San Lorenzo Design): beige travertine-look porcelain, 80 cm by 80 cm, satin, rectified, so a fine joint. */
 export const NAVONA_TILES: TilePattern = { length: .8, width: .8, rows: 1, stagger: 0, grout: .0015, veins: true }
+/** The floor's tile stops where the stairwell starts (the hall's wall on the garage side, the recess's inner end). */
+const GROUND_HALL_V0_FOR_TILES = inner
 export const FLOOR_TILING: FloorTiling[] = [
   {
     id: 'bedrooms', color: '#cbb08b', pattern: SAING_PLANKS,
@@ -506,7 +508,8 @@ export const FLOOR_TILING: FloorTiling[] = [
     id: 'hall', color: '#c69a5d', pattern: SAING_PLANKS,
     rects: [
       [FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] + MAIN_ROOM_SETBACK - PARTITION_THICKNESS],
-      [FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS, NE_INNER],
+      // Behind the main room and the closet: only up to the stairwell, which is open.
+      [FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[1] + PARTITION_THICKNESS, GROUND_HALL_V0_FOR_TILES],
     ],
   },
   // The laundry, continuous with the kitchen, has the bathroom's tile too (owner). It is taken to be the roof of the left
@@ -617,4 +620,13 @@ export const GROUND_PARTITIONS: [number, number, number, number][] = [
 /** The ground floor's doors, drawn open like the first floor's, at ground level. */
 export const GROUND_DOOR_SWINGS: DoorSwing[] = [
   { id: 'office', hinge: [OFFICE_DOOR.u[1], OFFICE_DOOR.v[0]], closed: [0, 1], open: [1, 0], radius: OFFICE_DOOR_WIDTH, color: OFFICE_DOOR_COLOR },
+]
+
+/**
+ * The stairwell in the first-floor slab (owner): it coincides with the first floor's corridor, the strip between the main room's back wall
+ * and the wall behind the bathroom, from the hall's wall on the garage side to the party wall with neighbour A. The last flight and the
+ * second landing of the stair climb under it.
+ */
+export const STAIRWELL_HOLE: [number, number, number, number] = [
+  FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS, FIRST_FLOOR_BATHROOM.u[1], GROUND_HALL.v[0], NE_INNER,
 ]
