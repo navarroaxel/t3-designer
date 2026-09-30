@@ -163,7 +163,7 @@
 /* Generation: shared chart colours, the sidebar's expand button and the wide details panel. */
 :root {
   --gen-grid: #dfe4d8; --gen-axis: #8a967e; --gen-area: #dbe7c8; --gen-typical: #5e7c4a; --gen-clear: #ad8748; --gen-overcast: #7d95a0;
-  --gen-marker: #5e7c4a; --gen-marker-ring: #fffefa; --gen-probe: #6e7f60; --gen-bar: #b6c99c; --gen-bar-active: #8fae6e; --gen-bar-selected: #5e7c4a;
+  --gen-marker: #5e7c4a; --gen-on-solid: #ffffff; --gen-on-faint: #1f2a1b; --gen-marker-ring: #fffefa; --gen-probe: #6e7f60; --gen-bar: #b6c99c; --gen-bar-active: #8fae6e; --gen-bar-selected: #5e7c4a;
   --gen-card: #f6f7f0; --gen-card-border: #e6eade; --gen-details-bg: #fffefaf5;
 }
 .generation-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -257,3 +257,19 @@
 .gen-factor-inputs input:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 2px; }
 .gen-factor-inputs span { font-size: 11px; }
 .gen-factor-reset { font: inherit; font-size: 10px; padding: 0; border: 0; background: none; color: #587747; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* Panels tab: the array seen from the street. */
+.panel-map { position: relative; max-width: 560px; align-self: center; width: 100%; }
+.panel-map svg { display: block; width: 100%; height: auto; }
+.panel-cell { fill: var(--gen-typical); stroke: var(--gen-typical); stroke-width: 1; }
+.panel-cell-shade { fill: var(--gen-clear); stroke: var(--gen-clear); }
+.panel-cell-second { stroke-dasharray: 4 2; }
+.panel-cell-active { stroke-width: 2.5; stroke: var(--gen-probe); stroke-dasharray: none; }
+.panel-cell-text { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; pointer-events: none; }
+.panel-cell-sub { font-size: 10px; pointer-events: none; }
+.panel-cell-text.on-solid, .panel-cell-sub.on-solid { fill: var(--gen-on-solid); }
+.panel-cell-text.on-faint, .panel-cell-sub.on-faint { fill: var(--gen-on-faint); }
+.panel-hit { position: absolute; }
+.panel-hit button { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 3px; }
+.panel-hit button:focus-visible { outline: 2px solid var(--gen-typical); outline-offset: 1px; }
+.panel-tooltip { bottom: auto; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4; }

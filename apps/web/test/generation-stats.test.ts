@@ -73,3 +73,26 @@ test('the efficiency factor scales the energy, and the default is the calibratio
   assert.equal(clampFactor(.834), .83)
   assert.equal(clampFactor(NaN), DEFAULT_FACTOR)
 })
+
+test('the day is split by string and by panel without losing or inventing energy', async () => {
+  const { panelStats } = await import('../src/lib/pv/stats.ts')
+  const { PV_SYSTEM } = await import('../src/data/pv-system.ts')
+  const { PANELS } = await import('../src/data/solar-array.ts')
+  const day = simulateDay(middleOfMonth(11), 20)
+  const { panels, strings } = panelStats(day)
+  assert.equal(panels.length, PANELS.length)
+  assert.equal(strings.length, PV_SYSTEM.strings.length)
+  closeEnough(panels.reduce((sum, panel) => sum + panel.kwh, 0), day.typical.acKwh)
+  closeEnough(strings.reduce((sum, item) => sum + item.kwh, 0), day.typical.acKwh)
+  assert.ok(panels.every(panel => panel.string >= 0 && panel.kwh > 0 && panel.shadeLossPercent >= 0 && panel.shadeLossPercent < 100))
+  // Eight panels per string, and every panel belongs to exactly one.
+  assert.deepEqual(strings.map(item => item.panels), [8, 8])
+  assert.equal(new Set(panels.map(panel => panel.id)).size, panels.length)
+  // The per-panel light agrees with the array's mean.
+  const mean = day.typical.panelPoaKwhM2.reduce((sum, value) => sum + value, 0) / PANELS.length
+  closeEnough(mean, day.typical.poaKwhM2)
+})
+
+function closeEnough(actual: number, expected: number) {
+  assert.ok(Math.abs(actual - expected) < 1e-6 * Math.max(1, expected), `${actual} should equal ${expected}`)
+}

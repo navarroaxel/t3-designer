@@ -1,4 +1,5 @@
 import { PV_SYSTEM } from '../../data/pv-system.ts'
+import { PANELS, PANEL_SPEC } from '../../data/solar-array.ts'
 import type { DayResult, YearResult } from './model.ts'
 
 /** Figures read off a simulated day, for the generation panels. */
@@ -85,3 +86,43 @@ export const clock = (minutes: number) => `${String(Math.floor(minutes / 60)).pa
 
 /** The metric's unit, as a translation key. */
 export const METRIC_UNIT = { perDay: 'building.genUnitPerDay', perMonth: 'building.genUnitPerMonth', perKwp: 'building.genUnitPerKwp' } as const satisfies Record<YearMetric, string>
+
+export type PanelStat = {
+  id: string
+  row: 'back' | 'middle' | 'front'
+  /** 1-based, from the north-east side. */
+  index: number
+  /** Index into PV_SYSTEM.strings. */
+  string: number
+  /** Share of the typical day's energy attributed to this panel, kWh. */
+  kwh: number
+  /** Irradiation on the panel on the typical day, kWh/m2. */
+  irradiation: number
+  /** Beam and sky light lost to shade on the clear day, percent. */
+  shadeLossPercent: number
+}
+export type StringStat = { index: number; panels: number; kwp: number; kwh: number; specificYield: number }
+
+/**
+ * The typical day split by panel and by string. A string's energy follows its own DC output, which the
+ * bypass diodes already limit to its weakest panels; a panel gets its share of the day's AC energy in
+ * proportion to the light it receives, since every panel has the same rating.
+ */
+export function panelStats(day: DayResult): { panels: PanelStat[]; strings: StringStat[] } {
+  const { typical, clear, clearUnshaded } = day
+  const light = typical.panelPoaKwhM2.reduce((sum, value) => sum + value, 0)
+  const panels = PANELS.map((panel, index): PanelStat => ({
+    id: panel.id, row: panel.row, index: panel.index,
+    string: PV_SYSTEM.strings.findIndex(ids => (ids as readonly string[]).includes(panel.id)),
+    kwh: light > 0 ? typical.acKwh * typical.panelPoaKwhM2[index] / light : 0,
+    irradiation: typical.panelPoaKwhM2[index],
+    shadeLossPercent: clearUnshaded.panelPoaKwhM2[index] > 0 ? Math.max(0, (1 - clear.panelPoaKwhM2[index] / clearUnshaded.panelPoaKwhM2[index]) * 100) : 0,
+  }))
+  const dc = typical.stringDcKwh.reduce((sum, value) => sum + value, 0)
+  const strings = PV_SYSTEM.strings.map((ids, index): StringStat => {
+    const kwp = ids.length * PANEL_SPEC.watts / 1000
+    const kwh = dc > 0 ? typical.acKwh * typical.stringDcKwh[index] / dc : 0
+    return { index, panels: ids.length, kwp, kwh, specificYield: kwh / kwp }
+  })
+  return { panels, strings }
+}

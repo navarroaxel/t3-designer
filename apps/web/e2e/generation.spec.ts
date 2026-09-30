@@ -127,3 +127,28 @@ test('the efficiency factor can be edited, moves the figures and is remembered',
   await number.press('Enter')
   await expect(number).toHaveValue('110')
 })
+
+test('the panels tab shows every panel and string, with a tooltip for each', async ({ page }) => {
+  test.setTimeout(60_000)
+  await page.goto('/#building')
+  await expect(page.locator('.month-bar-button')).toHaveCount(12, { timeout: 30_000 })
+  await page.getByRole('button', { name: 'Expand' }).click()
+  const details = page.getByRole('dialog', { name: 'Generation in detail' })
+  await details.getByRole('tab', { name: 'Panels' }).click()
+  const panels = details.locator('.panel-hit button')
+  await expect(panels).toHaveCount(16)
+  await expect(panels.first()).toHaveAttribute('aria-label', /^(Back|Middle|Front) \d+, string [12]: [\d.]+ kWh on the typical day, shade takes [\d.]+% on a clear day$/)
+  // Two strings of eight panels, and the day's energy adds up across them.
+  const strings = details.locator('.gen-stat', { hasText: /^String \d/ })
+  await expect(strings).toHaveCount(2)
+  await expect(strings.first()).toContainText('8 panels')
+  await panels.nth(7).hover()
+  const tooltip = page.getByRole('tooltip')
+  await expect(tooltip).toBeVisible()
+  await expect(tooltip).toContainText(/String [12]/)
+  await expect(tooltip).toContainText(/kWh on the typical day/)
+  await expect(tooltip).toContainText(/Shade takes [\d.]+% on a clear day/)
+  // The colouring can switch to shade.
+  await details.getByRole('button', { name: 'Shade, clear day' }).click()
+  await expect(details.locator('.panel-cell-shade')).toHaveCount(16)
+})

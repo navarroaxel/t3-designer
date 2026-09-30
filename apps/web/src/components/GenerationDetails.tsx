@@ -6,10 +6,11 @@ import { clock, cumulativeKwh, dayStats, METRIC_UNIT, monthValue, yearCsv, type 
 import type { Generation } from '../lib/useGeneration'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { PowerChart, YearChart } from './GenerationCharts'
+import { PanelsView } from './GenerationPanels'
 
 const KWP = ARRAY_WATTS / 1000
 const METRICS: YearMetric[] = ['perDay', 'perMonth', 'perKwp']
-type Tab = 'today' | 'year'
+type Tab = 'today' | 'year' | 'panels'
 
 function Stat({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: string }) {
   return <div className="gen-stat"><span>{label}</span><strong>{value}{unit && <small>{unit}</small>}</strong>{note && <em>{note}</em>}</div>
@@ -63,8 +64,8 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
         <h2>{t('building.genDetailsTitle')}</h2>
       </div>
       <div className="gen-tabs" role="tablist" aria-label={t('building.genDetailsTitle')}>
-        {(['today', 'year'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
-          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : 'building.genTabYear')}</button>)}
+        {(['today', 'year', 'panels'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
+          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : 'building.genTabPanels')}</button>)}
       </div>
       <button ref={closeButton} type="button" className="gen-close" aria-label={t('building.genClose')} title={t('building.genClose')} onClick={onClose}>×</button>
     </header>
@@ -89,6 +90,11 @@ export function GenerationDetails({ solar, generation, onClose }: { solar: Solar
         <Stat label={t('building.genStatShading')} value={formatNumber(day.clearShadingLossPercent, 1)} unit="%" note={stats.shadeWindow ? t('building.genStatShadeWindow', { window: range(stats.shadeWindow) }) : t('building.genStatNoShade')} />
         <Stat label={t('building.genStatIrradiation')} value={formatNumber(day.typical.poaKwhM2, 1)} unit="kWh/m²" note={t('building.genStatIrradiationNote', { ghi: formatNumber(day.typical.ghiKwhM2, 1) })} />
       </div>
+    </div>}
+
+    {tab === 'panels' && <div role="tabpanel" id="gen-panel-panels" aria-labelledby="gen-tab-panels" className="gen-tab-body">
+      <p className="gen-context">{t('building.genDetailsDay', { date: formatDate(new Date(`${moment.date}T12:00:00Z`), { dateStyle: 'full', timeZone: 'UTC' }), time: solar.time })}</p>
+      <PanelsView day={day} />
     </div>}
 
     {tab === 'year' && <div role="tabpanel" id="gen-panel-year" aria-labelledby="gen-tab-year" className="gen-tab-body">
