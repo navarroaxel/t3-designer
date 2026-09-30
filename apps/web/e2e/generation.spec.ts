@@ -189,6 +189,16 @@ test('the bill tab compares the months with and without solar, and the inputs ar
   await expect(barTip).toContainText(/kWh generated/)
   await page.mouse.move(5, 5)
   await expect(barTip).toHaveCount(0)
+  // The surplus is paid out in cash, and the benefit is the bill saved plus that cash.
+  await expect(details.getByRole('button', { name: 'Paid in cash at year end' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(card('Cash out')).toContainText(/\$[1-9][\d,]*/)
+  await expect(card('Benefit per year')).toContainText(/\$[\d,]+/)
+  await details.getByRole('button', { name: 'Only carried over' }).click()
+  await expect(card('Cash out')).toContainText('$0')
+  await expect(card('Credit left at year end')).toBeVisible()
+  await details.getByRole('button', { name: 'Paid in cash each month' }).click()
+  await expect(card('Credit left at year end')).toHaveCount(0)
+  await details.getByRole('button', { name: 'Paid in cash at year end' }).click()
   // The consumption profile: an empty house by day uses less of the sun at once and pays more.
   const withSolar = card('Bill with solar')
   await details.getByRole('button', { name: 'At home by day' }).click()

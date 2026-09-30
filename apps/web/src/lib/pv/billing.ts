@@ -9,8 +9,9 @@ import type { YearResult } from './model.ts'
  * that energy is never metered. The rest of the generation goes to the grid, and the rest of the consumption
  * comes from it. The grid charges the energy taken at the tariff and credits the energy sent at a share of it
  * (`creditShare`; the generation and distribution costs are not paid back, so it is a fraction). A credit larger
- * than the month's energy charge carries over to the next month; what is left at the end of the year is not
- * counted. The fixed charge is always paid.
+ * than the month's energy charge is a surplus: depending on `cashOut` the company pays it in cash each month,
+ * pays what is left once at the end of the year, or only carries it over to the next month (what is left at the end
+ * of the year is then not counted). The fixed charge is always paid.
  *
  * The load profile is two blocks: the daytime hours (`dayStart` to `dayEnd`) hold `daytimeShare` of the day's
  * consumption spread evenly, the night hours the rest. A house that works from home has most of it by day.
@@ -18,6 +19,9 @@ import type { YearResult } from './model.ts'
  * The tariff is the owner's price per kWh; the fixed charge, the consumption and the profile are the owner's to
  * set, and their defaults are placeholders until the real bill is typed in.
  */
+export type CashOut = 'monthly' | 'yearly' | 'off'
+export const CASH_OUT_MODES: readonly CashOut[] = ['monthly', 'yearly', 'off']
+
 export type BillingSettings = {
   /** Price of a kWh taken from the grid, all charges and taxes included, in the local currency. */
   tariff: number
@@ -30,12 +34,14 @@ export type BillingSettings = {
   dayEnd: number
   /** Fixed monthly charge of the bill. */
   fixedCharge: number
+  /** When the company pays the surplus credit in cash: each month, once at the end of the year, or never (it only carries over). */
+  cashOut: CashOut
   /** The house's consumption in each month, kWh. */
   consumption: number[]
 }
 
 export const DEFAULT_BILLING: BillingSettings = {
-  tariff: 160, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, consumption: Array.from({ length: 12 }, () => 500),
+  tariff: 160, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, cashOut: 'yearly', consumption: Array.from({ length: 12 }, () => 500),
 }
 
 /** Daytime shares the calculator offers as starting points. */
@@ -54,6 +60,10 @@ export type BillMonth = {
   billWithout: number
   billWith: number
   saved: number
+  /** Money the company pays in cash for the surplus this month. */
+  cashOut: number
+  /** Bill saved plus cash out. */
+  benefit: number
   /** Credit carried into the next month, in currency. */
   creditLeft: number
 }
@@ -66,11 +76,15 @@ export type BillTotals = {
   billWithout: number
   billWith: number
   saved: number
+  /** Money the company pays for the surplus over the year. */
+  cashOut: number
+  /** What the installation is worth over the year: the bill saved plus the cash out. */
+  benefit: number
   /** Generation over consumption, in percent. */
   coverage: number
   /** Share of the year's generation used as it was made, percent. */
   selfPercent: number
-  /** Credit still unused at the end of the year, in currency. */
+  /** Credit still unused at the end of the year, in currency (only when the surplus is not paid out). */
   creditLeft: number
 }
 
@@ -96,6 +110,7 @@ export function sanitizeBilling(input: Partial<Record<keyof BillingSettings, unk
     daytimeShare: clamp(number(source.daytimeShare, DEFAULT_BILLING.daytimeShare), 0, 1),
     ...sanitizeWindow(number(source.dayStart, DEFAULT_BILLING.dayStart), number(source.dayEnd, DEFAULT_BILLING.dayEnd)),
     fixedCharge: clamp(number(source.fixedCharge, DEFAULT_BILLING.fixedCharge), 0, 10_000_000),
+    cashOut: CASH_OUT_MODES.find(mode => mode === source.cashOut) ?? DEFAULT_BILLING.cashOut,
     consumption,
   }
 }
@@ -131,11 +146,17 @@ export function computeBills(input: BillingInput, settings: BillingSettings): { 
     const imported = used - selfUsed
     const charge = imported * tariff - exported * tariff * creditShare - carried
     const billWith = fixedCharge + Math.max(0, charge)
-    carried = Math.max(0, -charge)
+    const surplus = Math.max(0, -charge)
+    // The surplus is paid now, kept for the year's end, or only carried over.
+    const paidNow = settings.cashOut === 'monthly' ? surplus : 0
+    carried = settings.cashOut === 'monthly' ? 0 : surplus
+    const cashOut = paidNow + (month === 11 && settings.cashOut === 'yearly' ? carried : 0)
+    if (month === 11 && settings.cashOut === 'yearly') carried = 0
     const billWithout = used * tariff + fixedCharge
+    const saved = billWithout - billWith
     return {
       month, generation: produced, consumption: used, selfUsed, selfPercent: produced > 0 ? selfUsed / produced * 100 : 0,
-      exported, imported, billWithout, billWith, saved: billWithout - billWith, creditLeft: carried,
+      exported, imported, billWithout, billWith, saved, cashOut, benefit: saved + cashOut, creditLeft: carried,
     }
   })
   const sum = (pick: (month: BillMonth) => number) => months.reduce((total, month) => total + pick(month), 0)
@@ -144,7 +165,7 @@ export function computeBills(input: BillingInput, settings: BillingSettings): { 
     months,
     totals: {
       generation: totalGeneration, consumption: totalConsumption, exported: sum(month => month.exported), imported: sum(month => month.imported),
-      billWithout: sum(month => month.billWithout), billWith: sum(month => month.billWith), saved: sum(month => month.saved),
+      billWithout: sum(month => month.billWithout), billWith: sum(month => month.billWith), saved: sum(month => month.saved), cashOut: sum(month => month.cashOut), benefit: sum(month => month.benefit),
       coverage: totalConsumption > 0 ? totalGeneration / totalConsumption * 100 : 0,
       selfPercent: totalGeneration > 0 ? sum(month => month.selfUsed) / totalGeneration * 100 : 0,
       creditLeft: carried,

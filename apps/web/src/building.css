@@ -327,3 +327,10 @@
 .profile-load { fill: none; stroke: var(--gen-clear); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .gen-legend .gen-key-load::before { border-color: var(--gen-clear); }
 .gen-legend .gen-key-shared::before { width: 12px !important; height: 10px !important; border: 0 !important; background: var(--gen-typical); opacity: .55; }
+
+/* Cash out. */
+.bill-cashout { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bill-cashout-label { font-size: 10px; color: #829077; }
+.gen-stat-key { border-color: var(--gen-typical); }
+.gen-stat-key strong { color: var(--gen-typical); }
+.bill-table { min-width: 720px; }

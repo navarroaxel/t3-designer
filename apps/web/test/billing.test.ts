@@ -10,7 +10,7 @@ const sun = (watts: number): BillingInput => {
   return { generation: DAYS_IN_MONTH.map(days => watts * 4 / 1000 * days), curves: flat(0).map(() => curve), stepMinutes: 60 }
 }
 const settings = (patch: Partial<BillingSettings> = {}): BillingSettings =>
-  ({ tariff: 100, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, consumption: flat(500), ...patch })
+  ({ tariff: 100, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, cashOut: 'off', consumption: flat(500), ...patch })
 const close = (actual: number, expected: number, tolerance = 1e-6) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} should be ${expected}`)
 
 test('the load profile is two blocks that add up to the day', () => {
@@ -67,6 +67,40 @@ test('a surplus credit carries into the next month, and the fixed charge is alwa
   close(totals.creditLeft, months[11].creditLeft)
 })
 
+test('the surplus can be cashed out: each month, or once at the year\'s end', () => {
+  const base = settings({ fixedCharge: 1000, consumption: flat(100) })
+  const off = computeBills(sun(2000), base)
+  const monthly = computeBills(sun(2000), { ...base, cashOut: 'monthly' })
+  const yearly = computeBills(sun(2000), { ...base, cashOut: 'yearly' })
+  // The bills paid are the same while the surplus is only kept: the fixed charge each month.
+  for (const result of [off, monthly, yearly]) assert.ok(result.months.every(month => month.billWith >= 1000))
+  // Off: nothing is paid out, and the leftover is only reported.
+  close(off.totals.cashOut, 0)
+  assert.ok(off.totals.creditLeft > 0)
+  // Monthly: every month pays out its own surplus, and nothing carries.
+  assert.ok(monthly.months.every(month => month.cashOut > 0 && month.creditLeft === 0))
+  close(monthly.totals.creditLeft, 0)
+  // Yearly: nothing until December, when everything the year piled up is paid.
+  assert.ok(yearly.months.slice(0, 11).every(month => month.cashOut === 0))
+  assert.ok(yearly.months[11].cashOut > 0)
+  close(yearly.totals.cashOut, off.totals.creditLeft)
+  close(yearly.totals.creditLeft, 0)
+  // Monthly pays a little more than yearly: no month's surplus is spent on a later charge.
+  assert.ok(monthly.totals.cashOut >= yearly.totals.cashOut - 1e-6)
+  // The benefit is the bill saved plus the cash out.
+  for (const { totals } of [monthly, yearly]) close(totals.benefit, totals.saved + totals.cashOut)
+})
+
+test('a month that is short of energy is paid from the credit before any cash out', () => {
+  // Surplus in the sunny months, none in the last ones: the year-end cash out is what is left after them.
+  const uneven = sun(2000)
+  uneven.generation = uneven.generation.map((kwh, month) => month < 6 ? kwh : 0)
+  const off = computeBills(uneven, settings({ consumption: flat(300) }))
+  const yearly = computeBills(uneven, settings({ consumption: flat(300), cashOut: 'yearly' }))
+  close(yearly.totals.cashOut, off.totals.creditLeft)
+  assert.ok(yearly.totals.billWith <= yearly.totals.billWithout)
+})
+
 test('without generation the bill is the tariff times the consumption plus the fixed charge', () => {
   const none: BillingInput = { generation: flat(0), curves: flat(0).map(() => Array.from({ length: 24 }, () => 0)), stepMinutes: 60 }
   const { totals } = computeBills(none, settings({ fixedCharge: 500 }))
@@ -88,8 +122,10 @@ test('a higher share paid for the export lowers the bill, and the settings are c
   const low = computeBills(sun(3000), settings({ creditShare: .3 })).totals.billWith
   const high = computeBills(sun(3000), settings({ creditShare: .7 })).totals.billWith
   assert.ok(high < low)
-  const clean = sanitizeBilling({ tariff: -5, creditShare: 4, daytimeShare: Number.NaN, dayStart: 15, dayEnd: 9, fixedCharge: 'x', consumption: [1, 2] })
+  const clean = sanitizeBilling({ tariff: -5, cashOut: 'weekly', creditShare: 4, daytimeShare: Number.NaN, dayStart: 15, dayEnd: 9, fixedCharge: 'x', consumption: [1, 2] })
   assert.equal(clean.tariff, 0)
+  assert.equal(clean.cashOut, DEFAULT_BILLING.cashOut)
+  assert.equal(sanitizeBilling({ cashOut: 'monthly' }).cashOut, 'monthly')
   assert.equal(clean.creditShare, 1)
   assert.equal(clean.daytimeShare, DEFAULT_BILLING.daytimeShare)
   // A window that ends before it starts falls back to the default one.

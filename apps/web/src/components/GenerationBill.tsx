@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
-import { billingInput, computeBills, PROFILE_PRESETS } from '../lib/pv/billing'
+import { billingInput, CASH_OUT_MODES, computeBills, PROFILE_PRESETS } from '../lib/pv/billing'
 import { niceTicks } from '../lib/pv/stats'
 import type { YearResult } from '../lib/pv/model'
 import { moneyFormatter } from '../lib/money'
@@ -58,6 +58,13 @@ export function BillView({ year, month }: { year: YearResult; month: number }) {
       <label><span>{t('building.billAllMonths')}</span>
         <NumberField label={t('building.billAllMonths')} value={Math.round(meanConsumption)} min={0} step={10} onCommit={billing.setAllMonths} /></label>
     </div>
+    <div className="bill-cashout">
+      <span className="bill-cashout-label" id="bill-cashout-label">{t('building.billCashOutMode')}</span>
+      <div className="gen-metrics" role="group" aria-labelledby="bill-cashout-label">
+        {CASH_OUT_MODES.map(mode => <button key={mode} type="button" aria-pressed={settings.cashOut === mode} onClick={() => billing.update({ cashOut: mode })}>
+          {t(mode === 'monthly' ? 'building.billCashOutMonthly' : mode === 'yearly' ? 'building.billCashOutYearly' : 'building.billCashOutOff')}</button>)}
+      </div>
+    </div>
     <p className="array-note">{t('building.billInputsNote')}
       {!billing.isDefault && <> <button type="button" className="gen-factor-reset" onClick={billing.reset}>{t('building.billReset')}</button></>}</p>
 
@@ -87,10 +94,12 @@ export function BillView({ year, month }: { year: YearResult; month: number }) {
       <div className="gen-stat"><span>{t('building.billWithout')}</span><strong>{money.format(totals.billWithout)}</strong><em>{t('building.billPerYear')}</em></div>
       <div className="gen-stat"><span>{t('building.billWith')}</span><strong>{money.format(totals.billWith)}</strong><em>{t('building.billPerYear')}</em></div>
       <div className="gen-stat"><span>{t('building.billSaved')}</span><strong>{money.format(totals.saved)}</strong><em>{t('building.billSavedNote', { percent: formatNumber(savedPercent) })}</em></div>
+      <div className="gen-stat"><span>{t('building.billCashOut')}</span><strong>{money.format(totals.cashOut)}</strong><em>{t(settings.cashOut === 'off' ? 'building.billCashOutNoteOff' : 'building.billCashOutNote')}</em></div>
+      <div className="gen-stat gen-stat-key"><span>{t('building.billBenefit')}</span><strong>{money.format(totals.benefit)}</strong><em>{t('building.billBenefitNote', { saved: money.format(totals.saved), cash: money.format(totals.cashOut) })}</em></div>
       <div className="gen-stat"><span>{t('building.billCoverage')}</span><strong>{formatNumber(totals.coverage)}<small>%</small></strong><em>{t('building.billCoverageNote', { generation: formatNumber(totals.generation), consumption: formatNumber(totals.consumption) })}</em></div>
       <div className="gen-stat"><span>{t('building.billStatSelf')}</span><strong>{formatNumber(totals.selfPercent)}<small>%</small></strong><em>{t('building.billStatSelfNote')}</em></div>
       <div className="gen-stat"><span>{t('building.billExported')}</span><strong>{formatNumber(totals.exported)}<small>kWh</small></strong><em>{t('building.billExportedNote', { imported: formatNumber(totals.imported) })}</em></div>
-      {totals.creditLeft > 0 && <div className="gen-stat"><span>{t('building.billCreditLeft')}</span><strong>{money.format(totals.creditLeft)}</strong><em>{t('building.billCreditLeftNote')}</em></div>}
+      {settings.cashOut === 'off' && totals.creditLeft > 0 && <div className="gen-stat"><span>{t('building.billCreditLeft')}</span><strong>{money.format(totals.creditLeft)}</strong><em>{t('building.billCreditLeftNote')}</em></div>}
     </div>
 
     <div className="year-chart bill-chart" role="group" aria-label={t('building.billChartAria')}>
@@ -119,6 +128,7 @@ export function BillView({ year, month }: { year: YearResult; month: number }) {
             <span className="gen-key-without">{t('building.billTipWithout', { value: money.format(month.billWithout) })}</span>
             <span className="gen-key-with">{t('building.billTipWith', { value: money.format(month.billWith) })}</span>
             <span>{t('building.billTipSaved', { value: money.format(month.saved) })}</span>
+            {month.cashOut > 0 && <span>{t('building.billTipCash', { value: money.format(month.cashOut) })}</span>}
             <span>{t('building.billTipSelf', { kwh: formatNumber(month.selfUsed), percent: formatNumber(month.selfPercent) })}</span>
             <span>{t('building.billTipEnergy', { generation: formatNumber(month.generation), consumption: formatNumber(month.consumption) })}</span>
             <span>{t('building.billTipGrid', { exported: formatNumber(month.exported), imported: formatNumber(month.imported) })}</span>
@@ -138,7 +148,7 @@ export function BillView({ year, month }: { year: YearResult; month: number }) {
         <thead><tr>
           <th scope="col">{t('building.genColMonth')}</th><th scope="col">{t('building.billColGeneration')}</th><th scope="col">{t('building.billColConsumption')}</th>
           <th scope="col">{t('building.billColExported')}</th><th scope="col">{t('building.billColImported')}</th>
-          <th scope="col">{t('building.billColWithout')}</th><th scope="col">{t('building.billColWith')}</th><th scope="col">{t('building.billColSaved')}</th>
+          <th scope="col">{t('building.billColWithout')}</th><th scope="col">{t('building.billColWith')}</th><th scope="col">{t('building.billColCash')}</th><th scope="col">{t('building.billColSaved')}</th>
         </tr></thead>
         <tbody>
           {months.map(month => <tr key={month.month}>
@@ -146,13 +156,13 @@ export function BillView({ year, month }: { year: YearResult; month: number }) {
             <td>{formatNumber(month.generation)}</td>
             <td><NumberField className="bill-month-input" label={t('building.billMonthAria', { month: monthName(month.month, 'long') })} value={month.consumption} min={0} step={10} onCommit={value => billing.setMonth(month.month, value)} /></td>
             <td>{formatNumber(month.exported)}</td><td>{formatNumber(month.imported)}</td>
-            <td>{money.format(month.billWithout)}</td><td>{money.format(month.billWith)}</td><td className="bill-saved">{money.format(month.saved)}</td>
+            <td>{money.format(month.billWithout)}</td><td>{money.format(month.billWith)}</td><td>{money.format(month.cashOut)}</td><td className="bill-saved">{money.format(month.saved)}</td>
           </tr>)}
         </tbody>
         <tfoot><tr>
           <th scope="row">{t('building.billTotal')}</th><td>{formatNumber(totals.generation)}</td><td>{formatNumber(totals.consumption)}</td>
           <td>{formatNumber(totals.exported)}</td><td>{formatNumber(totals.imported)}</td>
-          <td>{money.format(totals.billWithout)}</td><td>{money.format(totals.billWith)}</td><td className="bill-saved">{money.format(totals.saved)}</td>
+          <td>{money.format(totals.billWithout)}</td><td>{money.format(totals.billWith)}</td><td>{money.format(totals.cashOut)}</td><td className="bill-saved">{money.format(totals.saved)}</td>
         </tr></tfoot>
       </table>
     </div>
