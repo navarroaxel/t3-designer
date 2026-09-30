@@ -50,8 +50,8 @@ test('18 risers make a floor height, and the stair fits in the hall', () => {
     assert.ok(block.v[0] >= GROUND_HALL.v[0] - 1e-9 && block.v[1] <= GROUND_HALL.v[1] + 1e-9, `${block.id} within the hall's width`)
     assert.ok(block.u[0] >= GROUND_HALL.u[0] - 1e-9 && block.u[1] <= GROUND_HALL.u[1] + 1e-9, `${block.id} within the hall's depth`)
   }
-  // The last step is close to the hall's wall on the garage side: 4 cm.
-  assert.ok(Math.min(...STAIR_BLOCKS.map(block => block.v[0])) - GROUND_HALL.v[0] < .05)
+  // The last step is close to the hall's wall on the garage side: within 14 cm.
+  assert.ok(Math.min(...STAIR_BLOCKS.map(block => block.v[0])) - GROUND_HALL.v[0] < .15)
 })
 
 test('the stair does not overlap any ground-floor wall', () => {

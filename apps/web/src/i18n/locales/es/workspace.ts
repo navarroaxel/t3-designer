@@ -36,7 +36,7 @@ const workspace = {
     genMonthPerDay: '{{perDay}} kWh por día',
     genCaveat: 'Es una estimación. Física de cielo despejado anclada al clima de 20 años de NASA POWER para este lugar, la sombra del entorno modelado, pérdidas típicas y un factor de 0,83 calibrado con un enero medido (12 a 14 kWh por día con seis paneles de 450 Wp). Esperá ±10 a 15% en el año. No incluye edificios lejanos ni el clima de un día en particular.',
     floors: 'Pisos', floorExterior: 'Casa completa', floorGround: 'Planta baja', floorFirst: 'Primer piso',
-    floorNote: 'Corte a 1,5 m sobre el piso. Muros exteriores de 0,3 m supuestos. En el primer piso solo están los tabiques de las dos habitaciones del frente; el resto del interior todavía no está modelado.',
+    floorNote: 'Las medianeras tienen 15 cm de este lado (30 cm compartidos); los demás muros exteriores son de 0,3 m supuestos. El interior se modela ambiente por ambiente, y todavía no está todo.',
   },
   solar: {
     chartAria: 'Altura del sol a lo largo del día; la marca señala la hora elegida',

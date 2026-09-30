@@ -33,31 +33,31 @@ test('the block has its 24 lots, four of them from municipal surveys', () => {
   assert.deepEqual(LOTS.filter(item => item.source === 'survey').map(item => item.number).sort((a, b) => a - b), [7, 8, 9, 10])
 })
 
-test('the house lot has the surveyed 8.95 m front, 13.50 m and 13.70 m sides and 8.70 m rear', () => {
+test('the house lot has an 8.66 m front (owner), 13.50 m and 13.70 m sides and the surveyed 8.70 m rear', () => {
   // Order: front-right (south-west), rear-right, rear-left (north-east), front-left.
   const [right, rear, left, front] = sides(lotOf(8).polygon)
   closeTo(right, 13.7, .01)
   closeTo(rear, 8.7, .01)
   closeTo(left, 13.5, .01)
-  closeTo(front, 8.95, .01)
+  closeTo(front, 8.66, .01)
 })
 
-test('lot 7 (north-east neighbour) has the surveyed 9.00 m front, 9.10 m rear, 13.30 m and 13.50 m sides', () => {
+test('lot 7 (north-east neighbour) has a 9.145 m front (the surveyed 9.00 m plus the 14.5 cm the house lot gives up), 9.10 m rear, 13.30 m and 13.50 m sides', () => {
   const [right, rear, left, front] = sides(lotOf(7).polygon)
   closeTo(right, 13.5, .01)
   closeTo(rear, 9.1, .01)
   closeTo(left, 13.3, .01)
-  closeTo(front, 9, .01)
+  closeTo(front, 9.145, .01)
 })
 
-test('the corner lot (9) has the surveyed 10.60 m rear, 13.70 m side, 10.70 m front and 5.95 m ochava', () => {
+test('the corner lot (9) has the surveyed 10.60 m rear, 13.70 m side and 5.95 m ochava, and a 10.845 m front (10.70 m plus 14.5 cm)', () => {
   const [straightFront, ochava, cornerSide, rear, houseSide] = sides(lotOf(9).polygon)
   closeTo(houseSide, 13.7, .01)
   closeTo(rear, 10.6, .02)
   closeTo(ochava, 5.95, .02)
   // The front reaches the corner where the street lines meet: the straight part plus the two legs of the ochava.
   const legs = ochava / Math.SQRT2
-  closeTo(straightFront + legs, 10.7, .02)
+  closeTo(straightFront + legs, 10.845, .02)
   // The side on the cross street: 13.28 m to the corner, of which one leg of the ochava.
   closeTo(cornerSide + legs, 13.28, .05)
 })

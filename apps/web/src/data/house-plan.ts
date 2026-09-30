@@ -1,4 +1,4 @@
-import { ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
+import { ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, PARTY_WALL, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
 
 /**
  * Floor plans of the house, for the cutaway views. Only the exterior walls are
@@ -53,7 +53,7 @@ const TERRACE_CENTRE = (SW + -1) / 2
  */
 export const LAUNDRY_DOOR_WIDTH = .8
 export const LAUNDRY_DOOR_FROM_PARTY_WALL = 1.3
-const LAUNDRY_DOOR_CENTRE = HALF - WALL_THICKNESS - LAUNDRY_DOOR_FROM_PARTY_WALL - LAUNDRY_DOOR_WIDTH / 2
+const LAUNDRY_DOOR_CENTRE = HALF - PARTY_WALL - LAUNDRY_DOOR_FROM_PARTY_WALL - LAUNDRY_DOOR_WIDTH / 2
 const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
 /** The ground-floor balcony door onto the light well (owner). Its 2.10 m height is assumed, like the other doors'. */
 export const LIGHT_WELL_DOOR_WIDTH = 1.8
@@ -89,13 +89,13 @@ export const OPENINGS: Record<Floor, Opening[]> = {
 export const OFFICE_WINDOW_WIDTH = 1.5
 export const OFFICE_WINDOW_SILL = .9
 export const OFFICE_WINDOW_HEIGHT = 1.2
-const officeMiddleU = (4 + (HOUSE_REAR.northEast - WALL_THICKNESS)) / 2
+const officeMiddleU = (4 + (HOUSE_REAR.northEast - PARTY_WALL)) / 2
 /**
  * The right arm of the well, on the south-west (the ground floor under the terrace), has a 1.8 m window onto the well (owner), in the wall at
  * v = -1. That it is centred on the room, and its sill and height, the same as the office window's, are assumed.
  */
 export const RIGHT_ARM_WINDOW_WIDTH = 1.8
-const rightArmMiddleU = (4 + (HOUSE_REAR.southWest - WALL_THICKNESS)) / 2
+const rightArmMiddleU = (4 + (HOUSE_REAR.southWest - PARTY_WALL)) / 2
 export const SIDE_OPENINGS: Record<Floor, SideOpening[]> = {
   ground: [
     { v: 1.5, u: [officeMiddleU - OFFICE_WINDOW_WIDTH / 2, officeMiddleU + OFFICE_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] },
@@ -114,12 +114,25 @@ export function polygonArea(ring: PlanPoint[]) {
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value))
 
 /**
+ * The thickness of an exterior wall along an outline edge. The party walls, the medianeras, are 30 cm and shared: 15 cm stand on this lot
+ * (owner). That goes for the two side walls and the rear wall, which the lot behind shares. The other exterior walls, the street front, the
+ * recess and the walls of the light well, are wholly this house's and are 30 cm (assumed).
+ */
+export function exteriorThickness(a: PlanPoint, b: PlanPoint): number {
+  const sameV = (value: number) => Math.abs(a[1] - value) < 1e-9 && Math.abs(b[1] - value) < 1e-9
+  const sameU = (value: number) => Math.abs(a[0] - value) < 1e-9 && Math.abs(b[0] - value) < 1e-9
+  const onParty = sameV(SW) || sameV(HALF) || sameU(HOUSE_REAR.southWest) || sameU(HOUSE_REAR.northEast)
+  return onParty ? PARTY_WALL : WALL_THICKNESS
+}
+
+/**
  * Exterior wall solids for one floor: a strip of `thickness` inside every edge of
  * the outline, from `y0` to `y1`, with the openings cut out of the walls that run
  * along v. Outlines must be axis-aligned. Reflex corners extend their strips so
  * no gap opens at the inside corner.
  */
-export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number, y1: number, thickness = WALL_THICKNESS, sideOpenings: readonly SideOpening[] = []): PlanBox[] {
+export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number, y1: number, thickness?: number, sideOpenings: readonly SideOpening[] = []): PlanBox[] {
+  const thicknessOf = (a: PlanPoint, b: PlanPoint) => thickness ?? exteriorThickness(a, b)
   const orientation = Math.sign(polygonArea(outline))
   const count = outline.length
   const boxes: PlanBox[] = []
@@ -138,10 +151,12 @@ export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number,
     if (Math.min(Math.abs(du), Math.abs(dv)) > 1e-9) throw new Error('Wall outlines must be axis-aligned')
     const dir: PlanPoint = [du / length, dv / length]
     const inward: PlanPoint = orientation > 0 ? [-dir[1], dir[0]] : [dir[1], -dir[0]]
-    const start = reflex(index) ? -thickness : 0, end = length + (reflex((index + 1) % count) ? thickness : 0)
+    const edgeThickness = thicknessOf(a, b)
+    const previous = outline[(index + count - 1) % count], following = outline[(index + 2) % count]
+    const start = reflex(index) ? -thicknessOf(previous, a) : 0, end = length + (reflex((index + 1) % count) ? thicknessOf(b, following) : 0)
     if (Math.abs(du) < 1e-9) {
       // Runs along v at a fixed u: the walls that carry openings.
-      const uLow = Math.min(a[0], a[0] + inward[0] * thickness), uHigh = Math.max(a[0], a[0] + inward[0] * thickness)
+      const uLow = Math.min(a[0], a[0] + inward[0] * edgeThickness), uHigh = Math.max(a[0], a[0] + inward[0] * edgeThickness)
       const along = (s: number) => a[1] + dir[1] * s
       const [vLow, vHigh] = [Math.min(along(start), along(end)), Math.max(along(start), along(end))]
       const edgeLow = Math.min(a[1], b[1]), edgeHigh = Math.max(a[1], b[1])
@@ -157,7 +172,7 @@ export function wallBoxes(outline: PlanPoint[], openings: Opening[], y0: number,
       }
       add(uLow, uHigh, y0, y1, cursor, vHigh)
     } else {
-      const vLow = Math.min(a[1], a[1] + inward[1] * thickness), vHigh = Math.max(a[1], a[1] + inward[1] * thickness)
+      const vLow = Math.min(a[1], a[1] + inward[1] * edgeThickness), vHigh = Math.max(a[1], a[1] + inward[1] * edgeThickness)
       const along = (s: number) => a[0] + dir[0] * s
       const [uLow, uHigh] = [Math.min(along(start), along(end)), Math.max(along(start), along(end))]
       const edgeLow = Math.min(a[0], b[0]), edgeHigh = Math.max(a[0], b[0])
@@ -187,14 +202,16 @@ export const PARTITION_THICKNESS = .12
 const INNER_FRONT = -5 + WALL_THICKNESS
 const MAIN_ROOM = { width: 5.12, depth: 4.54 }
 const SECONDARY_ROOM = { width: 3.09, depth: 3.41 } // 3.09 m at the front; see FRONT_ROOMS for the drawn width
-const NE_INNER = HALF - WALL_THICKNESS
+const NE_INNER = HALF - PARTY_WALL
+/** The south-west party wall's inner face, at the plan's mean position. */
+const SW_INNER = SW + PARTY_WALL
 export const FRONT_ROOMS = {
   main: { u: [INNER_FRONT, INNER_FRONT + MAIN_ROOM.depth] as [number, number], v: [NE_INNER - MAIN_ROOM.width, NE_INNER] as [number, number] },
   secondary: {
     u: [INNER_FRONT, INNER_FRONT + SECONDARY_ROOM.depth] as [number, number],
     // On the south-west the room is bounded by the party wall as drawn, at its mean position: the lot leans,
     // so the room is about 0.1 m narrower than the 3.09 m taken at the front, and nothing may enter the wall.
-    v: [SW + WALL_THICKNESS, NE_INNER - MAIN_ROOM.width - PARTITION_THICKNESS] as [number, number],
+    v: [SW_INNER, NE_INNER - MAIN_ROOM.width - PARTITION_THICKNESS] as [number, number],
   },
 }
 /**
@@ -514,7 +531,7 @@ export const FLOOR_TILING: FloorTiling[] = [
   },
   // The laundry, continuous with the kitchen, has the bathroom's tile too (owner). It is taken to be the roof of the left
   // ground-floor band, at first-floor level, inset 0.15 m from its edges for the walls.
-  { id: 'laundry', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.northEast - .15, 1.5 + .15, HALF - .15]] },
+  { id: 'laundry', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.northEast - PARTY_WALL, 1.5 + WALL_THICKNESS, NE_INNER]] },
   { id: 'living', color: '#c69a5d', pattern: SAING_PLANKS, rects: [[KITCHEN_LIVING.u[0], KITCHEN_LIVING.u[1], KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[1]]] },
   { id: 'bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[0], FIRST_FLOOR_BATHROOM.v[1]]] },
 ]
@@ -534,13 +551,13 @@ export const BALCONY = { width: 7.94, depth: .86, edge: .3 }
  */
 export const GARAGE = { depth: 5.69, width: GARAGE_WIDTH }
 const groundBackU = INNER_FRONT + GARAGE.depth
-export const GROUND_BACK_WALL: [number, number, number, number] = [groundBackU, groundBackU + PARTITION_THICKNESS, SW + WALL_THICKNESS, NE_INNER]
+export const GROUND_BACK_WALL: [number, number, number, number] = [groundBackU, groundBackU + PARTITION_THICKNESS, SW_INNER, NE_INNER]
 // The wall on the garage's side of the entrance recess continues to the back wall (owner), so it is the garage's side wall: 0.3 m thick
 // like the exterior walls, on the recess wall's line. The recess's width was corrected so that this wall falls where the garage's width
 // puts it: the garage is 4.5 m wide inside (owner).
 export const GROUND_GARAGE = {
   u: [INNER_FRONT, groundBackU] as [number, number],
-  v: [SW + WALL_THICKNESS, SW + WALL_THICKNESS + GARAGE.width] as [number, number],
+  v: [SW_INNER, SW_INNER + GARAGE.width] as [number, number],
 }
 /** The hall is behind the entrance recess, whose back wall stands at u = -4 and is as thick as the exterior walls. */
 export const GROUND_HALL = {
@@ -555,7 +572,7 @@ export const GROUND_HALL = {
 // It starts 0.3 m past the well's edge: the exterior walls already extend through that reflex corner, and a wall from v = 1.5 would overlap them.
 export const GROUND_OFFICE_WALL: [number, number, number, number] = [4 - WALL_THICKNESS, 4, 1.5 + WALL_THICKNESS, NE_INNER]
 export const GROUND_OFFICE = {
-  u: [4, HOUSE_REAR.northEast - WALL_THICKNESS] as [number, number],
+  u: [4, HOUSE_REAR.northEast - PARTY_WALL] as [number, number],
   v: [1.5 + WALL_THICKNESS, NE_INNER] as [number, number],
 }
 

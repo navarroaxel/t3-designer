@@ -6,7 +6,7 @@ import { BALCONY, OPENINGS, SIDE_OPENINGS } from '../data/house-plan'
  * Front elevation of the house, read from Street View (August 2025).
  * House frame: local x runs toward the rear (u), local z toward the south-west
  * (-v), y is up from the ground-floor level. The street front is at u = -5 and
- * the facade is 8.95 m wide, v in [-4.475, 4.475]. Positions come from the photo
+ * the facade is 8.66 m wide, v in [-4.33, 4.33]. Positions come from the photo
  * scaled to the frontage (about 93 px/m); expect roughly +/-0.2 m.
  */
 const FRONT = -5

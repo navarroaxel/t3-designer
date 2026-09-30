@@ -51,7 +51,7 @@ const backLot = (v0: number, v1: number, uInner: number): PlanPoint[] =>
   [[uInner, v0], [backLine(v0), v0], [backLine(v1), v1], [uInner, v1]]
 
 // Widths along the front street, from the south-west corner (lot 9) to the north-east one.
-const F = { nine: CORNER_SW, eight: -4.475, seven: 4.475, six: 13.475, five: 22.675, four: 30.275, three: 39.075, two: 48.475, one: 56.275, end: CORNER_NE }
+const F = { nine: CORNER_SW, eight: -4.33, seven: 4.33, six: 13.475, five: 22.675, four: 30.275, three: 39.075, two: 48.475, one: 56.275, end: CORNER_NE }
 // Widths along the back street, from the south-west corner (lot 13) to the north-east one (lot 21).
 const B = [CORNER_SW, -3.645, 5.195, 13.835, 22.875, 31.215, 40.055, 48.475, 56.445, CORNER_NE]
 
@@ -64,10 +64,11 @@ const lot = (number: number, source: LotSource, polygon: PlanPoint[], building: 
   ({ number, source, polygon, building, floors, height })
 
 // The four surveyed lots. Numbers are 1 to 24 as on the block plan.
-const HOUSE_LOT: PlanPoint[] = [[-5, -4.475], [8.7, -4.225], [8.5, 4.475], [-5, 4.475]]
-const NEIGHBOUR_A_LOT: PlanPoint[] = [[-5, 4.475], [8.5, 4.475], [8.3, 13.57], [-5, 13.475]]
+// The house lot has 8.66 m of front (owner). Its rear boundaries are the surveyed ones, so the neighbours' fronts, not their rears, take the difference.
+const HOUSE_LOT: PlanPoint[] = [[-5, -4.33], [8.7, -4.225], [8.5, 4.475], [-5, 4.33]]
+const NEIGHBOUR_A_LOT: PlanPoint[] = [[-5, 4.33], [8.5, 4.475], [8.3, 13.57], [-5, 13.475]]
 // Corner lot: 10.70 m of front, an ochava of 5.95 m, 13.70 m and 13.28 m sides, 10.60 m at the rear.
-const CORNER_LOT: PlanPoint[] = [[-5, -4.475], [-5, -10.965], [-0.79, CORNER_SW], [8.28, -14.825], [8.7, -4.225]]
+const CORNER_LOT: PlanPoint[] = [[-5, -4.33], [-5, -10.965], [-0.79, CORNER_SW], [8.28, -14.825], [8.7, -4.225]]
 // The lot behind: 7.80 m wide and 28.40 m long, its front edge following the rear boundaries of lots 7, 8 and 9.
 const REAR_LOT: PlanPoint[] = [[8.28, -14.825], [8.7, -4.225], [8.5, 4.475], [8.3, 13.57], [16.1, 13.57], [16.3, 4.475], [16.5, -4.225], [16.08, -14.825]]
 
