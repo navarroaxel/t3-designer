@@ -220,8 +220,10 @@ const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
 // Where lot 7 (A) splits: a walled front patio next to the house, then the garage house.
 const A_PATIO_END = 7.975;
 const NEIGHBOUR_WALL = .15;
-/** How much the tile roof of lot 7's house rises over its 11.3 m, about 6 degrees. */
-const A_ROOF_RISE = 1.2;
+/** Lot 7's balcony and house stand on the first floor: the balcony's slab top, its parapet, and the tile roof's rise over 11.3 m. */
+const A_FIRST_FLOOR = 3.3;
+const A_PARAPET = 1;
+const A_ROOF_RISE = .8;
 /** Pitch of the sheet-metal roof of lot 7's garage: the owner says clearly more than 5 degrees. */
 export const GARAGE_ROOF_DEGREES = 10;
 
@@ -260,9 +262,11 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   // green railing on the street line, a front patio about 2 m deep and a one-floor house behind
   // it; then a garage with green doors under a sheet-metal roof.
   // Its tile roof (owner's photos) is a single pitch like the garage's, gentler, rising toward the back.
-  withSlope(building('NEIGHBOR-A', 'Vecino A (NE)', rect(-3, 8.3, HALF_WIDTH, A_PATIO_END), 3.8, 1),
+  // The house is on the first floor, over a ground floor, and its balcony is in the setback beside ours.
+  withSlope(building('NEIGHBOR-A', 'Vecino A (NE)', rect(-3, 8.3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR + 2.6, 2),
     REAR_DIRECTION, A_ROOF_RISE),
-  building('NEIGHBOR-A-WALL', 'Vecino A · muro de calle', rect(-5, -5 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), 2.1, 0),
+  building('NEIGHBOR-A-TERRACE', 'Vecino A · balcón del retiro', rect(-5 + NEIGHBOUR_WALL, -3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR, 1, false, A_FIRST_FLOOR - .4),
+  building('NEIGHBOR-A-WALL', 'Vecino A · muro de calle', rect(-5, -5 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR + A_PARAPET, 0),
   // The garage is two cars deep, about 9 m, under a sheet-metal roof that rises about 10 degrees from
   // its 2.7 m eave at the street toward the back; behind it stands a taller two-level volume.
   withSlope(building('NEIGHBOR-A-GARAGE', 'Vecino A · garaje de chapa', rect(-5, 4, A_PATIO_END, 13.475), 2.7, 1),

@@ -24,25 +24,27 @@ export const REAR_LOT_FRONT = {
 }
 
 /**
- * Lot 7 (A), the house next to ours, from the owner's photos (October 2025): a patio 2 m deep behind
- * a cream street wall with a brick cap, red floor, and the house's front with a barred door and a
- * wide barred window in green frames, under a white gutter. House frame: u along the street, v across.
+ * Lot 7 (A), the house next to ours, from the owner's photos (October 2025): a balcony on the first
+ * floor, 2 m deep, in the setback beside our house, behind a cream parapet with a brick cap on the
+ * street line, with a red floor; the house stands behind it, with a barred door and a wide barred
+ * window in green frames under a white gutter. House frame: u along the street, v across.
  */
+const LEVEL = 3.3
 export const A_FRONT = {
   /** Where the house's front wall stands. */
   u: -3,
   v: [4.33, 7.975] as [number, number],
-  floor: { color: '#a24a3b', height: .05 },
-  /** Courses of brick on the street wall's top and its cap. */
+  floor: { color: '#a24a3b', y: [LEVEL - .05, LEVEL] as [number, number] },
+  /** Courses of brick on the parapet's top and its cap. */
   cap: [
-    { y: [1.9, 2.05], color: '#8f4a35', depth: .24 },
-    { y: [2.05, 2.2], color: '#a5533b', depth: .3 },
+    { y: [LEVEL + .6, LEVEL + .75], color: '#8f4a35', depth: .24 },
+    { y: [LEVEL + .75, LEVEL + 1], color: '#a5533b', depth: .3 },
   ],
   parts: [
-    { v: [4.55, 5.85], y: [0, 2.2], color: '#2f5d4a', depth: .08 }, // door frame
-    { v: [4.7, 5.7], y: [.1, 2.1], color: '#262b2a', depth: .1 }, // door, barred glass
-    { v: [6.15, 7.75], y: [.9, 2.4], color: '#4f6f5a', depth: .08 }, // window frame
-    { v: [6.25, 7.65], y: [1, 2.3], color: '#262b2a', depth: .1 }, // window, barred glass
-    { v: [4.33, 7.975], y: [3.75, 3.85], color: '#f2f2ee', depth: .12 }, // gutter
+    { v: [4.55, 5.85], y: [LEVEL, LEVEL + 2.2], color: '#2f5d4a', depth: .08 }, // door frame
+    { v: [4.7, 5.7], y: [LEVEL + .1, LEVEL + 2.1], color: '#262b2a', depth: .1 }, // door, barred glass
+    { v: [6.15, 7.75], y: [LEVEL + .9, LEVEL + 2.4], color: '#4f6f5a', depth: .08 }, // window frame
+    { v: [6.25, 7.65], y: [LEVEL + 1, LEVEL + 2.3], color: '#262b2a', depth: .1 }, // window, barred glass
+    { v: [4.33, 7.975], y: [LEVEL + 2.55, LEVEL + 2.65], color: '#f2f2ee', depth: .12 }, // gutter
   ],
 }
