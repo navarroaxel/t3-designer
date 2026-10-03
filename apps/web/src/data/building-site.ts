@@ -324,7 +324,10 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
     const id = `OPP-${String(item.number).padStart(2, '0')}`, label = `Manzana de enfrente · lote ${item.number}`
     return [
       building(id, label, poly(item.building), item.height, item.floors ?? 1),
-      ...(item.extras ?? []).map(extra => building(`${id}-${extra.suffix}`, `${label} · ${extra.label}`, poly(extra.ring), extra.height, 1, false, extra.base)),
+      ...(item.extras ?? []).map(extra => {
+        const volume = building(`${id}-${extra.suffix}`, `${label} · ${extra.label}`, poly(extra.ring), extra.height, 1, false, extra.base)
+        return extra.rise ? withSlope(volume, [-HOUSE_PLUS_V[0], -HOUSE_PLUS_V[1]], extra.rise) : volume
+      }),
     ]
   }),
   ...ROOFTOP_OBSTACLES,

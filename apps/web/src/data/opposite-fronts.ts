@@ -75,10 +75,10 @@ export const BLACK_FRONT_PARTS: CornerPart[] = [
   { s: [0, 3.5], y: [6.5, 6.6], color: WHITE, depth: .06 },
 ]
 
-/** The white room on the roof: its sliding door, in the room's front face. */
+/** The white room on the roof: its sliding door, in the room's front face. It is not centred: it is pushed toward the roof's open azotea (+v), at 3 m from the left party wall. */
 export const BLACK_ROOM_PARTS: CornerPart[] = [
-  { s: [1.8, 2.9], y: [6.5, 8.4], color: WHITE, depth: .08 },
-  { s: [1.9, 2.8], y: [6.6, 8.3], color: '#9fb0b8', depth: .1 },
+  { s: [2.45, 3.55], y: [6.5, 8.4], color: WHITE, depth: .08 },
+  { s: [2.55, 3.45], y: [6.6, 8.3], color: '#9fb0b8', depth: .1 },
 ]
 
 /** Lot 23, the corner: the window with its roller shutter on the street face. */

@@ -51,7 +51,8 @@ const topEdge = (x: number) => 208 + (PLAN.right - x) * (24 / (PLAN.right - PLAN
 const BAND = 13.5
 export const OPPOSITE_HEIGHT = 3.3
 
-export type OppositeExtra = { suffix: string; label: string; ring: PlanPoint[]; base: number; height: number }
+/** `rise` makes the top a single pitch, as high as `height` plus `rise` on the south-west side (-v) and `height` on the other. */
+export type OppositeExtra = { suffix: string; label: string; ring: PlanPoint[]; base: number; height: number; rise?: number }
 export type OppositeLot = { number: number; polygon: PlanPoint[]; building: PlanPoint[]; height: number; floors?: number; extras?: OppositeExtra[] }
 
 function lotFrom([number, x0, x1, y0, y1, front]: typeof RAW[number]): OppositeLot {
@@ -130,6 +131,9 @@ const SURVEYED_24: OppositeLot = (() => {
   // The owner's photos: a two-floor house with a black front, set back about 3 m behind a fenced
   // front garden. On the first floor's roof there is a white room over the left 3.7 m, set back 1 m
   // behind its balcony, a black parapet 1.2 m high over the rest of the front and two water tanks.
+  // The room's roof is a single pitch that falls toward its own azotea, away from the left party wall
+  // (photo of October 2025, estimated: 3.2 m on the left, 2.2 m on the right). The tanks stand at the
+  // back of the roof, over the narrow body, not at the front.
   const { setback, roomSetback, width } = BLACK_HOUSE
   const front = u - setback, room = front - roomSetback
   const tank = (centre: PlanPoint) => Array.from({ length: 12 }, (_, i) => [centre[0] + .45 * Math.cos(Math.PI * i / 6), centre[1] + .45 * Math.sin(Math.PI * i / 6)] as PlanPoint)
@@ -143,15 +147,15 @@ const SURVEYED_24: OppositeLot = (() => {
       {
         suffix: 'ROOM', label: 'cuarto de la azotea',
         ring: [[room, v0 + .5], [room, v0 + 4.2], [room - 4.3, v0 + 4.2], [room - 4.3, v0 + .5]],
-        base: 6.4, height: 9,
+        base: 6.4, height: 8.6, rise: 1,
       },
       {
         suffix: 'PARAPET', label: 'parapeto del frente',
         ring: [[front, v0 + 3.5], [front, v0 + width], [front - .2, v0 + width], [front - .2, v0 + 3.5]],
         base: 6.4, height: 7.6,
       },
-      { suffix: 'TANK-A', label: 'tanque de la azotea', ring: tank([front - 1.6, v0 + 5.1]), base: 6.4, height: 7.7 },
-      { suffix: 'TANK-B', label: 'tanque de la azotea', ring: tank([front - 1.6, v0 + 6.1]), base: 6.4, height: 7.7 },
+      { suffix: 'TANK-A', label: 'tanque de la azotea', ring: tank([u - 13.35 + .8, v0 + 2.5]), base: 6.4, height: 7.7 },
+      { suffix: 'TANK-B', label: 'tanque de la azotea', ring: tank([u - 13.35 + .8, v0 + 3.4]), base: 6.4, height: 7.7 },
     ],
   }
 })()

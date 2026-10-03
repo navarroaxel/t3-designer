@@ -175,7 +175,7 @@ test('the sheet-metal roof of the garage of lot 7 is a single pitch of more than
   closeTo(garage.slope!.direction[1], Math.SQRT1_2, 1e-12)
   assert.ok(garage.height + garage.slope!.rise < byId('NEIGHBOR-A-REAR').height)
   // The tile roof of A's house and the laundry's sheet roof and the stair's wall are the only other pitches, gentler, and stays under the volume behind the garage.
-  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'HOUSE-LAUNDRY-GUARD', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
+  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'HOUSE-LAUNDRY-GUARD', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE', 'OPP-24-ROOM'])
   const house = byId('NEIGHBOR-A-UPPER')
   assert.ok(house.slope!.rise < garage.slope!.rise && house.height + house.slope!.rise < 7)
 })
@@ -319,4 +319,18 @@ test('the terrace sink is a Toscana Vena shelf from the railing wall to the gril
   assert.ok(Math.min(...vs(basin)) > Math.min(...vs(shelf)) && Math.max(...vs(basin)) < Math.max(...vs(shelf)))
   assert.ok(Math.min(...us(basin)) > Math.min(...us(shelf)) && Math.max(...us(basin)) < Math.max(...us(shelf)))
   closeTo(basin.base ?? 0, shelf.height, 1e-9)
+})
+
+test('the black house opposite has a pitched room falling toward its azotea, and its tanks stand at the back', () => {
+  const room = byId('OPP-24-ROOM'), house = byId('OPP-24')
+  assert.ok(room.slope && room.slope.rise > 0, 'a pitched roof')
+  // It falls toward +v, the azotea's side, so it rises toward the left party wall.
+  const [x, z] = [room.slope!.direction[0], room.slope!.direction[1]]
+  const [px, pz] = houseToSite(0, 1), [ox, oz] = houseToSite(0, 0)
+  closeTo(x * (px - ox) + z * (pz - oz), -1, 1e-9)
+  const centreU = (item: BuildingFootprint) => item.footprint.reduce((sum, point) => sum + houseFrame(point)[0], 0) / item.footprint.length
+  const frontU = Math.max(...house.footprint.map(point => houseFrame(point)[0]))
+  for (const id of ['OPP-24-TANK-A', 'OPP-24-TANK-B']) {
+    assert.ok(frontU - centreU(byId(id)) > 9, `${id}: at the back of the roof`)
+  }
 })
