@@ -287,6 +287,9 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   // Lot 9, the corner: three flats in horizontal property, each with its own door. Street
   // View shows a two-floor block next to the house, and a one-floor front toward the cross street.
   building('NEIGHBOR-C-UPPER', 'Vecino C · bloque de 2 plantas', poly([[-5, -8.9], [4, -8.9], southWest(4), southWest(-5)]), 6.6, 2),
+  // The condenser of an air conditioner on the red azotea (owner's photo): about 0.8 m wide, 0.3 m deep and
+  // 0.55 m tall on two bricks, in the middle of the block, 2.5 m from the party wall with the house.
+  building('NEIGHBOR-C-AC', 'Vecino C · equipo de aire acondicionado', rect(-.4, .4, -7.15, -6.85), 6.6 + .75, 0, false, 6.6),
   building('NEIGHBOR-C-REAR', 'Vecino C · planta baja trasera', poly([[4, -8.9], [8.5, -8.9], southWest(8.5), southWest(4)]), 3, 1),
   building('NEIGHBOR-C-FRONT', 'Vecino C · esquina',
     poly([[-5, -8.9], OCHAVA_START, OCHAVA_END, CROSS_STREET_END, [8.5, -8.9]]), 3, 1),
