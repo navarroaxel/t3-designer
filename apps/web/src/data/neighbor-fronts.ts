@@ -24,21 +24,25 @@ export const REAR_LOT_FRONT = {
 }
 
 /**
- * Lot 7 (A), the house next to ours, from the owner's photos (October 2025): a balcony on the first
- * floor, 2 m deep, in the setback beside our house, behind a cream parapet with a brick cap on the
- * street line, with a red floor; the house stands behind it, with a barred door and a wide barred
- * window in green frames under a white gutter. House frame: u along the street, v across.
+ * Lot 7 (A), the house next to ours, from the owner's photos (October 2025) and Street View: a brick
+ * wall with a green railing on the street line, a covered porch behind it, and over the porch a
+ * terrace 2 m deep with a red floor. Its street-line wall is 1.1 m above the floor and hides the
+ * windows from the street; the house stands behind it, with a barred door and a wide barred window in
+ * green frames under a white gutter. House frame: u along the street, v across.
  */
-const LEVEL = 3.3
+const LEVEL = 3.4
 export const A_FRONT = {
   /** Where the house's front wall stands. */
   u: -3,
   v: [4.33, 7.975] as [number, number],
+  /** The brick wall on the street line and the railing over it. */
+  wall: 1.85,
+  railing: { top: 2.5, color: '#2f5d4a', bars: .12 },
   floor: { color: '#a24a3b', y: [LEVEL - .05, LEVEL] as [number, number] },
-  /** Courses of brick on the parapet's top and its cap. */
+  /** A brick course in the terrace wall and its cap. */
   cap: [
-    { y: [LEVEL + .6, LEVEL + .75], color: '#8f4a35', depth: .24 },
-    { y: [LEVEL + .75, LEVEL + 1], color: '#a5533b', depth: .3 },
+    { y: [LEVEL + .1, LEVEL + .25], color: '#8f4a35', depth: .24 },
+    { y: [LEVEL + .95, LEVEL + 1.1], color: '#a5533b', depth: .3 },
   ],
   parts: [
     { v: [4.55, 5.85], y: [LEVEL, LEVEL + 2.2], color: '#2f5d4a', depth: .08 }, // door frame
