@@ -25,20 +25,22 @@ export const REAR_LOT_FRONT = {
 
 /**
  * Lot 7 (A), the house next to ours, from the owner's photos (October 2025) and Street View: a brick
- * wall with a green railing on the street line, a covered porch behind it, and over the porch a
- * terrace 2 m deep with a red floor. Its street-line wall is 1.1 m above the floor and hides the
- * windows from the street; the house stands behind it, with a barred door and a wide barred window in
- * green frames under a white gutter. House frame: u along the street, v across.
+ * wall with a green railing on the street line and, 2 m behind it, a ground-floor patio ending at the
+ * house's front. On top of that front stands a cream wall 1.1 m high, with a brick course and cap,
+ * around the first-floor terrace (red floor), which hides the windows from the street. The tile-roofed
+ * house stands at the back of the terrace, with a barred door and a wide barred window in green
+ * frames under a white gutter. House frame: u along the street, v across.
  */
 const LEVEL = 3.4
 export const A_FRONT = {
-  /** Where the house's front wall stands. */
-  u: -3,
+  /** The terrace wall, at the back of the patio. */
+  wallU: -3,
+  /** Where the terrace ends and the tile-roofed house's front wall stands. */
+  u: -.5,
   v: [4.33, 7.975] as [number, number],
   /** The brick wall on the street line and the railing over it. */
   wall: 1.85,
   railing: { top: 2.5, color: '#2f5d4a', bars: .12 },
-  floor: { color: '#a24a3b', y: [LEVEL - .05, LEVEL] as [number, number] },
   /** A brick course in the terrace wall and its cap. */
   cap: [
     { y: [LEVEL + .1, LEVEL + .25], color: '#8f4a35', depth: .24 },

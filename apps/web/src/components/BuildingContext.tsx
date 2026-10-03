@@ -97,9 +97,10 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
   // Lot 7's street wall is brick; its terrace wall is weathered cream under a brick cap; the house has a tile roof.
   if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .95, metalness: 0 }
-  if (building.id === 'NEIGHBOR-A-PARAPET') return { wall: '#d9d3b8', roof: '#a5533b', roughness: .95, metalness: 0 }
-  if (building.id === 'NEIGHBOR-A-TERRACE') return { wall: '#d9d3b8', roof: '#a24a3b', roughness: .95, metalness: 0 }
-  if (building.id === 'NEIGHBOR-A') return { wall: '#e6e0c8', roof: '#b0553a', roughness: .85, metalness: 0 }
+  if (building.id.startsWith('NEIGHBOR-A-PARAPET')) return { wall: '#d9d3b8', roof: '#a5533b', roughness: .95, metalness: 0 }
+  // The house's front is cream and its flat roof is the terrace's red floor; the house on it has the tile roof.
+  if (building.id === 'NEIGHBOR-A') return { wall: '#e6e0c8', roof: '#a24a3b', roughness: .95, metalness: 0 }
+  if (building.id === 'NEIGHBOR-A-UPPER') return { wall: '#e6e0c8', roof: '#b0553a', roughness: .85, metalness: 0 }
   // The houses across the street, from Street View: the corner white, the house opposite black.
   if (building.id === 'OPP-23') return { wall: OPPOSITE_COLORS.cornerWall, roof: OPPOSITE_COLORS.cornerRoof, roughness: .92, metalness: 0 }
   if (building.id === 'OPP-24') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }

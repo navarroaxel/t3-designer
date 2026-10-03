@@ -221,14 +221,15 @@ const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
 const A_PATIO_END = 7.975;
 const NEIGHBOUR_WALL = .15;
 /**
- * Lot 7's front from the owner's photo: a brick wall 1.85 m high on the street line with a railing
- * over it, a covered porch behind it, and over the porch a terrace whose slab is 2.8 to 3.4 m, with a
- * 1.1 m wall on the street line that hides the windows of the house. The house stands on the terrace.
+ * Lot 7's front from the owner's photos: a brick wall 1.85 m high on the street line, an open
+ * ground-floor patio 2 m deep behind it, and at its back the house's front, 3.4 m high, with a
+ * 1.1 m wall on top that hides the windows of the first-floor terrace behind it. The tile-roofed
+ * house stands at the back of the terrace.
  */
 const A_WALL_HEIGHT = 1.85;
-const A_SLAB_BASE = 2.8;
 const A_FIRST_FLOOR = 3.4;
 const A_PARAPET_TOP = 4.5;
+const A_TERRACE_END = -.5;
 const A_ROOF_RISE = .8;
 /** Pitch of the sheet-metal roof of lot 7's garage: the owner says clearly more than 5 degrees. */
 export const GARAGE_ROOF_DEGREES = 10;
@@ -269,10 +270,11 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   // it; then a garage with green doors under a sheet-metal roof.
   // Its tile roof (owner's photos) is a single pitch like the garage's, gentler, rising toward the back.
   // The house stands on the first-floor terrace, over a ground floor.
-  withSlope(building('NEIGHBOR-A', 'Vecino A (NE)', rect(-3, 8.3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR + 2.6, 2),
+  building('NEIGHBOR-A', 'Vecino A (NE)', rect(-3, 8.3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR, 1),
+  withSlope(building('NEIGHBOR-A-UPPER', 'Vecino A · casa de tejas del P1', rect(A_TERRACE_END, 8.3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR + 2.6, 1, false, A_FIRST_FLOOR),
     REAR_DIRECTION, A_ROOF_RISE),
-  building('NEIGHBOR-A-TERRACE', 'Vecino A · losa de la terracita', rect(-5 + NEIGHBOUR_WALL, -3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR, 1, false, A_SLAB_BASE),
-  building('NEIGHBOR-A-PARAPET', 'Vecino A · pared de la terracita', rect(-5, -5 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), A_PARAPET_TOP, 0, false, A_SLAB_BASE),
+  building('NEIGHBOR-A-PARAPET', 'Vecino A · pared de la terracita', rect(-3, -3 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), A_PARAPET_TOP, 0, false, A_FIRST_FLOOR),
+  building('NEIGHBOR-A-PARAPET-SIDE', 'Vecino A · pared lateral de la terracita', rect(-3 + NEIGHBOUR_WALL, A_TERRACE_END, A_PATIO_END - NEIGHBOUR_WALL, A_PATIO_END), A_PARAPET_TOP, 0, false, A_FIRST_FLOOR),
   building('NEIGHBOR-A-WALL', 'Vecino A · muro de calle', rect(-5, -5 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), A_WALL_HEIGHT, 0),
   // The garage is two cars deep, about 9 m, under a sheet-metal roof that rises about 10 degrees from
   // its 2.7 m eave at the street toward the back; behind it stands a taller two-level volume.

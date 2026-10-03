@@ -79,12 +79,8 @@ export function NeighborFacades() {
         <meshStandardMaterial color={part.color} roughness={.9} />
       </mesh>
     })}
-    {/* Lot 7 (A): the terrace's red floor, the brick course and cap of its wall, the railing over the street wall, and the house's front. */}
-    <mesh position={[(FRONT + .15 + A_FRONT.u) / 2, (A_FRONT.floor.y[0] + A_FRONT.floor.y[1]) / 2, -(A_FRONT.v[0] + A_FRONT.v[1]) / 2]} receiveShadow>
-      <boxGeometry args={[A_FRONT.u - FRONT - .15, A_FRONT.floor.y[1] - A_FRONT.floor.y[0], A_FRONT.v[1] - A_FRONT.v[0]]} />
-      <meshStandardMaterial color={A_FRONT.floor.color} roughness={.95} />
-    </mesh>
-    {A_FRONT.cap.map(course => <mesh key={`${course.y}`} position={[FRONT + .075, (course.y[0] + course.y[1]) / 2, -(A_FRONT.v[0] + A_FRONT.v[1]) / 2]} receiveShadow>
+    {/* Lot 7 (A): the railing over the street wall, and the brick course and cap of the terrace wall, and the house's front. */}
+    {A_FRONT.cap.map(course => <mesh key={`${course.y}`} position={[A_FRONT.wallU + .075, (course.y[0] + course.y[1]) / 2, -(A_FRONT.v[0] + A_FRONT.v[1]) / 2]} receiveShadow>
       <boxGeometry args={[course.depth, course.y[1] - course.y[0], A_FRONT.v[1] - A_FRONT.v[0]]} />
       <meshStandardMaterial color={course.color} roughness={.9} />
     </mesh>)}
