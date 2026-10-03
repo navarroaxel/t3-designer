@@ -201,6 +201,18 @@ const TANK_U: [number, number] = [AZOTEA_REAR - WALL - .1 - 1.6, AZOTEA_REAR - W
 const TANK_V: [number, number] = [-2, -.4];
 const rooftop = (id: string, label: string, footprint: SitePoint[], base: number, top: number) =>
   building(`HOUSE-${id}`, label, footprint, ROOF + top, 1, false, ROOF + base);
+/**
+ * The utility shed in the rear south-west corner of the azotea, between the south-west parapet and the tank slab (owner: 1.5 m deep).
+ * It stands against the rear parapet and runs 1.5 m toward the street; its other side stops 0.1 m short of the tank slab. The
+ * heights are a proposal, not measured: 2.3 m of wall, so about 2.2 m inside, under a sheet roof that drains toward the street.
+ */
+export const SHED = { depth: 1.5, gapToTank: .1, wallHeight: 2.3, roofThickness: .1, roofRise: .2 } as const;
+const SHED_U: [number, number] = [AZOTEA_REAR - WALL - SHED.depth, AZOTEA_REAR - WALL];
+const SHED_NE_V = TANK_V[0] - .1 - SHED.gapToTank;
+const shedFootprint = () => poly([
+  [SHED_U[0], houseSouthWestEdge(SHED_U[0]) + WALL], [SHED_U[1], houseSouthWestEdge(SHED_U[1]) + WALL],
+  [SHED_U[1], SHED_NE_V], [SHED_U[0], SHED_NE_V],
+]);
 const tankCentre: [number, number] = [(TANK_U[0] + TANK_U[1]) / 2, (TANK_V[0] + TANK_V[1]) / 2];
 const octagon = (u: number, v: number, radius: number): SitePoint[] =>
   Array.from({ length: 8 }, (_, i) => houseToSite(u + radius * Math.cos(Math.PI / 8 + i * Math.PI / 4), v + radius * Math.sin(Math.PI / 8 + i * Math.PI / 4)));
@@ -223,6 +235,8 @@ const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
   rooftop('TANK-SLAB', 'Losa del tanque', rect(TANK_U[0] - .1, TANK_U[1] + .1, TANK_V[0] - .1, TANK_V[1] + .1), .9, 1.2),
   rooftop('TANK-BLOCK', 'Tanque de hormigón', rect(TANK_U[0], TANK_U[1], TANK_V[0], TANK_V[1]), 1.2, 2.25),
   rooftop('TANK-STEEL', 'Tanque de acero', octagon(tankCentre[0], tankCentre[1], .5), 2.25, 3.75),
+  rooftop('SHED', 'Cuarto de servicios', shedFootprint(), 0, SHED.wallHeight),
+  withSlope(rooftop('SHED-ROOF', 'Cuarto de servicios · techo de chapa', shedFootprint(), SHED.wallHeight, SHED.wallHeight + SHED.roofThickness), REAR_DIRECTION, SHED.roofRise),
 ];
 
 // Where lot 7 (A) splits: a walled front patio next to the house, then the garage house.
