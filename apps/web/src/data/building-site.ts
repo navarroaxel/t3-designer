@@ -299,7 +299,7 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('NEIGHBOR-C-TANK-ROOM', 'Vecino C · cuarto del tanque', poly(squareAround(cornerTankCentre(), CORNER_TANK.roomSide)), CORNER_TANK.roomTop, 1, false, CORNER_UPPER.terraceHeight),
   building('NEIGHBOR-C-TANK', 'Vecino C · tanque de fibrocemento', poly(circleAround(cornerTankCentre(), CORNER_TANK.diameter / 2, CORNER_TANK.sides)), CORNER_TANK.top, 0, false, CORNER_TANK.roomTop),
   building('NEIGHBOR-C-ROOM', 'Vecino C · habitación alta', poly([OCHAVA_END, crossStreetAt(CORNER_UPPER.roomEndU), [CORNER_UPPER.roomEndU, -11.5], [OCHAVA_END[0], -11.5]]), CORNER_UPPER.roomHeight, 1, false, 3),
-  building('NEIGHBOR-C-PARAPET', 'Vecino C · parapeto hacia el fondo', poly([crossStreetAt(CORNER_UPPER.roomEndU), CROSS_STREET_END, [CROSS_STREET_END[0], -13.9], [CORNER_UPPER.roomEndU, -13.9]]), CORNER_UPPER.parapetHeight, 1, false, 3),
+  building('NEIGHBOR-C-PARAPET', 'Vecino C · pared blanca sobre la calle transversal', poly([crossStreetAt(CORNER_UPPER.roomEndU), CROSS_STREET_END, [CROSS_STREET_END[0], CROSS_STREET_END[1] + CORNER_UPPER.parapetThickness], [CORNER_UPPER.roomEndU, crossStreetAt(CORNER_UPPER.roomEndU)[1] + CORNER_UPPER.parapetThickness]]), CORNER_UPPER.parapetHeight, 1, false, 3),
   // The other lots of the block, from the block plan: one prism each, in the band by the street.
   ...genericBuildings().map(({ lot, footprint }) =>
     building(`LOT-${String(lot.number).padStart(2, '0')}`, `Lote ${lot.number}`, poly(footprint), lot.height, lot.floors)),

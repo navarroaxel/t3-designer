@@ -1,5 +1,5 @@
 import { HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
-import { CORNER_FACES, CROSS_STREET_PARTS, OCHAVA_PARTS, facePoint, type CornerPart } from '../data/corner-front'
+import { CORNER_FACES, CORNER_REAR_RAIL, CROSS_STREET_PARTS, OCHAVA_PARTS, cornerRearU, facePoint, type CornerPart } from '../data/corner-front'
 import { BLACK_FRONT_FACE, BLACK_FRONT_PARTS, BLACK_ROOM_FACE, BLACK_ROOM_PARTS, CORNER_23_FACES, CORNER_STREET_PARTS, OPPOSITE_SLABS, cornerTrim } from '../data/opposite-fronts'
 import { A_FRONT, REAR_LOT_FRONT } from '../data/neighbor-fronts'
 
@@ -49,6 +49,26 @@ function CornerFace({ face, parts }: { face: readonly [[number, number], [number
   })}</>
 }
 
+function CornerRearRail() {
+  const { floor, base, top, v: [v0, v1], bars, color, baseColor } = CORNER_REAR_RAIL
+  const u = cornerRearU((v0 + v1) / 2) - .1, length = v1 - v0
+  return <>
+    <mesh position={[u, floor + base / 2, -(v0 + v1) / 2]} receiveShadow>
+      <boxGeometry args={[.2, base, length]} />
+      <meshStandardMaterial color={baseColor} roughness={.9} />
+    </mesh>
+    {Array.from({ length: Math.round(length / bars) + 1 }, (_, i) => v0 + i * bars).map(v =>
+      <mesh key={v} position={[cornerRearU(v) - .1, floor + (base + top) / 2, -v]}>
+        <boxGeometry args={[.03, top - base, .02]} />
+        <meshStandardMaterial color={color} roughness={.6} />
+      </mesh>)}
+    <mesh position={[u, floor + top, -(v0 + v1) / 2]}>
+      <boxGeometry args={[.05, .05, length]} />
+      <meshStandardMaterial color={color} roughness={.6} />
+    </mesh>
+  </>
+}
+
 export function NeighborFacades() {
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
     {parts.map(part => {
@@ -79,6 +99,8 @@ export function NeighborFacades() {
         <meshStandardMaterial color={part.color} roughness={.9} />
       </mesh>
     })}
+    {/* The corner's rear terrace: a low white wall under a black railing on the lot's rear boundary. */}
+    <CornerRearRail />
     {/* Lot 7 (A): the railing over the street wall, and the brick course and cap of the terrace wall, and the house's front. */}
     {A_FRONT.cap.map(course => <mesh key={`${course.y}`} position={[A_FRONT.wallU + .075, (course.y[0] + course.y[1]) / 2, -(A_FRONT.v[0] + A_FRONT.v[1]) / 2]} receiveShadow>
       <boxGeometry args={[course.depth, course.y[1] - course.y[0], A_FRONT.v[1] - A_FRONT.v[0]]} />

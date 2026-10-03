@@ -115,6 +115,9 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'HOUSE-TERRACE-GRILL') return { wall: '#a5533b', roof: '#8a4a36', roughness: .95, metalness: 0 }
   // Fibre-cement water tanks: the corner's (a cylinder on its room) and the one on lot 23's roof.
   if (building.id === 'NEIGHBOR-C-TANK' || building.id === 'OPP-23-TANK') return { wall: '#a9a8a0', roof: '#b9b8b0', roughness: .95, metalness: 0 }
+  // The corner's rear terrace (owner's photo): red floor on the roof of its ground floor, a white wall on the cross street.
+  if (building.id === 'NEIGHBOR-C-FRONT' || building.id === 'NEIGHBOR-C-REAR') return { wall: '#e6e0c8', roof: '#b85c4e', roughness: .95, metalness: 0 }
+  if (building.id === 'NEIGHBOR-C-PARAPET') return { wall: '#ecebe5', roof: '#ecebe5', roughness: .9, metalness: 0 }
   if (building.id === 'NEIGHBOR-C-AC') return { wall: '#f2f2f0', roof: '#f2f2f0', roughness: .6, metalness: .1 }
   // The corner's highest azotea, over its two-floor block, is painted red (the tank's room keeps its own roof).
   if (building.id === 'NEIGHBOR-C-UPPER') return { wall: '#e6e0c8', roof: '#a24a3b', roughness: .95, metalness: 0 }
