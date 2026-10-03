@@ -78,9 +78,9 @@ export function cornerTankCentre(): Point {
 /**
  * The rear terrace of the corner (the roof of its ground floor, 3 m, between the PH's white entrance door and
  * our terrace), from the owner's photo: red floor, a white wall along the cross street, and on the rear side,
- * toward lot 10, a low white wall under a black railing. The rail follows the lot's rear boundary.
+ * toward lot 10, a low white wall under a black railing. The rail runs the whole rear boundary, up to the party wall with our terrace.
  */
-export const CORNER_REAR_RAIL = { floor: 3, base: .45, top: 1.1, v: [-14.675, -9.4] as [number, number], bars: .12, color: '#1d1d1f', baseColor: '#ecebe5' }
+export const CORNER_REAR_RAIL = { floor: 3, base: .45, top: 1.1, v: [-14.675, -4.4] as [number, number], bars: .12, color: '#1d1d1f', baseColor: '#ecebe5' }
 
 /** The u of the lot's rear boundary at a given v (it leans from 8.28 on the cross street to 8.7 on the house's side). */
 export const cornerRearU = (v: number) => CROSS_STREET_END[0] + (v - CROSS_STREET_END[1]) / (-4.225 - CROSS_STREET_END[1]) * (8.7 - CROSS_STREET_END[0])
