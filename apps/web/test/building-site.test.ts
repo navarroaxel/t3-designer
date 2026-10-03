@@ -119,7 +119,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
     'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SHELF': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
     'NEIGHBOR-A': [3.4, 1], 'NEIGHBOR-A-UPPER': [6, 1], 'NEIGHBOR-A-PARAPET': [4.5, 0], 'NEIGHBOR-A-PARAPET-SIDE': [4.5, 0], 'NEIGHBOR-A-WALL': [1.85, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'HOUSE-WELL-BACK': [3.2, 1], 'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
-    'NEIGHBOR-C-AC': [7.35, 0], 'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [4.5, 1],
+    'NEIGHBOR-C-AC': [7.35, 0], 'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [4.1, 1],
     'NEIGHBOR-C-TANK-ROOM': [6.2, 1], 'NEIGHBOR-C-TANK': [7.4, 0],
   }
   // The other lots of the block: one prism each, 3.3 m by default, 6.4 m where Street View shows two floors.

@@ -52,8 +52,8 @@ export const CORNER_UPPER = {
   terraceHeight: 4.3,
   roomHeight: 5.4,
   roomEndU: 4.4,
-  /** The white wall along the cross street over the rear terrace: 1.5 m over the terrace's floor at 3 m. */
-  parapetHeight: 4.5,
+  /** The white wall along the cross street over the rear terrace: 1.1 m over the floor at 3 m, as high as the black railing. */
+  parapetHeight: 4.1,
   parapetThickness: .15,
 }
 
