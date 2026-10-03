@@ -18,7 +18,7 @@
 import { houseToSite, planToSite, polygonArea, type PlanPoint, type SitePoint } from './frame.ts'
 import { LOTS, blockStreets, genericBuildings } from './block.ts'
 import { OPPOSITE_LOTS } from './opposite-block.ts'
-import { laundryVolumes } from './laundry.ts'
+import { LAUNDRY, laundryVolumes } from './laundry.ts'
 import { CORNER_TANK, CORNER_UPPER, CROSS_STREET_END, OCHAVA_END, OCHAVA_START, cornerTankCentre } from './corner-front.ts'
 
 export type { SitePoint }
@@ -205,8 +205,12 @@ const tankCentre: [number, number] = [(TANK_U[0] + TANK_U[1]) / 2, (TANK_V[0] + 
 const octagon = (u: number, v: number, radius: number): SitePoint[] =>
   Array.from({ length: 8 }, (_, i) => houseToSite(u + radius * Math.cos(Math.PI / 8 + i * Math.PI / 4), v + radius * Math.sin(Math.PI / 8 + i * Math.PI / 4)));
 
+/** Where the rear parapet is open for the stair: its 0.9 m, against the north-east party wall's inner face. */
+const STAIR_OPENING: [number, number] = [HALF_WIDTH - PARTY_WALL - LAUNDRY.flight.width, HALF_WIDTH - PARTY_WALL];
 const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
-  rooftop('PARAPET-REAR', 'Parapeto trasero', poly([southWest(AZOTEA_REAR - WALL), southWest(AZOTEA_REAR), [AZOTEA_REAR, HALF_WIDTH], [AZOTEA_REAR - WALL, HALF_WIDTH]]), 0, PARAPET),
+  // The rear parapet is open where the stair from the laundry comes up to the azotea, on the party wall's side.
+  rooftop('PARAPET-REAR', 'Parapeto trasero', poly([southWest(AZOTEA_REAR - WALL), southWest(AZOTEA_REAR), [AZOTEA_REAR, STAIR_OPENING[0]], [AZOTEA_REAR - WALL, STAIR_OPENING[0]]]), 0, PARAPET),
+  rooftop('PARAPET-REAR-NE', 'Parapeto trasero · tramo junto a la medianera', rect(AZOTEA_REAR - WALL, AZOTEA_REAR, STAIR_OPENING[1], HALF_WIDTH), 0, PARAPET),
   rooftop('PARAPET-NE', 'Parapeto lado NE', rect(ROOF_FRONT, AZOTEA_REAR - WALL, HALF_WIDTH - WALL, HALF_WIDTH), 0, PARAPET),
   rooftop('PARAPET-SW', 'Parapeto lado SO', poly([southWest(ROOF_FRONT), southWest(AZOTEA_REAR - WALL),
     [AZOTEA_REAR - WALL, houseSouthWestEdge(AZOTEA_REAR - WALL) + WALL], [ROOF_FRONT, houseSouthWestEdge(ROOF_FRONT) + WALL]]), 0, PARAPET),

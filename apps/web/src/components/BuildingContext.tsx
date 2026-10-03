@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Line } from '@react-three/drei'
 import { BufferGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, InstancedMesh, Object3D, ShapeGeometry } from 'three'
-import { TOSCANA_VENA_COLOR } from '../data/house-plan'
+import { CUT_HEIGHT, TOSCANA_VENA_COLOR } from '../data/house-plan'
 import { OPPOSITE_COLORS } from '../data/opposite-fronts'
-import { SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
+import { FLOOR_HEIGHT, SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
 import { REAR_LOT_WALL_COLOR } from '../data/neighbor-fronts'
 import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
@@ -17,6 +17,10 @@ import { SolarPanels } from './SolarPanels'
 const HOLLOW_HOUSE_PARTS = new Set(['HOUSE', 'HOUSE-ENTRY', 'HOUSE-ARM', 'HOUSE-TERRACE'])
 
 const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
+/** The laundry and the azotea's stair in the first-floor cut: sectioned like the walls, with nothing above the cut. */
+const LAUNDRY_CUT = FLOOR_HEIGHT + CUT_HEIGHT
+const laundryCut = (building: BuildingFootprint): BuildingFootprint[] =>
+  !building.id.startsWith('HOUSE-LAUNDRY-') || (building.base ?? 0) >= LAUNDRY_CUT || building.slope ? [] : [{ ...building, height: Math.min(building.height, LAUNDRY_CUT) }]
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
 
 type Box = { position: [number, number, number]; scale: [number, number, number]; angle?: number }
@@ -237,7 +241,8 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
             {/* The balcony belongs to the first floor: its slab and railing stay in that cut. */}
             {floor === 'first' && <HouseFacade balconyOnly />}
             {/* The terrace's walls and the laundry stand at first-floor level: they belong to that cut. */}
-            {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL|GRILL(-GRATE)?|SHELF|SINK-BASIN)$/.test(building.id) || building.id.startsWith('HOUSE-LAUNDRY-')).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+            {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL|GRILL(-GRATE)?|SHELF|SINK-BASIN)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+            {floor === 'first' && house.flatMap(laundryCut).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
           </>}
       {showNeighbors && <NeighborFacades />}
       {showNeighbors && neighbors.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
