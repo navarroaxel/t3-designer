@@ -1,7 +1,7 @@
 import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import { CORNER_FACES, CROSS_STREET_PARTS, OCHAVA_PARTS, facePoint, type CornerPart } from '../data/corner-front'
-import { CORNER_23_FACES, OPPOSITE_SLABS, cornerTrim } from '../data/opposite-fronts'
+import { BLACK_FRONT_FACE, BLACK_FRONT_PARTS, BLACK_ROOM_FACE, BLACK_ROOM_PARTS, CORNER_23_FACES, CORNER_STREET_PARTS, OPPOSITE_SLABS, cornerTrim } from '../data/opposite-fronts'
 import { REAR_LOT_FRONT } from '../data/neighbor-fronts'
 
 /**
@@ -68,6 +68,9 @@ export function NeighborFacades() {
     <CornerFace face={CORNER_FACES.crossStreet} parts={CROSS_STREET_PARTS} />
     {/* Across the street: lot 23's base and visor, and lot 24's fence and party walls. */}
     {CORNER_23_FACES.map(face => <CornerFace key={`${face[0]}`} face={face} parts={cornerTrim(face)} />)}
+    <CornerFace face={CORNER_23_FACES[2]} parts={CORNER_STREET_PARTS} />
+    <CornerFace face={BLACK_FRONT_FACE} parts={BLACK_FRONT_PARTS} />
+    <CornerFace face={BLACK_ROOM_FACE} parts={BLACK_ROOM_PARTS} />
     {OPPOSITE_SLABS.map(slab => <mesh key={`${slab.u}-${slab.v}-${slab.y}`} position={[(slab.u[0] + slab.u[1]) / 2, (slab.y[0] + slab.y[1]) / 2, -(slab.v[0] + slab.v[1]) / 2]} receiveShadow castShadow>
       <boxGeometry args={[slab.u[1] - slab.u[0], slab.y[1] - slab.y[0], slab.v[1] - slab.v[0]]} />
       <meshStandardMaterial color={slab.color} roughness={.85} />

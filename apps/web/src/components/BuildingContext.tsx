@@ -99,6 +99,8 @@ function finishFor(building: BuildingFootprint): Finish {
   // The houses across the street, from Street View: the corner white, the house opposite black.
   if (building.id === 'OPP-23') return { wall: OPPOSITE_COLORS.cornerWall, roof: OPPOSITE_COLORS.cornerRoof, roughness: .92, metalness: 0 }
   if (building.id === 'OPP-24') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
+  if (/^OPP-24-TANK/.test(building.id)) return { wall: OPPOSITE_COLORS.tank, roof: OPPOSITE_COLORS.tank, roughness: .9, metalness: 0 }
+  if (building.id === 'OPP-24-PARAPET') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackWall, roughness: .9, metalness: 0 }
   if (building.id === 'OPP-24-ROOM') return { wall: OPPOSITE_COLORS.roomWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
   // The terrace's sink: a Toscana Vena shelf with a dark basin set into it.
   if (building.id === 'HOUSE-TERRACE-SINK-BASIN') return { wall: '#4d5155', roof: '#4d5155', roughness: .4, metalness: .3 }
