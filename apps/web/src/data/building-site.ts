@@ -184,7 +184,7 @@ const building = (
 export const ROOF_LEVEL = 2 * FLOOR_HEIGHT;
 const ROOF = ROOF_LEVEL;
 const PARAPET = 1.1; // white masonry parapets on the sides and rear
-const FRONT_PARAPET = .8; // tiled band on the street side
+const FRONT_PARAPET = .3; // the balcony wall on the street side; the rest of the front is a grey railing
 /**
  * Thickness of the parapets: the roof is 8.66 m wide outside and the azotea 8.5 m wide
  * between them.

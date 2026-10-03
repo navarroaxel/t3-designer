@@ -234,9 +234,9 @@ test('rooftop obstacles stand on the azotea slab and inside its outline', () => 
   closeTo(Math.max(...slab.footprint.map(point => houseFrame(point)[0])), rearFace, .01)
   const tank = byId('HOUSE-TANK-BLOCK')
   closeTo(area(tank.footprint), 1.6 * 1.6, .01)
-  // Side and rear parapets are 1.1 m high; the tiled front band is lower.
+  // Side and rear parapets are 1.1 m high; the front wall is 0.3 m, under a railing.
   closeTo(byId('HOUSE-PARAPET-REAR').height - block.height, 1.1, .001)
-  closeTo(byId('HOUSE-PARAPET-FRONT').height - block.height, .8, .001)
+  closeTo(byId('HOUSE-PARAPET-FRONT').height - block.height, .3, .001)
 })
 
 test('building rings are finite and simple, and no ground footprints overlap', () => {
