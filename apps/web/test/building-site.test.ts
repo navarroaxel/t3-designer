@@ -110,7 +110,7 @@ test('the light well is an open void between the terrace and the left arm', () =
   assert.ok(free > 2.5 * 4.4 && free < 2.5 * 4.6 + 3, `free area ${free.toFixed(2)} m2`)
 })
 
-const isRooftop = (building: BuildingFootprint) => /^HOUSE-(PARAPET|TANK)/.test(building.id)
+const isRooftop = (building: BuildingFootprint) => /^HOUSE-(PARAPET|TANK|SHED)/.test(building.id)
 const groundVolumes = SITE_BUILDINGS.filter(building => !isRooftop(building))
 
 test('heights follow the reported floor counts, refined by Street View where it shows more', () => {
@@ -174,8 +174,8 @@ test('the sheet-metal roof of the garage of lot 7 is a single pitch of more than
   closeTo(garage.slope!.direction[0], Math.SQRT1_2, 1e-12)
   closeTo(garage.slope!.direction[1], Math.SQRT1_2, 1e-12)
   assert.ok(garage.height + garage.slope!.rise < byId('NEIGHBOR-A-REAR').height)
-  // The tile roof of A's house and the laundry's sheet roof and the stair's wall are the only other pitches, gentler, and stays under the volume behind the garage.
-  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'HOUSE-LAUNDRY-GUARD', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
+  // The tile roof of A's house and the laundry's and the shed's sheet roofs and the stair's wall are the only other pitches, gentler, and stays under the volume behind the garage.
+  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'HOUSE-LAUNDRY-GUARD', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE', 'HOUSE-SHED-ROOF'])
   const house = byId('NEIGHBOR-A-UPPER')
   assert.ok(house.slope!.rise < garage.slope!.rise && house.height + house.slope!.rise < 7)
 })
@@ -240,6 +240,34 @@ test('rooftop obstacles stand on the azotea slab and inside its outline', () => 
   // Side and rear parapets are 1.1 m high; the front wall is 0.3 m, under a railing.
   closeTo(byId('HOUSE-PARAPET-REAR').height - block.height, 1.1, .001)
   closeTo(byId('HOUSE-PARAPET-FRONT').height - block.height, .3, .001)
+})
+
+test('the utility shed fills the rear south-west corner, 1.5 m deep, clear of the tank', () => {
+  const shed = byId('HOUSE-SHED'), roof = byId('HOUSE-SHED-ROOF'), slab = byId('HOUSE-TANK-SLAB')
+  const rearFace = Math.min(...byId('HOUSE-PARAPET-REAR').footprint.map(point => houseFrame(point)[0]))
+  const us = (item: BuildingFootprint) => item.footprint.map(point => houseFrame(point)[0])
+  const vs = (item: BuildingFootprint) => item.footprint.map(point => houseFrame(point)[1])
+  closeTo(Math.max(...us(shed)), rearFace, .01)
+  closeTo(Math.max(...us(shed)) - Math.min(...us(shed)), 1.5, .01)
+  assert.ok(Math.max(...vs(shed)) <= Math.min(...vs(slab)) - .05, 'a gap to the tank slab')
+  closeTo(shed.height - byId('HOUSE').height, 2.3, .001)
+  closeTo(roof.base!, shed.height, 1e-9)
+  assert.ok(roof.slope && roof.slope.rise > 0, 'a pitched sheet roof')
+  assert.ok(shed.height - byId('HOUSE').height > byId('HOUSE-PARAPET-REAR').height - byId('HOUSE').height, 'taller than the parapet')
+})
+
+test('the shed has a door and two vents on its street face', () => {
+  const shed = byId('HOUSE-SHED'), roof = byId('HOUSE')
+  const front = Math.min(...shed.footprint.map(point => houseFrame(point)[0]))
+  for (const id of ['HOUSE-SHED-DOOR', 'HOUSE-SHED-VENT-LOW', 'HOUSE-SHED-VENT-HIGH']) {
+    const item = byId(id)
+    closeTo(Math.max(...item.footprint.map(point => houseFrame(point)[0])), front, .001)
+    const vs = item.footprint.map(point => houseFrame(point)[1])
+    assert.ok(Math.min(...vs) >= Math.min(...shed.footprint.map(point => houseFrame(point)[1])) - .01 && Math.max(...vs) <= Math.max(...shed.footprint.map(point => houseFrame(point)[1])) + .01, `${id}: within the face`)
+  }
+  closeTo(byId('HOUSE-SHED-DOOR').height - roof.height, 2, .001)
+  assert.ok(byId('HOUSE-SHED-VENT-LOW').base! - roof.height < .3, 'a low vent')
+  assert.ok(byId('HOUSE-SHED-VENT-HIGH').height - roof.height > 2.1, 'a high vent')
 })
 
 test('building rings are finite and simple, and no ground footprints overlap', () => {

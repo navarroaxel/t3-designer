@@ -98,6 +98,11 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id.endsWith('-CANTILEVER')) return { wall: '#c9b58a', roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
   if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+|TERRACE-(WALL|WALL-REAR|RAIL|GRILL))$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
+  // The utility shed: white masonry under a galvanised sheet roof.
+  if (building.id === 'HOUSE-SHED') return { wall: WHITE_PAINT, roof: '#8a9296', roughness: .9, metalness: 0 }
+  if (building.id === 'HOUSE-SHED-DOOR') return { wall: '#5f6b73', roof: '#5f6b73', roughness: .6, metalness: .3 }
+  if (/^HOUSE-SHED-VENT/.test(building.id)) return { wall: '#3a3d40', roof: '#3a3d40', roughness: .5, metalness: .4 }
+  if (building.id === 'HOUSE-SHED-ROOF') return { wall: '#8a9296', roof: '#8a9296', roughness: .6, metalness: .25 }
   if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
   // Lot 7's street wall is brick; its terrace wall is weathered cream under a brick cap; the house has a tile roof.
   if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .95, metalness: 0 }
