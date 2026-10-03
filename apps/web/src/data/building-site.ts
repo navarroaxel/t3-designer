@@ -120,6 +120,7 @@ const TERRACE_INNER = -1;
 const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
 const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
 const TERRACE_WALL_THICKNESS = .15;
+const TERRACE_REAR_WALL = .1; // wall on the party wall with the lot behind
 const TERRACE_CENTRE_V = (houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2;
 /** A masonry grill at the back of the first-floor terrace (owner); its size is assumed: 1.2 m wide, 0.55 m deep, 0.85 m high, with a cast-iron grate. */
 export const TERRACE_GRILL = { width: 1.2, depth: .55, height: .85, grate: .03 };
@@ -253,17 +254,20 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-TERRACE-WALL', 'Casa · medianera de la terracita', poly([southWest(AZOTEA_REAR), southWest(REAR_SW),
     [REAR_SW, houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS], [AZOTEA_REAR, houseSouthWestEdge(AZOTEA_REAR) + TERRACE_WALL_THICKNESS]]),
     FLOOR_HEIGHT + TERRACE_PARTY_WALL, 0, false, FLOOR_HEIGHT),
+  // The terrace's rear end, on the boundary with the lot behind: a wall as high as the one on the corner's side.
+  building('HOUSE-TERRACE-WALL-REAR', 'Casa · medianera del fondo de la terracita', rect(REAR_SW - TERRACE_REAR_WALL, REAR_SW, houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS, TERRACE_INNER - TERRACE_WALL_THICKNESS),
+    FLOOR_HEIGHT + TERRACE_PARTY_WALL, 0, false, FLOOR_HEIGHT),
   building('HOUSE-TERRACE-RAIL', 'Casa · baranda de la terracita', rect(AZOTEA_REAR, REAR_SW, TERRACE_INNER - TERRACE_WALL_THICKNESS, TERRACE_INNER),
     FLOOR_HEIGHT + TERRACE_RAILING, 0, false, FLOOR_HEIGHT),
   // The grill stands at the back of the terrace, against the rear, centred between the party-wall wall and the railing wall.
-  building('HOUSE-TERRACE-GRILL', 'Casa · parrilla de la terracita', rect(REAR_SW - .05 - TERRACE_GRILL.depth, REAR_SW - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
+  building('HOUSE-TERRACE-GRILL', 'Casa · parrilla de la terracita', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_GRILL.depth, REAR_SW - TERRACE_REAR_WALL - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
     FLOOR_HEIGHT + TERRACE_GRILL.height, 0, false, FLOOR_HEIGHT),
-  building('HOUSE-TERRACE-GRILL-GRATE', 'Casa · parrilla de la terracita · reja', rect(REAR_SW - .05 - TERRACE_GRILL.depth, REAR_SW - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
+  building('HOUSE-TERRACE-GRILL-GRATE', 'Casa · parrilla de la terracita · reja', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_GRILL.depth, REAR_SW - TERRACE_REAR_WALL - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
     FLOOR_HEIGHT + TERRACE_GRILL.height + TERRACE_GRILL.grate, 0, false, FLOOR_HEIGHT + TERRACE_GRILL.height),
   // The sink: a stone shelf from the railing wall to the grill, on the grill's left seen from the rear, with the basin in it.
-  building('HOUSE-TERRACE-SHELF', 'Casa · estante de la terracita', rect(REAR_SW - .05 - TERRACE_SHELF.depth, REAR_SW - .05, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS),
+  building('HOUSE-TERRACE-SHELF', 'Casa · estante de la terracita', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_SHELF.depth, REAR_SW - TERRACE_REAR_WALL - .05, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS),
     FLOOR_HEIGHT + TERRACE_SHELF.height, 0, false, FLOOR_HEIGHT + TERRACE_SHELF.height - TERRACE_SHELF.thickness),
-  building('HOUSE-TERRACE-SINK-BASIN', 'Casa · pileta de la terracita', rect(REAR_SW - .05 - TERRACE_SHELF.depth / 2 - TERRACE_SHELF.basinDepth / 2, REAR_SW - .05 - TERRACE_SHELF.depth / 2 + TERRACE_SHELF.basinDepth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 - TERRACE_SHELF.basinWidth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 + TERRACE_SHELF.basinWidth / 2),
+  building('HOUSE-TERRACE-SINK-BASIN', 'Casa · pileta de la terracita', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_SHELF.depth / 2 - TERRACE_SHELF.basinDepth / 2, REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_SHELF.depth / 2 + TERRACE_SHELF.basinDepth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 - TERRACE_SHELF.basinWidth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 + TERRACE_SHELF.basinWidth / 2),
     FLOOR_HEIGHT + TERRACE_SHELF.height + TERRACE_SHELF.basin, 0, false, FLOOR_HEIGHT + TERRACE_SHELF.height),
   // Lot 7 (A), 9.00 m of front. Street View (Aug 2025): next to the house a brick wall with a
   // green railing on the street line, a front patio about 2 m deep and a one-floor house behind
