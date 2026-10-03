@@ -127,9 +127,10 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'NEIGHBOR-C-UPPER') return { wall: '#e6e0c8', roof: '#a24a3b', roughness: .95, metalness: 0 }
   if (building.id === 'NEIGHBOR-A' || building.id === 'NEIGHBOR-A-REAR' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
   // The laundry and the azotea's stair (owner's photos): glazing, white walls, a sheet roof, red and green steps.
-  if (/^HOUSE-LAUNDRY-(GLASS|BACK)$/.test(building.id)) return { wall: '#a9b8bf', roof: '#a9b8bf', roughness: .2, metalness: .3 }
+  if (/^HOUSE-LAUNDRY-(GLASS|BACK-JAMB-A|BACK-TRANSOM)$/.test(building.id)) return { wall: '#a9b8bf', roof: '#a9b8bf', roughness: .2, metalness: .3 }
+  if (building.id === 'HOUSE-LAUNDRY-DOOR') return { wall: '#7d9199', roof: '#7d9199', roughness: .25, metalness: .45 }
   if (building.id === 'HOUSE-LAUNDRY-ROOF') return { wall: '#6f6a5c', roof: '#7a7466', roughness: .85, metalness: .1 }
-  if (/^HOUSE-LAUNDRY-(PARTY|LANDING-REAR|LANDING-SIDE)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
+  if (/^HOUSE-LAUNDRY-(PARTY|LANDING-REAR|LANDING-SIDE|BACK-SILL|BACK-NE|GUARD-\d+)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id === 'HOUSE-LAUNDRY-LANDING' || building.id.startsWith('HOUSE-LAUNDRY-STEP-1-')) return { wall: '#b04a3a', roof: '#b04a3a', roughness: .85, metalness: 0 }
   if (building.id.startsWith('HOUSE-LAUNDRY-STEP-2-')) return { wall: '#8a9a78', roof: '#7e9a76', roughness: .85, metalness: 0 }
   if (isHouse(building)) return { wall: '#a5533b', roof: building.isTarget ? WHITE_PAINT : '#d9d2c0', roughness: .92, metalness: 0 }
