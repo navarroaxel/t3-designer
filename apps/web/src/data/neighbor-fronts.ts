@@ -22,3 +22,35 @@ export const REAR_LOT_FRONT = {
     { u: [8.28, 16.08], y: [3.2, 3.3], color: '#d8c47e', depth: .2 }, // cornice under the parapet
   ] satisfies FrontPart[],
 }
+
+/**
+ * Lot 7 (A), the house next to ours, from the owner's photos (October 2025) and Street View: a brick
+ * wall with a green railing on the street line and, 2 m behind it, a ground-floor patio ending at the
+ * house's front. On top of that front stands a cream wall 1.1 m high, with a brick course and cap,
+ * around the first-floor terrace (red floor), which hides the windows from the street. The tile-roofed
+ * house stands at the back of the terrace, with a barred door and a wide barred window in green
+ * frames under a white gutter. House frame: u along the street, v across.
+ */
+const LEVEL = 3.4
+export const A_FRONT = {
+  /** The terrace wall, at the back of the patio. */
+  wallU: -3,
+  /** Where the terrace ends and the tile-roofed house's front wall stands. */
+  u: -.5,
+  v: [4.33, 7.975] as [number, number],
+  /** The brick wall on the street line and the railing over it. */
+  wall: 1.85,
+  railing: { top: 2.5, color: '#2f5d4a', bars: .12 },
+  /** A brick course in the terrace wall and its cap. */
+  cap: [
+    { y: [LEVEL + .1, LEVEL + .25], color: '#8f4a35', depth: .24 },
+    { y: [LEVEL + .95, LEVEL + 1.1], color: '#a5533b', depth: .3 },
+  ],
+  parts: [
+    { v: [4.55, 5.85], y: [LEVEL, LEVEL + 2.2], color: '#2f5d4a', depth: .08 }, // door frame
+    { v: [4.7, 5.7], y: [LEVEL + .1, LEVEL + 2.1], color: '#262b2a', depth: .1 }, // door, barred glass
+    { v: [6.15, 7.75], y: [LEVEL + .9, LEVEL + 2.4], color: '#4f6f5a', depth: .08 }, // window frame
+    { v: [6.25, 7.65], y: [LEVEL + 1, LEVEL + 2.3], color: '#262b2a', depth: .1 }, // window, barred glass
+    { v: [4.33, 7.975], y: [LEVEL + 2.55, LEVEL + 2.65], color: '#f2f2ee', depth: .12 }, // gutter
+  ],
+}

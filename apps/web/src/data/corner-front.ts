@@ -45,14 +45,16 @@ export const CROSS_STREET_PARTS: CornerPart[] = [
   { s: [1.6, 2.8], y: [3.7, 4.7], color: '#f1efe8', depth: .06 },
 ]
 
-/** Volumes above the ground floor (heights from the photo): the terrace's parapet, the upper room and the lower parapet. */
+/** Volumes above the ground floor (heights from the photo): the terrace's parapet, the upper room and the white wall of the rear terrace. */
 export const CORNER_UPPER = {
   /** The terrace over the chamfer runs back to the two-floor block, at v = -8.9. */
   terraceBackV: -8.9,
   terraceHeight: 4.3,
   roomHeight: 5.4,
   roomEndU: 4.4,
-  parapetHeight: 3.7,
+  /** The white wall along the cross street over the rear terrace: 1.1 m over the floor at 3 m, as high as the black railing. */
+  parapetHeight: 4.1,
+  parapetThickness: .15,
 }
 
 /** A point along a face and its outward normal (toward the street), in [u, v]. */
@@ -72,3 +74,13 @@ export function cornerTankCentre(): Point {
   const { u, v, normal } = facePoint(CORNER_FACES.ochava, CORNER_TANK.alongChamfer)
   return [u - normal[0] * CORNER_TANK.setback, v - normal[1] * CORNER_TANK.setback]
 }
+
+/**
+ * The rear terrace of the corner (the roof of its ground floor, 3 m, between the PH's white entrance door and
+ * our terrace), from the owner's photo: red floor, a white wall along the cross street, and on the rear side,
+ * toward lot 10, a low white wall under a black railing. The rail runs the whole rear boundary, up to the party wall with our terrace.
+ */
+export const CORNER_REAR_RAIL = { floor: 3, base: .45, top: 1.1, v: [-14.675, -4.4] as [number, number], bars: .12, color: '#1d1d1f', baseColor: '#ecebe5' }
+
+/** The u of the lot's rear boundary at a given v (it leans from 8.28 on the cross street to 8.7 on the house's side). */
+export const cornerRearU = (v: number) => CROSS_STREET_END[0] + (v - CROSS_STREET_END[1]) / (-4.225 - CROSS_STREET_END[1]) * (8.7 - CROSS_STREET_END[0])

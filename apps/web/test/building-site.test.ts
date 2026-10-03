@@ -113,13 +113,13 @@ const isRooftop = (building: BuildingFootprint) => /^HOUSE-(PARAPET|TANK)/.test(
 const groundVolumes = SITE_BUILDINGS.filter(building => !isRooftop(building))
 
 test('heights follow the reported floor counts, refined by Street View where it shows more', () => {
-  // [height above ground, floors]. Owner floor counts: house 2, A 1, the lot behind 1, C 2.
+  // [height above ground, floors]. Owner floor counts: house 2, A 1 plus the first-floor house on its terrace, the lot behind 1, C 2.
   const expected: Record<string, [number, number]> = {
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
-    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SHELF': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
-    'NEIGHBOR-A': [3.8, 1], 'NEIGHBOR-A-WALL': [2.1, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
+    'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-WALL-REAR': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SHELF': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
+    'NEIGHBOR-A': [3.4, 1], 'NEIGHBOR-A-UPPER': [6, 1], 'NEIGHBOR-A-PARAPET': [4.5, 0], 'NEIGHBOR-A-PARAPET-SIDE': [4.5, 0], 'NEIGHBOR-A-WALL': [1.85, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
     'HOUSE-WELL-BACK': [3.2, 1], 'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
-    'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [3.7, 1],
+    'NEIGHBOR-C-AC': [7.35, 0], 'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [4.1, 1],
     'NEIGHBOR-C-TANK-ROOM': [6.2, 1], 'NEIGHBOR-C-TANK': [7.4, 0],
   }
   // The other lots of the block: one prism each, 3.3 m by default, 6.4 m where Street View shows two floors.
@@ -171,8 +171,10 @@ test('the sheet-metal roof of the garage of lot 7 is a single pitch of more than
   closeTo(garage.slope!.direction[0], Math.SQRT1_2, 1e-12)
   closeTo(garage.slope!.direction[1], Math.SQRT1_2, 1e-12)
   assert.ok(garage.height + garage.slope!.rise < byId('NEIGHBOR-A-REAR').height)
-  // The other buildings are flat.
-  assert.equal(SITE_BUILDINGS.filter(item => item.slope).length, 1)
+  // The tile roof of A's house is the only other pitch, gentler, and stays under the volume behind the garage.
+  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
+  const house = byId('NEIGHBOR-A-UPPER')
+  assert.ok(house.slope!.rise < garage.slope!.rise && house.height + house.slope!.rise < 7)
 })
 
 test('every front stands on the same street line, u = -5, and A keeps a 2 m patio', () => {
@@ -232,9 +234,9 @@ test('rooftop obstacles stand on the azotea slab and inside its outline', () => 
   closeTo(Math.max(...slab.footprint.map(point => houseFrame(point)[0])), rearFace, .01)
   const tank = byId('HOUSE-TANK-BLOCK')
   closeTo(area(tank.footprint), 1.6 * 1.6, .01)
-  // Side and rear parapets are 1.1 m high; the tiled front band is lower.
+  // Side and rear parapets are 1.1 m high; the front wall is 0.3 m, under a railing.
   closeTo(byId('HOUSE-PARAPET-REAR').height - block.height, 1.1, .001)
-  closeTo(byId('HOUSE-PARAPET-FRONT').height - block.height, .8, .001)
+  closeTo(byId('HOUSE-PARAPET-FRONT').height - block.height, .3, .001)
 })
 
 test('building rings are finite and simple, and no ground footprints overlap', () => {

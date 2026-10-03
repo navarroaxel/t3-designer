@@ -120,6 +120,7 @@ const TERRACE_INNER = -1;
 const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
 const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
 const TERRACE_WALL_THICKNESS = .15;
+const TERRACE_REAR_WALL = .1; // wall on the party wall with the lot behind
 const TERRACE_CENTRE_V = (houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2;
 /** A masonry grill at the back of the first-floor terrace (owner); its size is assumed: 1.2 m wide, 0.55 m deep, 0.85 m high, with a cast-iron grate. */
 export const TERRACE_GRILL = { width: 1.2, depth: .55, height: .85, grate: .03 };
@@ -183,7 +184,7 @@ const building = (
 export const ROOF_LEVEL = 2 * FLOOR_HEIGHT;
 const ROOF = ROOF_LEVEL;
 const PARAPET = 1.1; // white masonry parapets on the sides and rear
-const FRONT_PARAPET = .8; // tiled band on the street side
+const FRONT_PARAPET = .3; // the balcony wall on the street side; the rest of the front is a grey railing
 /**
  * Thickness of the parapets: the roof is 8.66 m wide outside and the azotea 8.5 m wide
  * between them.
@@ -220,6 +221,17 @@ const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
 // Where lot 7 (A) splits: a walled front patio next to the house, then the garage house.
 const A_PATIO_END = 7.975;
 const NEIGHBOUR_WALL = .15;
+/**
+ * Lot 7's front from the owner's photos: a brick wall 1.85 m high on the street line, an open
+ * ground-floor patio 2 m deep behind it, and at its back the house's front, 3.4 m high, with a
+ * 1.1 m wall on top that hides the windows of the first-floor terrace behind it. The tile-roofed
+ * house stands at the back of the terrace.
+ */
+const A_WALL_HEIGHT = 1.85;
+const A_FIRST_FLOOR = 3.4;
+const A_PARAPET_TOP = 4.5;
+const A_TERRACE_END = -.5;
+const A_ROOF_RISE = .8;
 /** Pitch of the sheet-metal roof of lot 7's garage: the owner says clearly more than 5 degrees. */
 export const GARAGE_ROOF_DEGREES = 10;
 
@@ -242,23 +254,32 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-TERRACE-WALL', 'Casa · medianera de la terracita', poly([southWest(AZOTEA_REAR), southWest(REAR_SW),
     [REAR_SW, houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS], [AZOTEA_REAR, houseSouthWestEdge(AZOTEA_REAR) + TERRACE_WALL_THICKNESS]]),
     FLOOR_HEIGHT + TERRACE_PARTY_WALL, 0, false, FLOOR_HEIGHT),
+  // The terrace's rear end, on the boundary with the lot behind: a wall as high as the one on the corner's side.
+  building('HOUSE-TERRACE-WALL-REAR', 'Casa · medianera del fondo de la terracita', rect(REAR_SW - TERRACE_REAR_WALL, REAR_SW, houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS, TERRACE_INNER - TERRACE_WALL_THICKNESS),
+    FLOOR_HEIGHT + TERRACE_PARTY_WALL, 0, false, FLOOR_HEIGHT),
   building('HOUSE-TERRACE-RAIL', 'Casa · baranda de la terracita', rect(AZOTEA_REAR, REAR_SW, TERRACE_INNER - TERRACE_WALL_THICKNESS, TERRACE_INNER),
     FLOOR_HEIGHT + TERRACE_RAILING, 0, false, FLOOR_HEIGHT),
   // The grill stands at the back of the terrace, against the rear, centred between the party-wall wall and the railing wall.
-  building('HOUSE-TERRACE-GRILL', 'Casa · parrilla de la terracita', rect(REAR_SW - .05 - TERRACE_GRILL.depth, REAR_SW - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
+  building('HOUSE-TERRACE-GRILL', 'Casa · parrilla de la terracita', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_GRILL.depth, REAR_SW - TERRACE_REAR_WALL - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
     FLOOR_HEIGHT + TERRACE_GRILL.height, 0, false, FLOOR_HEIGHT),
-  building('HOUSE-TERRACE-GRILL-GRATE', 'Casa · parrilla de la terracita · reja', rect(REAR_SW - .05 - TERRACE_GRILL.depth, REAR_SW - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
+  building('HOUSE-TERRACE-GRILL-GRATE', 'Casa · parrilla de la terracita · reja', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_GRILL.depth, REAR_SW - TERRACE_REAR_WALL - .05, TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2),
     FLOOR_HEIGHT + TERRACE_GRILL.height + TERRACE_GRILL.grate, 0, false, FLOOR_HEIGHT + TERRACE_GRILL.height),
   // The sink: a stone shelf from the railing wall to the grill, on the grill's left seen from the rear, with the basin in it.
-  building('HOUSE-TERRACE-SHELF', 'Casa · estante de la terracita', rect(REAR_SW - .05 - TERRACE_SHELF.depth, REAR_SW - .05, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS),
+  building('HOUSE-TERRACE-SHELF', 'Casa · estante de la terracita', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_SHELF.depth, REAR_SW - TERRACE_REAR_WALL - .05, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS),
     FLOOR_HEIGHT + TERRACE_SHELF.height, 0, false, FLOOR_HEIGHT + TERRACE_SHELF.height - TERRACE_SHELF.thickness),
-  building('HOUSE-TERRACE-SINK-BASIN', 'Casa · pileta de la terracita', rect(REAR_SW - .05 - TERRACE_SHELF.depth / 2 - TERRACE_SHELF.basinDepth / 2, REAR_SW - .05 - TERRACE_SHELF.depth / 2 + TERRACE_SHELF.basinDepth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 - TERRACE_SHELF.basinWidth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 + TERRACE_SHELF.basinWidth / 2),
+  building('HOUSE-TERRACE-SINK-BASIN', 'Casa · pileta de la terracita', rect(REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_SHELF.depth / 2 - TERRACE_SHELF.basinDepth / 2, REAR_SW - TERRACE_REAR_WALL - .05 - TERRACE_SHELF.depth / 2 + TERRACE_SHELF.basinDepth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 - TERRACE_SHELF.basinWidth / 2, (TERRACE_CENTRE_V + TERRACE_GRILL.width / 2 + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2 + TERRACE_SHELF.basinWidth / 2),
     FLOOR_HEIGHT + TERRACE_SHELF.height + TERRACE_SHELF.basin, 0, false, FLOOR_HEIGHT + TERRACE_SHELF.height),
   // Lot 7 (A), 9.00 m of front. Street View (Aug 2025): next to the house a brick wall with a
   // green railing on the street line, a front patio about 2 m deep and a one-floor house behind
   // it; then a garage with green doors under a sheet-metal roof.
-  building('NEIGHBOR-A', 'Vecino A (NE)', rect(-3, 8.3, HALF_WIDTH, A_PATIO_END), 3.8, 1),
-  building('NEIGHBOR-A-WALL', 'Vecino A · muro de calle', rect(-5, -5 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), 2.1, 0),
+  // Its tile roof (owner's photos) is a single pitch like the garage's, gentler, rising toward the back.
+  // The house stands on the first-floor terrace, over a ground floor.
+  building('NEIGHBOR-A', 'Vecino A (NE)', rect(-3, 8.3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR, 1),
+  withSlope(building('NEIGHBOR-A-UPPER', 'Vecino A · casa de tejas del P1', rect(A_TERRACE_END, 8.3, HALF_WIDTH, A_PATIO_END), A_FIRST_FLOOR + 2.6, 1, false, A_FIRST_FLOOR),
+    REAR_DIRECTION, A_ROOF_RISE),
+  building('NEIGHBOR-A-PARAPET', 'Vecino A · pared de la terracita', rect(-3, -3 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), A_PARAPET_TOP, 0, false, A_FIRST_FLOOR),
+  building('NEIGHBOR-A-PARAPET-SIDE', 'Vecino A · pared lateral de la terracita', rect(-3 + NEIGHBOUR_WALL, A_TERRACE_END, A_PATIO_END - NEIGHBOUR_WALL, A_PATIO_END), A_PARAPET_TOP, 0, false, A_FIRST_FLOOR),
+  building('NEIGHBOR-A-WALL', 'Vecino A · muro de calle', rect(-5, -5 + NEIGHBOUR_WALL, HALF_WIDTH, A_PATIO_END), A_WALL_HEIGHT, 0),
   // The garage is two cars deep, about 9 m, under a sheet-metal roof that rises about 10 degrees from
   // its 2.7 m eave at the street toward the back; behind it stands a taller two-level volume.
   withSlope(building('NEIGHBOR-A-GARAGE', 'Vecino A · garaje de chapa', rect(-5, 4, A_PATIO_END, 13.475), 2.7, 1),
@@ -270,6 +291,9 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   // Lot 9, the corner: three flats in horizontal property, each with its own door. Street
   // View shows a two-floor block next to the house, and a one-floor front toward the cross street.
   building('NEIGHBOR-C-UPPER', 'Vecino C · bloque de 2 plantas', poly([[-5, -8.9], [4, -8.9], southWest(4), southWest(-5)]), 6.6, 2),
+  // The condenser of an air conditioner on the red azotea (owner's photo): about 0.8 m wide, 0.3 m deep and
+  // 0.55 m tall on two bricks, in the middle of the block, 2.5 m from the party wall with the house.
+  building('NEIGHBOR-C-AC', 'Vecino C · equipo de aire acondicionado', rect(-.4, .4, -7.15, -6.85), 6.6 + .75, 0, false, 6.6),
   building('NEIGHBOR-C-REAR', 'Vecino C · planta baja trasera', poly([[4, -8.9], [8.5, -8.9], southWest(8.5), southWest(4)]), 3, 1),
   building('NEIGHBOR-C-FRONT', 'Vecino C · esquina',
     poly([[-5, -8.9], OCHAVA_START, OCHAVA_END, CROSS_STREET_END, [8.5, -8.9]]), 3, 1),
@@ -279,7 +303,7 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('NEIGHBOR-C-TANK-ROOM', 'Vecino C · cuarto del tanque', poly(squareAround(cornerTankCentre(), CORNER_TANK.roomSide)), CORNER_TANK.roomTop, 1, false, CORNER_UPPER.terraceHeight),
   building('NEIGHBOR-C-TANK', 'Vecino C · tanque de fibrocemento', poly(circleAround(cornerTankCentre(), CORNER_TANK.diameter / 2, CORNER_TANK.sides)), CORNER_TANK.top, 0, false, CORNER_TANK.roomTop),
   building('NEIGHBOR-C-ROOM', 'Vecino C · habitación alta', poly([OCHAVA_END, crossStreetAt(CORNER_UPPER.roomEndU), [CORNER_UPPER.roomEndU, -11.5], [OCHAVA_END[0], -11.5]]), CORNER_UPPER.roomHeight, 1, false, 3),
-  building('NEIGHBOR-C-PARAPET', 'Vecino C · parapeto hacia el fondo', poly([crossStreetAt(CORNER_UPPER.roomEndU), CROSS_STREET_END, [CROSS_STREET_END[0], -13.9], [CORNER_UPPER.roomEndU, -13.9]]), CORNER_UPPER.parapetHeight, 1, false, 3),
+  building('NEIGHBOR-C-PARAPET', 'Vecino C · pared blanca sobre la calle transversal', poly([crossStreetAt(CORNER_UPPER.roomEndU), CROSS_STREET_END, [CROSS_STREET_END[0], CROSS_STREET_END[1] + CORNER_UPPER.parapetThickness], [CORNER_UPPER.roomEndU, crossStreetAt(CORNER_UPPER.roomEndU)[1] + CORNER_UPPER.parapetThickness]]), CORNER_UPPER.parapetHeight, 1, false, 3),
   // The other lots of the block, from the block plan: one prism each, in the band by the street.
   ...genericBuildings().map(({ lot, footprint }) =>
     building(`LOT-${String(lot.number).padStart(2, '0')}`, `Lote ${lot.number}`, poly(footprint), lot.height, lot.floors)),

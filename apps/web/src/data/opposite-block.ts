@@ -114,30 +114,45 @@ const SURVEYED_25: OppositeLot = (() => {
   }
 })()
 
+/** How far the black house's front wall stands from the street line, and the width of its lot. */
+export const BLACK_HOUSE = { setback: 3, width: 8.5, roomSetback: 1 } as const
+
 /**
  * Lot 24, from its municipal survey sketch: 8.50 m of front, 15.41 m deep on the south-west side and
  * 15.61 m on the other. The building keeps to the south-west side: a 3.90 m wide body 13.35 m from the
- * street with a wider front room 5.40 m wide and 4.30 m deep. The rest is open, 3 to 3.5 m along the
- * north-east side. Its south-west edge is where the corner lot's rear ends, which puts it almost exactly
- * opposite the house's lot (v = -4.2 to 4.3).
+ * street with a wider front part 4.30 m deep. The sketch is older than the house: the owner's photos
+ * (October 2025) show the front part across the whole 8.50 m, so it is taken that wide. The rest is
+ * open, 3 to 3.5 m along the north-east side. Its south-west edge is where the corner lot's rear ends,
+ * which puts it almost exactly opposite the house's lot (v = -4.2 to 4.3).
  */
 const SURVEYED_24: OppositeLot = (() => {
   const u = OPPOSITE_BLOCK.frontU, v0 = CORNER_REAR_V, v1 = v0 + 8.5
-  // Street View (August 2025): a two-floor house with a black front, set back about 3 m behind a
-  // fenced front garden, and a small room on the roof. The sketch's 5.40 m wide front part is kept
-  // 4.30 m deep from that setback, and the 3.90 m wide body continues to 13.35 m.
-  const SETBACK = 3
+  // The owner's photos: a two-floor house with a black front, set back about 3 m behind a fenced
+  // front garden. On the first floor's roof there is a white room over the left 3.7 m, set back 1 m
+  // behind its balcony, a black parapet 1.2 m high over the rest of the front and two water tanks.
+  const { setback, roomSetback, width } = BLACK_HOUSE
+  const front = u - setback, room = front - roomSetback
+  const tank = (centre: PlanPoint) => Array.from({ length: 12 }, (_, i) => [centre[0] + .45 * Math.cos(Math.PI * i / 6), centre[1] + .45 * Math.sin(Math.PI * i / 6)] as PlanPoint)
   return {
     number: 24,
     polygon: [[u, v0], [u - 15.41, v0], [u - 15.61, v1], [u, v1]],
-    building: [[u - SETBACK, v0], [u - SETBACK, v0 + 5.4], [u - SETBACK - 4.3, v0 + 5.4], [u - SETBACK - 4.3, v0 + 3.9], [u - 13.35, v0 + 3.9], [u - 13.35, v0]],
+    building: [[front, v0], [front, v0 + width], [front - 4.3, v0 + width], [front - 4.3, v0 + 3.9], [u - 13.35, v0 + 3.9], [u - 13.35, v0]],
     height: 6.4,
     floors: 2,
-    extras: [{
-      suffix: 'ROOM', label: 'cuarto de la azotea',
-      ring: [[u - SETBACK - 1, v0 + 1.4], [u - SETBACK - 1, v0 + 5.4], [u - SETBACK - 4.3, v0 + 5.4], [u - SETBACK - 4.3, v0 + 1.4]],
-      base: 6.4, height: 9,
-    }],
+    extras: [
+      {
+        suffix: 'ROOM', label: 'cuarto de la azotea',
+        ring: [[room, v0 + .5], [room, v0 + 4.2], [room - 4.3, v0 + 4.2], [room - 4.3, v0 + .5]],
+        base: 6.4, height: 9,
+      },
+      {
+        suffix: 'PARAPET', label: 'parapeto del frente',
+        ring: [[front, v0 + 3.5], [front, v0 + width], [front - .2, v0 + width], [front - .2, v0 + 3.5]],
+        base: 6.4, height: 7.6,
+      },
+      { suffix: 'TANK-A', label: 'tanque de la azotea', ring: tank([front - 1.6, v0 + 5.1]), base: 6.4, height: 7.7 },
+      { suffix: 'TANK-B', label: 'tanque de la azotea', ring: tank([front - 1.6, v0 + 6.1]), base: 6.4, height: 7.7 },
+    ],
   }
 })()
 

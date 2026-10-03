@@ -93,12 +93,19 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'NEIGHBOR-B') return { wall: REAR_LOT_WALL_COLOR, roof: '#cbbd8c', roughness: .92, metalness: 0 }
   if (building.id.endsWith('-CANTILEVER')) return { wall: '#c9b58a', roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
-  if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+|TERRACE-(WALL|RAIL|GRILL))$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
+  if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+|TERRACE-(WALL|WALL-REAR|RAIL|GRILL))$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
-  if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
+  // Lot 7's street wall is brick; its terrace wall is weathered cream under a brick cap; the house has a tile roof.
+  if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .95, metalness: 0 }
+  if (building.id.startsWith('NEIGHBOR-A-PARAPET')) return { wall: '#d9d3b8', roof: '#a5533b', roughness: .95, metalness: 0 }
+  // The house's front is cream and its flat roof is the terrace's red floor; the house on it has the tile roof.
+  if (building.id === 'NEIGHBOR-A') return { wall: '#e6e0c8', roof: '#a24a3b', roughness: .95, metalness: 0 }
+  if (building.id === 'NEIGHBOR-A-UPPER') return { wall: '#e6e0c8', roof: '#b0553a', roughness: .85, metalness: 0 }
   // The houses across the street, from Street View: the corner white, the house opposite black.
   if (building.id === 'OPP-23') return { wall: OPPOSITE_COLORS.cornerWall, roof: OPPOSITE_COLORS.cornerRoof, roughness: .92, metalness: 0 }
   if (building.id === 'OPP-24') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
+  if (/^OPP-24-TANK/.test(building.id)) return { wall: OPPOSITE_COLORS.tank, roof: OPPOSITE_COLORS.tank, roughness: .9, metalness: 0 }
+  if (building.id === 'OPP-24-PARAPET') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackWall, roughness: .9, metalness: 0 }
   if (building.id === 'OPP-24-ROOM') return { wall: OPPOSITE_COLORS.roomWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
   // The terrace's sink: a Toscana Vena shelf with a dark basin set into it.
   if (building.id === 'HOUSE-TERRACE-SINK-BASIN') return { wall: '#4d5155', roof: '#4d5155', roughness: .4, metalness: .3 }
@@ -108,6 +115,12 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id === 'HOUSE-TERRACE-GRILL') return { wall: '#a5533b', roof: '#8a4a36', roughness: .95, metalness: 0 }
   // Fibre-cement water tanks: the corner's (a cylinder on its room) and the one on lot 23's roof.
   if (building.id === 'NEIGHBOR-C-TANK' || building.id === 'OPP-23-TANK') return { wall: '#a9a8a0', roof: '#b9b8b0', roughness: .95, metalness: 0 }
+  // The corner's rear terrace (owner's photo): red floor on the roof of its ground floor, a white wall on the cross street.
+  if (building.id === 'NEIGHBOR-C-FRONT' || building.id === 'NEIGHBOR-C-REAR') return { wall: '#e6e0c8', roof: '#b85c4e', roughness: .95, metalness: 0 }
+  if (building.id === 'NEIGHBOR-C-PARAPET') return { wall: '#ecebe5', roof: '#ecebe5', roughness: .9, metalness: 0 }
+  if (building.id === 'NEIGHBOR-C-AC') return { wall: '#f2f2f0', roof: '#f2f2f0', roughness: .6, metalness: .1 }
+  // The corner's highest azotea, over its two-floor block, is painted red (the tank's room keeps its own roof).
+  if (building.id === 'NEIGHBOR-C-UPPER') return { wall: '#e6e0c8', roof: '#a24a3b', roughness: .95, metalness: 0 }
   if (building.id === 'NEIGHBOR-A' || building.id === 'NEIGHBOR-A-REAR' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
   if (isHouse(building)) return { wall: '#a5533b', roof: building.isTarget ? WHITE_PAINT : '#d9d2c0', roughness: .92, metalness: 0 }
   return { wall: '#d0d3c8', roof: '#88938d', roughness: .92, metalness: 0 }

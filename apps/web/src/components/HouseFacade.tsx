@@ -1,5 +1,5 @@
 import { Line } from '@react-three/drei'
-import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW } from '../data/building-site'
+import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW, PARAPET_THICKNESS, ROOF_LEVEL } from '../data/building-site'
 import { BALCONY, OPENINGS, SIDE_OPENINGS } from '../data/house-plan'
 
 /**
@@ -42,6 +42,24 @@ function Box({ part, castShadow }: { part: Part; castShadow: boolean }) {
 const rail = (height: number, corners: [number, number][]): [number, number, number][] =>
   [...corners, corners[0]].map(([u, v]) => [u, height, -v])
 
+/** The azotea's front (owner): a 0.3 m wall, and over it a grey railing up to 1.2 m, drawn as bars and two rails. */
+const ROOF_RAILING = { u: -6 + PARAPET_THICKNESS / 2, top: ROOF_LEVEL + 1.2, bottom: ROOF_LEVEL + .3, bars: .12, color: '#8d9491' }
+function RoofRailing() {
+  const { u, top, bottom, bars, color } = ROOF_RAILING
+  const v0 = -HOUSE_HALF_WIDTH + PARAPET_THICKNESS, v1 = HOUSE_HALF_WIDTH - PARAPET_THICKNESS, length = v1 - v0
+  return <>
+    {Array.from({ length: Math.round(length / bars) + 1 }, (_, i) => v0 + i * bars).map(v =>
+      <mesh key={v} position={[u, (top + bottom) / 2, -v]}>
+        <boxGeometry args={[.025, top - bottom, .025]} />
+        <meshStandardMaterial color={color} roughness={.5} metalness={.3} />
+      </mesh>)}
+    {[top, (top + bottom) / 2].map(y => <mesh key={y} position={[u, y, -(v0 + v1) / 2]}>
+      <boxGeometry args={[.04, .04, length]} />
+      <meshStandardMaterial color={color} roughness={.5} metalness={.3} />
+    </mesh>)}
+  </>
+}
+
 /** `physical` renders only what shades other things (the two slabs) for the
  * shadow pass; the visible pass adds openings and railings. */
 export function HouseFacade({ physical = false, balconyOnly = false }: { physical?: boolean; balconyOnly?: boolean }) {
@@ -69,7 +87,7 @@ export function HouseFacade({ physical = false, balconyOnly = false }: { physica
       <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT - BALCONY.depth, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT, -BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
       <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, BALCONY.width / 2], [FRONT, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(2 * FLOOR + 1.2, [[-6, -HOUSE_HALF_WIDTH], [-6, HOUSE_HALF_WIDTH]])} color="#3f4a44" lineWidth={1.4} />
+      <RoofRailing />
     </>}
   </group>
 }
