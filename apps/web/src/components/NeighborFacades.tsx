@@ -1,8 +1,7 @@
-import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import { CORNER_FACES, CROSS_STREET_PARTS, OCHAVA_PARTS, facePoint, type CornerPart } from '../data/corner-front'
 import { BLACK_FRONT_FACE, BLACK_FRONT_PARTS, BLACK_ROOM_FACE, BLACK_ROOM_PARTS, CORNER_23_FACES, CORNER_STREET_PARTS, OPPOSITE_SLABS, cornerTrim } from '../data/opposite-fronts'
-import { REAR_LOT_FRONT } from '../data/neighbor-fronts'
+import { A_FRONT, REAR_LOT_FRONT } from '../data/neighbor-fronts'
 
 /**
  * Street fronts of the neighbours, read from Street View (August 2025).
@@ -36,9 +35,6 @@ const parts: Part[] = [
   { v: [8.55, 9.35], y: [0, 2.5], color: GREEN, depth: .1 },
   { v: [9.9, 13.2], y: [0, 2.7], color: GREEN, depth: .1 },
 ]
-
-const railing = (height: number, v0: number, v1: number): [number, number, number][] =>
-  [[FRONT + .075, height, -v0], [FRONT + .075, height, -v1]]
 
 /** Details on a slanted face of the corner lot: a box at metres `s` along the face, flush with its wall. */
 function CornerFace({ face, parts }: { face: readonly [[number, number], [number, number]]; parts: CornerPart[] }) {
@@ -83,8 +79,21 @@ export function NeighborFacades() {
         <meshStandardMaterial color={part.color} roughness={.9} />
       </mesh>
     })}
-    {/* Lot 7: green railing above the brick street wall of its patio (the wall itself is a volume). */}
-    <Line points={railing(3, 4.55, 7.9)} color="#2f5d4a" lineWidth={1.4} />
-    <Line points={railing(2.55, 4.55, 7.9)} color="#2f5d4a" lineWidth={1.4} />
+    {/* Lot 7 (A): the patio's red floor, the brick cap of its street wall, and the house's front. */}
+    <mesh position={[(FRONT + .15 + A_FRONT.u) / 2, A_FRONT.floor.height / 2, -(A_FRONT.v[0] + A_FRONT.v[1]) / 2]} receiveShadow>
+      <boxGeometry args={[A_FRONT.u - FRONT - .15, A_FRONT.floor.height, A_FRONT.v[1] - A_FRONT.v[0]]} />
+      <meshStandardMaterial color={A_FRONT.floor.color} roughness={.95} />
+    </mesh>
+    {A_FRONT.cap.map(course => <mesh key={`${course.y}`} position={[FRONT + .075, (course.y[0] + course.y[1]) / 2, -(A_FRONT.v[0] + A_FRONT.v[1]) / 2]} receiveShadow>
+      <boxGeometry args={[course.depth, course.y[1] - course.y[0], A_FRONT.v[1] - A_FRONT.v[0]]} />
+      <meshStandardMaterial color={course.color} roughness={.9} />
+    </mesh>)}
+    {A_FRONT.parts.map(part => {
+      const [v0, v1] = part.v, [y0, y1] = part.y
+      return <mesh key={`${part.v}-${part.y}`} position={[A_FRONT.u - part.depth / 2 + .01, (y0 + y1) / 2, -(v0 + v1) / 2]} receiveShadow>
+        <boxGeometry args={[part.depth, y1 - y0, v1 - v0]} />
+        <meshStandardMaterial color={part.color} roughness={.8} />
+      </mesh>
+    })}
   </group>
 }

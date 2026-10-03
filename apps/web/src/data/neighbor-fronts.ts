@@ -22,3 +22,27 @@ export const REAR_LOT_FRONT = {
     { u: [8.28, 16.08], y: [3.2, 3.3], color: '#d8c47e', depth: .2 }, // cornice under the parapet
   ] satisfies FrontPart[],
 }
+
+/**
+ * Lot 7 (A), the house next to ours, from the owner's photos (October 2025): a patio 2 m deep behind
+ * a cream street wall with a brick cap, red floor, and the house's front with a barred door and a
+ * wide barred window in green frames, under a white gutter. House frame: u along the street, v across.
+ */
+export const A_FRONT = {
+  /** Where the house's front wall stands. */
+  u: -3,
+  v: [4.33, 7.975] as [number, number],
+  floor: { color: '#a24a3b', height: .05 },
+  /** Courses of brick on the street wall's top and its cap. */
+  cap: [
+    { y: [1.9, 2.05], color: '#8f4a35', depth: .24 },
+    { y: [2.05, 2.2], color: '#a5533b', depth: .3 },
+  ],
+  parts: [
+    { v: [4.55, 5.85], y: [0, 2.2], color: '#2f5d4a', depth: .08 }, // door frame
+    { v: [4.7, 5.7], y: [.1, 2.1], color: '#262b2a', depth: .1 }, // door, barred glass
+    { v: [6.15, 7.75], y: [.9, 2.4], color: '#4f6f5a', depth: .08 }, // window frame
+    { v: [6.25, 7.65], y: [1, 2.3], color: '#262b2a', depth: .1 }, // window, barred glass
+    { v: [4.33, 7.975], y: [3.75, 3.85], color: '#f2f2ee', depth: .12 }, // gutter
+  ],
+}

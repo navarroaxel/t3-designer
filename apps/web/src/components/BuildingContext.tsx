@@ -95,7 +95,9 @@ function finishFor(building: BuildingFootprint): Finish {
   if (building.id.endsWith('-ENTRY')) return { wall: '#a5533b', roof: WHITE_PAINT, roughness: .92, metalness: 0 }
   if (/-(TANK-BLOCK|TANK-SLAB|TANK-COLUMN-[A-Z]+|PARAPET-[A-Z]+|TERRACE-(WALL|RAIL|GRILL))$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
   if (building.id === 'NEIGHBOR-A-GARAGE') return { wall: '#a85a3d', roof: '#8a9296', roughness: .6, metalness: .25 }
-  if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#a85a3d', roof: '#8f8a80', roughness: .92, metalness: 0 }
+  // The patio wall is weathered cream under a brick cap (see NeighborFacades); the house behind has a tile roof.
+  if (building.id === 'NEIGHBOR-A-WALL') return { wall: '#d9d3b8', roof: '#a5533b', roughness: .95, metalness: 0 }
+  if (building.id === 'NEIGHBOR-A') return { wall: '#e6e0c8', roof: '#b0553a', roughness: .85, metalness: 0 }
   // The houses across the street, from Street View: the corner white, the house opposite black.
   if (building.id === 'OPP-23') return { wall: OPPOSITE_COLORS.cornerWall, roof: OPPOSITE_COLORS.cornerRoof, roughness: .92, metalness: 0 }
   if (building.id === 'OPP-24') return { wall: OPPOSITE_COLORS.blackWall, roof: OPPOSITE_COLORS.blackRoof, roughness: .9, metalness: 0 }
