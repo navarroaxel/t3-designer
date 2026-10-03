@@ -1,4 +1,5 @@
-import { ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, PARTY_WALL, WELL_BACK_U, WELL_BACK_WALL, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
+import { GROUND_WELL_EDGE, ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, PARTY_WALL, WELL_BACK_U, WELL_BACK_WALL, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
+import { LAUNDRY } from './laundry.ts'
 
 /**
  * Floor plans of the house, for the cutaway views. Only the exterior walls are
@@ -15,6 +16,8 @@ export type PlanBox = { center: [number, number, number]; size: [number, number,
 
 /** Assumed thickness of the exterior brick walls; not yet measured. */
 export const WALL_THICKNESS = .3
+/** The office on the ground floor is 2.05 m wide inside (owner). */
+export const OFFICE_WIDTH = 2.05
 export const SLAB_THICKNESS = .2
 /** The cutaway shows each floor as if sectioned this high above its floor. */
 export const CUT_HEIGHT = 1.5
@@ -27,7 +30,7 @@ const HALF = HOUSE_HALF_WIDTH
 const SW = houseSouthWestEdge((-5 + HOUSE_REAR.southWest) / 2)
 const { setback, outer, inner } = ENTRY_RECESS
 export const GROUND_OUTLINE: PlanPoint[] = [
-  [-5, SW], [HOUSE_REAR.southWest, SW], [HOUSE_REAR.southWest, -1], [WELL_BACK_U, -1], [WELL_BACK_U, 1.5], [HOUSE_REAR.northEast, 1.5],
+  [-5, SW], [HOUSE_REAR.southWest, SW], [HOUSE_REAR.southWest, -1], [WELL_BACK_U, -1], [WELL_BACK_U, GROUND_WELL_EDGE], [HOUSE_REAR.northEast, GROUND_WELL_EDGE],
   [HOUSE_REAR.northEast, HALF], [-5, HALF], [-5, outer], [-5 + setback, outer], [-5 + setback, inner], [-5, inner],
 ]
 // First floor: the 9 m x 8.5 m block under the azotea (the roof adds a 1 m cantilever in front); the house fills the 8.95 m lot.
@@ -52,9 +55,9 @@ const TERRACE_CENTRE = (SW + -1) / 2
  * taken to be the roof of the left ground-floor band, at first-floor level.
  */
 export const LAUNDRY_DOOR_WIDTH = .8
-export const LAUNDRY_DOOR_FROM_PARTY_WALL = 1.3
+export const LAUNDRY_DOOR_FROM_PARTY_WALL = LAUNDRY.width - LAUNDRY_DOOR_WIDTH
 const LAUNDRY_DOOR_CENTRE = HALF - PARTY_WALL - LAUNDRY_DOOR_FROM_PARTY_WALL - LAUNDRY_DOOR_WIDTH / 2
-const LIGHT_WELL_CENTRE = (-1 + 1.5) / 2
+const LIGHT_WELL_CENTRE = (-1 + GROUND_WELL_EDGE) / 2
 /** The ground-floor balcony door onto the light well (owner). Its 2.10 m height is assumed, like the other doors'. */
 export const LIGHT_WELL_DOOR_WIDTH = 1.8
 
@@ -98,7 +101,7 @@ export const RIGHT_ARM_WINDOW_WIDTH = 1.8
 const rightArmMiddleU = (WELL_BACK_U + (HOUSE_REAR.southWest - PARTY_WALL)) / 2
 export const SIDE_OPENINGS: Record<Floor, SideOpening[]> = {
   ground: [
-    { v: 1.5, u: [officeMiddleU - OFFICE_WINDOW_WIDTH / 2, officeMiddleU + OFFICE_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] },
+    { v: GROUND_WELL_EDGE, u: [officeMiddleU - OFFICE_WINDOW_WIDTH / 2, officeMiddleU + OFFICE_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] },
     { v: -1, u: [rightArmMiddleU - RIGHT_ARM_WINDOW_WIDTH / 2, rightArmMiddleU + RIGHT_ARM_WINDOW_WIDTH / 2], y: [OFFICE_WINDOW_SILL, OFFICE_WINDOW_SILL + OFFICE_WINDOW_HEIGHT] },
   ],
   first: [],
@@ -124,6 +127,8 @@ export function exteriorThickness(a: PlanPoint, b: PlanPoint): number {
   const onParty = sameV(SW) || sameV(HALF) || sameU(HOUSE_REAR.southWest) || sameU(HOUSE_REAR.northEast)
   // The wall that closes the light well is a thin interior-like wall, 0.18 m (from the owner's depths).
   if (sameU(WELL_BACK_U)) return WELL_BACK_WALL
+  // The wall along the well, on the left arm's side, is what the office's 2.05 m (owner) leaves between the well's edge and the party wall: 0.33 m.
+  if (sameV(GROUND_WELL_EDGE)) return HALF - PARTY_WALL - OFFICE_WIDTH - GROUND_WELL_EDGE
   return onParty ? PARTY_WALL : WALL_THICKNESS
 }
 
@@ -534,7 +539,7 @@ export const FLOOR_TILING: FloorTiling[] = [
   },
   // The laundry, continuous with the kitchen, has the bathroom's tile too (owner). It is taken to be the roof of the left
   // ground-floor band, at first-floor level, inset 0.15 m from its edges for the walls.
-  { id: 'laundry', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.northEast - PARTY_WALL, 1.5 + WALL_THICKNESS, NE_INNER]] },
+  { id: 'laundry', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.northEast - PARTY_WALL, NE_INNER - LAUNDRY.width, NE_INNER]] },
   { id: 'living', color: '#c69a5d', pattern: SAING_PLANKS, rects: [[KITCHEN_LIVING.u[0], KITCHEN_LIVING.u[1], KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[1]]] },
   { id: 'bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[0], FIRST_FLOOR_BATHROOM.v[1]]] },
 ]
@@ -570,13 +575,13 @@ export const GROUND_HALL = {
 /**
  * The wall of the light well's balcony door continues to its left, toward the north-east party wall (owner; drawn from the corner the exterior walls already close), and behind it, in the
  * left ground-floor band, is the office. The wall is as thick as the exterior walls, like the wall at the well, and closes the office's
- * front (u = 3.7 to 4.0). The office's size is what the band leaves inside its 0.3 m walls: 4.2 m deep by 2.4 m wide, an assumption.
+ * front (u = 3.7 to 4.0). The office is 2.05 m wide inside (owner) and about 4.2 m deep (assumed).
  */
-// It starts 0.3 m past the well's edge: the exterior walls already extend through that reflex corner, and a wall from v = 1.5 would overlap them.
-export const GROUND_OFFICE_WALL: [number, number, number, number] = [WELL_BACK_U - WELL_BACK_WALL, WELL_BACK_U, 1.5 + WALL_THICKNESS, NE_INNER]
+// The office is 2.05 m wide inside (owner), so its wall starts 0.33 m past the well's edge (v = 1.8): the exterior walls already extend through that reflex corner, and a wall from the edge would overlap them.
+export const GROUND_OFFICE_WALL: [number, number, number, number] = [WELL_BACK_U - WELL_BACK_WALL, WELL_BACK_U, NE_INNER - OFFICE_WIDTH, NE_INNER]
 export const GROUND_OFFICE = {
   u: [WELL_BACK_U, HOUSE_REAR.northEast - PARTY_WALL] as [number, number],
-  v: [1.5 + WALL_THICKNESS, NE_INNER] as [number, number],
+  v: [NE_INNER - OFFICE_WIDTH, NE_INNER] as [number, number],
 }
 
 /**
@@ -741,7 +746,7 @@ export const GROUND_FLOOR_LEVEL = .03
 export const GROUND_FLOOR_TILING: FloorTiling[] = [
   { id: 'ground-bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_BATHROOM.u[0], GROUND_BATHROOM.u[1], GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1]]] },
   // The light well, between the wall that closes it and the rear wall, and between its two side walls: the bathroom's tile, Navona natural.
-  { id: 'ground-well', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: GROUND_FLOOR_LEVEL, rects: [[WELL_BACK_U, HOUSE_REAR.northEast - PARTY_WALL, -1, 1.5]] },
+  { id: 'ground-well', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, level: GROUND_FLOOR_LEVEL, rects: [[WELL_BACK_U, HOUSE_REAR.northEast - PARTY_WALL, -1, GROUND_WELL_EDGE]] },
   { id: 'ground-office', color: FLOOR_TILING.find(zone => zone.id === 'bedrooms')!.color, pattern: SAING_PLANKS, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_OFFICE.u[0], GROUND_OFFICE.u[1], GROUND_OFFICE.v[0], GROUND_OFFICE.v[1]]] },
   { id: 'ground-living', color: FLOOR_TILING.find(zone => zone.id === 'living')!.color, pattern: SAING_PLANKS, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0], GROUND_LIVING.v[1]]] },
 ]

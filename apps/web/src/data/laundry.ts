@@ -6,7 +6,7 @@
  *
  * The stair has two flights side by side, each 0.9 m wide: the first, inside the laundry on the light-well
  * side, climbs 1 m to a landing outside the laundry's glazed back wall; the second, outside (the green
- * steps, with a 1 m wall on its side opposite the party wall as a railing), turns back over the laundry's north-east half and climbs to the azotea. The landing is 2 m wide
+ * steps, with a 1 m wall on its side opposite the party wall as a railing, standing on the stair's concrete and not on the laundry's floor), turns back over the laundry's north-east half and climbs to the azotea. The landing is 2 m wide
  * and 0.9 m deep, uncovered, with 1 m walls. The laundry's roof, over the glazed half, is a single pitch of
  * sheet that falls toward the light well. The glazed back wall has the door at the top of the first flight,
  * with a glazed jamb on its light-well side, and a solid sill under it up to the landing's level.
@@ -27,7 +27,7 @@ export type LaundryVolume = {
 }
 
 export const LAUNDRY = {
-  width: 1.96,
+  width: 2,
   length: 3,
   landing: { width: 2, depth: .9, rise: 1, wall: 1 },
   flight: { width: .9, tread: .25, risersFirst: 6, risersSecond: 12, slab: .2 },
@@ -41,29 +41,29 @@ export const LAUNDRY = {
   partyWallTop: 6.6,
 }
 
-/** `neInner` is the north-east party wall's inner face; `floor` the first floor's level and `roof` the azotea's. */
-export function laundryVolumes(floor: number, neInner: number, partyWall: number, rearU: number, roof: number): LaundryVolume[] {
+/** `neInner` is the north-east party wall's inner face; `floor` the first floor's level and `roof` the azotea's; `wellEdge` the light well's edge on this side, the outer face of the laundry's wall on the well. */
+export function laundryVolumes(floor: number, neInner: number, partyWall: number, rearU: number, roof: number, wellEdge: number): LaundryVolume[] {
   const { width, length, landing, flight, roof: roofSpec, door, wallThickness, partyWallTop, guard } = LAUNDRY
   const v0 = neInner - width, doorU = rearU + length
   const volumes: LaundryVolume[] = []
   const landingLevel = floor + landing.rise
   // Walls and glazing.
   volumes.push(
-    { id: 'HOUSE-LAUNDRY-GLASS', label: 'Casa · lavadero · vidrio sobre el pulmón', u: [rearU, doorU], v: [v0 - wallThickness, v0], base: floor, height: floor + roofSpec.eaveHeight },
-    { id: 'HOUSE-LAUNDRY-BACK-SILL', label: 'Casa · lavadero · antepecho del fondo', u: [doorU, doorU + wallThickness], v: [v0 - wallThickness, v0 + flight.width], base: floor, height: floor + landing.rise },
-    { id: 'HOUSE-LAUNDRY-BACK-JAMB-A', label: 'Casa · lavadero · fijo del fondo', u: [doorU, doorU + wallThickness], v: [v0 - wallThickness, v0 + door.frame], base: floor + landing.rise, height: floor + roofSpec.eaveHeight },
+    { id: 'HOUSE-LAUNDRY-GLASS', label: 'Casa · lavadero · vidrio sobre el pulmón', u: [rearU, doorU], v: [wellEdge, v0], base: floor, height: floor + roofSpec.eaveHeight },
+    { id: 'HOUSE-LAUNDRY-BACK-SILL', label: 'Casa · lavadero · antepecho del fondo', u: [doorU, doorU + wallThickness], v: [wellEdge, v0 + flight.width], base: floor, height: floor + landing.rise },
+    { id: 'HOUSE-LAUNDRY-BACK-JAMB-A', label: 'Casa · lavadero · fijo del fondo', u: [doorU, doorU + wallThickness], v: [wellEdge, v0 + door.frame], base: floor + landing.rise, height: floor + roofSpec.eaveHeight },
     { id: 'HOUSE-LAUNDRY-DOOR', label: 'Casa · lavadero · puerta al descanso', u: [doorU, doorU + wallThickness], v: [v0 + door.frame, v0 + door.frame + door.width], base: floor + landing.rise, height: floor + landing.rise + door.height },
     { id: 'HOUSE-LAUNDRY-BACK-TRANSOM', label: 'Casa · lavadero · paño sobre la puerta', u: [doorU, doorU + wallThickness], v: [v0 + door.frame, v0 + door.frame + door.width], base: floor + landing.rise + door.height, height: floor + roofSpec.eaveHeight },
     { id: 'HOUSE-LAUNDRY-BACK-NE', label: 'Casa · lavadero · pared del fondo bajo la escalera', u: [doorU, doorU + wallThickness], v: [v0 + flight.width, neInner], base: floor, height: floor + landing.rise - .2 },
     { id: 'HOUSE-LAUNDRY-PARTY', label: 'Casa · lavadero · medianera con A', u: [rearU, doorU + wallThickness + landing.depth + wallThickness], v: [neInner, neInner + partyWall], base: floor, height: partyWallTop },
-    { id: 'HOUSE-LAUNDRY-ROOF', label: 'Casa · lavadero · techo de chapa', u: [rearU, doorU + wallThickness], v: [v0 - wallThickness, neInner - flight.width - wallThickness], base: floor + roofSpec.eaveHeight, height: floor + roofSpec.eaveHeight + roofSpec.thickness, rise: roofSpec.rise, toward: 'north-east' },
+    { id: 'HOUSE-LAUNDRY-ROOF', label: 'Casa · lavadero · techo de chapa', u: [rearU, doorU + wallThickness], v: [wellEdge, neInner - flight.width - wallThickness], base: floor + roofSpec.eaveHeight, height: floor + roofSpec.eaveHeight + roofSpec.thickness, rise: roofSpec.rise, toward: 'north-east' },
   )
   // The landing outside the back wall, uncovered, with walls on the rear and the light-well side.
   const landingU: [number, number] = [doorU + wallThickness, doorU + wallThickness + landing.depth]
   volumes.push(
     { id: 'HOUSE-LAUNDRY-LANDING', label: 'Casa · descanso de la escalera', u: landingU, v: [neInner - landing.width, neInner], base: landingLevel - flight.slab, height: landingLevel },
-    { id: 'HOUSE-LAUNDRY-LANDING-REAR', label: 'Casa · descanso · muro del fondo', u: [landingU[1], landingU[1] + wallThickness], v: [neInner - landing.width - wallThickness, neInner], base: landingLevel, height: landingLevel + landing.wall },
-    { id: 'HOUSE-LAUNDRY-LANDING-SIDE', label: 'Casa · descanso · muro sobre el pulmón', u: landingU, v: [neInner - landing.width - wallThickness, neInner - landing.width], base: landingLevel, height: landingLevel + landing.wall },
+    { id: 'HOUSE-LAUNDRY-LANDING-REAR', label: 'Casa · descanso · muro del fondo', u: [landingU[1], landingU[1] + wallThickness], v: [wellEdge, neInner], base: landingLevel, height: landingLevel + landing.wall },
+    { id: 'HOUSE-LAUNDRY-LANDING-SIDE', label: 'Casa · descanso · muro sobre el pulmón', u: landingU, v: [wellEdge, neInner - landing.width], base: landingLevel, height: landingLevel + landing.wall },
   )
   // First flight, inside, on the light-well side: the last step is the landing's level at the door.
   const riser1 = landing.rise / flight.risersFirst
@@ -79,13 +79,18 @@ export function laundryVolumes(floor: number, neInner: number, partyWall: number
     volumes.push({ id: `HOUSE-LAUNDRY-STEP-2-${step}`, label: `Casa · escalera · tramo 2 · escalón ${step}`, u: [start - flight.tread, start], v: [neInner - flight.width, neInner], base: top - flight.slab - riser2, height: top })
   }
   // The 1 m wall on the side opposite the party wall, which works as the flight's railing: a continuous slope, its top
-  // parallel to the line of the steps' nosings, from the laundry's floor up. It stops at the laundry's back wall.
+  // parallel to the line of the steps' nosings. It does not reach the laundry's floor (owner): it rests on the stair's
+  // concrete, so each piece, one per step, stands on that step's underside. It stops at the laundry's back wall.
   const lineAt = (u: number) => landingLevel + riser2 + (landingU[0] - u) * riser2 / flight.tread
-  const guardU: [number, number] = [landingU[0] - flight.risersSecond * flight.tread, doorU]
-  volumes.push({
-    id: 'HOUSE-LAUNDRY-GUARD', label: 'Casa · escalera · baranda de mampostería',
-    u: guardU, v: [neInner - flight.width - wallThickness, neInner - flight.width], base: floor, height: lineAt(doorU) + guard,
-    rise: lineAt(guardU[0]) - lineAt(doorU), toward: 'azotea',
-  })
+  for (let step = 1; step <= flight.risersSecond; step++) {
+    const start = landingU[0] - (step - 1) * flight.tread
+    const u: [number, number] = [start - flight.tread, Math.min(start, doorU)]
+    const top = landingLevel + step * riser2
+    volumes.push({
+      id: `HOUSE-LAUNDRY-GUARD-${step}`, label: `Casa · escalera · baranda de mampostería · tramo ${step}`,
+      u, v: [neInner - flight.width - wallThickness, neInner - flight.width], base: top - flight.slab - riser2, height: lineAt(u[1]) + guard,
+      rise: lineAt(u[0]) - lineAt(u[1]), toward: 'azotea',
+    })
+  }
   return volumes
 }

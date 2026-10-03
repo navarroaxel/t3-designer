@@ -241,8 +241,8 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
             <HouseShell floor={floor} />
             {/* The balcony belongs to the first floor: its slab and railing stay in that cut. */}
             {floor === 'first' && <HouseFacade balconyOnly />}
-            {/* The terrace's walls and the laundry stand at first-floor level: they belong to that cut. */}
-            {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL|GRILL(-GRATE)?|SHELF|SINK-BASIN)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+            {/* The terrace's walls, with the party wall of the lot behind, and the laundry stand at first-floor level: they belong to that cut. */}
+            {floor === 'first' && house.filter(building => /-TERRACE-(WALL(-REAR)?|RAIL|GRILL(-GRATE)?|SHELF|SINK-BASIN)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
             {floor === 'first' && house.flatMap(laundryCut).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
           </>}
       {showNeighbors && <NeighborFacades />}

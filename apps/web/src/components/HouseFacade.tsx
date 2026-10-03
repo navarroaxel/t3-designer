@@ -1,4 +1,3 @@
-import { Line } from '@react-three/drei'
 import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW, PARAPET_THICKNESS, ROOF_LEVEL } from '../data/building-site'
 import { BALCONY, OPENINGS, SIDE_OPENINGS } from '../data/house-plan'
 
@@ -38,25 +37,39 @@ function Box({ part, castShadow }: { part: Part; castShadow: boolean }) {
   </mesh>
 }
 
-/** Open railing: a line loop in local house coordinates (u, v). */
-const rail = (height: number, corners: [number, number][]): [number, number, number][] =>
-  [...corners, corners[0]].map(([u, v]) => [u, height, -v])
-
 /** The azotea's front (owner): a 0.3 m wall, and over it a grey railing up to 1.2 m, drawn as bars and two rails. */
 const ROOF_RAILING = { u: -6 + PARAPET_THICKNESS / 2, top: ROOF_LEVEL + 1.2, bottom: ROOF_LEVEL + .3, bars: .12, color: '#8d9491' }
-function RoofRailing() {
-  const { u, top, bottom, bars, color } = ROOF_RAILING
-  const v0 = -HOUSE_HALF_WIDTH + PARAPET_THICKNESS, v1 = HOUSE_HALF_WIDTH - PARAPET_THICKNESS, length = v1 - v0
+/** The first-floor balcony's railing is the azotea's (owner): the same grey bars and two rails, 1 m above the slab. */
+const BALCONY_RAILING = { top: FLOOR + 1, bottom: FLOOR }
+
+/** A railing of bars and two rails along a run from `from` to `to`, in local house coordinates (u, v). */
+function Railing({ from, to, bottom, top }: { from: [number, number]; to: [number, number]; bottom: number; top: number }) {
+  const { bars, color } = ROOF_RAILING
+  const length = Math.hypot(to[0] - from[0], to[1] - from[1]), count = Math.round(length / bars)
+  const alongU = from[1] === to[1]
+  const mid: [number, number] = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2]
   return <>
-    {Array.from({ length: Math.round(length / bars) + 1 }, (_, i) => v0 + i * bars).map(v =>
-      <mesh key={v} position={[u, (top + bottom) / 2, -v]}>
+    {Array.from({ length: count + 1 }, (_, i) => i / count).map(t =>
+      <mesh key={t} position={[from[0] + (to[0] - from[0]) * t, (top + bottom) / 2, -(from[1] + (to[1] - from[1]) * t)]}>
         <boxGeometry args={[.025, top - bottom, .025]} />
         <meshStandardMaterial color={color} roughness={.5} metalness={.3} />
       </mesh>)}
-    {[top, (top + bottom) / 2].map(y => <mesh key={y} position={[u, y, -(v0 + v1) / 2]}>
-      <boxGeometry args={[.04, .04, length]} />
+    {[top, (top + bottom) / 2].map(y => <mesh key={y} position={[mid[0], y, -mid[1]]}>
+      <boxGeometry args={alongU ? [length, .04, .04] : [.04, .04, length]} />
       <meshStandardMaterial color={color} roughness={.5} metalness={.3} />
     </mesh>)}
+  </>
+}
+function RoofRailing() {
+  const { u, top, bottom } = ROOF_RAILING
+  return <Railing from={[u, -HOUSE_HALF_WIDTH + PARAPET_THICKNESS]} to={[u, HOUSE_HALF_WIDTH - PARAPET_THICKNESS]} bottom={bottom} top={top} />
+}
+function BalconyRailing() {
+  const { top, bottom } = BALCONY_RAILING, back = FRONT - BALCONY.depth, half = BALCONY.width / 2
+  return <>
+    <Railing from={[back, -half]} to={[back, half]} bottom={bottom} top={top} />
+    <Railing from={[back, -half]} to={[FRONT, -half]} bottom={bottom} top={top} />
+    <Railing from={[back, half]} to={[FRONT, half]} bottom={bottom} top={top} />
   </>
 }
 
@@ -67,9 +80,7 @@ export function HouseFacade({ physical = false, balconyOnly = false }: { physica
     {slabs.map(part => <Box key={part.u} part={part} castShadow={physical} />)}
     {!physical && balconyOnly && <>
       {/* The first-floor balcony alone, for the cutaway: its slab (above) and its railing. */}
-      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT - BALCONY.depth, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT, -BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, BALCONY.width / 2], [FRONT, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
+      <BalconyRailing />
     </>}
     {!physical && !balconyOnly && <>
       {/* Rear wall of the first floor, facing the terrace and the light well: glass in its openings. */}
@@ -84,9 +95,7 @@ export function HouseFacade({ physical = false, balconyOnly = false }: { physica
       </mesh>)}
       {openings.map(part => <Box key={`${part.v}-${part.y}`} part={part} castShadow={false} />)}
       {/* Balcony railing at the slab edge, and the open railing above the front parapet. */}
-      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT - BALCONY.depth, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, -BALCONY.width / 2], [FRONT, -BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
-      <Line points={rail(FLOOR + 1, [[FRONT - BALCONY.depth, BALCONY.width / 2], [FRONT, BALCONY.width / 2]])} color="#3f4a44" lineWidth={1.4} />
+      <BalconyRailing />
       <RoofRailing />
     </>}
   </group>

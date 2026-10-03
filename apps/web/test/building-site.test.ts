@@ -83,7 +83,7 @@ test('the upper block, rear band and lot keep the owner’s dimensions', () => {
   closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 9 * (4.33 - houseSouthWestEdge(-.5)), .02)
   closeTo(area(byId('HOUSE-CANTILEVER').footprint), 1 * (4.33 - houseSouthWestEdge(-5.5)), .02)
   // The rear band: the owner's 3.95 m inside plus the walls, from the street line to the rear boundary.
-  closeTo(area(arm.footprint), (8.5 - 4) * (4.33 - 1.5), .05)
+  closeTo(area(arm.footprint), (8.5 - 4) * (4.33 - 1.8), .05)
   closeTo(area(terrace.footprint), (8.6 - 4) * (-1 - houseSouthWestEdge((4 + 8.6) / 2)), .02)
   // The lot polygon: the municipal sketch's sides and rear with the owner's 8.66 m front, 118.06 m2 (the sketch's 8.95 m front gave 120.03 m2).
   closeTo(area(SITE_PARCEL.footprint), 118.06, .02)
@@ -132,7 +132,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
     for (const extra of extras ?? []) expected[`${id}-${extra.suffix}`] = [extra.height, 1]
   }
   // The laundry and the azotea's stair: every piece is a volume of the house.
-  for (const item of laundryVolumes(3.2, 4.33 - .15, .15, 4, 6.4)) expected[item.id] = [item.height, 0]
+  for (const item of laundryVolumes(3.2, 4.33 - .15, .15, 4, 6.4, 1.9)) expected[item.id] = [item.height, 0]
   for (const { lot } of genericBuildings()) expected[`LOT-${String(lot.number).padStart(2, '0')}`] = [lot.height, lot.floors]
   assert.deepEqual(groundVolumes.map(building => building.id).sort(), Object.keys(expected).sort())
   for (const building of groundVolumes) {
@@ -175,7 +175,7 @@ test('the sheet-metal roof of the garage of lot 7 is a single pitch of more than
   closeTo(garage.slope!.direction[1], Math.SQRT1_2, 1e-12)
   assert.ok(garage.height + garage.slope!.rise < byId('NEIGHBOR-A-REAR').height)
   // The tile roof of A's house and the laundry's sheet roof and the stair's wall are the only other pitches, gentler, and stays under the volume behind the garage.
-  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'HOUSE-LAUNDRY-GUARD', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
+  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', ...Array.from({ length: 12 }, (_, i) => `HOUSE-LAUNDRY-GUARD-${i + 1}`), 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE', 'OPP-24-ROOM'])
   const house = byId('NEIGHBOR-A-UPPER')
   assert.ok(house.slope!.rise < garage.slope!.rise && house.height + house.slope!.rise < 7)
 })
@@ -319,4 +319,18 @@ test('the terrace sink is a Toscana Vena shelf from the railing wall to the gril
   assert.ok(Math.min(...vs(basin)) > Math.min(...vs(shelf)) && Math.max(...vs(basin)) < Math.max(...vs(shelf)))
   assert.ok(Math.min(...us(basin)) > Math.min(...us(shelf)) && Math.max(...us(basin)) < Math.max(...us(shelf)))
   closeTo(basin.base ?? 0, shelf.height, 1e-9)
+})
+
+test('the black house opposite has a pitched room falling toward its azotea, and its tanks stand at the back', () => {
+  const room = byId('OPP-24-ROOM'), house = byId('OPP-24')
+  assert.ok(room.slope && room.slope.rise > 0, 'a pitched roof')
+  // It falls toward +v, the azotea's side, so it rises toward the left party wall.
+  const [x, z] = [room.slope!.direction[0], room.slope!.direction[1]]
+  const [px, pz] = houseToSite(0, 1), [ox, oz] = houseToSite(0, 0)
+  closeTo(x * (px - ox) + z * (pz - oz), -1, 1e-9)
+  const centreU = (item: BuildingFootprint) => item.footprint.reduce((sum, point) => sum + houseFrame(point)[0], 0) / item.footprint.length
+  const frontU = Math.max(...house.footprint.map(point => houseFrame(point)[0]))
+  for (const id of ['OPP-24-TANK-A', 'OPP-24-TANK-B']) {
+    assert.ok(frontU - centreU(byId(id)) > 9, `${id}: at the back of the roof`)
+  }
 })
