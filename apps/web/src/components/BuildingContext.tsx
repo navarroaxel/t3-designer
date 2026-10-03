@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Line } from '@react-three/drei'
 import { BufferGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, InstancedMesh, Object3D, ShapeGeometry } from 'three'
-import { TOSCANA_VENA_COLOR } from '../data/house-plan'
+import { CUT_HEIGHT, TOSCANA_VENA_COLOR } from '../data/house-plan'
 import { OPPOSITE_COLORS } from '../data/opposite-fronts'
-import { SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
+import { FLOOR_HEIGHT, SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type BuildingFootprint, type SitePoint } from '../data/building-site'
 import { REAR_LOT_WALL_COLOR } from '../data/neighbor-fronts'
 import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
@@ -17,6 +17,10 @@ import { SolarPanels } from './SolarPanels'
 const HOLLOW_HOUSE_PARTS = new Set(['HOUSE', 'HOUSE-ENTRY', 'HOUSE-ARM', 'HOUSE-TERRACE'])
 
 const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
+/** The laundry and the azotea's stair in the first-floor cut: sectioned like the walls, with nothing above the cut. */
+const LAUNDRY_CUT = FLOOR_HEIGHT + CUT_HEIGHT
+const laundryCut = (building: BuildingFootprint): BuildingFootprint[] =>
+  !building.id.startsWith('HOUSE-LAUNDRY-') || (building.base ?? 0) >= LAUNDRY_CUT || building.id === 'HOUSE-LAUNDRY-ROOF' ? [] : [{ ...building, slope: undefined, height: Math.min(building.height, LAUNDRY_CUT) }]
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
 
 type Box = { position: [number, number, number]; scale: [number, number, number]; angle?: number }
@@ -122,6 +126,13 @@ function finishFor(building: BuildingFootprint): Finish {
   // The corner's highest azotea, over its two-floor block, is painted red (the tank's room keeps its own roof).
   if (building.id === 'NEIGHBOR-C-UPPER') return { wall: '#e6e0c8', roof: '#a24a3b', roughness: .95, metalness: 0 }
   if (building.id === 'NEIGHBOR-A' || building.id === 'NEIGHBOR-A-REAR' || building.id.startsWith('NEIGHBOR-C')) return { wall: '#e6e0c8', roof: '#b7b3a4', roughness: .92, metalness: 0 }
+  // The laundry and the azotea's stair (owner's photos): glazing, white walls, a sheet roof, red and green steps.
+  if (/^HOUSE-LAUNDRY-(GLASS|BACK-JAMB-A|BACK-TRANSOM)$/.test(building.id)) return { wall: '#a9b8bf', roof: '#a9b8bf', roughness: .2, metalness: .3 }
+  if (building.id === 'HOUSE-LAUNDRY-DOOR') return { wall: '#7d9199', roof: '#7d9199', roughness: .25, metalness: .45 }
+  if (building.id === 'HOUSE-LAUNDRY-ROOF') return { wall: '#6f6a5c', roof: '#7a7466', roughness: .85, metalness: .1 }
+  if (/^HOUSE-LAUNDRY-(PARTY|LANDING-REAR|LANDING-SIDE|BACK-SILL|BACK-NE|GUARD)$/.test(building.id)) return { wall: WHITE_PAINT, roof: WHITE_PAINT, roughness: .9, metalness: 0 }
+  if (building.id === 'HOUSE-LAUNDRY-LANDING' || building.id.startsWith('HOUSE-LAUNDRY-STEP-1-')) return { wall: '#b04a3a', roof: '#b04a3a', roughness: .85, metalness: 0 }
+  if (building.id.startsWith('HOUSE-LAUNDRY-STEP-2-')) return { wall: '#8a9a78', roof: '#7e9a76', roughness: .85, metalness: 0 }
   if (isHouse(building)) return { wall: '#a5533b', roof: building.isTarget ? WHITE_PAINT : '#d9d2c0', roughness: .92, metalness: 0 }
   return { wall: '#d0d3c8', roof: '#88938d', roughness: .92, metalness: 0 }
 }
@@ -230,8 +241,9 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
             <HouseShell floor={floor} />
             {/* The balcony belongs to the first floor: its slab and railing stay in that cut. */}
             {floor === 'first' && <HouseFacade balconyOnly />}
-            {/* The terrace's walls stand at first-floor level: they belong to that cut. */}
+            {/* The terrace's walls and the laundry stand at first-floor level: they belong to that cut. */}
             {floor === 'first' && house.filter(building => /-TERRACE-(WALL|RAIL|GRILL(-GRATE)?|SHELF|SINK-BASIN)$/.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+            {floor === 'first' && house.flatMap(laundryCut).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
           </>}
       {showNeighbors && <NeighborFacades />}
       {showNeighbors && neighbors.map(building => <Volume key={building.id} building={building} castShadow={false} />)}

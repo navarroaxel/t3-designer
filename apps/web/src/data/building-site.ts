@@ -18,6 +18,7 @@
 import { houseToSite, planToSite, polygonArea, type PlanPoint, type SitePoint } from './frame.ts'
 import { LOTS, blockStreets, genericBuildings } from './block.ts'
 import { OPPOSITE_LOTS } from './opposite-block.ts'
+import { LAUNDRY, laundryVolumes } from './laundry.ts'
 import { CORNER_TANK, CORNER_UPPER, CROSS_STREET_END, OCHAVA_END, OCHAVA_START, cornerTankCentre } from './corner-front.ts'
 
 export type { SitePoint }
@@ -152,6 +153,8 @@ const withSlope = (item: BuildingFootprint, direction: [number, number], rise: n
   ({ ...item, slope: { direction, rise } });
 /** Site-axes unit vector of the house frame's u axis, toward the rear. */
 const REAR_DIRECTION: [number, number] = [Math.SQRT1_2, Math.SQRT1_2];
+/** Site-axes unit vector of the house frame's +v axis, toward the north-east. */
+const HOUSE_PLUS_V: [number, number] = (() => { const [x, z] = houseToSite(0, 1), [x0, z0] = houseToSite(0, 0); return [x - x0, z - z0] })();
 
 const building = (
   id: string,
@@ -202,8 +205,12 @@ const tankCentre: [number, number] = [(TANK_U[0] + TANK_U[1]) / 2, (TANK_V[0] + 
 const octagon = (u: number, v: number, radius: number): SitePoint[] =>
   Array.from({ length: 8 }, (_, i) => houseToSite(u + radius * Math.cos(Math.PI / 8 + i * Math.PI / 4), v + radius * Math.sin(Math.PI / 8 + i * Math.PI / 4)));
 
+/** Where the rear parapet is open for the stair: its 0.9 m, against the north-east party wall's inner face. */
+const STAIR_OPENING: [number, number] = [HALF_WIDTH - PARTY_WALL - LAUNDRY.flight.width, HALF_WIDTH - PARTY_WALL];
 const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
-  rooftop('PARAPET-REAR', 'Parapeto trasero', poly([southWest(AZOTEA_REAR - WALL), southWest(AZOTEA_REAR), [AZOTEA_REAR, HALF_WIDTH], [AZOTEA_REAR - WALL, HALF_WIDTH]]), 0, PARAPET),
+  // The rear parapet is open where the stair from the laundry comes up to the azotea, on the party wall's side.
+  rooftop('PARAPET-REAR', 'Parapeto trasero', poly([southWest(AZOTEA_REAR - WALL), southWest(AZOTEA_REAR), [AZOTEA_REAR, STAIR_OPENING[0]], [AZOTEA_REAR - WALL, STAIR_OPENING[0]]]), 0, PARAPET),
+  rooftop('PARAPET-REAR-NE', 'Parapeto trasero · tramo junto a la medianera', rect(AZOTEA_REAR - WALL, AZOTEA_REAR, STAIR_OPENING[1], HALF_WIDTH), 0, PARAPET),
   rooftop('PARAPET-NE', 'Parapeto lado NE', rect(ROOF_FRONT, AZOTEA_REAR - WALL, HALF_WIDTH - WALL, HALF_WIDTH), 0, PARAPET),
   rooftop('PARAPET-SW', 'Parapeto lado SO', poly([southWest(ROOF_FRONT), southWest(AZOTEA_REAR - WALL),
     [AZOTEA_REAR - WALL, houseSouthWestEdge(AZOTEA_REAR - WALL) + WALL], [ROOF_FRONT, houseSouthWestEdge(ROOF_FRONT) + WALL]]), 0, PARAPET),
@@ -248,6 +255,11 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   // The strip of the ground floor between the upper floor's rear wall and the wall that closes the light well.
   building('HOUSE-WELL-BACK', 'Casa · planta baja hasta el fondo del pulmón', rect(AZOTEA_REAR, WELL_BACK_U, TERRACE_INNER, LEFT_ARM_INNER), FLOOR_HEIGHT, 1),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, REAR_NE, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
+  // The laundry on the left arm and the stair to the azotea (owner's photos), at first-floor level.
+  ...laundryVolumes(FLOOR_HEIGHT, HALF_WIDTH - PARTY_WALL, PARTY_WALL, AZOTEA_REAR, ROOF_LEVEL).map(item => {
+    const volume = building(item.id, item.label, rect(item.u[0], item.u[1], item.v[0], item.v[1]), item.height, 0, false, item.base)
+    return item.rise ? withSlope(volume, item.toward === 'azotea' ? [-REAR_DIRECTION[0], -REAR_DIRECTION[1]] : HOUSE_PLUS_V, item.rise) : volume
+  }),
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', poly([southWest(AZOTEA_REAR), southWest(REAR_SW), [REAR_SW, TERRACE_INNER], [AZOTEA_REAR, TERRACE_INNER]]), FLOOR_HEIGHT, 1),
   // The terrace's roof is at first-floor level. Along the corner's party wall it has a 1.6 m wall, and on the
   // inner side, over the light well, a 1.1 m railing wall (owner).

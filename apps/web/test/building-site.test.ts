@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { genericBuildings } from '../src/data/block.ts'
 import { OPPOSITE_LOTS } from '../src/data/opposite-block.ts'
+import { laundryVolumes } from '../src/data/laundry.ts'
 import { BUILDING_SITE, ENTRY_RECESS, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
@@ -130,6 +131,8 @@ test('heights follow the reported floor counts, refined by Street View where it 
     expected[id] = [height, floors ?? 1]
     for (const extra of extras ?? []) expected[`${id}-${extra.suffix}`] = [extra.height, 1]
   }
+  // The laundry and the azotea's stair: every piece is a volume of the house.
+  for (const item of laundryVolumes(3.2, 4.33 - .15, .15, 4, 6.4)) expected[item.id] = [item.height, 0]
   for (const { lot } of genericBuildings()) expected[`LOT-${String(lot.number).padStart(2, '0')}`] = [lot.height, lot.floors]
   assert.deepEqual(groundVolumes.map(building => building.id).sort(), Object.keys(expected).sort())
   for (const building of groundVolumes) {
@@ -171,8 +174,8 @@ test('the sheet-metal roof of the garage of lot 7 is a single pitch of more than
   closeTo(garage.slope!.direction[0], Math.SQRT1_2, 1e-12)
   closeTo(garage.slope!.direction[1], Math.SQRT1_2, 1e-12)
   assert.ok(garage.height + garage.slope!.rise < byId('NEIGHBOR-A-REAR').height)
-  // The tile roof of A's house is the only other pitch, gentler, and stays under the volume behind the garage.
-  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
+  // The tile roof of A's house and the laundry's sheet roof and the stair's wall are the only other pitches, gentler, and stays under the volume behind the garage.
+  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'HOUSE-LAUNDRY-GUARD', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
   const house = byId('NEIGHBOR-A-UPPER')
   assert.ok(house.slope!.rise < garage.slope!.rise && house.height + house.slope!.rise < 7)
 })
