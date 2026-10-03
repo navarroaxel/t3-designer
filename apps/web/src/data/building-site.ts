@@ -18,6 +18,7 @@
 import { houseToSite, planToSite, polygonArea, type PlanPoint, type SitePoint } from './frame.ts'
 import { LOTS, blockStreets, genericBuildings } from './block.ts'
 import { OPPOSITE_LOTS } from './opposite-block.ts'
+import { laundryVolumes } from './laundry.ts'
 import { CORNER_TANK, CORNER_UPPER, CROSS_STREET_END, OCHAVA_END, OCHAVA_START, cornerTankCentre } from './corner-front.ts'
 
 export type { SitePoint }
@@ -152,6 +153,8 @@ const withSlope = (item: BuildingFootprint, direction: [number, number], rise: n
   ({ ...item, slope: { direction, rise } });
 /** Site-axes unit vector of the house frame's u axis, toward the rear. */
 const REAR_DIRECTION: [number, number] = [Math.SQRT1_2, Math.SQRT1_2];
+/** Site-axes unit vector of the house frame's +v axis, toward the north-east. */
+const HOUSE_PLUS_V: [number, number] = (() => { const [x, z] = houseToSite(0, 1), [x0, z0] = houseToSite(0, 0); return [x - x0, z - z0] })();
 
 const building = (
   id: string,
@@ -248,6 +251,11 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   // The strip of the ground floor between the upper floor's rear wall and the wall that closes the light well.
   building('HOUSE-WELL-BACK', 'Casa · planta baja hasta el fondo del pulmón', rect(AZOTEA_REAR, WELL_BACK_U, TERRACE_INNER, LEFT_ARM_INNER), FLOOR_HEIGHT, 1),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, REAR_NE, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
+  // The laundry on the left arm and the stair to the azotea (owner's photos), at first-floor level.
+  ...laundryVolumes(FLOOR_HEIGHT, HALF_WIDTH - PARTY_WALL, PARTY_WALL, AZOTEA_REAR, ROOF_LEVEL).map(item => {
+    const volume = building(item.id, item.label, rect(item.u[0], item.u[1], item.v[0], item.v[1]), item.height, 0, false, item.base)
+    return item.rise ? withSlope(volume, HOUSE_PLUS_V, item.rise) : volume
+  }),
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', poly([southWest(AZOTEA_REAR), southWest(REAR_SW), [REAR_SW, TERRACE_INNER], [AZOTEA_REAR, TERRACE_INNER]]), FLOOR_HEIGHT, 1),
   // The terrace's roof is at first-floor level. Along the corner's party wall it has a 1.6 m wall, and on the
   // inner side, over the light well, a 1.1 m railing wall (owner).
