@@ -213,6 +213,27 @@ const shedFootprint = () => poly([
   [SHED_U[0], houseSouthWestEdge(SHED_U[0]) + WALL], [SHED_U[1], houseSouthWestEdge(SHED_U[1]) + WALL],
   [SHED_U[1], SHED_NE_V], [SHED_U[0], SHED_NE_V],
 ]);
+/**
+ * The shed's openings are on its street face, drawn as thin slabs proud of the wall. The door is 0.8 m by 2 m, 0.15 m from the tank
+ * side. For the boiler (owner) there are two permanent vents, one low and one high, over the south-west half of the face; their size
+ * and place are a proposal until the gas fitter sizes them.
+ */
+export const SHED_OPENINGS = {
+  door: { width: .8, height: 2, margin: .15 },
+  vent: { width: .4, height: .2, low: .15, high: 2, margin: .2, proud: .03 },
+} as const;
+const shedOpenings = (): BuildingFootprint[] => {
+  const { door, vent } = SHED_OPENINGS
+  const u: [number, number] = [SHED_U[0] - vent.proud, SHED_U[0]]
+  const vSouthWest = houseSouthWestEdge(SHED_U[0]) + WALL
+  const doorV: [number, number] = [SHED_NE_V - door.margin - door.width, SHED_NE_V - door.margin]
+  const ventV: [number, number] = [vSouthWest + vent.margin, vSouthWest + vent.margin + vent.width]
+  return [
+    rooftop('SHED-DOOR', 'Cuarto de servicios · puerta', rect(u[0], u[1], doorV[0], doorV[1]), 0, door.height),
+    rooftop('SHED-VENT-LOW', 'Cuarto de servicios · rejilla baja', rect(u[0], u[1], ventV[0], ventV[1]), vent.low, vent.low + vent.height),
+    rooftop('SHED-VENT-HIGH', 'Cuarto de servicios · rejilla alta', rect(u[0], u[1], ventV[0], ventV[1]), vent.high, vent.high + vent.height),
+  ]
+}
 const tankCentre: [number, number] = [(TANK_U[0] + TANK_U[1]) / 2, (TANK_V[0] + TANK_V[1]) / 2];
 const octagon = (u: number, v: number, radius: number): SitePoint[] =>
   Array.from({ length: 8 }, (_, i) => houseToSite(u + radius * Math.cos(Math.PI / 8 + i * Math.PI / 4), v + radius * Math.sin(Math.PI / 8 + i * Math.PI / 4)));
@@ -237,6 +258,7 @@ const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
   rooftop('TANK-STEEL', 'Tanque de acero', octagon(tankCentre[0], tankCentre[1], .5), 2.25, 3.75),
   rooftop('SHED', 'Cuarto de servicios', shedFootprint(), 0, SHED.wallHeight),
   withSlope(rooftop('SHED-ROOF', 'Cuarto de servicios · techo de chapa', shedFootprint(), SHED.wallHeight, SHED.wallHeight + SHED.roofThickness), REAR_DIRECTION, SHED.roofRise),
+  ...shedOpenings(),
 ];
 
 // Where lot 7 (A) splits: a walled front patio next to the house, then the garage house.

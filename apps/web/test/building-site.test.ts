@@ -256,6 +256,20 @@ test('the utility shed fills the rear south-west corner, 1.5 m deep, clear of th
   assert.ok(shed.height - byId('HOUSE').height > byId('HOUSE-PARAPET-REAR').height - byId('HOUSE').height, 'taller than the parapet')
 })
 
+test('the shed has a door and two vents on its street face', () => {
+  const shed = byId('HOUSE-SHED'), roof = byId('HOUSE')
+  const front = Math.min(...shed.footprint.map(point => houseFrame(point)[0]))
+  for (const id of ['HOUSE-SHED-DOOR', 'HOUSE-SHED-VENT-LOW', 'HOUSE-SHED-VENT-HIGH']) {
+    const item = byId(id)
+    closeTo(Math.max(...item.footprint.map(point => houseFrame(point)[0])), front, .001)
+    const vs = item.footprint.map(point => houseFrame(point)[1])
+    assert.ok(Math.min(...vs) >= Math.min(...shed.footprint.map(point => houseFrame(point)[1])) - .01 && Math.max(...vs) <= Math.max(...shed.footprint.map(point => houseFrame(point)[1])) + .01, `${id}: within the face`)
+  }
+  closeTo(byId('HOUSE-SHED-DOOR').height - roof.height, 2, .001)
+  assert.ok(byId('HOUSE-SHED-VENT-LOW').base! - roof.height < .3, 'a low vent')
+  assert.ok(byId('HOUSE-SHED-VENT-HIGH').height - roof.height > 2.1, 'a high vent')
+})
+
 test('building rings are finite and simple, and no ground footprints overlap', () => {
   assert.equal(new Set(SITE_BUILDINGS.map(building => building.id)).size, SITE_BUILDINGS.length)
   for (const building of SITE_BUILDINGS) validateRing(building.footprint, building.id)
