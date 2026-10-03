@@ -174,8 +174,8 @@ test('the sheet-metal roof of the garage of lot 7 is a single pitch of more than
   closeTo(garage.slope!.direction[0], Math.SQRT1_2, 1e-12)
   closeTo(garage.slope!.direction[1], Math.SQRT1_2, 1e-12)
   assert.ok(garage.height + garage.slope!.rise < byId('NEIGHBOR-A-REAR').height)
-  // The tile roof of A's house and the laundry's sheet roof are the only other pitches, gentler, and stays under the volume behind the garage.
-  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
+  // The tile roof of A's house and the laundry's sheet roof and the stair's wall are the only other pitches, gentler, and stays under the volume behind the garage.
+  assert.deepEqual(SITE_BUILDINGS.filter(item => item.slope).map(item => item.id), ['HOUSE-LAUNDRY-ROOF', 'HOUSE-LAUNDRY-GUARD', 'NEIGHBOR-A-UPPER', 'NEIGHBOR-A-GARAGE'])
   const house = byId('NEIGHBOR-A-UPPER')
   assert.ok(house.slope!.rise < garage.slope!.rise && house.height + house.slope!.rise < 7)
 })

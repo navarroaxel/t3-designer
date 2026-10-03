@@ -258,7 +258,7 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   // The laundry on the left arm and the stair to the azotea (owner's photos), at first-floor level.
   ...laundryVolumes(FLOOR_HEIGHT, HALF_WIDTH - PARTY_WALL, PARTY_WALL, AZOTEA_REAR, ROOF_LEVEL).map(item => {
     const volume = building(item.id, item.label, rect(item.u[0], item.u[1], item.v[0], item.v[1]), item.height, 0, false, item.base)
-    return item.rise ? withSlope(volume, HOUSE_PLUS_V, item.rise) : volume
+    return item.rise ? withSlope(volume, item.toward === 'azotea' ? [-REAR_DIRECTION[0], -REAR_DIRECTION[1]] : HOUSE_PLUS_V, item.rise) : volume
   }),
   building('HOUSE-TERRACE', 'Casa · terracita con parrilla', poly([southWest(AZOTEA_REAR), southWest(REAR_SW), [REAR_SW, TERRACE_INNER], [AZOTEA_REAR, TERRACE_INNER]]), FLOOR_HEIGHT, 1),
   // The terrace's roof is at first-floor level. Along the corner's party wall it has a 1.6 m wall, and on the
