@@ -28,7 +28,10 @@ upper block.
 | --- | --- | --- | --- |
 | Upper block | 9 m deep, 8.5 m wide, two floors | roof slab at 6.4 m | Owner (the 10 m of the azotea include a 1 m cantilever) |
 | Roof cantilever | 1 m past the street line, 8.5 m wide, 0.5 m thick; it ends level with the first-floor balcony, and the front parapet stands on its edge | slab top at 6.4 m | Owner |
-| Rear ground-floor band | 4.5 m deep outside: left arm 2.75 m, light well 2.5 m, terrace 3.25 m | 3.2 m | Owner (3.95 m inside, plus the walls, to fit the 13.5 m lot) |
+| Rear ground-floor band | 4.5 m deep outside: left arm 2.75 m, terrace 3.25 m; the light well is **2.8 m wide on the ground floor and 2.9 m on the first** (owner, v = -1 to 1.8 and to 1.9) | 3.2 m | Owner (3.95 m inside, plus the walls, to fit the 13.5 m lot) |
+| Office and laundry | The ground-floor office is 2.05 m wide inside, so the wall along the well is 0.33 m thick; the first-floor laundry is 2 m wide inside, with its wall on the well flush with the well's edge, and its door, 0.8 m, stands against that wall (1.2 m from the party wall) | | Owner |
+| Spin dryer | Koh-i-Noor centrifuge, 0.35 m across and 0.64 m high, to the right of the washing machine seen from its front (toward the rear), against the party wall | | Owner |
+| Washing machine | Graphite-grey front-loader (the owner's photo), 0.60 by 0.60 by 0.85 m, against the party wall at the kitchen end of the laundry | | Owner asked for it; the size is typical |
 | Lot | 8.66 m of front (owner), 13.50 m deep on the north-east side, 13.70 m on the south-west side, 8.70 m at the rear: 118.06 m2. The south-west boundary leans 0.10 m, and the house's wall stands on it | | Owner for the front; municipal survey sketch for the rest |
 | Side and rear parapets | 0.15 m thick | 1.1 m above the roof | Estimated from the azotea photo |
 | Front parapet | 0.15 m thick, tiled | 0.8 m above the roof | Estimated from Street View |
@@ -46,7 +49,7 @@ upper block.
 - Ground floor, from the left seen from the street: barred window and wooden door, both in an entrance recessed 1 m from the street line. The recess is 2.9 m wide, between a 0.5 m wall that stays on the line next to the neighbour and a 0.7 m pier. The garage door, about 4 m wide, stands on the line. The upper floor overhangs the recess.
 - First floor: a 3 m balcony door with its white shutter down to the floor (owner), and a smaller window on the right.
 - A balcony slab projecting about 1 m and a roof fascia projecting about 0.8 m. Both cast shadows.
-- Open railings at the balcony edge and above the front parapet, drawn without shadows.
+- Open railings at the balcony edge and above the front parapet, drawn without shadows. The first-floor balcony's is the azotea's: the same grey bars and two rails.
 
 All the fronts on the block stand on the same street line (`u = -5`), as the
 owner pointed out. The house of neighbour A is the exception only because it sits
@@ -146,7 +149,7 @@ The corner lot beside the house shows two more faces (`apps/web/src/data/corner-
 
 `apps/web/src/data/opposite-block.ts` draws the block facing the house, from its municipal block plan (hand sketch; 86.28 m along the street, 140.16 m deep). Its lots are digitised by eye, good to a metre or two, and each building is a prism in the band nearest its street (3.3 m by default). Three lots have their survey sketch and are exact:
 
-- **Lot 24**, opposite the house: 8.50 m of front, 15.4 m deep. Two floors (6.4 m) set back about 3 m behind a fenced garden, with a small room on the roof (9 m) (Street View).
+- **Lot 24**, opposite the house: 8.50 m of front, 15.4 m deep. Two floors (6.4 m) set back about 3 m behind a fenced garden, with a small room on the roof, under a single-pitch roof that falls toward its own azotea (about 3.2 m high on the left and 2.2 m on the right, estimated from the owner's photo; its door is pushed toward the azotea), and two water tanks at the back of the roof, on its right (Street View and the owner's photo).
 - **Lot 23**, the corner: 9.74 m of front on the cross street, a 5.98 m chamfer. The sketch is old; Street View shows a one-floor house (3.4 m) along the street, with a small fibre-cement tank on the roof.
 - **Lot 25**: 8.66 m of front, 24 m deep, a building on the south-west side that reaches the rear. Its height is not known. Its front (Street View) is a 3.4 m brick wall on the street line with stone panels and a barred window, and a black garage gate under a sloped metal visor.
 

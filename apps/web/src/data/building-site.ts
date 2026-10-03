@@ -108,8 +108,11 @@ export const ROOF_FRONT = -6;
 // The rear boundary is slightly inclined: 13.50 m deep on the north-east side, 13.70 m on the other.
 const REAR_NE = 8.5;
 const REAR_SW = 8.6;
-// Rear ground-floor band, 4.5 m outside (3.95 m inside, between the walls): left arm | light well 2.5 m | terrace.
-const LEFT_ARM_INNER = 1.5;
+// Rear ground-floor band, 4.5 m outside (3.95 m inside, between the walls): left arm | light well 2.8 m | terrace.
+/** The well's edge on the left arm's side, from the owner's measures: the light well is 2.8 m wide on the ground floor (v = -1 to 1.8) and 2.9 m on the first (to 1.9), in the wall's outer face. */
+export const GROUND_WELL_EDGE = 1.8;
+export const FIRST_WELL_EDGE = 1.9;
+const LEFT_ARM_INNER = GROUND_WELL_EDGE;
 /**
  * The ground floor's front block reaches 0.46 m past the upper floor's rear wall (owner's depths): the wall that closes the light well, and the
  * living's and the office's, stands at u = 4.28 to 4.46, so the well starts at 4.46. Between the contrafrente's back face (1.11 m) and the rear wall's
@@ -256,7 +259,7 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-WELL-BACK', 'Casa · planta baja hasta el fondo del pulmón', rect(AZOTEA_REAR, WELL_BACK_U, TERRACE_INNER, LEFT_ARM_INNER), FLOOR_HEIGHT, 1),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, REAR_NE, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
   // The laundry on the left arm and the stair to the azotea (owner's photos), at first-floor level.
-  ...laundryVolumes(FLOOR_HEIGHT, HALF_WIDTH - PARTY_WALL, PARTY_WALL, AZOTEA_REAR, ROOF_LEVEL).map(item => {
+  ...laundryVolumes(FLOOR_HEIGHT, HALF_WIDTH - PARTY_WALL, PARTY_WALL, AZOTEA_REAR, ROOF_LEVEL, FIRST_WELL_EDGE).map(item => {
     const volume = building(item.id, item.label, rect(item.u[0], item.u[1], item.v[0], item.v[1]), item.height, 0, false, item.base)
     return item.rise ? withSlope(volume, item.toward === 'azotea' ? [-REAR_DIRECTION[0], -REAR_DIRECTION[1]] : HOUSE_PLUS_V, item.rise) : volume
   }),

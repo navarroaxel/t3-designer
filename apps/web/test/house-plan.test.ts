@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { ENTRY_RECESS, FLOOR_HEIGHT, PARTY_WALL, SITE_BUILDINGS, WELL_BACK_U, WELL_BACK_WALL, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
+import { GROUND_WELL_EDGE, ENTRY_RECESS, FLOOR_HEIGHT, PARTY_WALL, SITE_BUILDINGS, WELL_BACK_U, WELL_BACK_WALL, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
   BALCONY, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, GROUND_BATHROOM, GROUND_BATHROOM_DOOR, GROUND_PANTRY, PANTRY, PANTRY_DOOR, LIVING_KITCHEN_DOOR, GROUND_LIVING, GROUND_LIVING_WALL, STAIRWELL_HOLE, HALL_ARCH, RIGHT_ARM_WINDOW_WIDTH, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
-  polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
+  OFFICE_WIDTH, polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
 const closeTo = (actual: number, expected: number, tolerance: number) =>
@@ -40,7 +40,7 @@ test('exterior walls sit inside each outline; the party walls are 0.15 m of this
     for (const box of boxes) {
       assert.ok(contains([box.center[0], box.center[2]], OUTLINES[floor]), `${floor}: wall inside the outline`)
       const thickness = Math.min(box.size[0], box.size[2])
-      assert.ok([WALL_THICKNESS, PARTY_WALL, WELL_BACK_WALL].some(expected => Math.abs(thickness - expected) < 1e-9), `${floor}: wall ${thickness} m thick`)
+      assert.ok([WALL_THICKNESS, PARTY_WALL, WELL_BACK_WALL, 4.33 - PARTY_WALL - OFFICE_WIDTH - GROUND_WELL_EDGE].some(expected => Math.abs(thickness - expected) < 1e-9), `${floor}: wall ${thickness} m thick`)
       assert.ok(box.center[1] - box.size[1] / 2 >= FLOOR_LEVEL[floor] - 1e-9, `${floor}: walls start at the floor`)
     }
   }
@@ -112,7 +112,7 @@ test('the rear wall has a 1.78 m door centred on the terrace and a 2.3 m by 1.64
   assert.ok(Math.abs(door.v[1] - door.v[0] - 1.78) < 1e-9)
   assert.ok(Math.abs((door.v[0] + door.v[1]) / 2 - (houseSouthWestEdge(1.8) - 1) / 2) < 1e-9, 'door centred on the terrace')
   assert.ok(Math.abs(window.v[1] - window.v[0] - 2.3) < 1e-9)
-  assert.ok(Math.abs((window.v[0] + window.v[1]) / 2 - .25) < 1e-9, 'window centred on the light well (v = -1 to 1.5)')
+  assert.ok(Math.abs((window.v[0] + window.v[1]) / 2 - .4) < 1e-9, 'window centred on the light well (v = -1 to 1.8)')
   assert.ok(Math.abs(window.y[1] - window.y[0] - 1.64) < 1e-9)
   // The openings are cut out of the rear wall of the first floor.
   const boxes = wallBoxes(FIRST_OUTLINE, OPENINGS.first, FLOOR_HEIGHT, FLOOR_HEIGHT + CUT_HEIGHT)
@@ -472,12 +472,13 @@ test('the living and laundry doors are white aluminium frames with glass, and on
   assert.deepEqual(FIRST_FLOOR_DOOR_SWINGS.filter(door => door.glazed).map(door => door.id).sort(), ['laundry', 'living'])
 })
 
-test('the laundry door is 0.80 m, single-leaf, right-handed and 1.30 m from the party wall, on the rear wall', () => {
+test('the laundry door is 0.80 m, single-leaf, right-handed and 1.20 m from the party wall, flush with the laundry\'s wall on the well, on the rear wall', () => {
   const near = (a: number, b: number, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} vs ${b}`)
   const door = OPENINGS.first.find(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - .8) < 1e-9)!
   near(door.y[1] - door.y[0], 2.1)
-  // 1.30 m from the party wall's inner face (v = 4.18) to the door's nearer edge.
-  near(KITCHEN_LIVING.v[1] - door.v[1], 1.3)
+  // 1.20 m from the party wall's inner face (v = 4.18) to the door's nearer edge: the laundry is 2 m wide (owner) and the door, 0.8 m, stands against its wall on the well.
+  near(KITCHEN_LIVING.v[1] - door.v[1], 1.2)
+  near(door.v[0], 4.33 - .15 - 2)
   assert.ok(door.v[0] >= KITCHEN_LIVING.v[0] && door.v[1] <= KITCHEN_LIVING.v[1])
   for (const other of OPENINGS.first.filter(opening => opening.u === 4 && opening !== door)) assert.ok(other.v[1] < door.v[0] || other.v[0] > door.v[1], 'clear of the other openings')
   const swing = FIRST_FLOOR_DOOR_SWINGS.find(item => item.id === 'laundry')!
@@ -532,9 +533,9 @@ test('the ground-floor light well has a 1.80 m balcony door, centred on it, on t
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
   const door = OPENINGS.ground.find(opening => opening.u === WELL_BACK_U)!
   near(door.v[1] - door.v[0], 1.8); near(LIGHT_WELL_DOOR_WIDTH, 1.8)
-  // The well runs from v = -1 to 1.5 (2.5 m): the door is centred on it, leaving 0.35 m each side.
-  near((door.v[0] + door.v[1]) / 2, .25)
-  assert.ok(door.v[0] >= -1 + .3 && door.v[1] <= 1.5 - .3)
+  // The well runs from v = -1 to 1.8 (2.8 m, owner): the door is centred on it, leaving 0.5 m each side.
+  near((door.v[0] + door.v[1]) / 2, .4)
+  assert.ok(door.v[0] >= -1 + .3 && door.v[1] <= 1.8 - .3)
   // It is cut out of the ground floor's wall at u = 4 and reaches the floor.
   assert.equal(door.y[0], 0)
   const boxes = wallBoxes(GROUND_OUTLINE, OPENINGS.ground, 0, 3.2)
@@ -549,7 +550,7 @@ test('the well\'s balcony-door wall continues to the left to the party wall, and
   const [u0, u1, v0, v1] = GROUND_OFFICE_WALL
   // On the same line as the well's wall (u = 4), as thick as the exterior walls, from past the well's corner to the party wall's inner face.
   near(u1, WELL_BACK_U); near(u1 - u0, WELL_BACK_WALL)
-  near(v0, 1.5 + .3); near(v1, 4.33 - .15)
+  near(v0, 4.33 - .15 - 2.05); near(v1, 4.33 - .15)
   // It is split around the office door: two pieces on the same line.
   const pieces = GROUND_PARTITIONS.filter(wall => wall[0] === u0 && wall[1] === u1)
   assert.equal(pieces.length, 2)
@@ -626,10 +627,10 @@ test('no loose wall stands in front of the office wall: every ground-floor wall 
 
 test('the office has a 1.5 m window onto the light well, centred on it, cut out of the wall that runs along the well', () => {
   const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
-  const window = SIDE_OPENINGS.ground.find(opening => opening.v === 1.5)!
+  const window = SIDE_OPENINGS.ground.find(opening => opening.v === GROUND_WELL_EDGE)!
   near(window.u[1] - window.u[0], 1.5); near(OFFICE_WINDOW_WIDTH, 1.5)
-  // On the well's wall (v = 1.5) and centred on the office, whose interior runs u = 4 to 8.2.
-  near(window.v, 1.5)
+  // On the well's wall (v = 1.8) and centred on the office, whose interior runs u = 4 to 8.2.
+  near(window.v, 1.8)
   near((window.u[0] + window.u[1]) / 2, (GROUND_OFFICE.u[0] + GROUND_OFFICE.u[1]) / 2)
   assert.ok(window.u[0] > GROUND_OFFICE.u[0] + .5 && window.u[1] < GROUND_OFFICE.u[1] - .5, 'clear of the office\'s end walls')
   // A window, not a door: its sill is above the floor and its head under the ceiling.
@@ -663,7 +664,7 @@ test('the right arm of the well has a 1.8 m window onto it, in the wall at v = -
   assert.equal(solid([window.u[0] - .3, window.y[0] + .5, inside]), true, 'wall beside the window')
   // Both windows look onto the well: one is on each side of it.
   const sides = SIDE_OPENINGS.ground.map(opening => opening.v).sort((a, b) => a - b)
-  assert.deepEqual(sides, [-1, 1.5])
+  assert.deepEqual(sides, [-1, 1.8])
 })
 
 test('the hall has a 1.2 m doorway without a leaf, 8 cm from the garage wall, in the back wall', () => {
@@ -774,7 +775,7 @@ test('the ground floor\'s bathroom, living and office have the first floor\'s ba
   // The light well, the pulmón, has the bathroom's tile too, between its two side walls and from the wall that closes it to the rear wall.
   assert.equal(zone('ground-well').color, first('bathroom').color)
   assert.equal(zone('ground-well').pattern, first('bathroom').pattern)
-  assert.deepEqual(zone('ground-well').rects[0], [WELL_BACK_U, 8.5 - PARTY_WALL, -1, 1.5])
+  assert.deepEqual(zone('ground-well').rects[0], [WELL_BACK_U, 8.5 - PARTY_WALL, -1, 1.8])
   // The office has the bedrooms' floor, Saing almendra.
   assert.equal(zone('ground-office').color, first('bedrooms').color)
   assert.equal(zone('ground-office').pattern, first('bedrooms').pattern)

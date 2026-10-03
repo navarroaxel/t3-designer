@@ -12,6 +12,8 @@ import { FIREPLACE_BOXES } from '../data/fireplace'
 import { GARAGE_EQUIPMENT } from '../data/garage-equipment'
 import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
 import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
+import { WASHING_MACHINE_BOXES } from '../data/washing-machine'
+import { SPIN_DRYER_PARTS } from '../data/spin-dryer'
 import { polygonShape } from '../lib/polygon-shape'
 
 /** The stairwell opening in the first-floor slab, as a ring. Defined once so the slab's geometry is not rebuilt on every render. */
@@ -287,6 +289,16 @@ export function HouseShell({ floor }: { floor: Floor }) {
       </mesh>)}
       {/* The kitchen of the living, from the owner's render, with assumed sizes. */}
       {KITCHEN_BOXES.map(box => <KitchenPiece key={box.id} box={box} />)}
+      {/* The washing machine in the laundry, against the party wall. */}
+      {WASHING_MACHINE_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
+        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
+        <meshStandardMaterial color={box.color} roughness={.35} metalness={box.metalness ?? 0} />
+      </mesh>)}
+      {/* The Koh-i-Noor spin dryer to the right of the washing machine: a stainless drum under a black lid. */}
+      {SPIN_DRYER_PARTS.map(part => <mesh key={part.id} position={[(part.u[0] + part.u[1]) / 2, (part.y[0] + part.y[1]) / 2, -(part.v[0] + part.v[1]) / 2]} receiveShadow castShadow>
+        {part.shape === 'cylinder' ? <cylinderGeometry args={[(part.u[1] - part.u[0]) / 2, (part.u[1] - part.u[0]) / 2, part.y[1] - part.y[0], 28]} /> : <boxGeometry args={[part.u[1] - part.u[0], part.y[1] - part.y[0], part.v[1] - part.v[0]]} />}
+        <meshStandardMaterial color={part.color} roughness={.3} metalness={part.metalness ?? 0} />
+      </mesh>)}
       {/* The TVs: OLEDs on wall brackets, one in the main room and one in the living. */}
       {[MAIN_TV_PLACEMENT, LIVING_TV_PLACEMENT].map((tv, index) => <group key={index}>
         <mesh position={[(tv.u[0] + tv.u[1]) / 2, (tv.y[0] + tv.y[1]) / 2, -(tv.v[0] + tv.v[1]) / 2]} receiveShadow>
