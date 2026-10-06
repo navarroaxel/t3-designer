@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { polygonCentroid } from '@t3-designer/geometry'
 import { pointInEditorPolygon } from '@t3-designer/scene-schema'
 import { currentFixtures } from '../src/data/current-state.ts'
 import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
@@ -20,7 +21,7 @@ test('both floors build as valid apartments with a wall under every opening', ()
     const walls = new Set(apartment.walls.map(wall => wall.id))
     assert.ok(apartment.doors.concat().every(door => walls.has(door.wallId)))
     assert.ok(apartment.windows.every(window => walls.has(window.wallId)))
-    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || wall.id.includes('balcony-rail')))
+    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || /balcony-rail|terrace/.test(wall.id)))
   }
 })
 
@@ -45,8 +46,8 @@ test('every interior door opens a gap between two rooms', () => {
 
 test('the street front keeps the 3 m balcony door and the secondary room\'s window on the first floor', () => {
   const windows = HOUSE_FLOORS.first.windows
-  // The balcony door is an open frame: the visitor walks through it.
-  assert.ok(HOUSE_FLOORS.first.doors.some(door => Math.abs(door.width - 3) < 1e-9 && door.appearance === 'passage'))
+  // The balcony door slides open: the visitor walks through it.
+  assert.ok(HOUSE_FLOORS.first.doors.some(door => Math.abs(door.width - 3) < 1e-9 && door.appearance === 'sliding'))
   assert.ok(windows.some(window => Math.abs(window.width - 2.04) < 1e-9 && window.kind === 'casement'))
 })
 
@@ -113,4 +114,22 @@ test('the cutaway draws the same walls as the walkthrough walks through', () => 
     const partitions = (floor === 'ground' ? GROUND_PARTITIONS : FIRST_FLOOR_PARTITIONS).map(([u0, u1, v0, v1]) => ({ size: [u1 - u0, CUT_HEIGHT, v1 - v0] as [number, number, number] }))
     close(volume(shellWallBoxes(floor, top)), volume(fromPlan) + volume(partitions), 1e-6)
   }
+})
+
+test('the first floor opens in the middle of the living, facing the kitchen, on free floor', () => {
+  const living = room('first', 'kitchen-living')
+  const world = buildWalkWorld(publicScene('first', []))
+  const [x, z] = polygonCentroid(living.polygon)
+  assert.ok(isWalkPositionFree(world, [x, z]))
+})
+
+test('the main room\'s balcony door is a white aluminium sliding door that opens and closes', () => {
+  const door = HOUSE_FLOORS.first.doors.find(item => item.appearance === 'sliding')!
+  assert.ok(door && Math.abs(door.width - 3) < 1e-9 && door.color === '#f3f2ee')
+  const scene = publicScene('first', [])
+  const closed = buildWalkWorld(scene, { [door.id]: 0 }), open = buildWalkWorld(scene, { [door.id]: 1 })
+  // The balcony is out the street front, x = -5, behind the door's 3 m span (v = 0.1 to 3.1, z = -3.1 to -0.1): the far half is the one that slides.
+  const farHalf: [number, number] = [-5, -.4], nearHalf: [number, number] = [-5, -2.8]
+  assert.ok(!isWalkPositionFree(closed, farHalf) && !isWalkPositionFree(closed, nearHalf))
+  assert.ok(isWalkPositionFree(open, [-4.6, -.4]) && !isWalkPositionFree(open, nearHalf))
 })

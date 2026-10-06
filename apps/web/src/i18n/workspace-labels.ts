@@ -22,6 +22,7 @@ const roomKeys = {
   'office': 'rooms.office',
   'light-well': 'rooms.light-well',
   laundry: 'rooms.laundry',
+  terrace: 'rooms.terrace',
   balcony: 'rooms.balcony',
 } as const
 

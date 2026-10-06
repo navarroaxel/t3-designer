@@ -1,7 +1,8 @@
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import { furnishingsOn } from '../data/house-furnishings'
 import type { Floor } from '../data/house-plan'
-import { KitchenPiece } from './HouseShell'
+import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
+import { FloorPatch, KitchenPiece } from './HouseShell'
 
 /**
  * The cutaway's furniture and equipment, standing at full height in the viewer's frame: x = u, z = -v, y up from the floor. The plan's
@@ -20,5 +21,24 @@ export function HouseFurnishings({ floor }: { floor: Floor }) {
           transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined} />
       </mesh>
     })}
+  </group>
+}
+
+/** Raises the tiles a hair over the room floors the viewers draw, so the two never fight for the same pixels. */
+const TILE_LIFT = .012
+/** The laundry's tile runs on under the stair's landing in the plan; the visitor's floor ends at the laundry's back wall. */
+const LAUNDRY_END = 7
+
+/**
+ * The floors' own finishes, from the plan: Saing planks in the bedrooms, hall and living, Navona tiles in the bathrooms and the laundry, each at its
+ * real scale. The same patches the floor cutaway lays, here under the walkthrough and the interior view.
+ */
+export function HouseFloorTiles({ floor }: { floor: Floor }) {
+  const zones = floor === 'ground' ? GROUND_FLOOR_TILING : FLOOR_TILING
+  return <group name="house-floor-tiles" position={[0, -FLOOR_ELEVATION[floor] + TILE_LIFT, 0]}>
+    {zones.flatMap(zone => zone.rects.map((rect, index) => {
+      const clipped: [number, number, number, number] = zone.id === 'laundry' ? [rect[0], Math.min(rect[1], LAUNDRY_END), rect[2], rect[3]] : rect
+      return <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={clipped} />
+    }))}
   </group>
 }

@@ -408,9 +408,12 @@ test('the bathroom floor is a thin travertine-coloured porcelain layer', () => {
 
 test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Navona natural tiles of 80 by 80 cm, without overlapping', () => {
   const colors = Object.fromEntries(FLOOR_TILING.map(zone => [zone.id, zone.color]))
-  assert.deepEqual(Object.keys(colors).sort(), ['bathroom', 'bedrooms', 'hall', 'laundry', 'living', 'terrace'])
+  assert.deepEqual(Object.keys(colors).sort(), ['balcony', 'bathroom', 'bedrooms', 'hall', 'laundry', 'living', 'terrace'])
   // The first-floor terrace has the bathroom's tile.
   assert.equal(colors.terrace, colors.bathroom)
+  // The balcony too (owner): Navona natural.
+  assert.equal(colors.balcony, colors.bathroom)
+  assert.equal(FLOOR_TILING.find(zone => zone.id === 'balcony')!.pattern, NAVONA_TILES)
   // So does the laundry.
   assert.equal(colors.laundry, colors.bathroom)
   assert.equal(FLOOR_TILING.find(zone => zone.id === 'laundry')!.pattern, NAVONA_TILES)
@@ -432,8 +435,8 @@ test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Na
     const overlapV = Math.min(a.rect[3], b.rect[3]) - Math.max(a.rect[2], b.rect[2])
     assert.ok(!(overlapU > 1e-6 && overlapV > 1e-6), `${a.zone} and ${b.zone} tiles overlap`)
   }
-  // Every indoor rectangle stays inside the first floor's block; the terrace and the laundry lie beyond its rear wall.
-  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace' && item.zone !== 'laundry')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
+  // Every indoor rectangle stays inside the first floor's block; the terrace, the laundry and the balcony lie beyond its rear wall.
+  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace' && item.zone !== 'laundry' && item.zone !== 'balcony')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
 })
 
 test('the terrace floor lies over the rear band, between its two walls', () => {

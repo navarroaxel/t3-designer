@@ -7,7 +7,7 @@ import { LAUNDRY } from './laundry.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
-import { HOUSE_HALF_WIDTH, PARTY_WALL } from './building-site.ts'
+import { HOUSE_HALF_WIDTH, HOUSE_REAR, PARTY_WALL, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
 import { KITCHEN_BOXES, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, QUEEN_BED,
@@ -79,6 +79,14 @@ function firstFloor(): Furnishing[] {
     const end = doorU - (flight.risersFirst - 1 - step) * flight.tread
     add({ id: `laundry-step-${step}`, u: [end - flight.tread, end], v: [v0, v0 + flight.width], y: [F, F + step * riser], color: '#b9b6ae', roughness: .95 })
   }
+  // The terrace's grill, with its grate, and the shelf with the sink beside it, against the wall at the back.
+  const back = HOUSE_REAR.southWest - TERRACE_REAR_WALL - .05
+  add({ id: 'terrace-grill', u: [back - TERRACE_GRILL.depth, back], v: [TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2], y: [F, F + TERRACE_GRILL.height], color: '#8c4a33', roughness: .9 })
+  add({ id: 'terrace-grill-grate', u: [back - TERRACE_GRILL.depth, back], v: [TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2], y: [F + TERRACE_GRILL.height, F + TERRACE_GRILL.height + TERRACE_GRILL.grate], color: '#2a2b2d', metalness: .4, solid: false })
+  const shelfV: [number, number] = [TERRACE_CENTRE_V + TERRACE_GRILL.width / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS]
+  const shelfMiddle = (shelfV[0] + shelfV[1]) / 2
+  add({ id: 'terrace-shelf', u: [back - TERRACE_SHELF.depth, back], v: shelfV, y: [F + TERRACE_SHELF.height - TERRACE_SHELF.thickness, F + TERRACE_SHELF.height], color: '#b9b3a5', roughness: .8, solid: false })
+  add({ id: 'terrace-sink', u: [back - TERRACE_SHELF.depth / 2 - TERRACE_SHELF.basinDepth / 2, back - TERRACE_SHELF.depth / 2 + TERRACE_SHELF.basinDepth / 2], v: [shelfMiddle - TERRACE_SHELF.basinWidth / 2, shelfMiddle + TERRACE_SHELF.basinWidth / 2], y: [F + TERRACE_SHELF.height, F + TERRACE_SHELF.height + TERRACE_SHELF.basin], color: '#7d8185', metalness: .5, solid: false })
   // The concrete stair going down to the hall, seen through the stairwell.
   for (const block of STAIR_BLOCKS) add({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })
   return pieces

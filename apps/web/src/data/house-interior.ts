@@ -2,13 +2,14 @@ import { segmentWall } from '@t3-designer/geometry'
 import { ApartmentSchema, SCENE_SCHEMA_VERSION, type Apartment, type Door, type Point2D, type Room, type Wall, type Window } from '@t3-designer/scene-schema'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import {
-  BATHROOM_DOOR, CLOSET_WARDROBE, type DoorSwing, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, FIRST_OUTLINE,
+  BATHROOM_DOOR, BATHROOM_DOOR_COLOR, CLOSET_WARDROBE, LIVING_DOOR_COLOR, MAIN_DOOR_COLOR, SECONDARY_DOOR_COLOR, OFFICE_DOOR_COLOR, type DoorSwing, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, FIRST_OUTLINE,
   FRONT_ROOMS, GARAGE_DOOR, GROUND_BATHROOM, GROUND_DOOR_SWINGS, GROUND_GARAGE, GROUND_HALL, GROUND_BATHROOM_DOOR, GROUND_LIVING, GROUND_OFFICE,
   GROUND_OUTLINE, GROUND_PANTRY, GROUND_PARTITIONS, HALL_ARCH, KITCHEN_LIVING, LIVING_DOOR, LIVING_KITCHEN_DOOR, MAIN_DOOR, MAIN_ROOM_CLOSET,
   MAIN_ROOM_DRYWALL, MAIN_ROOM_SETBACK, OFFICE_DOOR, OPENINGS, PANTRY_DOOR, PARTITION_THICKNESS, SECONDARY_DOOR, SECONDARY_WARDROBE, SIDE_OPENINGS,
   SLAB_THICKNESS, STAIRWELL_HOLE, BALCONY, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
 } from './house-plan.ts'
 import { LAUNDRY } from './laundry.ts'
+import { TERRACE_INNER, TERRACE_PARTY_WALL, TERRACE_RAILING, TERRACE_REAR_WALL, TERRACE_WALL_THICKNESS, houseSouthWestEdge } from './building-site.ts'
 import { HOUSE_HALF_WIDTH, PARTY_WALL, WELL_BACK_U, HOUSE_REAR, GROUND_WELL_EDGE } from './building-site.ts'
 
 /**
@@ -23,6 +24,7 @@ const DOOR_HEIGHT = 2.1
 const local = (u: number, v: number): Point2D => [u, -v]
 const EPS = 1e-6
 const level: Record<Floor, number> = { ground: 0, first: FLOOR_HEIGHT }
+const TERRACE_REAR = HOUSE_REAR.southWest
 
 type Box = readonly [number, number, number, number]
 const longAlongU = (box: Box) => box[1] - box[0] >= box[3] - box[2]
@@ -38,19 +40,19 @@ function partitionWall(id: string, box: Box): Wall {
   }
 }
 
-type InteriorDoor = { id: string; box: Box; swing?: DoorSwing; appearance: 'passage' | 'panel' | 'glazed'; finish?: Door['finish']; evidence?: string }
+type InteriorDoor = { id: string; box: Box; swing?: DoorSwing; appearance: 'passage' | 'panel' | 'glazed'; finish?: Door['finish']; color?: string; evidence?: string }
 const boxOf = (door: { u: [number, number]; v: [number, number] }): Box => [door.u[0], door.u[1], door.v[0], door.v[1]]
 
 const FIRST_DOORS: InteriorDoor[] = [
-  { id: 'bathroom-door', box: boxOf(BATHROOM_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'bathroom'), appearance: 'panel', finish: 'white' },
-  { id: 'living-door', box: boxOf(LIVING_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'living'), appearance: 'glazed', finish: 'white' },
-  { id: 'main-door', box: boxOf(MAIN_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'main'), appearance: 'panel', finish: 'gray' },
-  { id: 'secondary-door', box: boxOf(SECONDARY_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'secondary'), appearance: 'panel', finish: 'gray' },
+  { id: 'bathroom-door', box: boxOf(BATHROOM_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'bathroom'), appearance: 'panel', finish: 'white', color: BATHROOM_DOOR_COLOR },
+  { id: 'living-door', box: boxOf(LIVING_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'living'), appearance: 'glazed', finish: 'white', color: LIVING_DOOR_COLOR },
+  { id: 'main-door', box: boxOf(MAIN_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'main'), appearance: 'panel', finish: 'gray', color: MAIN_DOOR_COLOR },
+  { id: 'secondary-door', box: boxOf(SECONDARY_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'secondary'), appearance: 'panel', finish: 'gray', color: SECONDARY_DOOR_COLOR },
 ]
 const GROUND_DOORS: InteriorDoor[] = [
   { id: 'garage-hall-doorway', box: boxOf(GARAGE_DOOR), appearance: 'passage', finish: 'white', evidence: 'Doorway without a door yet (owner).' },
   { id: 'hall-arch', box: boxOf(HALL_ARCH), appearance: 'passage', finish: 'white', evidence: 'Doorway without a leaf (owner).' },
-  { id: 'office-door', box: boxOf(OFFICE_DOOR), swing: GROUND_DOOR_SWINGS.find(swing => swing.id === 'office'), appearance: 'panel', finish: 'gray' },
+  { id: 'office-door', box: boxOf(OFFICE_DOOR), swing: GROUND_DOOR_SWINGS.find(swing => swing.id === 'office'), appearance: 'panel', finish: 'gray', color: OFFICE_DOOR_COLOR },
   { id: 'living-rear-door', box: boxOf(LIVING_KITCHEN_DOOR), appearance: 'passage', finish: 'white', evidence: 'Opening only; leaf, colour and hand not known.' },
   { id: 'pantry-door', box: boxOf(PANTRY_DOOR), appearance: 'passage', finish: 'white', evidence: 'Opening only; width and centring assumed.' },
   { id: 'ground-bathroom-door', box: boxOf(GROUND_BATHROOM_DOOR), appearance: 'passage', finish: 'white', evidence: 'Opening only; leaf, colour and hand not known.' },
@@ -97,7 +99,7 @@ function exteriorWalls(floor: Floor, outline: PlanPoint[]) {
       if (spec.kind === 'door') {
         doors.push({
           id: spec.id, wallId: id, offset, width, height: top - bottom, hinge: 'start', opensToward: 1, locationConfidence: 'observed',
-          appearance: spec.appearance, finish: spec.finish, estimated: true,
+          appearance: spec.appearance, finish: spec.finish, color: 'color' in spec ? spec.color : undefined, estimated: true,
         })
       } else {
         windows.push({
@@ -114,8 +116,10 @@ function exteriorWalls(floor: Floor, outline: PlanPoint[]) {
 function openingSpec(floor: Floor, wallId: string, index: number, bottom: number, top: number, width: number) {
   const id = `${wallId}-opening-${index + 1}`
   if (bottom <= .05 && top - bottom > 2.3 && width > 3) return { id, kind: 'door' as const, appearance: 'passage' as const, finish: 'gray' as const } // the garage door, shown as an open frame: a 4 m leaf would swing across the street
-  // The balcony's 3 m door is a way out onto it: an open frame, not glazing the visitor bumps into.
-  if (floor === 'first' && bottom <= .05 && width > 2.5) return { id, kind: 'door' as const, appearance: 'passage' as const, finish: 'white' as const }
+  // The balcony's 3 m door and the terrace's 1.78 m one are ways out: an open frame, not glazing the visitor bumps into.
+  // The main room's door onto the balcony (3 m) is a white aluminium sliding door; the terrace's is an open frame.
+  if (floor === 'first' && bottom <= .05 && width > 2.5) return { id, kind: 'door' as const, appearance: 'sliding' as const, finish: 'white' as const, color: '#f3f2ee' }
+  if (floor === 'first' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'passage' as const, finish: 'white' as const }
   if (bottom <= .05 && width > 1.5) return { id, kind: 'balcony-door' as const }
   if (bottom <= .05) return { id, kind: 'door' as const, appearance: floor === 'ground' ? 'panel' as const : 'glazed' as const, finish: 'gray' as const }
   return { id, kind: 'window' as const }
@@ -139,7 +143,7 @@ function interiorWalls(floor: Floor, partitions: readonly Box[], doors: Interior
     }
     result.push({
       id: door.id, wallId: gap.id, offset: 0, width: length, height: DOOR_HEIGHT, hinge, opensToward, locationConfidence: door.swing ? 'observed' : 'inferred',
-      appearance: door.appearance, finish: door.finish, evidence: door.evidence, estimated: true,
+      appearance: door.appearance, finish: door.finish, color: door.color, evidence: door.evidence, estimated: true,
     })
   }
   return { walls, doors: result }
@@ -162,6 +166,7 @@ const firstRooms: Room[] = [
   room('hall', 'Hall', rect([FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS], firstHallV), '#ded6c3'),
   room('stair-corridor', 'Stair corridor', rect([STAIRWELL_HOLE[0], STAIRWELL_HOLE[1]], [firstHallV[0], STAIRWELL_HOLE[2]]), '#d3ccb8'),
   room('laundry', 'Laundry', rect(LAUNDRY_U_ROOM, [HOUSE_HALF_WIDTH - PARTY_WALL - LAUNDRY.width, HOUSE_HALF_WIDTH - PARTY_WALL]), '#d8d4c6'),
+  room('terrace', 'Terrace', rect([4, TERRACE_REAR], [houseSouthWestEdge((4 + TERRACE_REAR) / 2) + TERRACE_WALL_THICKNESS, TERRACE_INNER - TERRACE_WALL_THICKNESS]), '#d6d2c2'),
   room('balcony', 'Balcony', rect([-5 - BALCONY.depth, -5], [-BALCONY.width / 2, BALCONY.width / 2]), '#c2c2b9'),
   room('kitchen-living', 'Kitchen and living', rect(KITCHEN_LIVING.u, KITCHEN_LIVING.v), '#e3d5bd'),
 ]
@@ -186,18 +191,20 @@ const LAUNDRY_BACK = LAUNDRY_U[1] + LAUNDRY.wallThickness
 const BALCONY_V = BALCONY.width / 2
 const BALCONY_FRONT = -5 - BALCONY.depth
 const RAIL = .04
+const TERRACE_SW = (u: number) => houseSouthWestEdge(u) + TERRACE_WALL_THICKNESS / 2
 
 /**
  * What the first floor adds to its block: the balcony on the street, which the visitor can walk out onto, the laundry behind the kitchen
  * (its north-east half, the other being the stair's first flight) and the stairwell, a notch in the floor along the north-east party wall.
  * The perimeter is what the walkthrough treats as floor, so it follows all three.
  */
-function firstFloorPerimeter(): Point2D[] {
+function firstFloorPerimeter(withTerrace = true): Point2D[] {
   const hole = STAIRWELL_HOLE
+  const terrace = withTerrace ? [local(4, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
   return [
     local(-5, FIRST_OUTLINE[0][1]), local(-5, -BALCONY_V), local(BALCONY_FRONT, -BALCONY_V), local(BALCONY_FRONT, BALCONY_V), local(-5, BALCONY_V),
     local(-5, HOUSE_HALF_WIDTH), local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH),
-    local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, FIRST_OUTLINE[0][1]),
+    local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, LAUNDRY_V0 - LAUNDRY.wallThickness), ...terrace, local(4, FIRST_OUTLINE[0][1]),
   ]
 }
 
@@ -217,7 +224,17 @@ function firstFloorAnnex() {
   wall('first-balcony-rail-front', [BALCONY_FRONT + RAIL / 2, -BALCONY_V], [BALCONY_FRONT + RAIL / 2, BALCONY_V], RAIL, 1)
   wall('first-balcony-rail-south-west', [BALCONY_FRONT, -BALCONY_V + RAIL / 2], [-5, -BALCONY_V + RAIL / 2], RAIL, 1)
   wall('first-balcony-rail-north-east', [BALCONY_FRONT, BALCONY_V - RAIL / 2], [-5, BALCONY_V - RAIL / 2], RAIL, 1)
+  // The terrace behind the kitchen, over the rear ground-floor band: the party wall on the south-west (it leans with the lot), the wall at the
+  // back, and the railing on the light well's side.
+  wall('first-terrace-party', [4, TERRACE_SW(4)], [TERRACE_REAR, TERRACE_SW(TERRACE_REAR)], TERRACE_WALL_THICKNESS, TERRACE_PARTY_WALL)
+  wall('first-terrace-rear', [TERRACE_REAR - TERRACE_REAR_WALL / 2, houseSouthWestEdge(TERRACE_REAR) + TERRACE_WALL_THICKNESS], [TERRACE_REAR - TERRACE_REAR_WALL / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS], TERRACE_REAR_WALL, TERRACE_PARTY_WALL)
+  wall('first-terrace-rail', [4, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], [TERRACE_REAR, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], TERRACE_WALL_THICKNESS, TERRACE_RAILING)
   return { walls, windows }
+}
+
+/** The ceiling the walkthrough draws: the house's roof. The terrace is open to the sky. */
+export function ceilingPolygon(floor: Floor): Point2D[] {
+  return floor === 'first' ? firstFloorPerimeter(false) : HOUSE_FLOORS[floor].perimeter
 }
 
 function buildFloor(floor: Floor): Apartment {
@@ -261,7 +278,7 @@ export function floorOfRoom(roomId: string): Floor | undefined {
 }
 
 export type ShellBox = { center: [number, number, number]; size: [number, number, number]; kind: Wall['kind'] }
-const ANNEX = /^first-(laundry|balcony)/
+const ANNEX = /^first-(laundry|balcony|terrace)/
 
 /**
  * The walls of one floor as solid boxes in the house frame ([u, y, v], absolute heights), sawn off at `top`: what the floor cutaway draws.
@@ -289,4 +306,9 @@ export function shellWallBoxes(floor: Floor, top: number): ShellBox[] {
     }
   }
   return boxes
+}
+
+/** The floor an apartment record stands for, or undefined for anything that is not one of the house's floors. */
+export function floorOfApartment(apartment: Pick<Apartment, 'id'>): Floor | undefined {
+  return HOUSE_FLOOR_ORDER.find(floor => HOUSE_FLOORS[floor].id === apartment.id)
 }

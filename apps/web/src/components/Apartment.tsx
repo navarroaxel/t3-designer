@@ -1,5 +1,7 @@
 import type { Apartment as ApartmentData, Fixture } from '@t3-designer/scene-schema'
 import { Floor } from './Floor'
+import { HouseFloorTiles } from './HouseFurnishings'
+import { floorOfApartment } from '../data/house-interior'
 import { Wall } from './Wall'
 import { Fixtures, type FixtureEditing } from './Fixtures'
 import { roomFinish } from '../materials/surfaces'
@@ -22,6 +24,7 @@ export function Apartment({ apartment, cutaway, showFixtures = true, solarStudy 
       {apartment.rooms.map((room) => (
         <Floor key={room.id} polygon={room.polygon} color={room.color} elevation={0.01} finish={roomFinish(room.id)} />
       ))}
+      {floorOfApartment(apartment) && <HouseFloorTiles floor={floorOfApartment(apartment)!} />}
       {apartment.balcony && (
         <Floor polygon={apartment.balcony.polygon} color="#c2c2b9" thickness={0.14} finish="balcony" />
       )}

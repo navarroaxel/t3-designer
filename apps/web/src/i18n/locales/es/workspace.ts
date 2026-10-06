@@ -188,6 +188,7 @@ const workspace = {
     "light-well": "Pulmón",
     "laundry": "Lavadero",
     "balcony": "Balcón",
+    "terrace": "Terraza",
     "unknown": "Ambiente"
   },
   apartment: {

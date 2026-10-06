@@ -109,6 +109,29 @@ function PaneledLeaf({ width, fullHeight, visibleHeight, color, damaged, glazed 
   )
 }
 
+/**
+ * A white aluminium sliding door: two glazed panels on two tracks, one fixed and one that slides over it. `x` is where the span starts in
+ * the wall's frame; the sliding panel starts on the far half and travels toward the start.
+ */
+function SlidingPanels({ x, width, height, openness, color }: { x: number; width: number; height: number; openness: number; color: string }) {
+  const panel = width / 2 + .03, profile = .05, glassHeight = height - .12
+  const pane = (left: number, z: number, key: string) => <group key={key} position={[left, .03, z]}>
+    {[0, panel - profile].map(offset => <mesh key={offset} position={[offset + profile / 2, (height - .05) / 2, 0]} castShadow receiveShadow>
+      <boxGeometry args={[profile, height - .05, .045]} /><meshStandardMaterial color={color} roughness={.4} metalness={.25} />
+    </mesh>)}
+    {[.06, height - .05 - .03].map(y => <mesh key={y} position={[panel / 2, y, 0]} castShadow receiveShadow>
+      <boxGeometry args={[panel, y < .1 ? .12 : .06, .045]} /><meshStandardMaterial color={color} roughness={.4} metalness={.25} />
+    </mesh>)}
+    <mesh position={[panel / 2, .12 + glassHeight / 2 - .03, 0]}>
+      <boxGeometry args={[panel - profile * 2, glassHeight - .1, .008]} /><meshPhysicalMaterial color="#cfe0e6" transparent opacity={.28} roughness={.05} depthWrite={false} />
+    </mesh>
+  </group>
+  return <>
+    {pane(x, .03, 'fixed')}
+    {pane(x + width - panel - (width / 2) * openness, -.03, 'sliding')}
+  </>
+}
+
 // All positions are in the wall's local frame: X follows wall.from → wall.to.
 export function Door({ door, wall, visibleWallHeight, customization }: DoorProps) {
   const height = Math.min(door.height, visibleWallHeight)
@@ -116,9 +139,12 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
   const leafDirection = hingeAtStart ? 1 : -1
   const leafWidth = door.width - 0.045
   const hingeX = door.offset + (hingeAtStart ? 0.024 : door.width - 0.024)
+  const style = customization?.style ?? door.appearance
+  const sliding = style === 'sliding'
   const swing = (customization ? customization.openness * Math.PI / 2 : (Math.PI * 76) / 180) * door.opensToward * -leafDirection
-  const frameColor = customization?.color ?? (door.finish === 'blue-gray' ? '#526f80' : door.finish === 'white' ? '#e3e6dc' : '#a2afa9')
-  const leafColor = customization?.color ?? (door.finish === 'blue-gray' ? '#d0d5ca' : '#b7c0b6')
+  const frameColor = customization?.color ?? door.color ?? (door.finish === 'blue-gray' ? '#526f80' : door.finish === 'white' ? '#e3e6dc' : '#a2afa9')
+  const slidingOpenness = customization?.openness ?? .6
+  const leafColor = customization?.color ?? door.color ?? (door.finish === 'blue-gray' ? '#d0d5ca' : '#b7c0b6')
   const passage = customization ? customization.style === 'passage' : door.appearance === 'passage'
 
   return (
@@ -167,7 +193,8 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
         <boxGeometry args={[door.width - 0.028, 0.012, 0.085]} />
         <meshStandardMaterial color={passage ? '#997649' : '#979d97'} metalness={passage ? 0 : 0.65} roughness={0.48} />
       </mesh>
-      {!passage && (
+      {sliding && <SlidingPanels x={door.offset} width={door.width} height={Math.min(height, door.height) - .03} openness={slidingOpenness} color={door.color ?? '#f3f2ee'} />}
+      {!passage && !sliding && (
         <group position={[hingeX, 0.025, 0]} rotation={[0, swing, 0]}>
           <group scale={[leafDirection, 1, 1]}>
             <PaneledLeaf width={leafWidth} fullHeight={door.height - 0.05} visibleHeight={Math.max(0, height - 0.025)} color={leafColor} damaged={!customization && door.condition === 'damaged-panel'} glazed={customization?.style === 'glazed'} />

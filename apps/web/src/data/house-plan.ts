@@ -549,6 +549,8 @@ export const FLOOR_TILING: FloorTiling[] = [
  * position along the front, centred on the facade, and its 0.3 m slab edge are assumed. It stays in the first-floor cutaway.
  */
 export const BALCONY = { width: 7.94, depth: .86, edge: .3 }
+/** The balcony floor is Navona natural, the bathroom's tile (owner). */
+FLOOR_TILING.push({ id: 'balcony', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[-5 - BALCONY.depth, -5, -BALCONY.width / 2, BALCONY.width / 2]] })
 
 /**
  * The front block of the ground floor (owner). The garage, under the secondary room, is 5.69 m deep and 4.43 m wide inside,

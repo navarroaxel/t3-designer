@@ -7,8 +7,8 @@ import { Color, DirectionalLight, DoubleSide, Mesh, Object3D, PMREMGenerator, Sh
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
-import { HouseFurnishings } from '../components/HouseFurnishings'
-import type { Floor as HouseFloor } from '../data/house-plan'
+import { HouseFloorTiles, HouseFurnishings } from '../components/HouseFurnishings'
+import { floorOfApartment } from '../data/house-interior'
 import { Wall } from '../components/Wall'
 import type { SolarPosition } from '../lib/solar'
 import { kelvinColor, lumensToCandela } from '../lib/design-lighting'
@@ -226,12 +226,13 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, 
     // mutate the saved version or animate beyond its current collision state.
     doors: Object.fromEntries(apartment.doors.map(door => [door.id, {
       style: door.appearance ?? 'panel',
-      color: door.finish === 'blue-gray' ? '#d0d5ca' : '#b7c0b6',
+      color: door.color ?? (door.finish === 'blue-gray' ? '#d0d5ca' : '#b7c0b6'),
       ...customization?.doors[door.id],
-      openness: resolveWalkDoorOpenness(doorStates, door.id, customization?.doors[door.id]?.openness ?? 1),
+      openness: resolveWalkDoorOpenness(doorStates, door.id, customization?.doors[door.id]?.openness ?? (door.appearance === 'sliding' ? 0 : 1)),
     }])),
   }), [apartment.doors, customization, doorStates])
   const canonicalFinishes = true
+  const houseFloor = floorOfApartment(apartment)
   return <>
     <color attach="background" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b']} />
     <fog attach="fog" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b', 100, 400]} />
@@ -249,7 +250,7 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, 
     {apartment.walls.map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />
-    {apartment.id === 'house-ground' || apartment.id === 'house-first' ? <HouseFurnishings floor={(apartment.id === 'house-ground' ? 'ground' : 'first') as HouseFloor} /> : null}
+    {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} /></>}
     {snapshot.fixtures.map(fixture => {
       const asset = assetMap.get(fixture.assetId)
       return asset ? <PlacedObject key={fixture.id} fixture={fixture} asset={asset} projectId={snapshot.project.id} /> : null

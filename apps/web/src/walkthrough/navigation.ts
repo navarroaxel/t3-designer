@@ -1,5 +1,6 @@
 import { polygonBounds, polygonCentroid, segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
 import { furnishingBlockers } from '../data/house-furnishings.ts'
+import { floorOfApartment } from '../data/house-interior.ts'
 import { pointInEditorPolygon, type Point2D, type ProjectSnapshot, type Room } from '@t3-designer/scene-schema'
 
 export const WALK_RADIUS = .2
@@ -24,7 +25,9 @@ type WalkBlocker = {
   doorId?: string
 }
 type WalkDoorLeaf = { hinge: Point2D; rotation: number; direction: number; swingSign: number; width: number; bottom: number; top: number; initialOpenness: number }
-type WalkDoor = { center: Point2D; normal: Point2D; exterior: boolean; id: string; clearance: number; leaf?: WalkDoorLeaf }
+/** A sliding panel: it keeps its orientation and moves along the wall by `travel` as it opens. */
+type WalkDoorSlide = { origin: Point2D; direction: Point2D; panel: number; travel: number; rotation: number; top: number; initialOpenness: number }
+type WalkDoor = { center: Point2D; normal: Point2D; exterior: boolean; id: string; clearance: number; leaf?: WalkDoorLeaf; slide?: WalkDoorSlide }
 export type WalkWorld = {
   perimeter: Point2D[]
   rooms: Room[]
@@ -48,8 +51,10 @@ export function resolveWalkDoorOpenness(states: WalkDoorStates | undefined, id: 
 export function initialWalkDoorStates(snapshot: ProjectSnapshot): WalkDoorStates {
   return Object.fromEntries(snapshot.apartment.doors.flatMap(door => {
     const customization = snapshot.customization?.doors[door.id]
-    return (customization?.style ?? door.appearance ?? 'panel') === 'passage' ? []
-      : [[door.id, resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? 1)]]
+    const style = customization?.style ?? door.appearance ?? 'panel'
+    // A sliding door starts closed; the others, open.
+    return style === 'passage' ? []
+      : [[door.id, resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? (style === 'sliding' ? 0 : 1))]]
   }))
 }
 
@@ -79,6 +84,17 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
       const hingeAtStart = door.hinge === 'start'
       const hingeDistance = door.offset + (hingeAtStart ? .024 : door.width - .024)
       const direction = hingeAtStart ? 1 : -1
+      if ((customization?.style ?? door.appearance) === 'sliding') {
+        const panel = door.width / 2 + .03
+        // The fixed half stands in the way for good; the other slides over it.
+        blockers.push({ center: [wall.from[0] + ux * (door.offset + panel / 2), wall.from[1] + uz * (door.offset + panel / 2)],
+          halfWidth: panel / 2, halfDepth: .03, cos: Math.cos(angle), sin: Math.sin(angle), bottom: 0, top: door.height })
+        doors.push({ id: door.id, center: [wall.from[0] + ux * distance, wall.from[1] + uz * distance], normal: [-uz, ux],
+          exterior: wall.kind === 'exterior', clearance: wall.thickness / 2 + WALK_RADIUS + .08,
+          slide: { origin: [wall.from[0] + ux * door.offset, wall.from[1] + uz * door.offset], direction: [ux, uz], panel, travel: door.width / 2, rotation: angle,
+            top: door.height, initialOpenness: resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? 0) } })
+        continue
+      }
       doors.push({ id: door.id, center: [wall.from[0] + ux * distance, wall.from[1] + uz * distance],
         normal: [-uz, ux], exterior: wall.kind === 'exterior', clearance: wall.thickness / 2 + WALK_RADIUS + .08,
         ...((customization?.style ?? door.appearance ?? 'panel') === 'passage' ? {} : { leaf: {
@@ -99,7 +115,7 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
       bottom: fixture.position[1], top: fixture.position[1] + asset.dimensions[1] })
   }
   // The house's own furniture, from the plan, stops a visitor like any fixture.
-  const floor = snapshot.apartment.id === 'house-ground' ? 'ground' : snapshot.apartment.id === 'house-first' ? 'first' : null
+  const floor = floorOfApartment(snapshot.apartment)
   if (floor) blockers.push(...furnishingBlockers(floor, snapshot.placement.floorElevation))
   const world: WalkWorld = { blockers, staticBlockers: blockers, doors,
     perimeter: snapshot.apartment.perimeter.map(point => [...point]),
@@ -134,6 +150,13 @@ function overlapsFootprint(blocker: WalkBlocker, point: Point2D, radius = WALK_R
 }
 
 export function walkDoorLeaf(door: WalkDoor, openness: number): WalkBlocker | null {
+  const slide = door.slide
+  if (slide) {
+    // Closed, the panel covers the far half of the span (plus the overlap); open, it has slid over the fixed one.
+    const along = slide.travel * 2 - slide.panel / 2 - slide.travel * openness
+    return { doorId: door.id, center: [slide.origin[0] + slide.direction[0] * along, slide.origin[1] + slide.direction[1] * along],
+      halfWidth: slide.panel / 2, halfDepth: .03, cos: Math.cos(slide.rotation), sin: Math.sin(slide.rotation), bottom: 0, top: slide.top }
+  }
   const leaf = door.leaf
   if (!leaf) return null
   // Mirrors Door.tsx: wall rotation, hinge rotation, then signed leaf scale.
@@ -148,7 +171,7 @@ export function walkDoorLeaf(door: WalkDoor, openness: number): WalkBlocker | nu
 /** Reuses fixed geometry and replaces leaves, never accumulating old colliders. */
 export function withWalkDoorStates(world: WalkWorld, states: WalkDoorStates): WalkWorld {
   const leaves = world.doors.flatMap(door => {
-    const leaf = walkDoorLeaf(door, resolveWalkDoorOpenness(states, door.id, door.leaf?.initialOpenness))
+    const leaf = walkDoorLeaf(door, resolveWalkDoorOpenness(states, door.id, (door.leaf ?? door.slide)?.initialOpenness))
     return leaf ? [leaf] : []
   })
   return { ...world, blockers: [...world.staticBlockers, ...leaves] }
@@ -200,7 +223,7 @@ export function findWalkDoorTarget(world: WalkWorld, states: WalkDoorStates, pos
   const current = withWalkDoorStates(world, states)
   let nearest: { id: string; open: boolean; distance: number } | null = null
   for (const door of world.doors) {
-    const openness = resolveWalkDoorOpenness(states, door.id, door.leaf?.initialOpenness)
+    const openness = resolveWalkDoorOpenness(states, door.id, (door.leaf ?? door.slide)?.initialOpenness)
     const leaf = walkDoorLeaf(door, openness)
     if (!leaf) continue
     const hit = rayBlockerDistance(origin, direction, leaf, 2, .12)
@@ -222,6 +245,12 @@ export function findWalkDoorTarget(world: WalkWorld, states: WalkDoorStates, pos
 export function canSetWalkDoorOpenness(world: WalkWorld, states: WalkDoorStates, id: string, nextOpenness: number, pose: WalkDoorPose): boolean {
   if (!validDoorPose(pose) || !Number.isFinite(nextOpenness) || nextOpenness < 0 || nextOpenness > 1) return false
   const door = world.doors.find(item => item.id === id)
+  if (door?.slide) {
+    // A panel sliding along the wall sweeps a strip: reject the toggle if the visitor stands in it.
+    const current = resolveWalkDoorOpenness(states, id, door.slide.initialOpenness)
+    return Array.from({ length: 11 }, (_, step) => walkDoorLeaf(door, current + (nextOpenness - current) * step / 10)!)
+      .every(leaf => !overlapsFootprint(leaf, [pose.x, pose.z], WALK_RADIUS))
+  }
   if (!door?.leaf) return false
   const feet = world.floorElevation + pose.feetOffset, head = feet + pose.eyeHeight + headClearance
   if (door.leaf.top <= feet + epsilon || door.leaf.bottom >= head - epsilon) return true

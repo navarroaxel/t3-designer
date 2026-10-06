@@ -11,7 +11,7 @@ import { WebGLGuard } from '../components/WebGLGuard'
 import { ViewerIcon, ViewerPanel } from '../components/ViewerPanel'
 import { getSolarPosition, resolveLocalDateTime } from '../lib/solar'
 import { walkCopy } from './copy'
-import { buildWalkWorld, canSetWalkDoorOpenness, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, withWalkDoorStates, type WalkDoorStates, type WalkWorld } from './navigation'
+import { buildWalkWorld, canSetWalkDoorOpenness, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, isWalkPositionFree, withWalkDoorStates, type WalkDoorStates, type WalkSpawn, type WalkWorld } from './navigation'
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
 import './walkthrough.css'
@@ -60,8 +60,10 @@ function HoldButton({ label, children, field, value, input }: { label: string; c
 }
 
 /** A disposable visit of the supplied active version; never calls project persistence. */
-export function Walkthrough({ snapshot, onClose, initialMoment, reference = false }: {
+export function Walkthrough({ snapshot, onClose, initialMoment, reference = false, startAt }: {
   snapshot: ProjectSnapshot; onClose: () => void; initialMoment?: { date: string; minutes: number }; reference?: boolean
+  /** Where the visit begins, unless the visitor picks a room: a point in the floor's frame and the way it faces (yaw 0 looks toward -z). */
+  startAt?: WalkSpawn
 }) {
   const { locale } = useLocale()
   const { formatLength } = useUnits(), c = walkCopy[locale]
@@ -79,7 +81,7 @@ export function Walkthrough({ snapshot, onClose, initialMoment, reference = fals
   // Once a visit begins, changing eye height must animate in place, not search
   // for a new spawn in the initial door configuration and teleport the visitor.
   const [spawnHeight, setSpawnHeight] = useState(1.65)
-  const spawn = useMemo(() => findWalkSpawn(initialWorld, roomId || undefined, spawnHeight), [initialWorld, roomId, spawnHeight])
+  const spawn = useMemo(() => !roomId && startAt && isWalkPositionFree(initialWorld, startAt.position, spawnHeight) ? startAt : findWalkSpawn(initialWorld, roomId || undefined, spawnHeight), [initialWorld, roomId, spawnHeight, startAt])
   const [reset, setReset] = useState(0), [active, setActive] = useState(false), [entered, setEntered] = useState(false)
   const [ready, setReady] = useState(false), [pose, setPose] = useState<WalkPose | null>(null)
   const [artificialLights, setArtificialLights] = useState(() => snapshot.customization?.lighting.artificialEnabled !== false), [torch, setTorch] = useState(false)

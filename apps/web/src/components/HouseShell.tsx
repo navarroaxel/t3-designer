@@ -156,7 +156,7 @@ export function KitchenPiece({ box }: { box: KitchenBox }) {
 }
 
 /** One rectangle of a floor zone, with its pattern repeated at real scale. */
-function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, number, number] }) {
+export function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, number, number] }) {
   const [u0, u1, v0, v1] = rect
   const { pattern } = zone
   const map = useMemo(() => {

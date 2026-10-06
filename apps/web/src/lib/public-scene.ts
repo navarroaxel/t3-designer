@@ -2,7 +2,7 @@ import { segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
 import { PROJECT_SNAPSHOT_VERSION, ProjectSnapshotSchema, type Fixture, type ProjectSnapshot } from '@t3-designer/scene-schema'
 import { BUILDING_SITE, FLOOR_HEIGHT, SITE_PARCEL, SITE_ROADS } from '../data/building-site.ts'
 import { demoAssets } from '../data/demo-catalog.ts'
-import { HOUSE_FLOORS, floorOfRoom } from '../data/house-interior.ts'
+import { HOUSE_FLOORS, ceilingPolygon, floorOfRoom } from '../data/house-interior.ts'
 import { GROUND_OUTLINE, type Floor } from '../data/house-plan.ts'
 import { housePlacement } from '../data/house-placement.ts'
 import { planToSite } from '../data/frame.ts'
@@ -46,7 +46,7 @@ export function publicScene(floor: Floor, fixtures: Fixture[]): ProjectSnapshot 
     geometry: {
       walls,
       floor: { polygon: apartment.perimeter, elevation: 0, thickness: .14 },
-      ceiling: { polygon: apartment.perimeter, elevation: placement.wallHeight, thickness: .2 },
+      ceiling: { polygon: ceilingPolygon(floor), elevation: placement.wallHeight, thickness: .2 },
       contextSections: {
         before: [], apartmentBand: houseFootprint, after: [],
         belowTop: placement.floorElevation - .14, ceilingBase: placement.floorElevation + placement.wallHeight,

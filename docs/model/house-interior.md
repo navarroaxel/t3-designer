@@ -31,7 +31,7 @@ Wall height is 3.0 m (the 3.2 m storey less the 0.2 m slab) and door height 2.1 
 
 ## What is not there yet
 
-- The stair is drawn but cannot be climbed: the walkthrough is one floor at a time. The terrace is not modelled.
+- The stair is drawn but cannot be climbed: the walkthrough is one floor at a time.
 - The rooms behind the ground floor's back wall, and the built-in wardrobes.
 - The balcony and the laundry are walkable; the balcony railing is a solid 1 m wall.
 
@@ -47,3 +47,11 @@ The **House and sun** floor cutaway no longer builds its own walls. `HouseShell`
 walls, doors and windows the walkthrough walks through, sawn off at the cut. A test compares their volume with the plan's own `wallBoxes` plus the
 partitions, so the two views cannot drift apart. The balcony and the laundry stay out of it: the cutaway draws them from the facade and the laundry volumes.
 The furniture comes from the same data files in both views.
+
+## Doors, floors and where the visit starts
+
+- Each door keeps the colour the plan gives it (the main room's wenge, the bathroom's, the office's), through the optional `color` of a door.
+- The main room's 3 m door onto the balcony is a white aluminium **sliding** door (two panels, one fixed, one that slides over it). It starts closed and `E` opens and closes it.
+- The floors are the plan's own tiling, the same patches the cutaway lays (Saing planks, Navona tiles); the balcony is Navona natural too.
+- The terrace with the grill and the laundry are walkable; the terrace is open to the sky, so it has no ceiling.
+- The first floor starts in the middle of the living, facing the kitchen.
