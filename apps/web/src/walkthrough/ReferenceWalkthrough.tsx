@@ -12,16 +12,18 @@ export function ReferenceWalkthrough({ solar, floor, onFloorChange, onClose }: {
   solar: SolarStudy; floor: Floor; onFloorChange: (floor: Floor) => void; onClose: () => void
 }) {
   const { t } = useTranslation('workspace')
-  const snapshot = useMemo(() => publicScene(floor, []), [floor])
+  // Both floors are one visit: the stair joins them. The floor chosen above is only where the visit begins.
+  const ground = useMemo(() => publicScene('ground', []), [])
+  const first = useMemo(() => publicScene('first', []), [])
   // The first floor opens in the middle of the living, looking at the kitchen along the north-east party wall (yaw 0 looks toward -z).
   const start = useMemo(() => {
     const living = floor === 'first' ? HOUSE_FLOORS.first.rooms.find(room => room.id === 'kitchen-living') : undefined
-    return living ? { position: polygonCentroid(living.polygon), yaw: 0 } : undefined
-  }, [floor])
+    return living ? { position: polygonCentroid(living.polygon), yaw: 0, elevation: first.placement.floorElevation } : undefined
+  }, [floor, first])
   return <>
     <div className="view-buttons floor-buttons walkthrough-floors" role="group" aria-label={t('apartment.floorSwitch')}>
       {HOUSE_FLOOR_ORDER.map(item => <button key={item} aria-pressed={floor === item} onClick={() => onFloorChange(item)}>{t(item === 'ground' ? 'apartment.floorGround' : 'apartment.floorFirst')}</button>)}
     </div>
-    <Walkthrough key={floor} startAt={start} snapshot={snapshot} initialMoment={solar.moment} reference onClose={onClose} />
+    <Walkthrough key={floor} startAt={start} snapshot={ground} upper={first} initialMoment={solar.moment} reference onClose={onClose} />
   </>
 }

@@ -45,7 +45,8 @@ export function publicScene(floor: Floor, fixtures: Fixture[]): ProjectSnapshot 
     placement,
     geometry: {
       walls,
-      floor: { polygon: apartment.perimeter, elevation: 0, thickness: .14 },
+      // An upper floor's slab is the ceiling of the one below: 0.2 m, from the underside of its wall height to its level.
+      floor: { polygon: apartment.perimeter, elevation: 0, thickness: floor === 'first' ? .2 : .14 },
       ceiling: { polygon: ceilingPolygon(floor), elevation: placement.wallHeight, thickness: .2 },
       contextSections: {
         before: [], apartmentBand: houseFootprint, after: [],

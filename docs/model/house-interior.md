@@ -60,3 +60,21 @@ The furniture comes from the same data files in both views.
 
 - Look at a TV and press `E`: it switches on and shows a Plex-style splash (drawn in `HouseFurnishings.tsx`; an approximation, not the brand's artwork). A TV is aimed at like a door and keeps its state in the same visit record.
 - The street door in the entrance recess opens inward with the right hand: hinged on the lower v, seen from the street.
+
+## One world for both floors: the stair
+
+The walkthrough is one visit over both floors, joined by the owner's stair. `buildWalkWorld(ground, states, first)` stacks them:
+
+- Each floor has its own **level** (elevation and outline). A body belongs to the level whose floor it can step onto; the stairwell is part of the first
+  floor's outline, a way down rather than a wall.
+- The floor between them is a slab with the stairwell as a notch: the ceiling of the ground floor and the floor of the first.
+- The stair's steps and landings are **climbable** blockers: anything within a riser (0.3 m) of the feet is stepped onto or off without jumping. A step
+  waits until the head has room under the slab (a standing visitor needs 1.70 m).
+- Walking off the first floor into the stairwell drops the visitor onto the stair. The chosen floor above the view is only where the visit begins.
+
+## The fridge and the freezer
+
+Looking at the fridge and pressing `E` opens its two doors (right-hand hinges), showing the cabinet with its shelves, the ice maker, the vegetable drawer
+and the door bins. The fridge is the owner's: 0.675 m wide, 0.668 m deep with its handle, 1.785 m high. The freezer holds 89 L net, 101 L gross; from
+the gross volume and an assumed section (4 cm walls, 4.5 cm door and back) its liner is 0.31 m high and the freezer, with its top wall and the
+partition, 0.40 m (`FREEZER` in `kitchen.ts`).

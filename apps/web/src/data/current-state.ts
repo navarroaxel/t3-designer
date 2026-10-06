@@ -7,7 +7,7 @@ import { KITCHEN_SIZES } from './kitchen.ts'
 // Visual replicas, never manufacturer-verified dimensions. Individual GLBs remain
 // replaceable while the architectural source of truth stays in house-plan.ts.
 const catalog: [string, string, [number, number, number], string, Mobility][] = [
-  ['fridge-freezer', 'Heladera / freezer', [0.60, 1.85, 0.64], 'Visual replica of a typical unit; the house\'s own is not modelled', 'movable'],
+  ['fridge-freezer', 'Heladera / freezer', [0.675, 1.785, 0.668], 'Visual replica of a typical unit; the house\'s own is not modelled', 'movable'],
   ['washing-machine', 'Lavarropas frontal', [0.60, 0.85, 0.60], 'Visual replica of a typical unit; the house\'s own is not modelled', 'fixed'],
   ['oven-cooktop', 'Horno y placa', [0.60, 0.88, 0.60], 'Visual replica of a typical unit; the house\'s own is not modelled', 'fixed'],
   ['microwave', 'Microondas', [0.48, 0.29, 0.38], 'Visual replica of a typical unit; the house\'s own is not modelled', 'movable'],

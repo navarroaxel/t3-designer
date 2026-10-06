@@ -1,6 +1,7 @@
 import { polygonBounds, polygonCentroid, segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
 import { furnishingBlockers, furnishingDevices } from '../data/house-furnishings.ts'
-import { floorOfApartment } from '../data/house-interior.ts'
+import { floorOfApartment, walkOutline } from '../data/house-interior.ts'
+import { STAIR_BLOCKS } from '../data/stair.ts'
 import { pointInEditorPolygon, type Point2D, type ProjectSnapshot, type Room } from '@t3-designer/scene-schema'
 
 export const WALK_RADIUS = .2
@@ -9,7 +10,10 @@ export const WALK_CROUCH_HEIGHT = .95
 export const WALK_GRAVITY = 9.8
 export const WALK_JUMP_SPEED = 2.8
 
-const headClearance = .12
+// The landing before the last flight leaves 1.756 m under the slab: a standing visitor, eyes at 1.65 m, needs this much room above the eyes, no more.
+const headClearance = .05
+/** The tallest step the visitor climbs without jumping: a stair's riser is under 0.2 m. */
+export const WALK_STEP = .3
 const epsilon = 1e-8
 const maxMovement = 4
 const movementStep = WALK_RADIUS / 4
@@ -23,23 +27,31 @@ type WalkBlocker = {
   bottom: number
   top: number
   doorId?: string
+  /** A floor or a roof, as its outline: the footprint is the polygon, not the box. */
+  polygon?: Point2D[]
+  /** A step: walked up and down without jumping. */
+  climb?: true
   /** A thing to switch, not a door: it is aimed at like one, and the map does not draw it. */
   device?: true
 }
 type WalkDoorLeaf = { hinge: Point2D; rotation: number; direction: number; swingSign: number; width: number; bottom: number; top: number; initialOpenness: number }
 /** A sliding panel: it keeps its orientation and moves along the wall by `travel` as it opens. */
-type WalkDoorSlide = { origin: Point2D; direction: Point2D; panel: number; travel: number; rotation: number; top: number; initialOpenness: number }
-type WalkDoor = { center: Point2D; normal: Point2D; exterior: boolean; id: string; clearance: number; leaf?: WalkDoorLeaf; slide?: WalkDoorSlide; device?: WalkBlocker & { initialOpenness: number } }
+type WalkDoorSlide = { origin: Point2D; direction: Point2D; panel: number; travel: number; rotation: number; bottom?: number; top: number; initialOpenness: number }
+type WalkDoor = { level?: number; center: Point2D; normal: Point2D; exterior: boolean; id: string; clearance: number; leaf?: WalkDoorLeaf; slide?: WalkDoorSlide; device?: WalkBlocker & { initialOpenness: number } }
+/** A floor of the house: where its feet may stand (the outline of the floor, stairwell included) and its level. */
+export type WalkLevel = { elevation: number; perimeter: Point2D[] }
+export type WalkRoom = Room & { elevation: number }
 export type WalkWorld = {
   perimeter: Point2D[]
-  rooms: Room[]
+  levels: WalkLevel[]
+  rooms: WalkRoom[]
   floorElevation: number
   ceilingElevation: number
   blockers: WalkBlocker[]
   staticBlockers: WalkBlocker[]
   doors: WalkDoor[]
 }
-export type WalkSpawn = { position: Point2D; yaw: number }
+export type WalkSpawn = { position: Point2D; yaw: number; /** The floor's level above the world's floor; omitted for the lowest. */ elevation?: number }
 export type WalkVerticalState = { offset: number; velocity: number; grounded: boolean }
 export type WalkDoorStates = Record<string, number>
 export type WalkDoorPose = { x: number; z: number; yaw: number; pitch: number; eyeHeight: number; feetOffset: number }
@@ -63,7 +75,7 @@ export function initialWalkDoorStates(snapshot: ProjectSnapshot): WalkDoorStates
 /** Collision is an upright body in the same local metre coordinates as the scene.
  * Models use their authored rotated bounds; leaves follow saved or visiting states.
  * Window openings remain barriers, including balcony glazing at the perimeter. */
-export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWalkDoorStates(snapshot)): WalkWorld {
+export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWalkDoorStates(snapshot), upper?: ProjectSnapshot): WalkWorld {
   const blockers: WalkBlocker[] = []
   const doors: WalkDoor[] = []
   for (const wall of snapshot.apartment.walls) {
@@ -129,12 +141,34 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
   if (floor) for (const device of furnishingDevices(floor, snapshot.placement.floorElevation)) {
     doors.push({ id: device.id, center: device.center, normal: [0, 1], exterior: false, clearance: 0, device: { ...device, doorId: device.id, device: true, initialOpenness: 0 } })
   }
-  const world: WalkWorld = { blockers, staticBlockers: blockers, doors,
-    perimeter: snapshot.apartment.perimeter.map(point => [...point]),
-    rooms: snapshot.apartment.rooms.map(room => ({ ...room, polygon: room.polygon.map(point => [...point]) })),
-    floorElevation: snapshot.geometry.floor.elevation,
-    ceilingElevation: snapshot.geometry.ceiling.elevation,
+  const perimeter: Point2D[] = snapshot.apartment.perimeter.map(point => [...point])
+  const floorElevation = snapshot.geometry.floor.elevation
+  const levels: WalkLevel[] = [{ elevation: floorElevation, perimeter }]
+  const rooms: WalkRoom[] = snapshot.apartment.rooms.map(room => ({ ...room, polygon: room.polygon.map(point => [...point]), elevation: floorElevation }))
+  let ceilingElevation = snapshot.geometry.ceiling.elevation
+  if (upper) {
+    // A second floor stacked on the first, joined by the stair: one world, so a visitor can walk from one to the other.
+    const level = upper.placement.floorElevation
+    const above = buildWalkWorld(upper, doorStates)
+    const lift = (blocker: WalkBlocker): WalkBlocker => ({ ...blocker, bottom: blocker.bottom + level, top: blocker.top + level })
+    blockers.push(...above.staticBlockers.map(lift))
+    const bounds = polygonBounds(upper.apartment.perimeter)
+    // The floor between the two is a slab with the stairwell as a notch: a ceiling for the one below, the floor of the one above.
+    blockers.push({ center: bounds.center, halfWidth: bounds.width / 2, halfDepth: bounds.depth / 2, cos: 1, sin: 0, bottom: level - .2, top: level, polygon: upper.apartment.perimeter.map(point => [...point]), climb: true })
+    for (const door of above.doors) {
+      doors.push({ ...door, level, ...(door.leaf ? { leaf: { ...door.leaf, bottom: door.leaf.bottom + level, top: door.leaf.top + level } } : {}),
+        ...(door.slide ? { slide: { ...door.slide, bottom: level, top: door.slide.top + level } } : {}), ...(door.device ? { device: lift(door.device) as WalkBlocker & { initialOpenness: number } } : {}) })
+    }
+    // The stair climbs from the hall to the corridor: each step and landing is a floating slab.
+    if (floorOfApartment(snapshot.apartment) === 'ground') for (const block of STAIR_BLOCKS) {
+      blockers.push({ center: [(block.u[0] + block.u[1]) / 2, -(block.v[0] + block.v[1]) / 2], halfWidth: (block.u[1] - block.u[0]) / 2, halfDepth: (block.v[1] - block.v[0]) / 2,
+        cos: 1, sin: 0, bottom: block.y[0], top: block.y[1], climb: true })
+    }
+    levels.push({ elevation: level, perimeter: walkOutline(floorOfApartment(upper.apartment) ?? 'first') })
+    rooms.push(...upper.apartment.rooms.map(room => ({ ...room, polygon: room.polygon.map(point => [...point]) as Point2D[], elevation: level })))
+    ceilingElevation = level + upper.geometry.ceiling.elevation
   }
+  const world: WalkWorld = { blockers, staticBlockers: blockers, doors, perimeter, levels, rooms, floorElevation, ceilingElevation }
   return withWalkDoorStates(world, doorStates)
 }
 
@@ -147,11 +181,22 @@ function distanceToSegmentSquared(point: Point2D, from: Point2D, to: Point2D) {
   return (point[0] - from[0] - t * dx) ** 2 + (point[1] - from[1] - t * dz) ** 2
 }
 
-export function roomAtPosition(world: WalkWorld, point: Point2D): Room | undefined {
-  return finitePoint(point) ? world.rooms.find(room => pointInEditorPolygon(point, room.polygon)) : undefined
+/** The level a body with its feet at `feet` stands on: the highest whose floor it can step onto. */
+function levelAt(world: WalkWorld, feet: number): WalkLevel {
+  return world.levels.reduce((best, level) => level.elevation <= feet + WALK_STEP + epsilon && level.elevation >= best.elevation ? level : best, world.levels[0])
+}
+
+export function roomAtPosition(world: WalkWorld, point: Point2D, feetOffset = 0): Room | undefined {
+  if (!finitePoint(point)) return undefined
+  const level = levelAt(world, world.floorElevation + feetOffset)
+  return world.rooms.find(room => room.elevation === level.elevation && pointInEditorPolygon(point, room.polygon))
 }
 
 function overlapsFootprint(blocker: WalkBlocker, point: Point2D, radius = WALK_RADIUS): boolean {
+  if (blocker.polygon) {
+    return pointInEditorPolygon(point, blocker.polygon)
+      || blocker.polygon.some((from, index) => distanceToSegmentSquared(point, from, blocker.polygon![(index + 1) % blocker.polygon!.length]) < radius ** 2 - epsilon)
+  }
   const dx = point[0] - blocker.center[0], dz = point[1] - blocker.center[1]
   // Inverse of Three's rotation around +Y; the same convention as fixture.rotation.
   const localX = blocker.cos * dx - blocker.sin * dz
@@ -168,7 +213,7 @@ export function walkDoorLeaf(door: WalkDoor, openness: number): WalkBlocker | nu
     // Closed, the panel covers the far half of the span (plus the overlap); open, it has slid over the fixed one.
     const along = slide.travel * 2 - slide.panel / 2 - slide.travel * openness
     return { doorId: door.id, center: [slide.origin[0] + slide.direction[0] * along, slide.origin[1] + slide.direction[1] * along],
-      halfWidth: slide.panel / 2, halfDepth: .03, cos: Math.cos(slide.rotation), sin: Math.sin(slide.rotation), bottom: 0, top: slide.top }
+      halfWidth: slide.panel / 2, halfDepth: .03, cos: Math.cos(slide.rotation), sin: Math.sin(slide.rotation), bottom: slide.bottom ?? 0, top: slide.top }
   }
   const leaf = door.leaf
   if (!leaf) return null
@@ -282,11 +327,14 @@ export function canSetWalkDoorOpenness(world: WalkWorld, states: WalkDoorStates,
 export function isWalkPositionFree(world: WalkWorld, point: Point2D, eyeHeight = WALK_EYE_HEIGHT, feetOffset = 0): boolean {
   if (!finitePoint(point) || !Number.isFinite(eyeHeight) || eyeHeight < WALK_CROUCH_HEIGHT || !Number.isFinite(feetOffset) || feetOffset < 0) return false
   const feet = world.floorElevation + feetOffset, head = feet + eyeHeight + headClearance
-  if (head > world.ceilingElevation + epsilon || !pointInEditorPolygon(point, world.perimeter)) return false
+  // Each floor has its own outline: a body belongs to the one whose floor it can step onto.
+  const { perimeter } = levelAt(world, feet)
+  if (head > world.ceilingElevation + epsilon || !pointInEditorPolygon(point, perimeter)) return false
   // Checking every edge also handles concave notches, rather than just a bounding box.
-  if (world.perimeter.some((from, index) => distanceToSegmentSquared(point, from, world.perimeter[(index + 1) % world.perimeter.length]) < WALK_RADIUS ** 2 - epsilon)) return false
+  if (perimeter.some((from, index) => distanceToSegmentSquared(point, from, perimeter[(index + 1) % perimeter.length]) < WALK_RADIUS ** 2 - epsilon)) return false
   return !world.blockers.some(blocker => {
-    if (blocker.top <= feet + epsilon || blocker.bottom >= head - epsilon) return false
+    // A step is walked up, not walked into: what is within a riser's reach of the feet does not stop the body.
+    if (blocker.top <= feet + (blocker.climb ? WALK_STEP : 0) + epsilon || blocker.bottom >= head - epsilon) return false
     return overlapsFootprint(blocker, point)
   })
 }
@@ -325,14 +373,22 @@ export function stepWalkVertical(world: WalkWorld, point: Point2D, eyeHeight: nu
 
   // The body cannot move into a collider at either side of its current free
   // interval. Landing uses exactly the same footprint as lateral collision.
-  let support = 0
+  // `support` is what the body stands on now; `reach` also counts the steps within a riser above it.
+  let support = 0, reach = 0
   let upper = world.ceilingElevation - world.floorElevation - eyeHeight - headClearance
   for (const blocker of world.blockers) {
     if (!overlapsFootprint(blocker, point)) continue
     const top = blocker.top - world.floorElevation
     const underside = blocker.bottom - world.floorElevation - eyeHeight - headClearance
     if (top <= offset + epsilon) support = Math.max(support, top)
+    if (top <= offset + (blocker.climb ? WALK_STEP : 0) + epsilon) reach = Math.max(reach, top)
     if (underside >= offset - epsilon) upper = Math.min(upper, underside)
+  }
+  // Up a step, or down one, without leaving the ground: the body follows the stair rather than flying off it.
+  // It takes a free body at the new height: a step under a low ceiling waits until the head has room.
+  if (reach > offset + epsilon && reach <= upper + epsilon && velocity <= epsilon && isWalkPositionFree(world, point, eyeHeight, reach)) return { offset: reach, velocity: 0, grounded: true }
+  if (state.grounded && velocity <= epsilon && !jumpRequested && offset - support <= WALK_STEP + epsilon && support < offset - epsilon && climbableUnder(world, point, support)) {
+    return { offset: support, velocity: 0, grounded: true }
   }
   const onSupport = Math.abs(offset - support) <= epsilon && velocity <= epsilon
   const seconds = Number.isFinite(delta) ? Math.max(0, Math.min(.05, delta)) : 0
@@ -362,11 +418,17 @@ export function stepWalkVertical(world: WalkWorld, point: Point2D, eyeHeight: nu
   return { offset: Math.max(support, Math.min(upper, next)), velocity, grounded: false }
 }
 
+/** Whether the support below is a step: only a stair is stepped down; anything else is a fall. */
+function climbableUnder(world: WalkWorld, point: Point2D, support: number): boolean {
+  return world.blockers.some(blocker => blocker.climb && Math.abs(blocker.top - world.floorElevation - support) < epsilon && overlapsFootprint(blocker, point))
+}
+
 function facing(from: Point2D, toward: Point2D): number {
   return Math.atan2(from[0] - toward[0], from[1] - toward[1])
 }
 
-function roomSpawn(world: WalkWorld, room: Room, eyeHeight: number): WalkSpawn | null {
+function roomSpawn(world: WalkWorld, room: WalkRoom, eyeHeight: number): WalkSpawn | null {
+  const lift = room.elevation - world.floorElevation
   const center = polygonCentroid(room.polygon)
   const bounds = polygonBounds(room.polygon)
   // Include the centroid, then a bounded regular search for furnished/concave rooms.
@@ -378,11 +440,11 @@ function roomSpawn(world: WalkWorld, room: Room, eyeHeight: number): WalkSpawn |
     candidates.push([bounds.min[0] + bounds.width * (x + .5) / columns, bounds.min[1] + bounds.depth * (z + .5) / rows])
   }
   candidates.sort((a, b) => Math.hypot(a[0] - center[0], a[1] - center[1]) - Math.hypot(b[0] - center[0], b[1] - center[1]))
-  const position = candidates.find(point => pointInEditorPolygon(point, room.polygon) && isWalkPositionFree(world, point, eyeHeight))
+  const position = candidates.find(point => pointInEditorPolygon(point, room.polygon) && isWalkPositionFree(world, point, eyeHeight, lift))
   if (!position) return null
-  const nearestDoor = world.doors.filter(door => !door.exterior).sort((a, b) =>
+  const nearestDoor = world.doors.filter(door => !door.exterior && (door.level ?? world.floorElevation) === room.elevation).sort((a, b) =>
     Math.hypot(a.center[0] - position[0], a.center[1] - position[1]) - Math.hypot(b.center[0] - position[0], b.center[1] - position[1]))[0]
-  return { position, yaw: nearestDoor ? facing(position, nearestDoor.center) : 0 }
+  return { position, yaw: nearestDoor ? facing(position, nearestDoor.center) : 0, ...(lift > 0 ? { elevation: lift } : {}) }
 }
 
 export function findWalkSpawn(world: WalkWorld, roomId?: string, eyeHeight = WALK_EYE_HEIGHT): WalkSpawn | null {
@@ -391,7 +453,7 @@ export function findWalkSpawn(world: WalkWorld, roomId?: string, eyeHeight = WAL
     const room = world.rooms.find(item => item.id === roomId)
     return room ? roomSpawn(world, room, eyeHeight) : null
   }
-  const exteriorDoors = world.doors.filter(door => door.exterior)
+  const exteriorDoors = world.doors.filter(door => door.exterior && door.level === undefined)
     .sort((a, b) => Number(/entry|entrance/i.test(b.id)) - Number(/entry|entrance/i.test(a.id)))
   for (const door of exteriorDoors) for (const side of [1, -1]) {
     const position: Point2D = [door.center[0] + door.normal[0] * door.clearance * side, door.center[1] + door.normal[1] * door.clearance * side]
@@ -400,7 +462,7 @@ export function findWalkSpawn(world: WalkWorld, roomId?: string, eyeHeight = WAL
       return { position, yaw: facing(position, toward) }
     }
   }
-  const rooms = [...world.rooms].sort((a, b) => Number(/entrance|entry/i.test(b.id)) - Number(/entrance|entry/i.test(a.id)))
+  const rooms = world.rooms.filter(room => room.elevation === world.floorElevation).sort((a, b) => Number(/entrance|entry/i.test(b.id)) - Number(/entrance|entry/i.test(a.id)))
   for (const room of rooms) {
     const spawn = roomSpawn(world, room, eyeHeight)
     if (spawn) return spawn

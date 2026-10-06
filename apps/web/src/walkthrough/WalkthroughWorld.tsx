@@ -14,12 +14,14 @@ import type { SolarPosition } from '../lib/solar'
 import { kelvinColor, lumensToCandela } from '../lib/design-lighting'
 import { roomFinish } from '../materials/surfaces'
 import { projectModelUrl, siteDirectionInProject } from '../private/project-scene'
-import { resolveWalkDoorOpenness } from './navigation'
+import { resolveWalkDoorOpenness, type WalkDoorStates } from './navigation'
 
 type SceneAsset = ProjectSnapshot['assets'][number]
 
 type WalkthroughWorldProps = {
   snapshot: ProjectSnapshot
+  /** The floor above the one in `snapshot`, in the same site frame. */
+  upper?: ProjectSnapshot
   sun: SolarPosition
   /** Temporary master switch, initialized by the tour from the saved master setting. */
   artificialLights: boolean
@@ -131,7 +133,7 @@ function ArtificialLighting({ snapshot, enabled }: { snapshot: ProjectSnapshot; 
   </group>
 }
 
-function NaturalLighting({ snapshot, sun }: Pick<WalkthroughWorldProps, 'snapshot' | 'sun'>) {
+function NaturalLighting({ snapshot, upper, sun }: Pick<WalkthroughWorldProps, 'snapshot' | 'upper' | 'sun'>) {
   const light = useRef<DirectionalLight>(null)
   const { gl, scene, invalidate } = useThree()
   const bounds = useMemo(() => apartmentBounds(snapshot.apartment), [snapshot.apartment])
@@ -171,7 +173,7 @@ function NaturalLighting({ snapshot, sun }: Pick<WalkthroughWorldProps, 'snapsho
     const camera = source.shadow.camera
     const corners: Vector3[] = []
     for (const x of [bounds.min[0], bounds.max[0]]) for (const z of [bounds.min[1], bounds.max[1]]) {
-      for (const y of [snapshot.geometry.floor.elevation, snapshot.geometry.ceiling.elevation + .3]) {
+      for (const y of [snapshot.geometry.floor.elevation, (upper ? upper.placement.floorElevation + upper.geometry.ceiling.elevation : snapshot.geometry.ceiling.elevation) + .3]) {
         corners.push(new Vector3(x, y, z).applyMatrix4(camera.matrixWorldInverse))
       }
     }
@@ -184,7 +186,7 @@ function NaturalLighting({ snapshot, sun }: Pick<WalkthroughWorldProps, 'snapsho
     camera.updateProjectionMatrix()
     source.shadow.needsUpdate = true
     invalidate()
-  }, [bounds, snapshot, sun, target, invalidate])
+  }, [bounds, snapshot, upper, sun, target, invalidate])
 
   const color = new Color('#ffce8e').lerp(new Color('#fff7e5'), Math.min(1, Math.max(0, sun.altitude / 22)))
   return <>
@@ -216,8 +218,8 @@ function useStaticShadows({ snapshot, sun, artificialLights, doorStates }: Walkt
 
 // Pose/minimap updates occur ten times per second in the parent. Stable scene
 // inputs should not rebuild the entire apartment's React mesh tree each time.
-export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, artificialLights, doorStates }: WalkthroughWorldProps) {
-  useStaticShadows({ snapshot, sun, artificialLights, doorStates })
+/** One floor's architecture, finishes, furniture and models; the world draws one for each floor of the house. */
+function FloorContent({ snapshot, doorStates, withRoof }: { snapshot: ProjectSnapshot; doorStates: WalkDoorStates; withRoof: boolean }) {
   const { apartment, geometry, customization } = snapshot
   const assetMap = useMemo(() => new Map(snapshot.assets.map(asset => [asset.id, asset])), [snapshot.assets])
   const touringCustomization = useMemo<DesignCustomization>(() => ({
@@ -231,29 +233,38 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, 
       openness: resolveWalkDoorOpenness(doorStates, door.id, customization?.doors[door.id]?.openness ?? (door.appearance === 'sliding' ? 0 : 1)),
     }])),
   }), [apartment.doors, customization, doorStates])
-  const canonicalFinishes = true
   const houseFloor = floorOfApartment(apartment)
-  return <>
-    <color attach="background" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b']} />
-    <fog attach="fog" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b', 100, 400]} />
-    <NaturalLighting snapshot={snapshot} sun={sun} />
-    <ArtificialLighting snapshot={snapshot} enabled={artificialLights} />
-    <SiteContext snapshot={snapshot} />
+  return <group position={[0, snapshot.placement.floorElevation, 0]}>
     <Floor polygon={geometry.floor.polygon} color="#c5c6b9" elevation={geometry.floor.elevation} thickness={geometry.floor.thickness} />
     {apartment.rooms.map(room => {
       const finish = customization?.floors[room.id]
       return <Floor key={room.id} polygon={room.polygon} color={room.color} elevation={geometry.floor.elevation + .006}
-        finish={finish ? (finish.material === 'concrete' ? undefined : finish.material) : canonicalFinishes ? roomFinish(room.id) : undefined} tint={finish?.color} />
+        finish={finish ? (finish.material === 'concrete' ? undefined : finish.material) : roomFinish(room.id)} tint={finish?.color} />
     })}
     {apartment.balcony && <Floor polygon={apartment.balcony.polygon} color="#c1c3b6" elevation={geometry.floor.elevation}
       thickness={geometry.floor.thickness} finish="balcony" />}
     {apartment.walls.map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
-    <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />
+    {/* Under a floor above, the ceiling is that floor's slab; only the top floor has a roof. */}
+    {withRoof && <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />}
     {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} devices={doorStates} /></>}
     {snapshot.fixtures.map(fixture => {
       const asset = assetMap.get(fixture.assetId)
       return asset ? <PlacedObject key={fixture.id} fixture={fixture} asset={asset} projectId={snapshot.project.id} /> : null
     })}
+  </group>
+}
+
+export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, upper, sun, artificialLights, doorStates }: WalkthroughWorldProps) {
+  useStaticShadows({ snapshot, sun, artificialLights, doorStates })
+  return <>
+    <color attach="background" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b']} />
+    <fog attach="fog" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b', 100, 400]} />
+    <NaturalLighting snapshot={snapshot} upper={upper} sun={sun} />
+    <ArtificialLighting snapshot={snapshot} enabled={artificialLights} />
+    {upper && <ArtificialLighting snapshot={upper} enabled={artificialLights} />}
+    <SiteContext snapshot={snapshot} />
+    <FloorContent snapshot={snapshot} doorStates={doorStates} withRoof={!upper} />
+    {upper && <FloorContent snapshot={upper} doorStates={doorStates} withRoof />}
   </>
 })

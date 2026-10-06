@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, KITCHEN_BOXES, KITCHEN_SIZES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, KITCHEN_SIZES } from '../src/data/kitchen.ts'
 
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -91,9 +91,9 @@ test('the fridge is the Samsung RT29K577JS8: silver doors, grey sides, two doors
   const side = [1, 3, 5].map(index => parseInt(box('fridge').color.slice(index, index + 2), 16))
   assert.ok(side.every(channel => channel > 110 && channel < 175) && side[0] < red, 'grey sides, darker than the doors')
   const body = box('fridge'), door = box('fridge-door'), freezer = box('fridge-freezer-door')
-  // 0.60 m wide and 0.672 m deep; 1.635 m high, drawn up to the cut.
-  assert.ok(Math.abs(body.u[1] - body.u[0] - .6) < 1e-9)
-  assert.ok(Math.abs(body.v[1] - door.v[0] - .672) < 1e-9)
+  // 0.675 m wide and 0.668 m deep (handle included); 1.785 m high (owner), drawn up to the cut.
+  assert.ok(Math.abs(body.u[1] - body.u[0] - .675) < 1e-9)
+  assert.ok(Math.abs(body.v[1] - door.v[0] - .668) < 1e-9)
   assert.ok(freezer.y[1] <= FLOOR_HEIGHT + CUT_HEIGHT + 1e-9 && KITCHEN_SIZES.fridgeHeight > CUT_HEIGHT)
   // The freezer door is above the fridge door, and the handle slot is at their meeting.
   assert.ok(freezer.y[0] >= door.y[1] && box('fridge-handle').y[1] < freezer.y[0] + .05)
@@ -102,4 +102,15 @@ test('the fridge is the Samsung RT29K577JS8: silver doors, grey sides, two doors
   assert.ok(Math.abs((box('fridge-dispenser').u[0] + box('fridge-dispenser').u[1]) / 2 - (body.u[0] + body.u[1]) / 2) < 1e-9)
   // The doors face the aisle (lower v), not the party wall.
   assert.ok(door.v[0] < body.v[0] && Math.abs(body.v[1] - KITCHEN_LIVING.v[1]) < 1e-9)
+})
+
+test('the freezer is as tall as its 101 L gross capacity needs: about 0.31 m of liner, 0.40 m of cabinet', () => {
+  const section = (KITCHEN_SIZES.fridgeWidth - 2 * FREEZER.wall) * (KITCHEN_SIZES.fridgeDepth - FREEZER.handle - FREEZER.door - FREEZER.back)
+  assert.ok(Math.abs(FREEZER_LINER_HEIGHT * section * 1000 - 101) < 1e-9, 'the liner holds the gross litres')
+  assert.ok(FREEZER_LINER_HEIGHT > .30 && FREEZER_LINER_HEIGHT < .32)
+  assert.ok(FREEZER_HEIGHT > .39 && FREEZER_HEIGHT < .41)
+  // The 89 L net volume is what the shelves and bins leave: 88% of the gross, the right order for a fitted freezer.
+  assert.ok(Math.abs(FREEZER.netLitres / FREEZER.grossLitres - .88) < .01)
+  // The freezer door is its height from the top of the cabinet.
+  assert.ok(Math.abs(KITCHEN_SIZES.fridgeFreezerFrom + FREEZER_HEIGHT - .04 - KITCHEN_SIZES.fridgeHeight) < 1e-9)
 })

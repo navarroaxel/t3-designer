@@ -202,12 +202,12 @@ const TERRACE_SW = (u: number) => houseSouthWestEdge(u) + TERRACE_WALL_THICKNESS
  * (its north-east half, the other being the stair's first flight) and the stairwell, a notch in the floor along the north-east party wall.
  * The perimeter is what the walkthrough treats as floor, so it follows all three.
  */
-function firstFloorPerimeter(withTerrace = true): Point2D[] {
+function firstFloorPerimeter(withTerrace = true, withHole = true): Point2D[] {
   const hole = STAIRWELL_HOLE
   const terrace = withTerrace ? [local(4, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
   return [
     local(-5, FIRST_OUTLINE[0][1]), local(-5, -BALCONY_V), local(BALCONY_FRONT, -BALCONY_V), local(BALCONY_FRONT, BALCONY_V), local(-5, BALCONY_V),
-    local(-5, HOUSE_HALF_WIDTH), local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH),
+    local(-5, HOUSE_HALF_WIDTH), ...(withHole ? [local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH)] : []),
     local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, LAUNDRY_V0 - LAUNDRY.wallThickness), ...terrace, local(4, FIRST_OUTLINE[0][1]),
   ]
 }
@@ -234,6 +234,11 @@ function firstFloorAnnex() {
   wall('first-terrace-rear', [TERRACE_REAR - TERRACE_REAR_WALL / 2, houseSouthWestEdge(TERRACE_REAR) + TERRACE_WALL_THICKNESS], [TERRACE_REAR - TERRACE_REAR_WALL / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS], TERRACE_REAR_WALL, TERRACE_PARTY_WALL)
   wall('first-terrace-rail', [4, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], [TERRACE_REAR, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], TERRACE_WALL_THICKNESS, TERRACE_RAILING)
   return { walls, windows }
+}
+
+/** Where a visitor may stand on a floor: its outline, with the stairwell filled in. The stairwell is a way down, not a wall. */
+export function walkOutline(floor: Floor): Point2D[] {
+  return floor === 'first' ? firstFloorPerimeter(true, false) : HOUSE_FLOORS[floor].perimeter
 }
 
 /** The ceiling the walkthrough draws: the house's roof. The terrace is open to the sky. */

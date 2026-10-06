@@ -8,7 +8,7 @@ import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_HALF_WIDTH, HOUSE_REAR, PARTY_WALL, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
-import { KITCHEN_BOXES, type KitchenBox } from './kitchen.ts'
+import { KITCHEN_BOXES, KITCHEN_SIZES, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, QUEEN_BED,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
@@ -67,7 +67,7 @@ function firstFloor(): Furnishing[] {
   }
   for (const box of KITCHEN_BOXES) {
     const tall = box.y[1] === cut
-    const top = !tall ? box.y[1] : box.id === 'column' ? F + 2.4 : box.id.startsWith('fridge') ? F + 1.675 : box.y[1]
+    const top = !tall ? box.y[1] : box.id === 'column' ? F + 2.4 : box.id.startsWith('fridge') ? F + .04 + KITCHEN_SIZES.fridgeHeight : box.y[1]
     add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, kitchen: { ...box, y: [box.y[0], top] }, roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge-') })
   }
   // The laundry: the washing machine and the spin dryer against the party wall, and the stair's first flight on the light-well side.
@@ -87,8 +87,6 @@ function firstFloor(): Furnishing[] {
   const shelfMiddle = (shelfV[0] + shelfV[1]) / 2
   add({ id: 'terrace-shelf', u: [back - TERRACE_SHELF.depth, back], v: shelfV, y: [F + TERRACE_SHELF.height - TERRACE_SHELF.thickness, F + TERRACE_SHELF.height], color: '#b9b3a5', roughness: .8, solid: false })
   add({ id: 'terrace-sink', u: [back - TERRACE_SHELF.depth / 2 - TERRACE_SHELF.basinDepth / 2, back - TERRACE_SHELF.depth / 2 + TERRACE_SHELF.basinDepth / 2], v: [shelfMiddle - TERRACE_SHELF.basinWidth / 2, shelfMiddle + TERRACE_SHELF.basinWidth / 2], y: [F + TERRACE_SHELF.height, F + TERRACE_SHELF.height + TERRACE_SHELF.basin], color: '#7d8185', metalness: .5, solid: false })
-  // The concrete stair going down to the hall, seen through the stairwell.
-  for (const block of STAIR_BLOCKS) add({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })
   return pieces
 }
 
@@ -96,7 +94,7 @@ function groundFloor(): Furnishing[] {
   return [
     ...DOORBELL_BOXES.map(box => ({ id: `doorbell-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .4, solid: false })),
     ...GARAGE_EQUIPMENT.map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
-    ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: true })),
+    ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })),
     ...FIREPLACE_BOXES.map(box => ({ id: `fireplace-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id === 'top' ? .8 : box.shape === 'log' ? .95 : .5, solid: true })),
   ]
 }
@@ -113,8 +111,8 @@ export function furnishingBlockers(floor: Floor, level: number) {
   }))
 }
 
-/** The TVs, which a visitor can switch on: a screen on each, facing +v, in the walkthrough's boxes. */
-export const TV_IDS = ['tv-main', 'tv-living'] as const
+/** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open. */
+export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge'] as const
 export function furnishingDevices(floor: Floor, level: number) {
   return furnishingsOn(floor).filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => ({
     id: piece.id,

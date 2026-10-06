@@ -10,7 +10,9 @@ import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENIN
 import { houseToSite } from '../src/data/frame.ts'
 import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirectionToApartment } from '../src/data/house-placement.ts'
 import { publicScene } from '../src/lib/public-scene.ts'
-import { buildWalkWorld, canSetWalkDoorOpenness, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
+import { furnishingsOn } from '../src/data/house-furnishings.ts'
+import { STAIR_BLOCKS } from '../src/data/stair.ts'
+import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
 
 const close = (actual: number, expected: number, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`)
 const room = (floor: 'ground' | 'first', id: string) => HOUSE_FLOORS[floor].rooms.find(item => item.id === id)!
@@ -176,4 +178,67 @@ test('the hall-living door is a leaf and a half: the narrow leaf stops the visit
   const at = (distance: number): [number, number] => [wall.from[0] + (wall.to[0] - wall.from[0]) / length * distance, wall.from[1] + (wall.to[1] - wall.from[1]) / length * distance]
   const fixedEnd = door.hinge === 'start' ? door.offset + door.width - .2 : door.offset + .2
   assert.ok(!isWalkPositionFree(open, at(fixedEnd)), 'the narrow leaf is fixed')
+})
+
+test('the stair can be climbed on foot, from the hall to the first floor, and walked down again', () => {
+  const ground = publicScene('ground', []), first = publicScene('first', [])
+  const world = buildWalkWorld(ground, undefined, first)
+  const order = STAIR_BLOCKS.map(block => block.id)
+  assert.ok(order.length >= 16)
+  const centre = (block: (typeof STAIR_BLOCKS)[number]): [number, number] => [(block.u[0] + block.u[1]) / 2, -(block.v[0] + block.v[1]) / 2]
+  // Start at the foot of the first step, in the hall, and walk toward each step's centre in turn.
+  const start = centre(STAIR_BLOCKS[0])
+  let position: [number, number] = [start[0], start[1] + .6]
+  let vertical = { offset: 0, velocity: 0, grounded: true }
+  assert.ok(isWalkPositionFree(world, position), 'the foot of the stair is free')
+  const walkTo = (target: [number, number]) => {
+    for (let frame = 0; frame < 800; frame++) {
+      const dx = target[0] - position[0], dz = target[1] - position[1], distance = Math.hypot(dx, dz)
+      if (distance < .05) return
+      const step = Math.min(distance, 1.45 / 60)
+      position = moveWalkPosition(world, position, [dx / distance * step, dz / distance * step], 1.65, vertical.offset)
+      vertical = stepWalkVertical(world, position, 1.65, vertical, 1 / 60, false)
+    }
+  }
+  for (const block of STAIR_BLOCKS) walkTo(centre(block))
+  assert.ok(vertical.offset > 2.9, `reached the top: ${vertical.offset}`)
+  // From the last step onto the corridor of the first floor: its floor is 3.2 m up, and the visitor is on it.
+  walkTo([.44, -.2])
+  close(vertical.offset, 3.2, 1e-6)
+  assert.equal(roomAtPosition(world, position, vertical.offset)?.id, 'stair-corridor')
+  // And back down the same way, to the hall.
+  for (const block of [...STAIR_BLOCKS].reverse()) walkTo(centre(block))
+  walkTo([start[0], start[1] + .6])
+  for (let frame = 0; frame < 30; frame++) vertical = stepWalkVertical(world, position, 1.65, vertical, 1 / 60, false)
+  close(vertical.offset, 0, 1e-6)
+})
+
+test('both floors are one world: the visit can begin on either, and each floor keeps its own rooms', () => {
+  const world = buildWalkWorld(publicScene('ground', []), undefined, publicScene('first', []))
+  const living = HOUSE_FLOORS.first.rooms.find(item => item.id === 'kitchen-living')!
+  const [x, z] = polygonCentroid(living.polygon)
+  assert.ok(isWalkPositionFree(world, [x, z], 1.65, 3.2), 'the living, a floor up')
+  assert.equal(roomAtPosition(world, [x, z], 3.2)?.id, 'kitchen-living')
+  // The same spot at ground level is the ground floor's, whatever lies there.
+  assert.notEqual(roomAtPosition(world, [x, z], 0)?.id, 'kitchen-living')
+  const spawn = findWalkSpawn(world, 'kitchen-living')
+  assert.equal(spawn?.elevation, 3.2)
+  assert.equal(findWalkSpawn(world)?.elevation, undefined)
+  // Walking off the first floor into the stairwell drops the visitor onto the stair, not through the house.
+  const hole: [number, number] = [.44, -3]
+  assert.ok(isWalkPositionFree(world, hole, 1.65, 3.2))
+  let vertical = { offset: 3.2, velocity: 0, grounded: true }
+  for (let frame = 0; frame < 200; frame++) vertical = stepWalkVertical(world, hole, 1.65, vertical, 1 / 60, false)
+  assert.ok(vertical.offset > 1.5 && vertical.offset < 2.0, `lands on the stair: ${vertical.offset}`)
+})
+
+test('the fridge can be aimed at from the aisle and opened with E', () => {
+  const world = buildWalkWorld(publicScene('first', []))
+  const fridge = furnishingsOn('first').find(piece => piece.id === 'kitchen-fridge')!
+  const u = (fridge.u[0] + fridge.u[1]) / 2, v = fridge.v[0]
+  // 1.2 m in front of it, in the aisle (lower v, so higher z), facing it (toward +v is -z: yaw 0), looking at its middle.
+  const pose = { x: u, z: -(v - 1.2), yaw: 0, pitch: Math.atan2((fridge.y[0] + fridge.y[1]) / 2 - 3.2 - 1.65, 1.2), eyeHeight: 1.65, feetOffset: 0 }
+  assert.deepEqual(findWalkDoorTarget(world, {}, pose), { id: 'kitchen-fridge', open: false })
+  assert.deepEqual(findWalkDoorTarget(world, { 'kitchen-fridge': 1 }, pose), { id: 'kitchen-fridge', open: true })
+  close(fridge.y[1] - fridge.y[0], 1.785 - .04 + .04, 1e-6)
 })
