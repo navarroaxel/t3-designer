@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useTranslation } from 'react-i18next'
 import { PCFShadowMap, PerspectiveCamera, PointLight } from 'three'
 import { apartmentBounds, segmentWall } from '@t3-designer/geometry'
@@ -14,11 +14,22 @@ import { walkCopy } from './copy'
 import { buildWalkWorld, canSetWalkDoorOpenness, WALK_STEP, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, isWalkPositionFree, withWalkDoorStates, type WalkDoorStates, type WalkSpawn, type WalkWorld } from './navigation'
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
+import { saveScreenshot } from './screenshot'
 import { armKey, isArmExtended, isTvMounted, tvMountKey } from '../data/house-furnishings'
 import './walkthrough.css'
 
 const emptyInput = (): WalkInput => ({ forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false, detach: false, extend: false })
 const clockValue = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+
+/** Inside the canvas: hands the page a way to photograph what the camera sees. */
+function ScreenshotBridge({ capture }: { capture: RefObject<(() => Promise<string | null>) | null> }) {
+  const { gl, scene, camera } = useThree()
+  useEffect(() => {
+    capture.current = () => saveScreenshot(gl, scene, camera)
+    return () => { capture.current = null }
+  }, [capture, gl, scene, camera])
+  return null
+}
 
 function CameraSettings({ fov, torch }: { fov: number; torch: boolean }) {
   const light = useRef<PointLight>(null)
@@ -75,6 +86,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const roomName = (room: ProjectSnapshot['apartment']['rooms'][number]) => reference ? roomLabel(t, room.id) : room.name
   const root = useRef<HTMLElement>(null), canvas = useRef<HTMLCanvasElement | null>(null)
   const input = useRef<WalkInput>(emptyInput())
+  const capture = useRef<(() => Promise<string | null>) | null>(null)
   const initialDoors = useMemo(() => initialWalkDoorStates(snapshot), [snapshot])
   const [visitDoors, setVisitDoors] = useState(() => ({ snapshot, values: initialDoors }))
   const doorStates = visitDoors.snapshot === snapshot ? visitDoors.values : initialDoors
@@ -183,11 +195,13 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
             <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} />
             <WalkController world={initialWorld} collisionWorld={world} spawn={spawn} resetKey={reset} active={active} input={input} eyeHeight={eyeHeight} sensitivity={sensitivity} onPose={setPose} onPause={pause} onInteract={interact} />
             <CameraSettings fov={fov} torch={torch} />
+            <ScreenshotBridge capture={capture} />
           </Canvas>
         </WebGLGuard>
         <div className="walk-status"><span className={active ? 'walk-live' : ''} />{active ? c.live : c.paused}{currentRoom && <> · {roomName(currentRoom)}</>}</div>
         <div className="viewer-toolbar walk-viewer-toolbar" role="group" aria-label={c.viewerControls}>
           {active && <button type="button" className="viewer-action" aria-label={c.pause} title={`${c.pause} · Esc`} onClick={pause}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg></button>}
+          <button type="button" className="viewer-action" data-testid="walk-screenshot" aria-label={c.screenshot} title={c.screenshot} disabled={!ready} onClick={() => { void capture.current?.().then(name => { setMessage(name ? `${c.screenshotSaved}: ${name}` : c.screenshotFailed); window.setTimeout(() => setMessage(''), 3500) }) }}><ViewerIcon kind="camera" /></button>
           <button type="button" className="viewer-action" aria-label={c.settings} title={c.settings} aria-haspopup="dialog" aria-expanded={settingsOpen} aria-controls="walk-settings" onClick={toggleSettings}><ViewerIcon kind="settings" /></button>
           <button type="button" className="viewer-action" aria-label={fullscreen ? c.exitFullscreen : c.fullscreen} title={fullscreen ? c.exitFullscreen : c.fullscreen} aria-pressed={fullscreen} onClick={() => { void toggleFullscreen() }}><ViewerIcon kind={fullscreen ? 'collapse' : 'expand'} /></button>
         </div>

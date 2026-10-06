@@ -48,7 +48,7 @@ export function ViewerPanel({ title, onClose, children, className = '', id, hide
   </section>
 }
 
-export function ViewerIcon({ kind }: { kind: 'settings' | 'sun' | 'furniture' | 'expand' | 'collapse' | 'panels' | 'close' | 'undo' | 'redo' | 'reset' }) {
+export function ViewerIcon({ kind }: { kind: 'settings' | 'sun' | 'furniture' | 'expand' | 'collapse' | 'panels' | 'close' | 'undo' | 'redo' | 'reset' | 'camera' }) {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     {kind === 'settings' && <><path d="M4 7h16M4 17h16" /><circle cx="8" cy="7" r="2.5" fill="currentColor" /><circle cx="16" cy="17" r="2.5" fill="currentColor" /></>}
     {kind === 'sun' && <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" /></>}
@@ -59,6 +59,7 @@ export function ViewerIcon({ kind }: { kind: 'settings' | 'sun' | 'furniture' | 
     {kind === 'close' && <path d="m6 6 12 12M6 18 18 6" />}
     {kind === 'undo' && <><path d="M9 5 4 10l5 5" /><path d="M4 10h10a6 6 0 0 1 6 6v3" /></>}
     {kind === 'redo' && <><path d="m15 5 5 5-5 5" /><path d="M20 10H10a6 6 0 0 0-6 6v3" /></>}
+    {kind === 'camera' && <><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" /><circle cx="12" cy="13" r="3.5" /></>}
     {kind === 'reset' && <><path d="M3 10a9 9 0 1 1 2 8" /><path d="M3 4v6h6" /></>}
   </svg>
 }

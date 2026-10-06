@@ -118,3 +118,8 @@ that join the wall plate to the head; the elbow bulges out a little as it unfold
 Besides the table, the PS5 and the two outlets, the living's TV wall has (`wall-fittings.ts`): an ECHOGEAR in-wall **media box** (trim ring 403 by 275 mm, a cover with a slot along its lower edge) centred under the TV at the height of the table's top;
 a round **cable pass-through** for the HDMI (150 mm across, assumed, flat on the wall) beside the mount, with the cable going up behind the TV to its port; and a **plug** (the Argentine kind) at the TV's height on the other side. All three are
 behind the TV when it is mounted: take it off with `X` to see them.
+
+## Screenshots
+
+The camera button in the walkthrough's toolbar saves what the camera sees as a PNG (`tapalque-walkthrough-<date>-<time>.png`): the 3D view only, without the buttons. The scene is drawn once more right before the canvas is read,
+because a WebGL canvas that does not keep its buffer comes out blank outside the frame that drew it.
