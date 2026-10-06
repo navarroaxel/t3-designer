@@ -11,22 +11,25 @@ import { FloorPatch, KitchenPiece } from './HouseShell'
  * heights are absolute, so the group sinks by the floor's level.
  */
 /**
- * The picture a TV shows when it is on: the Prex wordmark, drawn here. It is an approximation, not the brand's own artwork.
+ * The picture a TV shows when it is on: a Plex-style splash, drawn here (a dark screen, the amber chevron and the wordmark). It is an
+ * approximation, not the brand's own artwork.
  */
-function prexTexture(): CanvasTexture {
+function plexTexture(): CanvasTexture {
   const canvas = document.createElement('canvas')
   canvas.width = 1024; canvas.height = 576
   const context = canvas.getContext('2d')!
-  const gradient = context.createLinearGradient(0, 0, 1024, 576)
-  gradient.addColorStop(0, '#0b1a3a'); gradient.addColorStop(1, '#1b3a8a')
-  context.fillStyle = gradient
+  context.fillStyle = '#1f2326'
   context.fillRect(0, 0, 1024, 576)
+  // The chevron: a thick arrow pointing right, in Plex amber.
+  const amber = '#e5a00d'
+  context.fillStyle = amber
+  context.beginPath()
+  context.moveTo(250, 170); context.lineTo(330, 170); context.lineTo(405, 288); context.lineTo(330, 406); context.lineTo(250, 406); context.lineTo(325, 288)
+  context.closePath(); context.fill()
   context.fillStyle = '#ffffff'
-  context.font = '800 230px "Helvetica Neue", Arial, sans-serif'
-  context.textAlign = 'center'; context.textBaseline = 'middle'
-  context.fillText('prex', 512, 292)
-  context.fillStyle = '#2fe6a6'
-  context.beginPath(); context.arc(842, 342, 22, 0, Math.PI * 2); context.fill()
+  context.font = '800 150px "Helvetica Neue", Arial, sans-serif'
+  context.textAlign = 'left'; context.textBaseline = 'middle'
+  context.fillText('PLEX', 450, 292)
   const texture = new CanvasTexture(canvas)
   texture.colorSpace = SRGBColorSpace
   return texture
@@ -34,7 +37,7 @@ function prexTexture(): CanvasTexture {
 
 /** `on` holds the switched-on devices by id: a TV is on at an opening of 1 or more half. */
 export function HouseFurnishings({ floor, devices = {} }: { floor: Floor; devices?: Record<string, number> }) {
-  const texture = useMemo(() => prexTexture(), [])
+  const texture = useMemo(() => plexTexture(), [])
   return <group name="house-furnishings" position={[0, -FLOOR_ELEVATION[floor], 0]}>
     {furnishingsOn(floor).map(piece => {
       const screen = (devices[piece.id] ?? 0) >= .5

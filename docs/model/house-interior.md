@@ -58,5 +58,5 @@ The furniture comes from the same data files in both views.
 
 ## The TVs and the street door
 
-- Look at a TV and press `E`: it switches on and shows the Prex wordmark (drawn in `HouseFurnishings.tsx`; an approximation, not the brand's artwork). A TV is aimed at like a door and keeps its state in the same visit record.
+- Look at a TV and press `E`: it switches on and shows a Plex-style splash (drawn in `HouseFurnishings.tsx`; an approximation, not the brand's artwork). A TV is aimed at like a door and keeps its state in the same visit record.
 - The street door in the entrance recess opens inward with the right hand: hinged on the lower v, seen from the street.

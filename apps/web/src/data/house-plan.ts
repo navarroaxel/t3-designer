@@ -75,7 +75,7 @@ export const OPENINGS: Record<Floor, Opening[]> = {
   ],
   first: [
     { u: -5, v: [.1, 3.1], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] }, // 3 m balcony door
-    { u: -5, v: [SECONDARY_WINDOW_CENTRE - 1.02, SECONDARY_WINDOW_CENTRE + 1.02], y: [FLOOR_HEIGHT + .7, FLOOR_HEIGHT + 1.6] }, // 2.04 m window of the secondary room
+    { u: -5, v: [SECONDARY_WINDOW_CENTRE - 1.02, SECONDARY_WINDOW_CENTRE + 1.02], y: [FLOOR_HEIGHT + 1, FLOOR_HEIGHT + 1.9] }, // 2.04 m window of the secondary room; its 1 m sill is the owner's, the 0.9 m height assumed
     // Rear wall, u = 4 (owner): a 1.78 m balcony door centred on the terrace, which spans from the south-west
     // wall to v = -1, and a 2.3 m wide by 1.64 m high window centred on the ground-floor light well (v = -1 to 1.5).
     { u: 4, v: [TERRACE_CENTRE - REAR_DOOR_WIDTH / 2, TERRACE_CENTRE + REAR_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
