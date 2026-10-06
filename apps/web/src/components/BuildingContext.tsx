@@ -21,6 +21,8 @@ const TARGET_ID = SITE_BUILDINGS.find(item => item.isTarget)!.id
 const LAUNDRY_CUT = FLOOR_HEIGHT + CUT_HEIGHT
 const laundryCut = (building: BuildingFootprint): BuildingFootprint[] =>
   !building.id.startsWith('HOUSE-LAUNDRY-') || (building.base ?? 0) >= LAUNDRY_CUT || building.id === 'HOUSE-LAUNDRY-ROOF' ? [] : [{ ...building, slope: undefined, height: Math.min(building.height, LAUNDRY_CUT) }]
+/** What the walkthrough shows of the house's own exterior: the parapets and the tank on the azotea, and the laundry's stair up to them. */
+const ROOF_PARTS = /^HOUSE-(PARAPET|TANK|LAUNDRY-(LANDING|PARTY|STEP-[12]|GUARD))/
 const isHouse = (building: BuildingFootprint) => building.isTarget || building.id.startsWith(`${TARGET_ID}-`)
 
 type Box = { position: [number, number, number]; scale: [number, number, number]; angle?: number }
@@ -207,8 +209,12 @@ export function SiteGround() {
  * physical obstacles used by the sunlight pass. */
 export type FloorView = 'exterior' | Floor
 
-export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, panelShade = null, installedPanels = null, floor = 'exterior' }: {
+export function BuildingContext({ visible = true, showHouse = true, showRoof = false, showNeighbors = true, showPanels = true, panelShade = null, installedPanels = null, floor = 'exterior' }: {
   visible?: boolean
+  /** Off for the interior views, which draw the house themselves; its shadows stay. */
+  showHouse?: boolean
+  /** With the house hidden, still draw what stands on the azotea and the stair up to it. */
+  showRoof?: boolean
   showNeighbors?: boolean
   showPanels?: boolean
   panelShade?: Record<string, number> | null
@@ -231,7 +237,10 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>
-      {floor === 'exterior'
+      {!showHouse ? (showRoof ? <>
+          {house.filter(building => ROOF_PARTS.test(building.id)).map(building => <Volume key={building.id} building={building} castShadow={false} />)}
+          {showPanels && <SolarPanels shade={panelShade} installed={installedPanels} />}
+        </> : null) : floor === 'exterior'
         ? <>
             {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
             <HouseFacade />

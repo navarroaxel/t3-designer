@@ -3,7 +3,7 @@ import test from 'node:test'
 import { GROUND_WELL_EDGE, ENTRY_RECESS, FLOOR_HEIGHT, PARTY_WALL, SITE_BUILDINGS, WELL_BACK_U, WELL_BACK_WALL, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
   BALCONY, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, GROUND_BATHROOM, GROUND_BATHROOM_DOOR, GROUND_PANTRY, PANTRY, PANTRY_DOOR, LIVING_KITCHEN_DOOR, GROUND_LIVING, GROUND_LIVING_WALL, STAIRWELL_HOLE, HALL_ARCH, RIGHT_ARM_WINDOW_WIDTH, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
-  OFFICE_WIDTH, polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
+  OFFICE_WIDTH, TV_MOUNT, polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
 const closeTo = (actual: number, expected: number, tolerance: number) =>
@@ -315,7 +315,7 @@ test('the 55 inch TV is a 16:9 screen hung on the shared wall, centred on it, fa
   near((MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (main.u[0] + main.u[1]) / 2)
   assert.ok(MAIN_TV_PLACEMENT.u[0] > main.u[0] && MAIN_TV_PLACEMENT.u[1] < secondary.u[1])
   // On the main room's side, held off the wall by its bracket.
-  near(MAIN_TV_PLACEMENT.bracket.v[0], main.v[0]); near(MAIN_TV_PLACEMENT.v[0], main.v[0] + .03)
+  near(MAIN_TV_PLACEMENT.bracket.v[0], main.v[0]); near(MAIN_TV_PLACEMENT.v[0], main.v[0] + TV_MOUNT.depthFolded)
   assert.ok(MAIN_TV_PLACEMENT.v[1] < main.v[1])
   // It hangs clear of the floor and stays under the 1.5 m cut, so it shows whole.
   assert.ok(MAIN_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .5 && MAIN_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 1.5)
@@ -392,11 +392,13 @@ test('the 65 inch TV in the living hangs on the party wall on the bathroom\'s si
   near(LIVING_TV_SIZE.width, 1.439, .002); near(LIVING_TV_SIZE.height, .809, .002)
   assert.equal(LIVING_TV.inches, 65)
   // On the south-west party wall (the bathroom's side), held off it by its bracket, facing into the living.
-  near(LIVING_TV_PLACEMENT.bracket.v[0], KITCHEN_LIVING.v[0]); near(LIVING_TV_PLACEMENT.v[0], KITCHEN_LIVING.v[0] + .03)
+  near(LIVING_TV_PLACEMENT.bracket.v[0], KITCHEN_LIVING.v[0]); near(LIVING_TV_PLACEMENT.v[0], KITCHEN_LIVING.v[0] + TV_MOUNT.depthFolded)
   // Centred on the living's depth, between the bathroom's back wall and the rear wall.
   near((LIVING_TV_PLACEMENT.u[0] + LIVING_TV_PLACEMENT.u[1]) / 2, (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2)
   assert.ok(LIVING_TV_PLACEMENT.u[0] > KITCHEN_LIVING.u[0] && LIVING_TV_PLACEMENT.u[1] < KITCHEN_LIVING.u[1])
-  assert.ok(LIVING_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .5 && LIVING_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 1.5)
+  // Its centre is 1.35 m up (owner), so the screen runs from about 0.95 m to 1.75 m: above a low table, below the ceiling.
+  near(LIVING_TV_PLACEMENT.y[0] + LIVING_TV_SIZE.height / 2, FLOOR_HEIGHT + 1.35)
+  assert.ok(LIVING_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .9 && LIVING_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 2)
 })
 
 test('the bathroom floor is a thin travertine-coloured porcelain layer', () => {
@@ -408,9 +410,12 @@ test('the bathroom floor is a thin travertine-coloured porcelain layer', () => {
 
 test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Navona natural tiles of 80 by 80 cm, without overlapping', () => {
   const colors = Object.fromEntries(FLOOR_TILING.map(zone => [zone.id, zone.color]))
-  assert.deepEqual(Object.keys(colors).sort(), ['bathroom', 'bedrooms', 'hall', 'laundry', 'living', 'terrace'])
+  assert.deepEqual(Object.keys(colors).sort(), ['balcony', 'bathroom', 'bedrooms', 'hall', 'laundry', 'living', 'terrace'])
   // The first-floor terrace has the bathroom's tile.
   assert.equal(colors.terrace, colors.bathroom)
+  // The balcony too (owner): Navona natural.
+  assert.equal(colors.balcony, colors.bathroom)
+  assert.equal(FLOOR_TILING.find(zone => zone.id === 'balcony')!.pattern, NAVONA_TILES)
   // So does the laundry.
   assert.equal(colors.laundry, colors.bathroom)
   assert.equal(FLOOR_TILING.find(zone => zone.id === 'laundry')!.pattern, NAVONA_TILES)
@@ -432,8 +437,8 @@ test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Na
     const overlapV = Math.min(a.rect[3], b.rect[3]) - Math.max(a.rect[2], b.rect[2])
     assert.ok(!(overlapU > 1e-6 && overlapV > 1e-6), `${a.zone} and ${b.zone} tiles overlap`)
   }
-  // Every indoor rectangle stays inside the first floor's block; the terrace and the laundry lie beyond its rear wall.
-  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace' && item.zone !== 'laundry')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
+  // Every indoor rectangle stays inside the first floor's block; the terrace, the laundry and the balcony lie beyond its rear wall.
+  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace' && item.zone !== 'laundry' && item.zone !== 'balcony')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
 })
 
 test('the terrace floor lies over the rear band, between its two walls', () => {

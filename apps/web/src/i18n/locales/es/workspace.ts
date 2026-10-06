@@ -171,6 +171,173 @@ const workspace = {
     noSunDirect: 'Sin sol directo',
     hours: 'h',
   },
+  rooms: {
+    "secondary-room": "Dormitorio secundario",
+    "main-room": "Dormitorio principal",
+    "closet": "Vestidor",
+    "bathroom": "Baño",
+    "hall": "Pasillo",
+    "stair-corridor": "Pasillo de la escalera",
+    "kitchen-living": "Cocina y living",
+    "garage": "Cochera",
+    "entrance-hall": "Recibidor",
+    "ground-living": "Living",
+    "pantry": "Despensa",
+    "ground-bathroom": "Baño",
+    "office": "Oficina",
+    "light-well": "Pulmón",
+    "laundry": "Lavadero",
+    "balcony": "Balcón",
+    "terrace": "Terraza",
+    "azotea": "Azotea",
+    "unknown": "Ambiente"
+  },
+  apartment: {
+    "modelAria": "Interior de la casa con luz solar",
+    "caption": "La casa",
+    "sunInDemo": "Sol en la casa",
+    "cameraView": "Vista de cámara",
+    "perspective": "Perspectiva",
+    "plan": "Planta",
+    "resetView": "Reiniciar vista",
+    "hideBuilding": "Ocultar edificio",
+    "showBuilding": "Mostrar edificio",
+    "interiorSunlight": "Luz solar y sombras interiores",
+    "ambientReference": "Sin sol directo · Luz ambiental de referencia",
+    "navigationHelp": "Arrastrar: orbitar · Rueda: zoom · Botón derecho: desplazar",
+    "modelLayers": "Capas del modelo",
+    "cutaway": "Corte",
+    "fixtures": "Equipamiento",
+    "labels": "Rótulos",
+    "inspectorAria": "Explorá la casa y su luz solar",
+    "insideEyebrow": "Adentro de la casa",
+    "tagline": "Tu casa a la luz del día.",
+    "inspectorContents": "Contenido del inspector",
+    "sunTab": "Sol",
+    "roomsTab": "Ambientes",
+    "assetsTab": "Equipamiento",
+    "observeLight": "Observar la luz por ambiente",
+    "lookAtLight": "Mirar la luz en",
+    "focusRoom": "Enfocar ambiente",
+    "allApartment": "Toda la planta",
+    "compareSeasons": "Comparar estaciones",
+    "lightInstruction": "Cambiá la hora y comparás estaciones para ver hasta dónde llega el sol por las ventanas y la puerta del balcón.",
+    "estimatedOrientation": "Orientación estimada",
+    "buildingShadowTitle": "El edificio también da sombra.",
+    "buildingShadowBody": "Mostrar u ocultar a los vecinos solo cambia la vista. Sus sombras, el techo y el primer piso siguen ahí.",
+    "sunLocationPrecision": "Ubicación del sol y precisión",
+    "placementUnconfirmed": "Las alturas de paredes y puertas son supuestas; los ambientes detrás del contrafrente de la planta baja todavía no están modelados.",
+    "sunMethod": "La posición del sol se calcula para el barrio de la casa (redondeado a 0,01°) y America/Argentina/Buenos_Aires. No es un estudio de irradiancia.",
+    "placementAssumption": "Las plantas se arman con las medidas y fotos del dueño; el plano es el del modelo de la casa.",
+    "unknownAsset": "Elemento",
+    "sunSource": "Cálculo solar · NOAA / Meeus ↗",
+    "fullView": "Vista completa",
+    "materials": "Terminaciones",
+    "roomArea": "{{area}}",
+    "assetCountNote": "{{count}} elementos colocados. Elegí un elemento para ver sus dimensiones y su ambiente.",
+    "assetDimensions": "ancho × alto × fondo",
+    "estimatedDimensions": "Dimensiones estimadas",
+    "downloadGlb": "Descargar GLB ↗",
+    "evidenceSources": "Fuentes y alcance",
+    "reportedArea": "{{area}}",
+    "extraArea": "{{area}} · balcón",
+    "canvasFallback": "La vista de la casa necesita WebGL. Activá la aceleración gráfica del navegador.",
+    "canvasAria": "Modelo 3D del interior de la casa con el sol entrando por las ventanas. Arrastrá para girar, usá la rueda para acercar.",
+    "roomLabelsAria": "Nombres de ambientes y superficies declaradas",
+    "footerTitle": "Casa + sol",
+    "footerDescription": "Las plantas de la casa, con las medidas del dueño, bajo el sol de su barrio.",
+    "wallHeight": "Altura: {{height}}",
+    "estimated": "estimada",
+    "floorSwitch": "Planta",
+    "floorGround": "Planta baja",
+    "floorFirst": "Primer piso",
+    "frontFacade": "El frente a la calle mira al",
+    "rearFacade": "El contrafrente mira al",
+    "planksAlmond": "Tablones Saing almendra",
+    "planksAlmondRooms": "Dormitorios y oficina",
+    "planksHoney": "Tablones Saing miel",
+    "planksHoneyRooms": "Living y cocina",
+    "navonaTiles": "Porcelanato Navona natural",
+    "navonaTilesRooms": "Baños y pulmón"
+  },
+  assets: {
+    "fridge-freezer": {
+      "label": "Heladera con freezer",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "washing-machine": {
+      "label": "Lavarropas frontal",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "oven-cooktop": {
+      "label": "Horno y placa",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "microwave": {
+      "label": "Microondas",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "extractor-hood": {
+      "label": "Campana extractora",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "boiler": {
+      "label": "Caldera mural",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "base-cabinet": {
+      "label": "Mueble bajo de cocina",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "sink-cabinet": {
+      "label": "Mueble con pileta y escurridor",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "wall-cabinet": {
+      "label": "Alacena",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "bathroom-vanity": {
+      "label": "Vanitory y lavabo",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "toilet": {
+      "label": "Inodoro",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "radiator": {
+      "label": "Radiador",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "towel-rail": {
+      "label": "Toallero radiador",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "glass-block-screen": {
+      "label": "Mampara de bloques de vidrio",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "shower-tray": {
+      "label": "Receptor de ducha",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "electrical-panel": {
+      "label": "Tablero eléctrico",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "low-table": {
+      "label": "Mesa baja de madera",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    },
+    "wall-mirror": {
+      "label": "Espejo de baño",
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
+    }
+  },
+  fixtures: {
+    "retry": "Reintentar",
+    "failed": "No se pudo cargar: {{label}}"
+  },
 } as const
 
 export default workspace

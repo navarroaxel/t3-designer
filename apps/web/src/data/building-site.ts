@@ -120,12 +120,12 @@ const LEFT_ARM_INNER = GROUND_WELL_EDGE;
  */
 export const WELL_BACK_U = 4.46;
 export const WELL_BACK_WALL = .18;
-const TERRACE_INNER = -1;
-const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
-const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
-const TERRACE_WALL_THICKNESS = .15;
-const TERRACE_REAR_WALL = .1; // wall on the party wall with the lot behind
-const TERRACE_CENTRE_V = (houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2;
+export const TERRACE_INNER = -1;
+export const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
+export const TERRACE_RAILING = 1.1; // wall-railing on the light-well side
+export const TERRACE_WALL_THICKNESS = .15;
+export const TERRACE_REAR_WALL = .1; // wall on the party wall with the lot behind
+export const TERRACE_CENTRE_V = (houseSouthWestEdge(REAR_SW) + TERRACE_WALL_THICKNESS + TERRACE_INNER - TERRACE_WALL_THICKNESS) / 2;
 /** A masonry grill at the back of the first-floor terrace (owner); its size is assumed: 1.2 m wide, 0.55 m deep, 0.85 m high, with a cast-iron grate. */
 export const TERRACE_GRILL = { width: 1.2, depth: .55, height: .85, grate: .03 };
 /**

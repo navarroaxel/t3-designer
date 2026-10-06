@@ -6,6 +6,7 @@ import { initializeTheme } from './lib/theme'
 import App from './App'
 import './index.css'
 import './theme.css'
+import './private/tailwind.css'
 
 initializeTheme()
 

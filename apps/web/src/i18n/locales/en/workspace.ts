@@ -150,6 +150,173 @@ const workspace = {
     dayProgress: 'Playing through the day', playFullDay: 'Play a full day', fullDaySpeed: '24 hours in 24 seconds',
     noSunDirect: 'No direct sun', hours: 'h',
   },
+  rooms: {
+    "secondary-room": "Secondary room",
+    "main-room": "Main room",
+    "closet": "Walk-in closet",
+    "bathroom": "Bathroom",
+    "hall": "Hall",
+    "stair-corridor": "Stair corridor",
+    "kitchen-living": "Kitchen and living",
+    "garage": "Garage",
+    "entrance-hall": "Entrance hall",
+    "ground-living": "Living",
+    "pantry": "Pantry",
+    "ground-bathroom": "Bathroom",
+    "office": "Office",
+    "light-well": "Light well",
+    "laundry": "Laundry",
+    "balcony": "Balcony",
+    "terrace": "Terrace",
+    "azotea": "Roof terrace",
+    "unknown": "Room"
+  },
+  apartment: {
+    "modelAria": "Interior of the house with sunlight",
+    "caption": "The house",
+    "sunInDemo": "Sun in the house",
+    "cameraView": "Camera view",
+    "perspective": "Perspective",
+    "plan": "Floor plan",
+    "resetView": "Reset view",
+    "hideBuilding": "Hide building",
+    "showBuilding": "Show building",
+    "interiorSunlight": "Sunlight and indoor shadows",
+    "ambientReference": "No direct sun · Ambient light reference",
+    "navigationHelp": "Drag to orbit · Scroll to zoom · Right-click to pan",
+    "modelLayers": "Model layers",
+    "cutaway": "Cutaway",
+    "fixtures": "Fixtures",
+    "labels": "Labels",
+    "inspectorAria": "Explore the house and its sunlight",
+    "insideEyebrow": "Inside the house",
+    "tagline": "Your house in daylight.",
+    "inspectorContents": "Inspector contents",
+    "sunTab": "Sun",
+    "roomsTab": "Rooms",
+    "assetsTab": "Fixtures",
+    "observeLight": "Explore light by room",
+    "lookAtLight": "Look at the light in",
+    "focusRoom": "Focus room",
+    "allApartment": "Whole floor",
+    "compareSeasons": "Compare seasons",
+    "lightInstruction": "Change the time and compare seasons to see how far sunlight reaches through the windows and the balcony door.",
+    "estimatedOrientation": "Estimated orientation",
+    "buildingShadowTitle": "The building casts a shadow too.",
+    "buildingShadowBody": "Showing or hiding the neighbours only changes the view. Their shadows, the roof and the first floor remain.",
+    "sunLocationPrecision": "Sun location and accuracy",
+    "placementUnconfirmed": "Heights of walls and doors are assumed; the rooms behind the ground floor's back wall are not modelled yet.",
+    "sunMethod": "Solar position is computed for the house's neighbourhood (rounded to 0.01°) and America/Argentina/Buenos_Aires. This is not a property irradiance study.",
+    "placementAssumption": "The floors are built from the owner's measurements and photos; the plan is the one in the house model.",
+    "unknownAsset": "Item",
+    "sunSource": "Solar calculation · NOAA / Meeus ↗",
+    "fullView": "Full view",
+    "materials": "Finishes",
+    "roomArea": "{{area}}",
+    "assetCountNote": "{{count}} placed items. Select one to see its dimensions and room.",
+    "assetDimensions": "width × height × depth",
+    "estimatedDimensions": "Estimated dimensions",
+    "downloadGlb": "Download GLB ↗",
+    "evidenceSources": "Sources and scope",
+    "reportedArea": "{{area}}",
+    "extraArea": "{{area}} · balcony area",
+    "canvasFallback": "The house view requires WebGL. Enable your browser’s graphics acceleration.",
+    "canvasAria": "3D model of the house interior with sunlight through its windows. Drag to orbit, scroll to zoom.",
+    "roomLabelsAria": "Room names and reported areas",
+    "footerTitle": "House + sun",
+    "footerDescription": "The floors of the house, from the owner's measurements, under the sun of its neighbourhood.",
+    "wallHeight": "Height: {{height}}",
+    "estimated": "estimated",
+    "floorSwitch": "Floor",
+    "floorGround": "Ground floor",
+    "floorFirst": "First floor",
+    "frontFacade": "Street front faces",
+    "rearFacade": "Rear faces",
+    "planksAlmond": "Saing almendra planks",
+    "planksAlmondRooms": "Bedrooms and office",
+    "planksHoney": "Saing miel planks",
+    "planksHoneyRooms": "Living and kitchen",
+    "navonaTiles": "Navona natural tiles",
+    "navonaTilesRooms": "Bathrooms and light well"
+  },
+  assets: {
+    "fridge-freezer": {
+      "label": "Fridge-freezer",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "washing-machine": {
+      "label": "Front-loading washing machine",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "oven-cooktop": {
+      "label": "Oven and cooktop",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "microwave": {
+      "label": "Microwave",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "extractor-hood": {
+      "label": "Extractor hood",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "boiler": {
+      "label": "Wall-mounted boiler",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "base-cabinet": {
+      "label": "Kitchen base cabinet",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "sink-cabinet": {
+      "label": "Sink cabinet and drainer",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "wall-cabinet": {
+      "label": "Wall cabinet",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "bathroom-vanity": {
+      "label": "Vanity and basin",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "toilet": {
+      "label": "Toilet",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "radiator": {
+      "label": "Radiator",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "towel-rail": {
+      "label": "Heated towel rail",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "glass-block-screen": {
+      "label": "Glass-block shower screen",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "shower-tray": {
+      "label": "Shower tray",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "electrical-panel": {
+      "label": "Electrical panel",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "low-table": {
+      "label": "Low wooden table",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    },
+    "wall-mirror": {
+      "label": "Bathroom mirror",
+      "evidence": "Visual replica of a typical unit; not the house's own model."
+    }
+  },
+  fixtures: {
+    "retry": "Retry",
+    "failed": "Could not load: {{label}}"
+  },
 } as const
 
 export default workspace

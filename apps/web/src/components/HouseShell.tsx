@@ -3,17 +3,13 @@ import { Line } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, GROUND_PARTITIONS, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SIDE_OPENINGS, SLAB_THICKNESS, STAIRWELL_HOLE, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, FIRST_FLOOR_DOOR_SWINGS, FIRST_OUTLINE, GROUND_OUTLINE, SLAB_THICKNESS, STAIRWELL_HOLE,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
-import { BATHROOM_BOXES } from '../data/bathroom'
-import { DOORBELL_BOXES } from '../data/doorbell'
-import { FIREPLACE_BOXES } from '../data/fireplace'
-import { GARAGE_EQUIPMENT } from '../data/garage-equipment'
 import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
-import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
-import { WASHING_MACHINE_BOXES } from '../data/washing-machine'
-import { SPIN_DRYER_PARTS } from '../data/spin-dryer'
+import { type KitchenBox } from '../data/kitchen'
+import { shellWallBoxes } from '../data/house-interior'
+import { HouseFurnishings } from './HouseFurnishings'
 import { polygonShape } from '../lib/polygon-shape'
 
 /** The stairwell opening in the first-floor slab, as a ring. Defined once so the slab's geometry is not rebuilt on every render. */
@@ -23,9 +19,6 @@ const WALL_COLOR = '#d9cdb2'
 /** The interior partitions are painted white. */
 const PARTITION_COLOR = '#f3f1ec'
 const SLAB_COLOR = '#b9b3a5'
-const WARDROBE_COLOR = '#b58b5a'
-const BED_COLOR = '#d9d2c4'
-const LEAF_COLORS = ['#c39a64', '#b58b5a']
 
 /** A floor slab from a plan outline. Local z is -v, so the shape takes [u, -v]. */
 function Slab({ outline, top, castShadow = false, holes = [] }: { outline: PlanPoint[]; top: number; castShadow?: boolean; holes?: PlanPoint[][] }) {
@@ -38,14 +31,6 @@ function Slab({ outline, top, castShadow = false, holes = [] }: { outline: PlanP
   return <mesh geometry={geometry} position={[0, top - SLAB_THICKNESS, 0]} castShadow={castShadow} receiveShadow>
     <meshStandardMaterial color={SLAB_COLOR} roughness={.95} />
   </mesh>
-}
-
-/** Interior walls between two heights, from their plan rectangles. */
-function InteriorWalls({ walls, from, to, castShadow = false }: { walls: readonly [number, number, number, number][]; from: number; to: number; castShadow?: boolean }) {
-  return <>{walls.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, (from + to) / 2, -(v0 + v1) / 2]} castShadow={castShadow} receiveShadow>
-    <boxGeometry args={[u1 - u0, to - from, v1 - v0]} />
-    <meshStandardMaterial color={PARTITION_COLOR} roughness={.95} />
-  </mesh>)}</>
 }
 
 /** The stair's concrete slabs, floating, drawn up to `top` (the cut, or the underside of the first-floor slab). */
@@ -147,7 +132,7 @@ function patternTexture(base: string, pattern: TilePattern) {
 }
 
 /** A kitchen piece: a plain box, or a slab with its pattern (the worktops' Toscana Vena veins). */
-function KitchenPiece({ box }: { box: KitchenBox }) {
+export function KitchenPiece({ box }: { box: KitchenBox }) {
   const { pattern } = box
   const map = useMemo(() => {
     if (!pattern) return null
@@ -163,7 +148,7 @@ function KitchenPiece({ box }: { box: KitchenBox }) {
 }
 
 /** One rectangle of a floor zone, with its pattern repeated at real scale. */
-function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, number, number] }) {
+export function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, number, number] }) {
   const [u0, u1, v0, v1] = rect
   const { pattern } = zone
   const map = useMemo(() => {
@@ -179,12 +164,12 @@ function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, 
 }
 
 function Walls({ floor, top, castShadow = false }: { floor: Floor; top: number; castShadow?: boolean }) {
-  const level = FLOOR_LEVEL[floor]
-  const boxes = useMemo(() => wallBoxes(floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE, OPENINGS[floor], level, top, undefined, SIDE_OPENINGS[floor]), [floor, level, top])
+  // The exterior walls and the partitions, from the same walls the walkthrough walks through.
+  const boxes = useMemo(() => shellWallBoxes(floor, top), [floor, top])
   return <>
     {boxes.map((box, index) => <mesh key={index} position={[box.center[0], box.center[1], -box.center[2]]} castShadow={castShadow} receiveShadow>
       <boxGeometry args={[box.size[0], box.size[1], box.size[2]]} />
-      <meshStandardMaterial color={WALL_COLOR} roughness={.95} />
+      <meshStandardMaterial color={box.kind === 'exterior' ? WALL_COLOR : PARTITION_COLOR} roughness={.95} />
     </mesh>)}
   </>
 }
@@ -199,22 +184,8 @@ export function HouseShell({ floor }: { floor: Floor }) {
     {floor === 'ground' && <>
       <Slab outline={GROUND_OUTLINE} top={GROUND_FLOOR_LEVEL} />
       <Walls floor="ground" top={CUT_HEIGHT} />
-      <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={CUT_HEIGHT} />
-      {/* The UniFi doorbell beside the entrance door, on the recess's back wall. */}
-      {DOORBELL_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} castShadow>
-        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
-        <meshStandardMaterial color={box.color} roughness={.4} />
-      </mesh>)}
-      {/* The inverter and the electrical board on the garage's party wall. */}
-      {GARAGE_EQUIPMENT.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
-        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
-        <meshStandardMaterial color={box.color} roughness={.5} metalness={box.metalness ?? 0} />
-      </mesh>)}
-      {/* The living's gas fireplace against the party wall: a black steel box with a stone top and logs. */}
-      {FIREPLACE_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
-        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
-        <meshStandardMaterial color={box.color} roughness={box.id === 'top' ? .8 : box.shape === 'log' ? .95 : .5} metalness={box.id.startsWith('panel') || box.id === 'plinth' ? .3 : 0} />
-      </mesh>)}
+      {/* The furniture and the equipment, from the same data the walkthrough furnishes the house with: sawn off at the cut like the walls. */}
+      <HouseFurnishings floor="ground" absolute cut={CUT_HEIGHT} />
       {/* The ground floor's tiles: the bathroom's and the living's. */}
       {GROUND_FLOOR_TILING.flatMap(zone => zone.rects.map((rect, index) => <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={rect} />))}
       {/* The L-shaped stair from the hall, cut at the same height as the walls. */}
@@ -225,150 +196,19 @@ export function HouseShell({ floor }: { floor: Floor }) {
     {floor === 'first' && <>
       {/* The ground floor below is shown whole, capped by the first-floor slab. */}
       <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} />
-      <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={FLOOR_HEIGHT - SLAB_THICKNESS} />
       <StairBlocks top={STAIR_CEILING} />
       <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} holes={STAIRWELL_RINGS} />
       {/* The first floor is built over the entrance recess, so its floor covers it. */}
       <Slab outline={ENTRY_RECESS_OUTLINE} top={FLOOR_HEIGHT} />
       <Walls floor="first" top={FLOOR_HEIGHT + CUT_HEIGHT} />
-      {/* The secondary room's built-in wardrobe, sectioned at the cut like the walls. */}
-      <mesh position={[(SECONDARY_WARDROBE.u[0] + SECONDARY_WARDROBE.u[1]) / 2, FLOOR_HEIGHT + Math.min(WARDROBE.height, CUT_HEIGHT) / 2, -(SECONDARY_WARDROBE.v[0] + SECONDARY_WARDROBE.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[WARDROBE.depth, Math.min(WARDROBE.height, CUT_HEIGHT), WARDROBE.width]} />
-        <meshStandardMaterial color={WARDROBE_COLOR} roughness={.85} />
-      </mesh>
-      {/* The closet's wardrobe along the whole party wall with neighbour A, sectioned at the cut. */}
-      <mesh position={[(MAIN_ROOM_CLOSET_WARDROBE.u[0] + MAIN_ROOM_CLOSET_WARDROBE.u[1]) / 2, FLOOR_HEIGHT + Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT) / 2, -(MAIN_ROOM_CLOSET_WARDROBE.v[0] + MAIN_ROOM_CLOSET_WARDROBE.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[MAIN_ROOM_CLOSET_WARDROBE.u[1] - MAIN_ROOM_CLOSET_WARDROBE.u[0], Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT), MAIN_ROOM_CLOSET_WARDROBE.v[1] - MAIN_ROOM_CLOSET_WARDROBE.v[0]]} />
-        <meshStandardMaterial color={WARDROBE_COLOR} roughness={.85} />
-      </mesh>
-      {/* Its sliding doors, on two tracks. */}
-      {CLOSET_SLIDING_PANELS.map((panel, index) => <mesh key={index} position={[(panel.u[0] + panel.u[1]) / 2, FLOOR_HEIGHT + Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT) / 2, -(panel.v[0] + panel.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[panel.u[1] - panel.u[0], Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT), panel.v[1] - panel.v[0]]} />
-        <meshStandardMaterial color={panel.front ? '#d8d1c2' : '#c9c0ae'} roughness={.7} />
-      </mesh>)}
-      {/* The wardrobe's three doors of two leaves, on its face toward the room. */}
-      {WARDROBE_LEAVES.map(([v0, v1], index) => <mesh key={index} position={[SECONDARY_WARDROBE.u[0] - .01, FLOOR_HEIGHT + Math.min(WARDROBE.height, CUT_HEIGHT) / 2, -(v0 + v1) / 2]} receiveShadow>
-        <boxGeometry args={[.02, Math.min(WARDROBE.height, CUT_HEIGHT), v1 - v0]} />
-        <meshStandardMaterial color={LEAF_COLORS[index % 2]} roughness={.75} />
-      </mesh>)}
-      {/* The queen bed in the main room: head against the drywall, with headboard and two pillows. */}
-      <mesh position={[(MAIN_BED.u[0] + MAIN_BED.u[1]) / 2, FLOOR_HEIGHT + QUEEN_BED.height / 2, -(MAIN_BED.v[0] + MAIN_BED.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[QUEEN_BED.width, QUEEN_BED.height, QUEEN_BED.length]} />
-        <meshStandardMaterial color={BED_COLOR} roughness={.9} />
-      </mesh>
-      <mesh position={[(MAIN_BED.u[0] + MAIN_BED.u[1]) / 2, FLOOR_HEIGHT + .55, -(MAIN_BED.v[1] - .03)]} receiveShadow>
-        <boxGeometry args={[QUEEN_BED.width, 1.1, .06]} />
-        <meshStandardMaterial color="#8b6b4a" roughness={.8} />
-      </mesh>
-      {[-.4, .4].map(offset => <mesh key={offset} position={[(MAIN_BED.u[0] + MAIN_BED.u[1]) / 2 + offset, FLOOR_HEIGHT + QUEEN_BED.height + .06, -(MAIN_BED.v[1] - .3)]} receiveShadow>
-        <boxGeometry args={[.6, .12, .4]} />
-        <meshStandardMaterial color="#f4f1ea" roughness={.95} />
-      </mesh>)}
-      {/* A single bed in the secondary room. */}
-      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + SINGLE_BED.height / 2, -(SECONDARY_BED.v[0] + SECONDARY_BED.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[SINGLE_BED.width, SINGLE_BED.height, SINGLE_BED.length]} />
-        <meshStandardMaterial color={BED_COLOR} roughness={.9} />
-      </mesh>
-      {/* Headboard against the party wall and a pillow, so the head end reads at a glance. */}
-      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + .45, -(SECONDARY_BED.v[0] + .03)]} receiveShadow>
-        <boxGeometry args={[SINGLE_BED.width, .9, .06]} />
-        <meshStandardMaterial color="#8b6b4a" roughness={.8} />
-      </mesh>
-      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + SINGLE_BED.height + .06, -(SECONDARY_BED.v[0] + .35)]} receiveShadow>
-        <boxGeometry args={[.6, .12, .4]} />
-        <meshStandardMaterial color="#f4f1ea" roughness={.95} />
-      </mesh>
       {/* Porcelain floors: Saing almendra planks in the bedrooms, Saing miel planks in the living, travertine in the bathroom. */}
       {FLOOR_TILING.flatMap(zone => zone.rects.map((rect, index) => <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={rect} />))}
-      {/* The bathroom's fixtures along the wall shared with the living: vanity with its mirror, toilet and shower. */}
-      {BATHROOM_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} scale={box.shape === 'ellipse' ? [(box.u[1] - box.u[0]) / 2, 1, (box.v[1] - box.v[0]) / 2] : [1, 1, 1]} receiveShadow>
-        {box.shape === 'ellipse'
-          ? <cylinderGeometry args={[1, box.taper ?? 1, box.y[1] - box.y[0], 40]} />
-          : <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />}
-        <meshStandardMaterial color={box.color} roughness={box.metalness ? .35 : box.id.startsWith('toilet') ? .25 : .6} metalness={box.metalness ?? 0} transparent={box.opacity !== undefined} opacity={box.opacity ?? 1} depthWrite={box.opacity === undefined} />
-      </mesh>)}
-      {/* The kitchen of the living, from the owner's render, with assumed sizes. */}
-      {KITCHEN_BOXES.map(box => <KitchenPiece key={box.id} box={box} />)}
-      {/* The washing machine in the laundry, against the party wall. */}
-      {WASHING_MACHINE_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow castShadow>
-        <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
-        <meshStandardMaterial color={box.color} roughness={.35} metalness={box.metalness ?? 0} />
-      </mesh>)}
-      {/* The Koh-i-Noor spin dryer to the right of the washing machine: a stainless drum under a black lid. */}
-      {SPIN_DRYER_PARTS.map(part => <mesh key={part.id} position={[(part.u[0] + part.u[1]) / 2, (part.y[0] + part.y[1]) / 2, -(part.v[0] + part.v[1]) / 2]} receiveShadow castShadow>
-        {part.shape === 'cylinder' ? <cylinderGeometry args={[(part.u[1] - part.u[0]) / 2, (part.u[1] - part.u[0]) / 2, part.y[1] - part.y[0], 28]} /> : <boxGeometry args={[part.u[1] - part.u[0], part.y[1] - part.y[0], part.v[1] - part.v[0]]} />}
-        <meshStandardMaterial color={part.color} roughness={.3} metalness={part.metalness ?? 0} />
-      </mesh>)}
-      {/* The TVs: OLEDs on wall brackets, one in the main room and one in the living. */}
-      {[MAIN_TV_PLACEMENT, LIVING_TV_PLACEMENT].map((tv, index) => <group key={index}>
-        <mesh position={[(tv.u[0] + tv.u[1]) / 2, (tv.y[0] + tv.y[1]) / 2, -(tv.v[0] + tv.v[1]) / 2]} receiveShadow>
-          <boxGeometry args={[tv.u[1] - tv.u[0], tv.y[1] - tv.y[0], tv.v[1] - tv.v[0]]} />
-          <meshStandardMaterial color="#0d0e10" roughness={.15} metalness={.4} />
-        </mesh>
-        <mesh position={[(tv.u[0] + tv.u[1]) / 2, (tv.y[0] + tv.y[1]) / 2, -(tv.bracket.v[0] + tv.bracket.v[1]) / 2]}>
-          <boxGeometry args={[tv.bracket.width, tv.bracket.height, tv.bracket.v[1] - tv.bracket.v[0]]} />
-          <meshStandardMaterial color="#3b3d40" roughness={.5} metalness={.6} />
-        </mesh>
-      </group>)}
-      {/* The closet's wardrobe along the whole party wall with neighbour A, sectioned at the cut. */}
-      <mesh position={[(MAIN_ROOM_CLOSET_WARDROBE.u[0] + MAIN_ROOM_CLOSET_WARDROBE.u[1]) / 2, FLOOR_HEIGHT + Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT) / 2, -(MAIN_ROOM_CLOSET_WARDROBE.v[0] + MAIN_ROOM_CLOSET_WARDROBE.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[MAIN_ROOM_CLOSET_WARDROBE.u[1] - MAIN_ROOM_CLOSET_WARDROBE.u[0], Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT), MAIN_ROOM_CLOSET_WARDROBE.v[1] - MAIN_ROOM_CLOSET_WARDROBE.v[0]]} />
-        <meshStandardMaterial color={WARDROBE_COLOR} roughness={.85} />
-      </mesh>
-      {/* Its sliding doors, on two tracks. */}
-      {CLOSET_SLIDING_PANELS.map((panel, index) => <mesh key={index} position={[(panel.u[0] + panel.u[1]) / 2, FLOOR_HEIGHT + Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT) / 2, -(panel.v[0] + panel.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[panel.u[1] - panel.u[0], Math.min(CLOSET_WARDROBE.height, CUT_HEIGHT), panel.v[1] - panel.v[0]]} />
-        <meshStandardMaterial color={panel.front ? '#d8d1c2' : '#c9c0ae'} roughness={.7} />
-      </mesh>)}
-      {/* The wardrobe's three doors of two leaves, on its face toward the room. */}
-      {WARDROBE_LEAVES.map(([v0, v1], index) => <mesh key={index} position={[SECONDARY_WARDROBE.u[0] - .01, FLOOR_HEIGHT + Math.min(WARDROBE.height, CUT_HEIGHT) / 2, -(v0 + v1) / 2]} receiveShadow>
-        <boxGeometry args={[.02, Math.min(WARDROBE.height, CUT_HEIGHT), v1 - v0]} />
-        <meshStandardMaterial color={LEAF_COLORS[index % 2]} roughness={.75} />
-      </mesh>)}
-      {/* The queen bed in the main room: head against the drywall, with headboard and two pillows. */}
-      <mesh position={[(MAIN_BED.u[0] + MAIN_BED.u[1]) / 2, FLOOR_HEIGHT + QUEEN_BED.height / 2, -(MAIN_BED.v[0] + MAIN_BED.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[QUEEN_BED.width, QUEEN_BED.height, QUEEN_BED.length]} />
-        <meshStandardMaterial color={BED_COLOR} roughness={.9} />
-      </mesh>
-      <mesh position={[(MAIN_BED.u[0] + MAIN_BED.u[1]) / 2, FLOOR_HEIGHT + .55, -(MAIN_BED.v[1] - .03)]} receiveShadow>
-        <boxGeometry args={[QUEEN_BED.width, 1.1, .06]} />
-        <meshStandardMaterial color="#8b6b4a" roughness={.8} />
-      </mesh>
-      {[-.4, .4].map(offset => <mesh key={offset} position={[(MAIN_BED.u[0] + MAIN_BED.u[1]) / 2 + offset, FLOOR_HEIGHT + QUEEN_BED.height + .06, -(MAIN_BED.v[1] - .3)]} receiveShadow>
-        <boxGeometry args={[.6, .12, .4]} />
-        <meshStandardMaterial color="#f4f1ea" roughness={.95} />
-      </mesh>)}
-      {/* A single bed in the secondary room. */}
-      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + SINGLE_BED.height / 2, -(SECONDARY_BED.v[0] + SECONDARY_BED.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[SINGLE_BED.width, SINGLE_BED.height, SINGLE_BED.length]} />
-        <meshStandardMaterial color={BED_COLOR} roughness={.9} />
-      </mesh>
-      {/* Headboard against the party wall and a pillow, so the head end reads at a glance. */}
-      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + .45, -(SECONDARY_BED.v[0] + .03)]} receiveShadow>
-        <boxGeometry args={[SINGLE_BED.width, .9, .06]} />
-        <meshStandardMaterial color="#8b6b4a" roughness={.8} />
-      </mesh>
-      <mesh position={[(SECONDARY_BED.u[0] + SECONDARY_BED.u[1]) / 2, FLOOR_HEIGHT + SINGLE_BED.height + .06, -(SECONDARY_BED.v[0] + .35)]} receiveShadow>
-        <boxGeometry args={[.6, .12, .4]} />
-        <meshStandardMaterial color="#f4f1ea" roughness={.95} />
-      </mesh>
-      {/* The main room's TV: an OLED on a wall bracket, on the wall it shares with the secondary room. */}
-      <mesh position={[(MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (MAIN_TV_PLACEMENT.y[0] + MAIN_TV_PLACEMENT.y[1]) / 2, -(MAIN_TV_PLACEMENT.v[0] + MAIN_TV_PLACEMENT.v[1]) / 2]} receiveShadow>
-        <boxGeometry args={[MAIN_TV_PLACEMENT.u[1] - MAIN_TV_PLACEMENT.u[0], MAIN_TV_PLACEMENT.y[1] - MAIN_TV_PLACEMENT.y[0], MAIN_TV_PLACEMENT.v[1] - MAIN_TV_PLACEMENT.v[0]]} />
-        <meshStandardMaterial color="#0d0e10" roughness={.15} metalness={.4} />
-      </mesh>
-      <mesh position={[(MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, (MAIN_TV_PLACEMENT.y[0] + MAIN_TV_PLACEMENT.y[1]) / 2, -(MAIN_TV_PLACEMENT.bracket.v[0] + MAIN_TV_PLACEMENT.bracket.v[1]) / 2]}>
-        <boxGeometry args={[MAIN_TV_PLACEMENT.bracket.width, MAIN_TV_PLACEMENT.bracket.height, MAIN_TV_PLACEMENT.bracket.v[1] - MAIN_TV_PLACEMENT.bracket.v[0]]} />
-        <meshStandardMaterial color="#3b3d40" roughness={.5} metalness={.6} />
-      </mesh>
+      {/* The wardrobes, the beds, the TVs on their mounts, the bathroom, the kitchen, the living's table with the PS5, the outlets and the laundry: the walkthrough's own furniture, sawn off at the cut. */}
+      <HouseFurnishings floor="first" absolute cut={FLOOR_HEIGHT + CUT_HEIGHT} />
       {/* The living door's narrow leaf: the same aluminium frame and glass, beside the wide one that swings. */}
       <GlazedLeaf centre={[(LIVING_DOOR.u[0] + LIVING_DOOR.u[1]) / 2, LIVING_DOOR.v[1] - LIVING_DOOR_LEAVES.narrow / 2]} alongU={false} length={LIVING_DOOR_LEAVES.narrow} />
       {/* The doors, open 90 degrees with their swings; all right-handed. */}
       {FIRST_FLOOR_DOOR_SWINGS.map(door => <DoorSwingView key={door.id} door={door} />)}
-      {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(v0 + v1) / 2]} receiveShadow>
-        <boxGeometry args={[u1 - u0, CUT_HEIGHT, v1 - v0]} />
-        <meshStandardMaterial color={PARTITION_COLOR} roughness={.95} />
-      </mesh>)}
     </>}
   </group>
 }
@@ -382,14 +222,9 @@ export function HouseShell({ floor }: { floor: Floor }) {
 export function HouseShellPhysical() {
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
     <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
-    <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
     <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} castShadow holes={STAIRWELL_RINGS} />
     <Slab outline={ENTRY_RECESS_OUTLINE} top={FLOOR_HEIGHT} castShadow />
     <Walls floor="first" top={2 * FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
     <Slab outline={FIRST_OUTLINE} top={2 * FLOOR_HEIGHT} castShadow />
-    {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + (FLOOR_HEIGHT - SLAB_THICKNESS) / 2, -(v0 + v1) / 2]} castShadow>
-      <boxGeometry args={[u1 - u0, FLOOR_HEIGHT - SLAB_THICKNESS, v1 - v0]} />
-      <meshStandardMaterial color={PARTITION_COLOR} />
-    </mesh>)}
   </group>
 }
