@@ -4,6 +4,7 @@ import { FIREPLACE_BOXES } from './fireplace.ts'
 import { GARAGE_EQUIPMENT } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { LAUNDRY } from './laundry.ts'
+import { RACK_BOXES } from './rack.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
@@ -95,6 +96,8 @@ function groundFloor(): Furnishing[] {
     ...DOORBELL_BOXES.map(box => ({ id: `doorbell-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .4, solid: false })),
     ...GARAGE_EQUIPMENT.map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
     ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })),
+    // The network rack on the pantry's wall, at head height: a visitor does not walk into it.
+    ...RACK_BOXES.map(box => ({ id: `rack-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, metalness: box.metalness, roughness: .5, solid: box.id === 'back' || box.id.startsWith('side') })),
     ...FIREPLACE_BOXES.map(box => ({ id: `fireplace-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id === 'top' ? .8 : box.shape === 'log' ? .95 : .5, solid: true })),
   ]
 }

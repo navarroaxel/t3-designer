@@ -78,3 +78,10 @@ Looking at the fridge and pressing `E` opens its two doors (right-hand hinges), 
 and the door bins. The fridge is the owner's: 0.675 m wide, 0.668 m deep with its handle, 1.785 m high. The freezer holds 89 L net, 101 L gross; from
 the gross volume and an assumed section (4 cm walls, 4.5 cm door and back) its liner is 0.31 m high and the freezer, with its top wall and the
 partition, 0.40 m (`FREEZER` in `kitchen.ts`).
+
+## The patio and the rack
+
+- The ground floor's way out to the light well, the pulmón, is a **double door** of two white aluminium leaves (1.8 m, owner), hinged on the two jambs, one `E` for both. The
+  patio is a room of its own, with a wall at the lot behind; it is open to the sky.
+- The pantry beside the garage has a wall-mounted 6U **network rack** (`rack.ts`), high on the wall against the contrafrente: a UniFi Dream Machine Pro and a 24-port patch panel, with
+  blank panels below. It is above the floor cutaway's 1.5 m cut, so only the walkthrough shows it.

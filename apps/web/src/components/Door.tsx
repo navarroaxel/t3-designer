@@ -159,7 +159,8 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
   const hingeX = door.offset + (hingeAtStart ? 0.024 : door.width - 0.024)
   const style = customization?.style ?? door.appearance
   const sliding = style === 'sliding'
-  const swing = (customization ? customization.openness * Math.PI / 2 : (Math.PI * 76) / 180) * door.opensToward * -leafDirection
+  // Two leaves meeting in the middle, hinged on the two jambs, each in a white aluminium frame with glass.
+  const double = style === 'double'
   const frameColor = customization?.color ?? door.color ?? (door.finish === 'blue-gray' ? '#526f80' : door.finish === 'white' ? '#e3e6dc' : '#a2afa9')
   const slidingOpenness = customization?.openness ?? .6
   const leafColor = customization?.color ?? door.color ?? (door.finish === 'blue-gray' ? '#d0d5ca' : '#b7c0b6')
@@ -213,13 +214,13 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
       </mesh>
       {fixedLeaf > 0 && <group position={[hingeAtStart ? door.offset + door.width - fixedLeaf : door.offset, 0.025, 0]}><AluminiumLeaf width={fixedLeaf} height={Math.max(0, door.height - 0.05)} color={door.color ?? '#f3f2ee'} /></group>}
       {sliding && <SlidingPanels x={door.offset} width={door.width} height={Math.min(height, door.height) - .03} openness={slidingOpenness} color={door.color ?? '#f3f2ee'} />}
-      {!passage && !sliding && (
-        <group position={[hingeX, 0.025, 0]} rotation={[0, swing, 0]}>
-          <group scale={[leafDirection, 1, 1]}>
-            {aluminium ? <AluminiumLeaf width={leafWidth} height={Math.max(0, door.height - 0.05)} color={door.color ?? '#f3f2ee'} /> : <PaneledLeaf width={leafWidth} fullHeight={door.height - 0.05} visibleHeight={Math.max(0, height - 0.025)} color={leafColor} damaged={!customization && door.condition === 'damaged-panel'} glazed={customization?.style === 'glazed'} />}
+      {!passage && !sliding && (double ? [{ x: door.offset + .024, dir: 1 }, { x: door.offset + door.width - .024, dir: -1 }] : [{ x: hingeX, dir: leafDirection }]).map(({ x, dir }) => (
+        <group key={x} position={[x, 0.025, 0]} rotation={[0, (customization ? customization.openness * Math.PI / 2 : (Math.PI * 76) / 180) * door.opensToward * -dir, 0]}>
+          <group scale={[dir, 1, 1]}>
+            {aluminium || double ? <AluminiumLeaf width={double ? door.width / 2 - .0225 : leafWidth} height={Math.max(0, door.height - 0.05)} color={door.color ?? '#f3f2ee'} /> : <PaneledLeaf width={leafWidth} fullHeight={door.height - 0.05} visibleHeight={Math.max(0, height - 0.025)} color={leafColor} damaged={!customization && door.condition === 'damaged-panel'} glazed={customization?.style === 'glazed'} />}
           </group>
         </group>
-      )}
+      ))}
     </group>
   )
 }

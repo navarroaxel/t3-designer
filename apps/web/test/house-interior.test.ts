@@ -242,3 +242,38 @@ test('the fridge can be aimed at from the aisle and opened with E', () => {
   assert.deepEqual(findWalkDoorTarget(world, { 'kitchen-fridge': 1 }, pose), { id: 'kitchen-fridge', open: true })
   close(fridge.y[1] - fridge.y[0], 1.785 - .04 + .04, 1e-6)
 })
+
+test('the ground floor opens onto the light well through a double door, and the patio is walkable', () => {
+  const door = HOUSE_FLOORS.ground.doors.find(item => item.appearance === 'double')!
+  assert.ok(door && Math.abs(door.width - 1.8) < 1e-9 && door.color === '#f3f2ee')
+  const scene = publicScene('ground', [])
+  const closed = buildWalkWorld(scene, { [door.id]: 0 }), open = buildWalkWorld(scene, { [door.id]: 1 })
+  assert.equal(closed.doors.filter(item => item.id === door.id).length, 2, 'two leaves')
+  // The well's back wall stands at u = 4.46 and its door is centred on v = 0.4 (z = -0.4): living inside, patio outside.
+  const living: [number, number] = [3.9, -.4], patio: [number, number] = [6, -.4], threshold: [number, number] = [4.46, -.4]
+  assert.ok(isWalkPositionFree(closed, living) && isWalkPositionFree(closed, patio), 'both sides are floor')
+  assert.ok(!isWalkPositionFree(closed, threshold), 'shut: the leaves meet in the middle')
+  assert.ok(isWalkPositionFree(open, threshold), 'open: the way is clear')
+  // The rear wall of the patio is at the lot behind: past it, nothing.
+  assert.ok(!isWalkPositionFree(open, [8.7, -.4]))
+  assert.equal(roomAtPosition(open, patio)?.id, 'light-well')
+})
+
+test('the pantry has a wall-mounted rack with a UniFi Dream Machine Pro and a 24-port patch panel, high on the wall', () => {
+  const pieces = furnishingsOn('ground').filter(piece => piece.id.startsWith('rack-'))
+  const find = (id: string) => pieces.find(piece => piece.id === `rack-${id}`)!
+  assert.ok(find('udm-pro') && find('patch-panel'))
+  assert.equal(pieces.filter(piece => /rack-port-\d+$/.test(piece.id)).length, 24)
+  const pantry = HOUSE_FLOORS.ground.rooms.find(item => item.id === 'pantry')!
+  const [vLow, vHigh] = [Math.min(...pantry.polygon.map(point => -point[1])), Math.max(...pantry.polygon.map(point => -point[1]))]
+  const [uLow] = [Math.min(...pantry.polygon.map(point => point[0]))]
+  for (const piece of pieces) {
+    assert.ok(piece.v[0] >= vLow - 1e-6 && piece.v[1] <= vHigh + 1e-6, `${piece.id} inside the pantry's width`)
+    assert.ok(piece.u[0] >= uLow - 1e-6, `${piece.id} stands out from the wall`)
+  }
+  // High: the bottom of the frame is above the counter height, and the units are in the upper half of the wall.
+  assert.ok(find('back').y[0] >= 1.5 && find('udm-pro').y[0] > 1.6)
+  // The Dream Machine Pro is a 1U unit: 44.5 mm high, 442 mm wide.
+  close(find('udm-pro').y[1] - find('udm-pro').y[0], .0445, 1e-9)
+  close(find('udm-pro').v[1] - find('udm-pro').v[0], .442, 1e-9)
+})

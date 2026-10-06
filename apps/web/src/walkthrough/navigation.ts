@@ -68,7 +68,7 @@ export function initialWalkDoorStates(snapshot: ProjectSnapshot): WalkDoorStates
     const style = customization?.style ?? door.appearance ?? 'panel'
     // A sliding door starts closed; the others, open.
     return style === 'passage' ? []
-      : [[door.id, resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? (style === 'sliding' ? 0 : 1))]]
+      : [[door.id, resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? (style === 'sliding' || style === 'double' ? 0 : 1))]]
   }))
 }
 
@@ -116,14 +116,19 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
         blockers.push({ center: [wall.from[0] + ux * fixedCentre, wall.from[1] + uz * fixedCentre], halfWidth: fixed / 2, halfDepth: .0225,
           cos: Math.cos(angle), sin: Math.sin(angle), bottom: .025, top: door.height - .025 })
       }
-      doors.push({ id: door.id, center: [wall.from[0] + ux * distance, wall.from[1] + uz * distance],
-        normal: [-uz, ux], exterior: wall.kind === 'exterior', clearance: wall.thickness / 2 + WALK_RADIUS + .08,
-        ...((customization?.style ?? door.appearance ?? 'panel') === 'passage' ? {} : { leaf: {
-          hinge: [wall.from[0] + ux * hingeDistance, wall.from[1] + uz * hingeDistance] as Point2D,
-          rotation: angle, direction, swingSign: door.opensToward * -direction,
-          width: Math.max(.001, door.width - fixed - .045), bottom: .025, top: door.height - .025,
-          initialOpenness: resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? 1),
-        } }) })
+      const style = customization?.style ?? door.appearance ?? 'panel'
+      // A double door is two leaves that answer to one id: each hinged on its own jamb, meeting in the middle.
+      const hinges = style === 'double' ? [{ at: door.offset + .024, direction: 1 }, { at: door.offset + door.width - .024, direction: -1 }] : [{ at: hingeDistance, direction }]
+      for (const hingeSpec of hinges) {
+        doors.push({ id: door.id, center: [wall.from[0] + ux * distance, wall.from[1] + uz * distance],
+          normal: [-uz, ux], exterior: wall.kind === 'exterior', clearance: wall.thickness / 2 + WALK_RADIUS + .08,
+          ...(style === 'passage' ? {} : { leaf: {
+            hinge: [wall.from[0] + ux * hingeSpec.at, wall.from[1] + uz * hingeSpec.at] as Point2D,
+            rotation: angle, direction: hingeSpec.direction, swingSign: door.opensToward * -hingeSpec.direction,
+            width: Math.max(.001, style === 'double' ? door.width / 2 - .0225 : door.width - fixed - .045), bottom: .025, top: door.height - .025,
+            initialOpenness: resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? (style === 'double' ? 0 : 1)),
+          } }) })
+      }
     }
   }
   const assets = new Map(snapshot.assets.map(asset => [asset.id, asset]))
@@ -312,16 +317,20 @@ export function canSetWalkDoorOpenness(world: WalkWorld, states: WalkDoorStates,
   }
   if (!door?.leaf) return false
   const feet = world.floorElevation + pose.feetOffset, head = feet + pose.eyeHeight + headClearance
-  if (door.leaf.top <= feet + epsilon || door.leaf.bottom >= head - epsilon) return true
-  const current = resolveWalkDoorOpenness(states, id, door.leaf.initialOpenness)
-  const angle = Math.abs(nextOpenness - current) * Math.PI / 2
-  const steps = Math.max(1, Math.min(180, Math.ceil(angle * door.leaf.width / .025)))
-  const arcPadding = 2 * Math.hypot(door.leaf.width, .035 / 2) * Math.sin(angle / steps / 4)
-  for (let step = 0; step <= steps; step++) {
-    const leaf = walkDoorLeaf(door, current + (nextOpenness - current) * step / steps)!
-    if (overlapsFootprint(leaf, [pose.x, pose.z], WALK_RADIUS + arcPadding)) return false
-  }
-  return true
+  // Every leaf of the door sweeps its own arc.
+  return world.doors.filter(item => item.id === id && item.leaf).every(leafDoor => {
+    const leafSpec = leafDoor.leaf!
+    if (leafSpec.top <= feet + epsilon || leafSpec.bottom >= head - epsilon) return true
+    const current = resolveWalkDoorOpenness(states, id, leafSpec.initialOpenness)
+    const angle = Math.abs(nextOpenness - current) * Math.PI / 2
+    const steps = Math.max(1, Math.min(180, Math.ceil(angle * leafSpec.width / .025)))
+    const arcPadding = 2 * Math.hypot(leafSpec.width, .035 / 2) * Math.sin(angle / steps / 4)
+    for (let step = 0; step <= steps; step++) {
+      const leaf = walkDoorLeaf(leafDoor, current + (nextOpenness - current) * step / steps)!
+      if (overlapsFootprint(leaf, [pose.x, pose.z], WALK_RADIUS + arcPadding)) return false
+    }
+    return true
+  })
 }
 
 export function isWalkPositionFree(world: WalkWorld, point: Point2D, eyeHeight = WALK_EYE_HEIGHT, feetOffset = 0): boolean {

@@ -31,7 +31,7 @@ export type FixedLight = z.infer<typeof FixedLightSchema>
 export const DesignCustomizationSchema = z.object({
   wallColors: z.record(id, color),
   floors: z.record(id, z.object({ material: z.enum(['parquet', 'slate', 'ivory-tile', 'entry-tile', 'concrete']), color })),
-  doors: z.record(id, z.object({ style: z.enum(['panel', 'glazed', 'passage', 'sliding', 'aluminium']), color, openness: number.min(0).max(1) })),
+  doors: z.record(id, z.object({ style: z.enum(['panel', 'glazed', 'passage', 'sliding', 'aluminium', 'double']), color, openness: number.min(0).max(1) })),
   windows: z.record(id, z.object({
     style: z.enum(['casement', 'sliding', 'fixed']), frameColor: color,
     covering: z.enum(['none', 'curtain', 'blind', 'shutter']), coveringColor: color, closure: number.min(0).max(1),

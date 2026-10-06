@@ -124,6 +124,8 @@ function openingSpec(floor: Floor, wallId: string, index: number, bottom: number
   // The balcony's 3 m door and the terrace's 1.78 m one are ways out: an open frame, not glazing the visitor bumps into.
   // The main room's 3 m door onto the balcony and the kitchen-living's 1.78 m door onto the terrace are the same white aluminium sliding door.
   if (floor === 'first' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'sliding' as const, finish: 'white' as const, color: '#f3f2ee' }
+  // The ground floor's way out to the light well, the pulmón (1.8 m): two white aluminium leaves.
+  if (floor === 'ground' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'double' as const, finish: 'white' as const, color: '#f3f2ee' }
   if (bottom <= .05 && width > 1.5) return { id, kind: 'balcony-door' as const }
   if (bottom <= .05) return { id, kind: 'door' as const, appearance: floor === 'ground' ? 'panel' as const : 'glazed' as const, finish: 'gray' as const }
   return { id, kind: 'window' as const }
@@ -184,10 +186,6 @@ const groundRooms: Room[] = [
   room('light-well', 'Light well', rect([WELL_BACK_U, HOUSE_REAR.northEast - PARTY_WALL], [-1, GROUND_WELL_EDGE]), '#c9d2bd'),
 ]
 
-function centreLine(outline: PlanPoint[]): Point2D[] {
-  return outline.map(([u, v]) => local(u, v))
-}
-
 const FIRST_NE = HOUSE_HALF_WIDTH - PARTY_WALL
 const LAUNDRY_V0 = FIRST_NE - LAUNDRY.width
 const LAUNDRY_U: [number, number] = [4, 4 + LAUNDRY.length]
@@ -210,6 +208,20 @@ function firstFloorPerimeter(withTerrace = true, withHole = true): Point2D[] {
     local(-5, HOUSE_HALF_WIDTH), ...(withHole ? [local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH)] : []),
     local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, LAUNDRY_V0 - LAUNDRY.wallThickness), ...terrace, local(4, FIRST_OUTLINE[0][1]),
   ]
+}
+
+/** The ground floor's outline with the light well filled in: the well is a patio the visitor can step out onto, bounded at the back by the lot behind. */
+function groundPerimeter(): Point2D[] {
+  const notch = new Set([`${WELL_BACK_U},-1`, `${WELL_BACK_U},${GROUND_WELL_EDGE}`])
+  return GROUND_OUTLINE.filter(([u, v]) => !notch.has(`${u},${v}`)).map(([u, v]) => local(u, v))
+}
+
+function groundAnnex() {
+  // The wall at the back of the light well, on the rear boundary: from the south-west arm's end to the north-east arm's, slightly slanted.
+  const walls: Wall[] = [{
+    id: 'ground-well-rear', from: local(HOUSE_REAR.southWest - .05, -1), to: local(HOUSE_REAR.northEast - .05, GROUND_WELL_EDGE), thickness: .1, height: WALL_HEIGHT, kind: 'exterior', estimated: true,
+  }]
+  return { walls, windows: [] as Window[] }
 }
 
 function firstFloorAnnex() {
@@ -250,7 +262,7 @@ function buildFloor(floor: Floor): Apartment {
   const outline = floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE
   const exterior = exteriorWalls(floor, outline)
   const interior = interiorWalls(floor, floor === 'ground' ? GROUND_PARTITIONS : FIRST_FLOOR_PARTITIONS, floor === 'ground' ? GROUND_DOORS : FIRST_DOORS)
-  const annex = floor === 'first' ? firstFloorAnnex() : { walls: [], windows: [] }
+  const annex = floor === 'first' ? firstFloorAnnex() : groundAnnex()
   const rooms = floor === 'ground' ? groundRooms : firstRooms
   return ApartmentSchema.parse({
     schemaVersion: SCENE_SCHEMA_VERSION,
@@ -258,7 +270,7 @@ function buildFloor(floor: Floor): Apartment {
     name: floor === 'ground' ? 'Ground floor' : 'First floor',
     units: 'meters',
     coordinateSystem: { x: 'east', y: 'up', z: 'south' },
-    perimeter: floor === 'ground' ? centreLine(outline) : firstFloorPerimeter(),
+    perimeter: floor === 'ground' ? groundPerimeter() : firstFloorPerimeter(),
     rooms,
     walls: [...exterior.walls, ...annex.walls, ...interior.walls],
     doors: [...exterior.doors, ...interior.doors],
@@ -287,7 +299,7 @@ export function floorOfRoom(roomId: string): Floor | undefined {
 }
 
 export type ShellBox = { center: [number, number, number]; size: [number, number, number]; kind: Wall['kind'] }
-const ANNEX = /^first-(laundry|balcony|terrace)/
+const ANNEX = /^(first-(laundry|balcony|terrace)|ground-well-rear)/
 
 /**
  * The walls of one floor as solid boxes in the house frame ([u, y, v], absolute heights), sawn off at `top`: what the floor cutaway draws.
