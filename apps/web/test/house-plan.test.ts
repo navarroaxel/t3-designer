@@ -396,7 +396,9 @@ test('the 65 inch TV in the living hangs on the party wall on the bathroom\'s si
   // Centred on the living's depth, between the bathroom's back wall and the rear wall.
   near((LIVING_TV_PLACEMENT.u[0] + LIVING_TV_PLACEMENT.u[1]) / 2, (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2)
   assert.ok(LIVING_TV_PLACEMENT.u[0] > KITCHEN_LIVING.u[0] && LIVING_TV_PLACEMENT.u[1] < KITCHEN_LIVING.u[1])
-  assert.ok(LIVING_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .5 && LIVING_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 1.5)
+  // Its centre is 1.35 m up (owner), so the screen runs from about 0.95 m to 1.75 m: above a low table, below the ceiling.
+  near(LIVING_TV_PLACEMENT.y[0] + LIVING_TV_SIZE.height / 2, FLOOR_HEIGHT + 1.35)
+  assert.ok(LIVING_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .9 && LIVING_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 2)
 })
 
 test('the bathroom floor is a thin travertine-coloured porcelain layer', () => {

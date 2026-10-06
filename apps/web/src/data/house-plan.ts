@@ -484,10 +484,10 @@ export const MAIN_BED = {
 
 /**
  * The living's TV (owner): a Samsung OLED of 65 inches (1.439 m by 0.809 m), hung on the party wall with the
- * corner, on the bathroom's side, and centred on the living's depth. The height of its centre, 1.05 m, is
- * assumed; it keeps the TV under the 1.5 m cut.
+ * corner, on the bathroom's side, and centred on the living's depth. The height of its centre is
+ * 1.35 m (owner: 30 cm above the 1.05 m first assumed). The cutaway draws it whole, even where it reaches past its 1.5 m cut for the walls.
  */
-export const LIVING_TV = { model: 'Samsung OLED', inches: 65, thickness: .03, standoff: .03, centreHeight: 1.05 }
+export const LIVING_TV = { model: 'Samsung OLED', inches: 65, thickness: .03, standoff: .03, centreHeight: 1.35 }
 const LIVING_TV_DIAGONAL = LIVING_TV.inches * .0254
 export const LIVING_TV_SIZE = { width: LIVING_TV_DIAGONAL * 16 / TV_HYPOT, height: LIVING_TV_DIAGONAL * 9 / TV_HYPOT }
 const livingMiddleU = (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2
