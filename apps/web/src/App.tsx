@@ -64,7 +64,7 @@ export default function App() {
 
       <Suspense fallback={<div className="workspace-loading" role="status">{t('app.loading', { workspace: t(`workspaces.${workspaceView}.title`) })}</div>}>
       {workspaceView === 'walkthrough'
-        ? <ReferenceWalkthrough solar={solar} floor={apartmentView.floor} onFloorChange={apartmentView.setFloor} fixtures={demoLayout.fixtures} onClose={() => switchWorkspace('apartment')} />
+        ? <ReferenceWalkthrough solar={solar} floor={apartmentView.floor} onFloorChange={apartmentView.setFloor} onClose={() => switchWorkspace('apartment')} />
         : workspaceView === 'apartment'
         ? <ApartmentExplorer solar={solar} state={apartmentView} layout={demoLayout} />
         : <BuildingExplorer solar={solar} />}

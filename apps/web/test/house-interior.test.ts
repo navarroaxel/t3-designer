@@ -83,7 +83,7 @@ test('fixtures stand inside their rooms, on the floor they belong to', () => {
 
 test('the walkthrough can start on both floors, and its first step is free of walls', () => {
   for (const floor of HOUSE_FLOOR_ORDER) {
-    const world = buildWalkWorld(publicScene(floor, currentFixtures))
+    const world = buildWalkWorld(publicScene(floor, []))
     const spawn = findWalkSpawn(world)
     assert.ok(spawn, floor)
     assert.ok(isWalkPositionFree(world, spawn.position))

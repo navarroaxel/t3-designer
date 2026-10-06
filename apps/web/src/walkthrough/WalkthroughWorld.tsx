@@ -7,6 +7,8 @@ import { Color, DirectionalLight, DoubleSide, Mesh, Object3D, PMREMGenerator, Sh
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
+import { HouseFurnishings } from '../components/HouseFurnishings'
+import type { Floor as HouseFloor } from '../data/house-plan'
 import { Wall } from '../components/Wall'
 import type { SolarPosition } from '../lib/solar'
 import { kelvinColor, lumensToCandela } from '../lib/design-lighting'
@@ -247,6 +249,7 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, 
     {apartment.walls.map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />
+    {apartment.id === 'house-ground' || apartment.id === 'house-first' ? <HouseFurnishings floor={(apartment.id === 'house-ground' ? 'ground' : 'first') as HouseFloor} /> : null}
     {snapshot.fixtures.map(fixture => {
       const asset = assetMap.get(fixture.assetId)
       return asset ? <PlacedObject key={fixture.id} fixture={fixture} asset={asset} projectId={snapshot.project.id} /> : null

@@ -34,7 +34,7 @@ Wall height is 3.0 m (the 3.2 m storey less the 0.2 m slab) and door height 2.1 
 - The stair between the floors, the terrace and the laundry: the walkthrough is one floor at a time.
 - The rooms behind the ground floor's back wall, and the built-in wardrobes.
 - The balcony, which the first-floor cutaway draws but the interior does not.
-- Furniture other than the kitchen run and the first-floor bathroom. The objects are generic replicas of typical units, not the owner's.
+- The laundry (washing machine, spin dryer) and the stair, which lie outside the floors' outlines.
 
 ## Tests
 

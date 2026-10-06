@@ -1,4 +1,5 @@
 import { polygonBounds, polygonCentroid, segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
+import { furnishingBlockers } from '../data/house-furnishings.ts'
 import { pointInEditorPolygon, type Point2D, type ProjectSnapshot, type Room } from '@t3-designer/scene-schema'
 
 export const WALK_RADIUS = .2
@@ -6,6 +7,7 @@ export const WALK_EYE_HEIGHT = 1.65
 export const WALK_CROUCH_HEIGHT = .95
 export const WALK_GRAVITY = 9.8
 export const WALK_JUMP_SPEED = 2.8
+
 const headClearance = .12
 const epsilon = 1e-8
 const maxMovement = 4
@@ -96,6 +98,9 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
       cos: Math.cos(fixture.rotation), sin: Math.sin(fixture.rotation),
       bottom: fixture.position[1], top: fixture.position[1] + asset.dimensions[1] })
   }
+  // The house's own furniture, from the plan, stops a visitor like any fixture.
+  const floor = snapshot.apartment.id === 'house-ground' ? 'ground' : snapshot.apartment.id === 'house-first' ? 'first' : null
+  if (floor) blockers.push(...furnishingBlockers(floor, snapshot.placement.floorElevation))
   const world: WalkWorld = { blockers, staticBlockers: blockers, doors,
     perimeter: snapshot.apartment.perimeter.map(point => [...point]),
     rooms: snapshot.apartment.rooms.map(room => ({ ...room, polygon: room.polygon.map(point => [...point]) })),

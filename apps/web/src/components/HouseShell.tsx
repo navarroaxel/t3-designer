@@ -147,7 +147,7 @@ function patternTexture(base: string, pattern: TilePattern) {
 }
 
 /** A kitchen piece: a plain box, or a slab with its pattern (the worktops' Toscana Vena veins). */
-function KitchenPiece({ box }: { box: KitchenBox }) {
+export function KitchenPiece({ box }: { box: KitchenBox }) {
   const { pattern } = box
   const map = useMemo(() => {
     if (!pattern) return null
