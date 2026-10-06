@@ -13,7 +13,7 @@ import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
 import { KITCHEN_BOXES, KITCHEN_SIZES, type KitchenBox } from './kitchen.ts'
 import {
-  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED,
+  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
 } from './house-plan.ts'
 
@@ -137,10 +137,23 @@ export function furnishingBlockers(floor: Floor, level: number) {
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open. */
 export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge'] as const
 export function furnishingDevices(floor: Floor, level: number) {
-  return furnishingsOn(floor).filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => ({
-    id: piece.id,
-    center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1]) / 2] as [number, number],
-    halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0]) / 2, cos: 1, sin: 0,
-    bottom: piece.y[0] - level, top: piece.y[1] - level,
-  }))
+  return furnishingsOn(floor).filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => {
+    // The aim volume of a TV reaches as far as its mount's arm does, so a TV brought out into the room can still be looked at.
+    const reach = piece.id.startsWith('tv-') ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
+    return {
+      id: piece.id,
+      center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1] + reach) / 2] as [number, number],
+      halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
+      bottom: piece.y[0] - level, top: piece.y[1] - level,
+    }
+  })
 }
+
+/** A TV is on its wall mount unless the visit has taken it off (X): the state lives with the doors', under `mount-<name>`. */
+export const tvMountKey = (tvId: string) => `mount-${tvId.replace(/^tv-/, '')}`
+export const isTvMounted = (states: Readonly<Record<string, number>>, tvId: string) => (states[tvMountKey(tvId)] ?? 1) >= .5
+/** The mount's arm is folded unless the visit has unfolded it (Q): `arm-<name>`, 0 folded and 1 reaching its full 355 mm. */
+export const armKey = (tvId: string) => `arm-${tvId.replace(/^tv-/, '')}`
+export const isArmExtended = (states: Readonly<Record<string, number>>, tvId: string) => (states[armKey(tvId)] ?? 0) >= .5
+/** How far the TV has come out of its folded place, in metres. */
+export const armReach = (states: Readonly<Record<string, number>>, tvId: string) => isTvMounted(states, tvId) && isArmExtended(states, tvId) ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0

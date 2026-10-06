@@ -13,7 +13,8 @@ import { publicScene } from '../src/lib/public-scene.ts'
 const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
 import { dualsenseBoxes } from '../src/data/dualsense.ts'
-import { furnishingsOn } from '../src/data/house-furnishings.ts'
+import { armKey, armReach, furnishingDevices, furnishingsOn, isTvMounted, tvMountKey } from '../src/data/house-furnishings.ts'
+import { tvMountLinks } from '../src/data/tv-mount.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
 import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
 
@@ -409,4 +410,44 @@ test('two double outlets of the Argentine kind, shaped like the Australian one, 
       assert.ok(earth.y[1] < live.y[0] + 1e-9, 'the earth slot is below the other two')
     }
   }
+})
+
+test('a TV is on its mount until X takes it off, and it can be hung back', () => {
+  assert.equal(tvMountKey('tv-main'), 'mount-main')
+  assert.ok(isTvMounted({}, 'tv-living'), 'mounted by default')
+  assert.ok(!isTvMounted({ 'mount-living': 0 }, 'tv-living') && isTvMounted({ 'mount-living': 0 }, 'tv-main'), 'each TV on its own')
+  assert.ok(isTvMounted({ 'mount-living': 1 }, 'tv-living'))
+  // The mount stays on the wall when the TV is off it, and the spot can still be aimed at to hang the TV back.
+  const world = buildWalkWorld(publicScene('first', []))
+  assert.ok(world.doors.some(door => door.id === 'tv-living'))
+  assert.ok(furnishingsOn('first').some(piece => piece.id.startsWith('tv-living-mount-')))
+})
+
+test('Q unfolds a TV mount\'s arm: the TV comes out 29 cm, the links join the wall plate to the head, and the TV can still be looked at', () => {
+  assert.equal(armKey('tv-living'), 'arm-living')
+  assert.equal(armReach({}, 'tv-living'), 0)
+  close(armReach({ 'arm-living': 1 }, 'tv-living'), .355 - .067, 1e-9)
+  // Off its mount, the TV does not come out.
+  assert.equal(armReach({ 'arm-living': 1, 'mount-living': 0 }, 'tv-living'), 0)
+  const plate = furnishingsOn('first').find(piece => piece.id === 'tv-living-mount-wall-plate')!
+  const wallV = plate.v[0], centreU = (plate.u[0] + plate.u[1]) / 2, centreY = (plate.y[0] + plate.y[1]) / 2
+  for (const reach of [0, .1, .288]) {
+    const links = tvMountLinks('living', wallV, centreU, centreY, reach)
+    assert.equal(links.length, 4, 'two links, an upper and a lower arm')
+    for (const [from, to] of [[0, 1], [2, 3]]) {
+      // Each link is a box laid along u at its midpoint and turned by its yaw: its two ends are where it joins the next.
+      const end = (link: (typeof links)[number], sign: number): [number, number] => {
+        const length = link.u[1] - link.u[0], middle: [number, number] = [(link.u[0] + link.u[1]) / 2, (link.v[0] + link.v[1]) / 2]
+        return [middle[0] + sign * Math.cos(link.yaw) * length / 2, middle[1] + sign * Math.sin(link.yaw) * length / 2]
+      }
+      const elbowA = end(links[from], 1), elbowB = end(links[to], -1)
+      close(elbowA[0], elbowB[0], 1e-9); close(elbowA[1], elbowB[1], 1e-9)
+      // The first link starts on the wall plate, the second ends on the head, which has come out by `reach`.
+      close(end(links[from], -1)[1], wallV + .03, 1e-9)
+      close(end(links[to], 1)[1], wallV + .051 + reach, 1e-9)
+    }
+  }
+  // The aim volume of the TV reaches the folded and the extended TV alike.
+  const device = furnishingDevices('first', 3.2).find(item => item.id === 'tv-living')!
+  assert.ok(device.halfDepth * 2 >= .03 + (.355 - .067) - 1e-9)
 })

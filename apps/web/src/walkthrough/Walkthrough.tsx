@@ -14,9 +14,10 @@ import { walkCopy } from './copy'
 import { buildWalkWorld, canSetWalkDoorOpenness, WALK_STEP, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, isWalkPositionFree, withWalkDoorStates, type WalkDoorStates, type WalkSpawn, type WalkWorld } from './navigation'
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
+import { armKey, isArmExtended, isTvMounted, tvMountKey } from '../data/house-furnishings'
 import './walkthrough.css'
 
-const emptyInput = (): WalkInput => ({ forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false })
+const emptyInput = (): WalkInput => ({ forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false, detach: false, extend: false })
 const clockValue = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
 
 function CameraSettings({ fov, torch }: { fov: number; torch: boolean }) {
@@ -105,9 +106,18 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const currentRoom = initialWorld.rooms.find(room => room.id === pose?.roomId)
   const interaction = active && pose ? findWalkDoorTarget(world, doorStates, pose) : null
   const doorBlocked = interaction && pose && !canSetWalkDoorOpenness(world, doorStates, interaction.id, interaction.open ? 0 : 1, pose)
-  const interact = useCallback((currentPose: WalkPose) => {
+  const interact = useCallback((currentPose: WalkPose, action: 'use' | 'detach' | 'extend' = 'use') => {
     const target = findWalkDoorTarget(world, doorStates, currentPose)
     if (!target) return
+    const tv = /^tv-(main|living)$/.exec(target.id)
+    if (tv) {
+      // X takes the TV off its wall mount, or hangs it back; E needs it on the wall.
+      const key = tvMountKey(target.id), mounted = isTvMounted(doorStates, target.id)
+      if (action === 'detach') { setVisitDoors({ snapshot, values: { ...doorStates, [key]: mounted ? 0 : 1 } }); setPose(currentPose); return }
+      if (!mounted) return
+      // Q unfolds the mount's arm, bringing the TV out into the room; or folds it back against the wall.
+      if (action === 'extend') { const arm = armKey(target.id); setVisitDoors({ snapshot, values: { ...doorStates, [arm]: (doorStates[arm] ?? 0) >= .5 ? 0 : 1 } }); setPose(currentPose); return }
+    } else if (action !== 'use') return
     const openness = target.open ? 0 : 1
     if (!canSetWalkDoorOpenness(world, doorStates, target.id, openness, currentPose)) return
     setVisitDoors({ snapshot, values: { ...doorStates, [target.id]: openness } })
@@ -186,6 +196,10 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         {interaction && <div className="walk-interaction">
           <button type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
             onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.open ? c.closeDoor : c.openDoor}</button>
+          {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
+            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isTvMounted(doorStates, interaction.id) ? c.tvRemove : c.tvMount}</button>}
+          {/^tv-(main|living)$/.test(interaction.id) && isTvMounted(doorStates, interaction.id) && <button type="button" className="walk-button" data-testid="walk-extend" data-tv-id={interaction.id}
+            onClick={() => { input.current.extend = true }}><kbd>Q</kbd> {isArmExtended(doorStates, interaction.id) ? c.armFold : c.armExtend}</button>}
           {doorBlocked && <span role="status">{c.doorBlocked}</span>}
         </div>}
         {!active && ready && !settingsOpen && <div className="walk-overlay"><div className="walk-start-card">

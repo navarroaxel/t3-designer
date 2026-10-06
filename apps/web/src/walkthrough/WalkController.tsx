@@ -24,6 +24,10 @@ export type WalkInput = {
   jump: boolean
   /** One-shot use action, consumed by the next active frame. */
   interact: boolean
+  /** One-shot X: take a TV off its mount, or hang it back. */
+  detach: boolean
+  /** One-shot Q: unfold a TV mount's arm, or fold it. */
+  extend: boolean
 }
 
 export type WalkPose = { x: number; z: number; yaw: number; pitch: number; eyeHeight: number; feetOffset: number; grounded: boolean; roomId?: string }
@@ -40,12 +44,13 @@ type WalkControllerProps = {
   sensitivity: number
   onPose: (pose: WalkPose) => void
   onPause: () => void
-  onInteract: (pose: WalkPose) => void
+  /** `use` is E: open, close, switch on. `detach` is X: take a TV off its mount, or hang it back. `extend` is Q: unfold the mount's arm, or fold it. */
+  onInteract: (pose: WalkPose, action?: 'use' | 'detach' | 'extend') => void
 }
 
 const MOVEMENT_KEYS = new Set([
   'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight',
-  'KeyE', 'ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight', 'KeyC',
+  'KeyE', 'KeyX', 'KeyQ', 'ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight', 'KeyC',
   'Space',
 ])
 const MAX_PITCH = Math.PI * .46
@@ -88,6 +93,8 @@ export function WalkController({ world, collisionWorld, active, input, spawn, re
   const edgeLook = useRef({ x: 0, y: 0 })
   const jumpQueued = useRef(false)
   const interactQueued = useRef(false)
+  const detachQueued = useRef(false)
+  const extendQueued = useRef(false)
   const vertical = useRef<WalkVerticalState>({ offset: 0, velocity: 0, grounded: true })
   const hadPointerLock = useRef(false)
   const pauseRequested = useRef(false)
@@ -116,6 +123,8 @@ export function WalkController({ world, collisionWorld, active, input, spawn, re
     vertical.current = { offset: spawnElevation, velocity: 0, grounded: true }
     jumpQueued.current = false
     interactQueued.current = false
+    detachQueued.current = false
+    extendQueued.current = false
     poseElapsed.current = .1
     lastPose.current = null
     camera.position.set(spawnX, world.floorElevation + spawnElevation + orientation.current.height, spawnZ)
@@ -144,7 +153,9 @@ export function WalkController({ world, collisionWorld, active, input, spawn, re
       edgeLook.current = { x: 0, y: 0 }
       jumpQueued.current = false
       interactQueued.current = false
-      Object.assign(input.current, { forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false })
+      detachQueued.current = false
+      extendQueued.current = false
+      Object.assign(input.current, { forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false, detach: false, extend: false })
       releaseDrag()
     }
     const pause = () => {
@@ -167,6 +178,8 @@ export function WalkController({ world, collisionWorld, active, input, spawn, re
       event.preventDefault()
       if (event.code === 'Space' && !event.repeat && !keys.current.has('Space')) jumpQueued.current = true
       if (event.code === 'KeyE' && !event.repeat && !keys.current.has('KeyE')) interactQueued.current = true
+      if (event.code === 'KeyX' && !event.repeat && !keys.current.has('KeyX')) detachQueued.current = true
+      if (event.code === 'KeyQ' && !event.repeat && !keys.current.has('KeyQ')) extendQueued.current = true
       keys.current.add(event.code)
       invalidate()
     }
@@ -318,13 +331,18 @@ export function WalkController({ world, collisionWorld, active, input, spawn, re
       vertical.current = stepWalkVertical(collisionWorld, position.current ?? currentPosition, current.height, vertical.current, delta, jumpQueued.current || controls.jump)
       jumpQueued.current = false
       controls.jump = false
-      if (interactQueued.current || controls.interact) {
+      if (interactQueued.current || controls.interact || detachQueued.current || controls.detach || extendQueued.current || controls.extend) {
         const [x, z] = position.current ?? currentPosition
         callbacks.current.onInteract({ x, z, yaw: current.yaw, pitch: current.pitch, eyeHeight: current.height,
-          feetOffset: vertical.current.offset, grounded: vertical.current.grounded, roomId: roomAtPosition(world, [x, z], vertical.current.offset)?.id })
+          feetOffset: vertical.current.offset, grounded: vertical.current.grounded, roomId: roomAtPosition(world, [x, z], vertical.current.offset)?.id },
+          interactQueued.current || controls.interact ? 'use' : detachQueued.current || controls.detach ? 'detach' : 'extend')
       }
       interactQueued.current = false
+      detachQueued.current = false
+      extendQueued.current = false
       controls.interact = false
+      controls.detach = false
+      controls.extend = false
       // Also supports demand-rendered canvases without frame-dependent speed.
       invalidate()
     }

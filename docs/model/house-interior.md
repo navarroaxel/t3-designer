@@ -106,3 +106,9 @@ it reaches 355 mm, tilts +3 to -15 degrees, swivels +-60 and levels +-3. The mai
   160 by 106 mm, the triggers toward the wall.
 - Two double outlets flank the table on the party wall (`outlets.ts`): the Argentine plug, which has the Australian shape (two pins in an inverted V and an earth pin below), in the matte black 114 by 72 mm plate
   of the owner's picture, 30 cm up from the floor, 25 cm clear of the table on each side.
+
+## Taking a TV off its mount, and the arm
+
+Looking at a TV: `E` switches it on (the Plex-style splash), `X` takes it off its wall mount (the mount stays; look at the spot to hang it back) and `Q` unfolds the mount's
+arm, bringing the TV 29 cm out into the room, and folds it again. The state lives with the doors', under `mount-<name>` and `arm-<name>`. The arm is drawn as two pairs of links
+that join the wall plate to the head; the elbow bulges out a little as it unfolds.

@@ -2,7 +2,8 @@ import { useMemo } from 'react'
 import { CanvasTexture, SRGBColorSpace } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
-import { furnishingsOn } from '../data/house-furnishings'
+import { armReach, furnishingsOn, isTvMounted } from '../data/house-furnishings'
+import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
 import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
 import { FloorPatch, KitchenPiece } from './HouseShell'
@@ -89,18 +90,30 @@ function OpenFridge({ body, lowerDoor, upperDoor, extras }: { body: Furnishing; 
 export function HouseFurnishings({ floor, devices = {} }: { floor: Floor; devices?: Record<string, number> }) {
   const texture = useMemo(() => plexTexture(), [])
   const pieces = furnishingsOn(floor)
+  // What moves with the arm: the TV, its picture, and the mount's head and rails.
+  const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && pieces.some(piece => piece.id === 'kitchen-fridge')
   return <group name="house-furnishings" position={[0, -FLOOR_ELEVATION[floor], 0]}>
     {fridgeOpen && <OpenFridge body={pieces.find(piece => piece.id === 'kitchen-fridge')!} lowerDoor={pieces.find(piece => piece.id === 'kitchen-fridge-door')!} upperDoor={pieces.find(piece => piece.id === 'kitchen-fridge-freezer-door')!}
       extras={pieces.filter(piece => ['kitchen-fridge-handle', 'kitchen-fridge-dispenser'].includes(piece.id))} />}
+    {(['main', 'living'] as const).flatMap(name => {
+      const reach = armReach(devices, `tv-${name}`), plate = pieces.find(piece => piece.id === `tv-${name}-mount-wall-plate`), tvBody = pieces.find(piece => piece.id === `tv-${name}`)
+      return reach > 0 && plate && tvBody ? tvMountLinks(name, plate.v[0], (plate.u[0] + plate.u[1]) / 2, (plate.y[0] + plate.y[1]) / 2, reach) : []
+    }).map(link => <mesh key={link.id} rotation={[0, -link.yaw, 0]} position={[(link.u[0] + link.u[1]) / 2, (link.y[0] + link.y[1]) / 2, -(link.v[0] + link.v[1]) / 2]} castShadow>
+      <boxGeometry args={[link.u[1] - link.u[0], link.y[1] - link.y[0], link.v[1] - link.v[0]]} /><meshStandardMaterial color={link.color} roughness={.5} metalness={link.metalness ?? 0} />
+    </mesh>)}
     {pieces.map(piece => {
       if (fridgeOpen && piece.id.startsWith('kitchen-fridge')) return null
+      // The folded links give way to the arm drawn below when the mount reaches out.
+      if (/^tv-(main|living)-mount-link-/.test(piece.id) && armReach(devices, `tv-${piece.id.split('-')[1]}`) > 0) return null
       const screen = (devices[piece.id] ?? 0) >= .5
       if (piece.kitchen) return <KitchenPiece key={piece.id} box={piece.kitchen} />
       const size: [number, number, number] = [piece.u[1] - piece.u[0], piece.y[1] - piece.y[0], piece.v[1] - piece.v[0]]
       const ellipse = piece.shape === 'ellipse'
       const tv = piece.id === 'tv-main' || piece.id === 'tv-living'
-      return <group key={piece.id}>
+      // X takes a TV off its mount: the mount stays on the wall, the TV (and its picture) is gone.
+      if (tv && !isTvMounted(devices, piece.id)) return null
+      return <group key={piece.id} position={[0, 0, -pieceReach(piece.id)]}>
         <mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}
           rotation={piece.roll ? [0, 0, piece.roll] : undefined}
           scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow receiveShadow>
