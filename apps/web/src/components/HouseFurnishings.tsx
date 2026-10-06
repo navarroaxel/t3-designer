@@ -87,13 +87,29 @@ function OpenFridge({ body, lowerDoor, upperDoor, extras }: { body: Furnishing; 
 }
 
 /** `on` holds the switched-on devices by id: a TV is on at an opening of 1 or more half. */
-export function HouseFurnishings({ floor, devices = {} }: { floor: Floor; devices?: Record<string, number> }) {
+/**
+ * Sawn off at `cut` like the cutaway's walls: a solid piece taller than the cut is cut to it, and anything that starts at or above it is not drawn. What hangs on a wall
+ * (a TV, an outlet) is drawn whole, as long as it begins below the cut.
+ */
+function clipToCut(piece: Furnishing, cut: number): Furnishing | null {
+  if (piece.y[0] >= cut) return null
+  if (!piece.solid || piece.y[1] <= cut) return piece
+  return { ...piece, y: [piece.y[0], cut], ...(piece.kitchen ? { kitchen: { ...piece.kitchen, y: [piece.kitchen.y[0], cut] as [number, number] } } : {}) }
+}
+
+export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }: {
+  floor: Floor; devices?: Record<string, number>
+  /** The heights are the plan's own, from the ground floor's level: for a parent that already works in that frame (the floor cutaway). */
+  absolute?: boolean
+  /** Saw the furniture off at this height, as the cutaway does its walls. */
+  cut?: number
+}) {
   const texture = useMemo(() => plexTexture(), [])
   const pieces = furnishingsOn(floor)
   // What moves with the arm: the TV, its picture, and the mount's head and rails.
   const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && pieces.some(piece => piece.id === 'kitchen-fridge')
-  return <group name="house-furnishings" position={[0, -FLOOR_ELEVATION[floor], 0]}>
+  return <group name="house-furnishings" position={[0, absolute ? 0 : -FLOOR_ELEVATION[floor], 0]}>
     {fridgeOpen && <OpenFridge body={pieces.find(piece => piece.id === 'kitchen-fridge')!} lowerDoor={pieces.find(piece => piece.id === 'kitchen-fridge-door')!} upperDoor={pieces.find(piece => piece.id === 'kitchen-fridge-freezer-door')!}
       extras={pieces.filter(piece => ['kitchen-fridge-handle', 'kitchen-fridge-dispenser'].includes(piece.id))} />}
     {(['main', 'living'] as const).flatMap(name => {
@@ -102,7 +118,9 @@ export function HouseFurnishings({ floor, devices = {} }: { floor: Floor; device
     }).map(link => <mesh key={link.id} rotation={[0, -link.yaw, 0]} position={[(link.u[0] + link.u[1]) / 2, (link.y[0] + link.y[1]) / 2, -(link.v[0] + link.v[1]) / 2]} castShadow>
       <boxGeometry args={[link.u[1] - link.u[0], link.y[1] - link.y[0], link.v[1] - link.v[0]]} /><meshStandardMaterial color={link.color} roughness={.5} metalness={link.metalness ?? 0} />
     </mesh>)}
-    {pieces.map(piece => {
+    {pieces.map(source => {
+      const piece = cut === undefined ? source : clipToCut(source, cut)
+      if (!piece) return null
       if (fridgeOpen && piece.id.startsWith('kitchen-fridge')) return null
       // The folded links give way to the arm drawn below when the mount reaches out.
       if (/^tv-(main|living)-mount-link-/.test(piece.id) && armReach(devices, `tv-${piece.id.split('-')[1]}`) > 0) return null

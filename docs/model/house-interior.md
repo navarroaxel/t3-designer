@@ -123,3 +123,9 @@ behind the TV when it is mounted: take it off with `X` to see them.
 
 The camera button in the walkthrough's toolbar saves what the camera sees as a PNG (`tapalque-walkthrough-<date>-<time>.png`): the 3D view only, without the buttons. The scene is drawn once more right before the canvas is read,
 because a WebGL canvas that does not keep its buffer comes out blank outside the frame that drew it.
+
+## The furniture is shared
+
+The floor cutaway of *House and sun* no longer draws furniture of its own: `HouseShell` lays `HouseFurnishings` (the walkthrough's) over each floor, sawn off at the 1.5 m cut like the walls. What was only in
+the walkthrough (the living's table with the PS5 and its controller, the outlets, the media box, the cable pass-through, the TV mounts) now shows in the cutaway too; a rack above the cut does not. The *Interior* tab still draws its
+own generic models (the arrangement panel moves those), which are a different set.
