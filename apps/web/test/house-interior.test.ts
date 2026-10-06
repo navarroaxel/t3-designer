@@ -19,7 +19,7 @@ test('both floors build as valid apartments with a wall under every opening', ()
     const walls = new Set(apartment.walls.map(wall => wall.id))
     assert.ok(apartment.doors.concat().every(door => walls.has(door.wallId)))
     assert.ok(apartment.windows.every(window => walls.has(window.wallId)))
-    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT))
+    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || wall.id.includes('balcony-rail')))
   }
 })
 
@@ -44,7 +44,8 @@ test('every interior door opens a gap between two rooms', () => {
 
 test('the street front keeps the 3 m balcony door and the secondary room\'s window on the first floor', () => {
   const windows = HOUSE_FLOORS.first.windows
-  assert.ok(windows.some(window => Math.abs(window.width - 3) < 1e-9 && window.kind === 'balcony-door'))
+  // The balcony door is an open frame: the visitor walks through it.
+  assert.ok(HOUSE_FLOORS.first.doors.some(door => Math.abs(door.width - 3) < 1e-9 && door.appearance === 'passage'))
   assert.ok(windows.some(window => Math.abs(window.width - 2.04) < 1e-9 && window.kind === 'casement'))
 })
 
@@ -88,4 +89,15 @@ test('the walkthrough can start on both floors, and its first step is free of wa
     assert.ok(spawn, floor)
     assert.ok(isWalkPositionFree(world, spawn.position))
   }
+})
+
+test('the visitor can step out onto the balcony, and is stopped by its railing and by the stairwell', () => {
+  const world = buildWalkWorld(publicScene('first', []))
+  // The balcony is 0.86 m deep in front of the street line (x = -5); its door is at v = 0.1 to 3.1.
+  assert.ok(isWalkPositionFree(world, [-5.4, -1.6]))
+  assert.ok(!isWalkPositionFree(world, [-5.84, -1.6]), 'the railing is in the way')
+  // The stairwell is a notch in the floor, along the north-east party wall.
+  assert.ok(!isWalkPositionFree(world, [3, -3.5]))
+  assert.ok(room('first', 'laundry') && room('first', 'balcony'))
+  assert.ok(isWalkPositionFree(world, [5.2, -3.3]), 'the laundry floor is walkable')
 })

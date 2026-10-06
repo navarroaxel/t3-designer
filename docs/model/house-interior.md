@@ -31,10 +31,10 @@ Wall height is 3.0 m (the 3.2 m storey less the 0.2 m slab) and door height 2.1 
 
 ## What is not there yet
 
-- The stair between the floors, the terrace and the laundry: the walkthrough is one floor at a time.
+- The stair is drawn but cannot be climbed: the walkthrough is one floor at a time. The terrace is not modelled.
 - The rooms behind the ground floor's back wall, and the built-in wardrobes.
-- The balcony, which the first-floor cutaway draws but the interior does not.
-- The laundry (washing machine, spin dryer) and the stair, which lie outside the floors' outlines.
+- The balcony and the laundry are walkable; the balcony railing is a solid 1 m wall.
+
 
 ## Tests
 

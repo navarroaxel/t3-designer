@@ -21,6 +21,8 @@ const roomKeys = {
   'ground-bathroom': 'rooms.ground-bathroom',
   'office': 'rooms.office',
   'light-well': 'rooms.light-well',
+  laundry: 'rooms.laundry',
+  balcony: 'rooms.balcony',
 } as const
 
 export type WorkspaceRoomId = keyof typeof roomKeys

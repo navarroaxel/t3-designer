@@ -5,9 +5,10 @@ import {
   FRONT_ROOMS, GARAGE_DOOR, GROUND_BATHROOM, GROUND_DOOR_SWINGS, GROUND_GARAGE, GROUND_HALL, GROUND_BATHROOM_DOOR, GROUND_LIVING, GROUND_OFFICE,
   GROUND_OUTLINE, GROUND_PANTRY, GROUND_PARTITIONS, HALL_ARCH, KITCHEN_LIVING, LIVING_DOOR, LIVING_KITCHEN_DOOR, MAIN_DOOR, MAIN_ROOM_CLOSET,
   MAIN_ROOM_DRYWALL, MAIN_ROOM_SETBACK, OFFICE_DOOR, OPENINGS, PANTRY_DOOR, PARTITION_THICKNESS, SECONDARY_DOOR, SECONDARY_WARDROBE, SIDE_OPENINGS,
-  SLAB_THICKNESS, STAIRWELL_HOLE, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
+  SLAB_THICKNESS, STAIRWELL_HOLE, BALCONY, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
 } from './house-plan.ts'
-import { PARTY_WALL, WELL_BACK_U, HOUSE_REAR, GROUND_WELL_EDGE } from './building-site.ts'
+import { LAUNDRY } from './laundry.ts'
+import { HOUSE_HALF_WIDTH, PARTY_WALL, WELL_BACK_U, HOUSE_REAR, GROUND_WELL_EDGE } from './building-site.ts'
 
 /**
  * The house as the apartment viewer and the walkthrough read it: one `Apartment` per floor, built from the house plan so the plan stays the
@@ -112,6 +113,8 @@ function exteriorWalls(floor: Floor, outline: PlanPoint[]) {
 function openingSpec(floor: Floor, wallId: string, index: number, bottom: number, top: number, width: number) {
   const id = `${wallId}-opening-${index + 1}`
   if (bottom <= .05 && top - bottom > 2.3 && width > 3) return { id, kind: 'door' as const, appearance: 'passage' as const, finish: 'gray' as const } // the garage door, shown as an open frame: a 4 m leaf would swing across the street
+  // The balcony's 3 m door is a way out onto it: an open frame, not glazing the visitor bumps into.
+  if (floor === 'first' && bottom <= .05 && width > 2.5) return { id, kind: 'door' as const, appearance: 'passage' as const, finish: 'white' as const }
   if (bottom <= .05 && width > 1.5) return { id, kind: 'balcony-door' as const }
   if (bottom <= .05) return { id, kind: 'door' as const, appearance: floor === 'ground' ? 'panel' as const : 'glazed' as const, finish: 'gray' as const }
   return { id, kind: 'window' as const }
@@ -149,13 +152,16 @@ const room = (id: string, name: string, polygon: Point2D[], color: string): Room
 
 const firstHallV: [number, number] = [SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK]
 const sleepingMain: [number, number] = [FRONT_ROOMS.main.v[0], MAIN_ROOM_DRYWALL[2]]
+const LAUNDRY_U_ROOM: [number, number] = [4, 4 + LAUNDRY.length]
 const firstRooms: Room[] = [
   room('secondary-room', 'Secondary room', rect(FRONT_ROOMS.secondary.u, FRONT_ROOMS.secondary.v), '#d8cdb8'),
   room('main-room', 'Main room', rect(FRONT_ROOMS.main.u, sleepingMain), '#dfc7bf'),
   room('closet', 'Walk-in closet', rect(MAIN_ROOM_CLOSET.u, MAIN_ROOM_CLOSET.v), '#ccc9bc'),
   room('bathroom', 'Bathroom', rect(FIRST_FLOOR_BATHROOM.u, FIRST_FLOOR_BATHROOM.v), '#c1d3d2'),
   room('hall', 'Hall', rect([FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS], firstHallV), '#ded6c3'),
-  room('stair-corridor', 'Stair corridor', rect([STAIRWELL_HOLE[0], STAIRWELL_HOLE[1]], [firstHallV[0], STAIRWELL_HOLE[3]]), '#d3ccb8'),
+  room('stair-corridor', 'Stair corridor', rect([STAIRWELL_HOLE[0], STAIRWELL_HOLE[1]], [firstHallV[0], STAIRWELL_HOLE[2]]), '#d3ccb8'),
+  room('laundry', 'Laundry', rect(LAUNDRY_U_ROOM, [HOUSE_HALF_WIDTH - PARTY_WALL - LAUNDRY.width, HOUSE_HALF_WIDTH - PARTY_WALL]), '#d8d4c6'),
+  room('balcony', 'Balcony', rect([-5 - BALCONY.depth, -5], [-BALCONY.width / 2, BALCONY.width / 2]), '#c2c2b9'),
   room('kitchen-living', 'Kitchen and living', rect(KITCHEN_LIVING.u, KITCHEN_LIVING.v), '#e3d5bd'),
 ]
 const groundRooms: Room[] = [
@@ -172,10 +178,52 @@ function centreLine(outline: PlanPoint[]): Point2D[] {
   return outline.map(([u, v]) => local(u, v))
 }
 
+const FIRST_NE = HOUSE_HALF_WIDTH - PARTY_WALL
+const LAUNDRY_V0 = FIRST_NE - LAUNDRY.width
+const LAUNDRY_U: [number, number] = [4, 4 + LAUNDRY.length]
+const LAUNDRY_BACK = LAUNDRY_U[1] + LAUNDRY.wallThickness
+const BALCONY_V = BALCONY.width / 2
+const BALCONY_FRONT = -5 - BALCONY.depth
+const RAIL = .04
+
+/**
+ * What the first floor adds to its block: the balcony on the street, which the visitor can walk out onto, the laundry behind the kitchen
+ * (its north-east half, the other being the stair's first flight) and the stairwell, a notch in the floor along the north-east party wall.
+ * The perimeter is what the walkthrough treats as floor, so it follows all three.
+ */
+function firstFloorPerimeter(): Point2D[] {
+  const hole = STAIRWELL_HOLE
+  return [
+    local(-5, FIRST_OUTLINE[0][1]), local(-5, -BALCONY_V), local(BALCONY_FRONT, -BALCONY_V), local(BALCONY_FRONT, BALCONY_V), local(-5, BALCONY_V),
+    local(-5, HOUSE_HALF_WIDTH), local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH),
+    local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, FIRST_OUTLINE[0][1]),
+  ]
+}
+
+function firstFloorAnnex() {
+  const walls: Wall[] = [], windows: Window[] = []
+  const wall = (id: string, from: [number, number], to: [number, number], thickness: number, height = WALL_HEIGHT): Wall => {
+    const result: Wall = { id, from: local(...from), to: local(...to), thickness, height, kind: 'exterior', estimated: true }
+    walls.push(result)
+    return result
+  }
+  // The laundry: the party wall, the glazed wall on the light well and the back wall, past which the stair's landing lies.
+  wall('first-laundry-party', [4, HOUSE_HALF_WIDTH - PARTY_WALL / 2], [LAUNDRY_BACK, HOUSE_HALF_WIDTH - PARTY_WALL / 2], PARTY_WALL)
+  const glazed = wall('first-laundry-glass', [4, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], [LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], LAUNDRY.wallThickness)
+  windows.push({ id: 'first-laundry-glazing', wallId: glazed.id, offset: .1, width: LAUNDRY.length - .1, height: 2.7, sillHeight: .1, estimated: true, kind: 'casement', locationConfidence: 'observed' })
+  wall('first-laundry-back', [LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, LAUNDRY_V0 - LAUNDRY.wallThickness], [LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, HOUSE_HALF_WIDTH - PARTY_WALL], LAUNDRY.wallThickness)
+  // The balcony's railing: 1 m, on its front and its two sides.
+  wall('first-balcony-rail-front', [BALCONY_FRONT + RAIL / 2, -BALCONY_V], [BALCONY_FRONT + RAIL / 2, BALCONY_V], RAIL, 1)
+  wall('first-balcony-rail-south-west', [BALCONY_FRONT, -BALCONY_V + RAIL / 2], [-5, -BALCONY_V + RAIL / 2], RAIL, 1)
+  wall('first-balcony-rail-north-east', [BALCONY_FRONT, BALCONY_V - RAIL / 2], [-5, BALCONY_V - RAIL / 2], RAIL, 1)
+  return { walls, windows }
+}
+
 function buildFloor(floor: Floor): Apartment {
   const outline = floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE
   const exterior = exteriorWalls(floor, outline)
   const interior = interiorWalls(floor, floor === 'ground' ? GROUND_PARTITIONS : FIRST_FLOOR_PARTITIONS, floor === 'ground' ? GROUND_DOORS : FIRST_DOORS)
+  const annex = floor === 'first' ? firstFloorAnnex() : { walls: [], windows: [] }
   const rooms = floor === 'ground' ? groundRooms : firstRooms
   return ApartmentSchema.parse({
     schemaVersion: SCENE_SCHEMA_VERSION,
@@ -183,11 +231,11 @@ function buildFloor(floor: Floor): Apartment {
     name: floor === 'ground' ? 'Ground floor' : 'First floor',
     units: 'meters',
     coordinateSystem: { x: 'east', y: 'up', z: 'south' },
-    perimeter: centreLine(outline),
+    perimeter: floor === 'ground' ? centreLine(outline) : firstFloorPerimeter(),
     rooms,
-    walls: [...exterior.walls, ...interior.walls],
+    walls: [...exterior.walls, ...annex.walls, ...interior.walls],
     doors: [...exterior.doors, ...interior.doors],
-    windows: exterior.windows,
+    windows: [...exterior.windows, ...annex.windows],
     metadata: {
       source: 'Built from the house plan (src/data/house-plan.ts): owner measurements, photos and Street View.',
       description: 'One floor of the house in the viewer frame: x = u (toward the rear), z = -v (v runs north-east), y up from the floor.',
@@ -198,7 +246,7 @@ function buildFloor(floor: Floor): Apartment {
         `Wall height is ${WALL_HEIGHT} m: the 3.2 m storey less the ${SLAB_THICKNESS} m slab. Door height 2.1 m is assumed.`,
         `The wardrobe's depth (${CLOSET_WARDROBE.depth} m) and the other built-ins are not part of this architectural model.`,
       ],
-      unresolved: ['The rooms behind the ground floor\'s back wall, the stair and the terrace are not modelled yet.'],
+      unresolved: ['The rooms behind the ground floor\'s back wall and the terrace are not modelled yet.'],
     },
   })
 }
