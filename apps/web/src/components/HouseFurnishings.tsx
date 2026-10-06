@@ -102,6 +102,7 @@ export function HouseFurnishings({ floor, devices = {} }: { floor: Floor; device
       const tv = piece.id === 'tv-main' || piece.id === 'tv-living'
       return <group key={piece.id}>
         <mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}
+          rotation={piece.roll ? [0, 0, piece.roll] : undefined}
           scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow receiveShadow>
           {ellipse ? <cylinderGeometry args={[1, piece.taper ?? 1, size[1], 40]} /> : <boxGeometry args={size} />}
           <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}

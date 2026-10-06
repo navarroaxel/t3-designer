@@ -12,6 +12,7 @@ import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirect
 import { publicScene } from '../src/lib/public-scene.ts'
 const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
+import { dualsenseBoxes } from '../src/data/dualsense.ts'
 import { furnishingsOn } from '../src/data/house-furnishings.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
 import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
@@ -334,7 +335,7 @@ test('under the living\'s TV: a low table against the party wall with a PlayStat
   const pieces = furnishingsOn('first')
   const find = (id: string) => pieces.find(piece => piece.id === id)!
   const table = find('living-table-top'), tv = find('tv-living')
-  assert.ok(table && find('ps5-core') && find('ps5-controller'))
+  assert.ok(table && find('ps5-core') && find('ps5-controller-upper'))
   // The table is under the TV and centred on it, with the screen above the PS5.
   close((table.u[0] + table.u[1]) / 2, (tv.u[0] + tv.u[1]) / 2, 1e-9)
   assert.ok(table.y[1] <= 3.2 + .45 && table.y[1] < tv.y[0] - .15, 'the table is low, and the screen clears the console')
@@ -364,5 +365,48 @@ test('both TVs hang on the same articulated VESA mount, folded 67 mm from the wa
     // The wall plate is 440 by 135 mm.
     const plate = mount.find(piece => piece.id.endsWith('wall-plate'))!
     close(plate.u[1] - plate.u[0], .44, 1e-9); close(plate.y[1] - plate.y[0], .135, 1e-9)
+  }
+})
+
+test('the DualSense is about 160 mm wide and 106 mm deep, with two sticks, four face buttons and a D-pad, and lies on the table', () => {
+  const parts = dualsenseBoxes(0, 0, 0)
+  const width = Math.max(...parts.map(part => part.u[1])) - Math.min(...parts.map(part => part.u[0]))
+  const depth = Math.max(...parts.map(part => part.v[1])) - Math.min(...parts.map(part => part.v[0]))
+  assert.ok(Math.abs(width - .157) < .004 && Math.abs(depth - .105) < .004, `${width} x ${depth}`)
+  assert.equal(parts.filter(part => part.id.startsWith('stick-')).length, 2)
+  assert.equal(parts.filter(part => part.id.startsWith('button-')).length, 4)
+  assert.equal(parts.filter(part => part.id.startsWith('dpad-')).length, 4)
+  assert.ok(parts.every(part => part.y[0] >= 0 && part.y[1] <= .066), 'no taller than its grips')
+  // On the living's table: the whole controller inside its top.
+  const pieces = furnishingsOn('first'), table = pieces.find(piece => piece.id === 'living-table-top')!
+  for (const piece of pieces.filter(item => item.id.startsWith('ps5-controller-'))) {
+    assert.ok(piece.u[0] >= table.u[0] && piece.u[1] <= table.u[1] && piece.v[0] >= table.v[0] && piece.v[1] <= table.v[1], piece.id)
+  }
+})
+
+test('two double outlets of the Argentine kind, shaped like the Australian one, flank the living\'s low table, on the party wall', () => {
+  const pieces = furnishingsOn('first')
+  const table = pieces.find(piece => piece.id === 'living-table-top')!, wallV = table.v[0] - .03
+  const plates = ['left', 'right'].map(side => pieces.find(piece => piece.id === `outlet-${side}-plate`)!)
+  assert.ok(plates.every(Boolean))
+  // One each side of the table, the same distance from it, and clear of it.
+  const [left, right] = plates.map(plate => (plate.u[0] + plate.u[1]) / 2)
+  close((table.u[0] + table.u[1]) / 2 - left, right - (table.u[0] + table.u[1]) / 2, 1e-9)
+  assert.ok(plates.every(plate => plate.u[1] < table.u[0] || plate.u[0] > table.u[1]), 'clear of the table')
+  for (const plate of plates) {
+    // 114 by 72 mm, matte black, flat on the wall, 30 cm up from the floor's centre.
+    close(plate.u[1] - plate.u[0], .114, 1e-9); close(plate.y[1] - plate.y[0], .072, 1e-9); close(plate.v[0], wallV, 1e-9)
+    close((plate.y[0] + plate.y[1]) / 2, 3.2 + .3, 1e-9)
+  }
+  for (const side of ['left', 'right']) {
+    const slots = pieces.filter(piece => piece.id.startsWith(`outlet-${side}-socket-`))
+    // Two sockets, each with a live and a neutral slot in an inverted V (30 degrees off the vertical, opposite ways) and a vertical earth slot below.
+    assert.equal(slots.length, 6)
+    for (const socket of [-1, 1]) {
+      const live = slots.find(piece => piece.id.endsWith(`socket-${socket}-live`))!, neutral = slots.find(piece => piece.id.endsWith(`socket-${socket}-neutral`))!, earth = slots.find(piece => piece.id.endsWith(`socket-${socket}-earth`))!
+      close(Math.abs(live.roll!), Math.PI / 6, 1e-9); close(live.roll!, -neutral.roll!, 1e-9)
+      assert.ok(earth.roll === 0 || earth.roll === undefined)
+      assert.ok(earth.y[1] < live.y[0] + 1e-9, 'the earth slot is below the other two')
+    }
   }
 })

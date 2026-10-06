@@ -5,6 +5,8 @@ import { GARAGE_EQUIPMENT } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOXES } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
+import { dualsenseBoxes } from './dualsense.ts'
+import { outletBoxes } from './outlets.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
@@ -34,6 +36,8 @@ export type Furnishing = {
   taper?: number
   /** The kitchen's worktops carry a pattern: those pieces are drawn by the kitchen's own component. */
   kitchen?: KitchenBox
+  /** A turn about the normal of the wall it is on, for the slots of an outlet. */
+  roll?: number
   /** Whether a visitor bumps into it. Hung and thin things (mirrors, TVs, pillows) do not. */
   solid: boolean
 }
@@ -76,8 +80,12 @@ function firstFloor(): Furnishing[] {
     add({ id: `ps5-${id}`, u: [ps5U + from, ps5U + to], v: ps5V, y: [base + .012, base + .39], color, roughness: .35, solid: false })
   }
   add({ id: 'ps5-stand', u: [ps5U - .06, ps5U + .06], v: [ps5V[0] + .03, ps5V[1] - .03], y: [base, base + .012], color: '#d8dade', roughness: .5, solid: false })
-  add({ id: 'ps5-controller', u: [tvU + .15, tvU + .27], v: [tableV[0] + .12, tableV[0] + .24], y: [base, base + .04], color: '#f4f5f7', roughness: .4, solid: false })
-  add({ id: 'ps5-controller-stick', u: [tvU + .19, tvU + .23], v: [tableV[0] + .16, tableV[0] + .2], y: [base + .04, base + .05], color: '#1b1c1f', roughness: .4, solid: false })
+  // Two double outlets on the wall, one each side of the table, 25 cm clear of it: the Argentine plug, shaped like the Australian one.
+  for (const [side, offset] of [['left', -(table.width / 2 + .25)], ['right', table.width / 2 + .25]] as const) {
+    for (const part of outletBoxes(`outlet-${side}`, wall, tvU + offset, F)) add({ ...part, roughness: .6, solid: false })
+  }
+  // Its DualSense lies on the table beside it, the triggers toward the wall.
+  for (const part of dualsenseBoxes(tvU + .22, tableV[0] + .24, base)) add({ ...part, id: `ps5-controller-${part.id}`, roughness: .45, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The mirror and the glass panel are sawn off at the cut; give them their height back.
     const top = box.y[1] === cut ? F + (box.id === 'mirror' || box.id === 'mirror-shelf' ? 1.9 : 2) : box.y[1]

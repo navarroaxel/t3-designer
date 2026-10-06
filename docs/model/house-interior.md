@@ -99,3 +99,10 @@ from the room list in *Set up your visit*.
 Both TVs hang on the same articulated, full-motion VESA mount (owner's pick; `TV_MOUNT` in `house-plan.ts`, boxes in `tv-mount.ts`): a 440 by 135 mm plate on the wall, two
 links, a head plate and two 420 mm rails the VESA holes screw to (100 to 400 mm apart), black steel, 50 kg. Folded it stands 67 mm off the wall, which is where the TVs hang;
 it reaches 355 mm, tilts +3 to -15 degrees, swivels +-60 and levels +-3. The main room's 55 inch is taken to be 200 by 200 and the living's 65 inch 400 by 300 (assumed).
+
+## The DualSense and the outlets
+
+- The controller on the living's table is built from the maker's picture (`dualsense.ts`): white shell and grips, black centre, two sticks, the touchpad with its blue light bar, the triggers, the D-pad and the four face buttons;
+  160 by 106 mm, the triggers toward the wall.
+- Two double outlets flank the table on the party wall (`outlets.ts`): the Argentine plug, which has the Australian shape (two pins in an inverted V and an earth pin below), in the matte black 114 by 72 mm plate
+  of the owner's picture, 30 cm up from the floor, 25 cm clear of the table on each side.
