@@ -90,8 +90,8 @@ function firstFloor(): Furnishing[] {
   // The TV wall's fittings: the in-wall media box at the table's height, for the console's cables; and, beside the mount, the pass-through for the TV's cable and a plug at the TV's height.
   for (const part of mediaBoxBoxes('wallbox', wall, tvU, F + table.height)) add({ ...part, roughness: .5, solid: false })
   const tvCentreY = centre(LIVING_TV_PLACEMENT.y), mountHalf = TV_MOUNT.width / 2
-  for (const part of passThroughBoxes('cable-hole', wall, tvU + mountHalf + .13, tvCentreY)) add({ ...part, roughness: .5, solid: false })
-  for (const part of outletBoxes('outlet-tv', wall, tvU - mountHalf - .2, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
+  for (const part of passThroughBoxes('cable-hole', wall, tvU - mountHalf - .2, tvCentreY)) add({ ...part, roughness: .5, solid: false })
+  for (const part of outletBoxes('outlet-tv', wall, tvU + mountHalf + .13, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
   // Its DualSense lies on the table beside it, the triggers toward the wall.
   for (const part of dualsenseBoxes(tvU + .22, tableV[0] + .24, base)) add({ ...part, id: `ps5-controller-${part.id}`, roughness: .45, solid: false })
   for (const box of BATHROOM_BOXES) {
