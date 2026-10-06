@@ -97,12 +97,19 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
             top: door.height, initialOpenness: resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? 0) } })
         continue
       }
+      const fixed = (customization?.style ?? door.appearance) === 'aluminium' ? door.fixedLeaf ?? 0 : 0
+      if (fixed > 0) {
+        // The fixed leaf beside the swinging one stays where it is, at the end away from the hinge.
+        const fixedCentre = hingeAtStart ? door.offset + door.width - fixed / 2 : door.offset + fixed / 2
+        blockers.push({ center: [wall.from[0] + ux * fixedCentre, wall.from[1] + uz * fixedCentre], halfWidth: fixed / 2, halfDepth: .0225,
+          cos: Math.cos(angle), sin: Math.sin(angle), bottom: .025, top: door.height - .025 })
+      }
       doors.push({ id: door.id, center: [wall.from[0] + ux * distance, wall.from[1] + uz * distance],
         normal: [-uz, ux], exterior: wall.kind === 'exterior', clearance: wall.thickness / 2 + WALK_RADIUS + .08,
         ...((customization?.style ?? door.appearance ?? 'panel') === 'passage' ? {} : { leaf: {
           hinge: [wall.from[0] + ux * hingeDistance, wall.from[1] + uz * hingeDistance] as Point2D,
           rotation: angle, direction, swingSign: door.opensToward * -direction,
-          width: Math.max(.001, door.width - .045), bottom: .025, top: door.height - .025,
+          width: Math.max(.001, door.width - fixed - .045), bottom: .025, top: door.height - .025,
           initialOpenness: resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? 1),
         } }) })
     }

@@ -39,7 +39,9 @@ test('every interior door opens a gap between two rooms', () => {
   for (const id of ['bathroom-door', 'living-door', 'main-door', 'secondary-door']) assert.ok(first.doors.some(door => door.id === id), id)
   const living = first.doors.find(door => door.id === 'living-door')!
   close(living.width, 1.2)
-  assert.equal(living.appearance, 'glazed')
+  assert.equal(living.appearance, 'aluminium')
+  // A leaf and a half: the wide one swings, the narrow one beside it stays fixed.
+  close(living.fixedLeaf!, .4)
   const garageArch = HOUSE_FLOORS.ground.doors.find(door => door.id === 'garage-hall-doorway')!
   close(garageArch.width, .7)
   assert.equal(garageArch.appearance, 'passage')
@@ -163,4 +165,15 @@ test('the main room\'s TV can be aimed at and switched on with E, and nothing el
   assert.deepEqual(target, { id: 'tv-main', open: false })
   assert.ok(canSetWalkDoorOpenness(world, {}, 'tv-main', 1, pose))
   assert.deepEqual(findWalkDoorTarget(world, { 'tv-main': 1 }, pose), { id: 'tv-main', open: true })
+})
+
+test('the hall-living door is a leaf and a half: the narrow leaf stops the visitor, the wide one swings open', () => {
+  const door = HOUSE_FLOORS.first.doors.find(item => item.id === 'living-door')!
+  const scene = publicScene('first', [])
+  const open = buildWalkWorld(scene, { [door.id]: 1 })
+  const wall = HOUSE_FLOORS.first.walls.find(item => item.id === door.wallId)!
+  const length = Math.hypot(wall.to[0] - wall.from[0], wall.to[1] - wall.from[1])
+  const at = (distance: number): [number, number] => [wall.from[0] + (wall.to[0] - wall.from[0]) / length * distance, wall.from[1] + (wall.to[1] - wall.from[1]) / length * distance]
+  const fixedEnd = door.hinge === 'start' ? door.offset + door.width - .2 : door.offset + .2
+  assert.ok(!isWalkPositionFree(open, at(fixedEnd)), 'the narrow leaf is fixed')
 })

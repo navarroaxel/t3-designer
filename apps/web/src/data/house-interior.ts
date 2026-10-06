@@ -2,7 +2,7 @@ import { segmentWall } from '@t3-designer/geometry'
 import { ApartmentSchema, SCENE_SCHEMA_VERSION, type Apartment, type Door, type Point2D, type Room, type Wall, type Window } from '@t3-designer/scene-schema'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import {
-  BATHROOM_DOOR, BATHROOM_DOOR_COLOR, CLOSET_WARDROBE, LIVING_DOOR_COLOR, MAIN_DOOR_COLOR, SECONDARY_DOOR_COLOR, OFFICE_DOOR_COLOR, type DoorSwing, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, FIRST_OUTLINE,
+  BATHROOM_DOOR, BATHROOM_DOOR_COLOR, CLOSET_WARDROBE, LIVING_DOOR_COLOR, LIVING_DOOR_LEAVES, MAIN_DOOR_COLOR, SECONDARY_DOOR_COLOR, OFFICE_DOOR_COLOR, type DoorSwing, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, FIRST_OUTLINE,
   FRONT_ROOMS, GARAGE_DOOR, GROUND_BATHROOM, GROUND_DOOR_SWINGS, GROUND_GARAGE, GROUND_HALL, GROUND_BATHROOM_DOOR, GROUND_LIVING, GROUND_OFFICE,
   GROUND_OUTLINE, GROUND_PANTRY, GROUND_PARTITIONS, HALL_ARCH, KITCHEN_LIVING, LIVING_DOOR, LIVING_KITCHEN_DOOR, MAIN_DOOR, MAIN_ROOM_CLOSET,
   MAIN_ROOM_DRYWALL, MAIN_ROOM_SETBACK, OFFICE_DOOR, OPENINGS, PANTRY_DOOR, PARTITION_THICKNESS, SECONDARY_DOOR, SECONDARY_WARDROBE, SIDE_OPENINGS,
@@ -40,12 +40,12 @@ function partitionWall(id: string, box: Box): Wall {
   }
 }
 
-type InteriorDoor = { id: string; box: Box; swing?: DoorSwing; appearance: 'passage' | 'panel' | 'glazed'; finish?: Door['finish']; color?: string; evidence?: string }
+type InteriorDoor = { id: string; box: Box; swing?: DoorSwing; appearance: 'passage' | 'panel' | 'glazed' | 'aluminium'; finish?: Door['finish']; color?: string; fixedLeaf?: number; evidence?: string }
 const boxOf = (door: { u: [number, number]; v: [number, number] }): Box => [door.u[0], door.u[1], door.v[0], door.v[1]]
 
 const FIRST_DOORS: InteriorDoor[] = [
   { id: 'bathroom-door', box: boxOf(BATHROOM_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'bathroom'), appearance: 'panel', finish: 'white', color: BATHROOM_DOOR_COLOR },
-  { id: 'living-door', box: boxOf(LIVING_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'living'), appearance: 'glazed', finish: 'white', color: LIVING_DOOR_COLOR },
+  { id: 'living-door', box: boxOf(LIVING_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'living'), appearance: 'aluminium', fixedLeaf: LIVING_DOOR_LEAVES.narrow, finish: 'white', color: LIVING_DOOR_COLOR },
   { id: 'main-door', box: boxOf(MAIN_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'main'), appearance: 'panel', finish: 'gray', color: MAIN_DOOR_COLOR },
   { id: 'secondary-door', box: boxOf(SECONDARY_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'secondary'), appearance: 'panel', finish: 'gray', color: SECONDARY_DOOR_COLOR },
 ]
@@ -147,7 +147,7 @@ function interiorWalls(floor: Floor, partitions: readonly Box[], doors: Interior
     }
     result.push({
       id: door.id, wallId: gap.id, offset: 0, width: length, height: DOOR_HEIGHT, hinge, opensToward, locationConfidence: door.swing ? 'observed' : 'inferred',
-      appearance: door.appearance, finish: door.finish, color: door.color, evidence: door.evidence, estimated: true,
+      appearance: door.appearance, finish: door.finish, color: door.color, fixedLeaf: door.fixedLeaf, evidence: door.evidence, estimated: true,
     })
   }
   return { walls, doors: result }
