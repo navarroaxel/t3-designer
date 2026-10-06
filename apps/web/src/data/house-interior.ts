@@ -240,10 +240,10 @@ function firstFloorAnnex() {
   const backU = LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, flightEnd = LAUNDRY_V0 + LAUNDRY.flight.width
   const back = wall('first-laundry-back', [backU, LAUNDRY_V0 - LAUNDRY.wallThickness], [backU, flightEnd], LAUNDRY.wallThickness)
   wall('first-laundry-back-low', [backU, flightEnd], [backU, HOUSE_HALF_WIDTH - PARTY_WALL], LAUNDRY.wallThickness, .8)
-  // The door at the top of the first flight, onto the landing 1 m up: an open frame, taller than a door by that metre, so a body at the landing's height clears it.
+  // The door at the top of the first flight, onto the landing 1 m up (owner): white aluminium with glass, opening inward, into the laundry, hinged on the north-east side.
   doors.push({
-    id: 'first-laundry-back-door', wallId: back.id, offset: LAUNDRY.wallThickness + LAUNDRY.door.frame, width: LAUNDRY.door.width, height: LAUNDRY.landing.rise + LAUNDRY.door.height,
-    hinge: 'start', opensToward: 1, locationConfidence: 'observed', appearance: 'passage', finish: 'white', estimated: true,
+    id: 'first-laundry-back-door', wallId: back.id, offset: LAUNDRY.wallThickness + LAUNDRY.door.frame, width: LAUNDRY.door.width, height: LAUNDRY.door.height, sill: LAUNDRY.landing.rise,
+    hinge: 'end', opensToward: -1, locationConfidence: 'observed', appearance: 'aluminium', finish: 'white', color: '#f3f2ee', estimated: true,
   })
   // The balcony's railing: 1 m, on its front and its two sides.
   wall('first-balcony-rail-front', [BALCONY_FRONT + RAIL / 2, -BALCONY_V], [BALCONY_FRONT + RAIL / 2, BALCONY_V], RAIL, 1)

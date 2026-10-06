@@ -69,7 +69,7 @@ export function initialWalkDoorStates(snapshot: ProjectSnapshot): WalkDoorStates
     const style = customization?.style ?? door.appearance ?? 'panel'
     // A sliding door starts closed; the others, open.
     return style === 'passage' ? []
-      : [[door.id, resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? (style === 'sliding' ? 0 : 1))]]
+      : [[door.id, resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? (style === 'sliding' || door.sill ? 0 : 1))]]
   }))
 }
 
@@ -91,6 +91,9 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
         halfWidth: segment.length / 2, halfDepth: wall.thickness / 2,
         cos: Math.cos(angle), sin: Math.sin(angle),
         bottom: segment.bottom, top: segment.bottom + segment.height,
+        // The wall under a door that stands on a sill is the sill: stepped over, up and down, like a stair's last step.
+        ...(snapshot.apartment.doors.some(door => door.wallId === wall.id && (door.sill ?? 0) > 0 && segment.offset >= door.offset - epsilon
+          && segment.offset + segment.length <= door.offset + door.width + epsilon && Math.abs(segment.height - door.sill!) < 1e-6) ? { climb: true as const } : {}),
       })
     }
     for (const door of snapshot.apartment.doors.filter(item => item.wallId === wall.id)) {
@@ -123,8 +126,8 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
         ...(style === 'passage' ? {} : { leaf: {
           hinge: [wall.from[0] + ux * hingeDistance, wall.from[1] + uz * hingeDistance] as Point2D,
           rotation: angle, direction, swingSign: door.opensToward * -direction,
-          width: Math.max(.001, door.width - fixed - .045), bottom: .025, top: door.height - .025,
-          initialOpenness: resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? 1),
+          width: Math.max(.001, door.width - fixed - .045), bottom: (door.sill ?? 0) + .025, top: (door.sill ?? 0) + door.height - .025,
+          initialOpenness: resolveWalkDoorOpenness(undefined, door.id, customization?.openness ?? (door.sill ? 0 : 1)),
         } }) })
     }
   }

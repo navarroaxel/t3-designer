@@ -230,7 +230,7 @@ function FloorContent({ snapshot, doorStates, withRoof }: { snapshot: ProjectSna
       style: door.appearance ?? 'panel',
       color: door.color ?? (door.finish === 'blue-gray' ? '#d0d5ca' : '#b7c0b6'),
       ...customization?.doors[door.id],
-      openness: resolveWalkDoorOpenness(doorStates, door.id, customization?.doors[door.id]?.openness ?? (door.appearance === 'sliding' ? 0 : 1)),
+      openness: resolveWalkDoorOpenness(doorStates, door.id, customization?.doors[door.id]?.openness ?? (door.appearance === 'sliding' || door.sill ? 0 : 1)),
     }])),
   }), [apartment.doors, customization, doorStates])
   const houseFloor = floorOfApartment(apartment)

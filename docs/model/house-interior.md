@@ -89,7 +89,7 @@ partition, 0.40 m (`FREEZER` in `kitchen.ts`).
 ## The azotea
 
 The walkthrough goes up to the roof by the owner's stair outside the laundry: the first flight inside the laundry, on the light-well side, 1 m up to a landing past its back wall (a
-door at the top), then the second flight back over the laundry's north-east half, 12 steps up to the azotea (`azotea.ts`). The steps and the landing are climbable;
+door at the top: white aluminium with glass, its threshold 1 m above the laundry's floor, opening inward with `E`), then the second flight back over the laundry's north-east half, 12 steps up to the azotea (`azotea.ts`). The steps and the landing are climbable;
 the roof is a slab to stand on, and the ceiling of the rooms below. On it stand the parapets, the tank on its columns and the solar array raised 1.25 m on its beams: a visitor
 ducks under the panels and does not walk through them. They are built from the same volumes the exterior view draws. The roof opens to the sky; you can start there
 from the room list in *Set up your visit*.

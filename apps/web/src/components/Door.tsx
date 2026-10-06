@@ -150,7 +150,9 @@ function SlidingPanels({ x, width, height, openness, color }: { x: number; width
 
 // All positions are in the wall's local frame: X follows wall.from → wall.to.
 export function Door({ door, wall, visibleWallHeight, customization }: DoorProps) {
-  const height = Math.min(door.height, visibleWallHeight)
+  // A door on a landing stands on its sill, above the floor beside it: the frame and the leaf are drawn from there.
+  const sill = door.sill ?? 0
+  const height = Math.min(door.height, visibleWallHeight - sill)
   const hingeAtStart = door.hinge === 'start'
   const leafDirection = hingeAtStart ? 1 : -1
   const aluminium = (customization?.style ?? door.appearance) === 'aluminium'
@@ -165,7 +167,7 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
   const passage = customization ? customization.style === 'passage' : door.appearance === 'passage'
 
   return (
-    <group>
+    <group position={[0, sill, 0]}>
       {[door.offset + 0.014, door.offset + door.width - 0.014].map((x) => (
         <mesh key={x} position={[x, height / 2, 0]} castShadow receiveShadow>
           <boxGeometry args={[0.028, height, wall.thickness + 0.008]} />
@@ -186,7 +188,7 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
               </mesh>
             </group>
           ))}
-          {visibleWallHeight >= door.height + 0.07 && (
+          {visibleWallHeight - sill >= door.height + 0.07 && (
             <group position={[door.offset + door.width / 2, door.height + 0.02, side * (wall.thickness / 2 + 0.014)]}>
               <mesh castShadow receiveShadow>
                 <boxGeometry args={[door.width + 0.105, 0.075, 0.027]} />
@@ -200,7 +202,7 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
           )}
         </group>
       ))}
-      {visibleWallHeight >= door.height && (
+      {visibleWallHeight - sill >= door.height && (
         <mesh position={[door.offset + door.width / 2, door.height - 0.013, 0]} castShadow>
           <boxGeometry args={[door.width, 0.026, wall.thickness]} />
           <meshStandardMaterial color={frameColor} roughness={0.66} />

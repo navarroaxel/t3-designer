@@ -63,6 +63,8 @@ export const DoorSchema = z.object({
   appearance: z.enum(['passage', 'panel', 'glazed', 'sliding', 'aluminium']).optional(),
   /** Width of a fixed glazed leaf beside the swinging one, at the end away from the hinge: a leaf and a half. */
   fixedLeaf: positive.optional(),
+  /** The height of the threshold above the wall's floor, for a door that stands higher than the floor beside it (a door onto a landing). */
+  sill: nonnegative.optional(),
   finish: z.enum(['blue-gray', 'gray', 'white']).optional(),
   /** The leaf's own colour, when it is known: it wins over the finish. */
   color: z.string().regex(/^#[\da-f]{6}$/i).optional(),
@@ -120,7 +122,7 @@ export const ApartmentSchema = z.object({
 
   const walls = new Map(apartment.walls.map((wall) => [wall.id, wall]))
   const openings = [
-    ...apartment.doors.map((door, index) => ({ ...door, bottom: 0, path: ['doors', index] })),
+    ...apartment.doors.map((door, index) => ({ ...door, bottom: door.sill ?? 0, path: ['doors', index] })),
     ...apartment.windows.map((window, index) => ({ ...window, bottom: window.sillHeight, path: ['windows', index] })),
   ]
   openings.forEach((opening, index) => {

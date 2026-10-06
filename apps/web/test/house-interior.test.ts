@@ -10,6 +10,7 @@ import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENIN
 import { houseToSite } from '../src/data/frame.ts'
 import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirectionToApartment } from '../src/data/house-placement.ts'
 import { publicScene } from '../src/lib/public-scene.ts'
+const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
 import { furnishingsOn } from '../src/data/house-furnishings.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
@@ -282,7 +283,8 @@ test('the pantry has a wall-mounted rack with a UniFi Dream Machine Pro and a 24
 })
 
 test('the azotea can be reached on foot: the laundry\'s flight, the landing, the flight back over the laundry and the roof', () => {
-  const world = buildWalkWorld(publicScene('ground', []), undefined, publicScene('first', []))
+  // The door at the top of the first flight starts shut; the visitor has opened it.
+  const world = buildWalkWorld(publicScene('ground', []), { 'first-laundry-back-door': 1 }, publicScene('first', []))
   const centre = (obstacle: (typeof AZOTEA_OBSTACLES)[number]): [number, number] => {
     const xs = obstacle.polygon.map(point => point[0]), zs = obstacle.polygon.map(point => point[1])
     return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...zs) + Math.max(...zs)) / 2]
@@ -309,4 +311,21 @@ test('the azotea can be reached on foot: the laundry\'s flight, the landing, the
   assert.equal(roomAtPosition(world, position, vertical.offset)?.id, 'azotea')
   // The panels, raised 1.25 m on their beams, are obstacles too: a visitor ducks under them, and does not walk through.
   assert.ok(AZOTEA_OBSTACLES.filter(obstacle => obstacle.bottom > 7.5).length >= 16)
+})
+
+test('the laundry\'s door onto the landing is a white aluminium door that stands 1 m up and opens inward, with E', () => {
+  const door = HOUSE_FLOORS.first.doors.find(item => item.id === 'first-laundry-back-door')!
+  assert.ok(door && door.sill === 1 && door.appearance === 'aluminium' && door.color === '#f3f2ee')
+  const wall = HOUSE_FLOORS.first.walls.find(item => item.id === door.wallId)!
+  // Inward is toward the laundry, -x here: the leaf swings to the wall's local +z when opensToward is 1, and +z has the sign of the wall normal's x.
+  const length = Math.hypot(wall.to[0] - wall.from[0], wall.to[1] - wall.from[1])
+  assert.ok(-(wall.to[1] - wall.from[1]) / length * door.opensToward < 0, 'opens toward the laundry')
+  const ground = publicScene('ground', []), first = publicScene('first', [])
+  const shut = buildWalkWorld(ground, undefined, first), open = buildWalkWorld(ground, { [door.id]: 1 }, first)
+  // It starts shut: at the landing's height, the doorway is closed. Open, it is clear.
+  const doorway: [number, number] = [7.05, -(LAUNDRY_FLIGHT_V)]
+  assert.ok(!isWalkPositionFree(shut, doorway, 1.65, 4.2))
+  assert.ok(isWalkPositionFree(open, doorway, 1.65, 4.2))
+  // The wall under the door is there below the sill: at the laundry's floor, the doorway is a wall.
+  assert.ok(!isWalkPositionFree(open, doorway, 1.65, 3.2))
 })
