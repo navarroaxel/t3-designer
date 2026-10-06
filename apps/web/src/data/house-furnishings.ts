@@ -7,6 +7,7 @@ import { RACK_BOXES } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
 import { dualsenseBoxes } from './dualsense.ts'
 import { outletBoxes } from './outlets.ts'
+import { mediaBoxBoxes, passThroughBoxes } from './wall-fittings.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
@@ -36,6 +37,8 @@ export type Furnishing = {
   taper?: number
   /** The kitchen's worktops carry a pattern: those pieces are drawn by the kitchen's own component. */
   kitchen?: KitchenBox
+  /** A round plate on a wall: a cylinder along v, its radius half the width. */
+  disc?: true
   /** A turn about the normal of the wall it is on, for the slots of an outlet. */
   roll?: number
   /** Whether a visitor bumps into it. Hung and thin things (mirrors, TVs, pillows) do not. */
@@ -84,6 +87,11 @@ function firstFloor(): Furnishing[] {
   for (const [side, offset] of [['left', -(table.width / 2 + .25)], ['right', table.width / 2 + .25]] as const) {
     for (const part of outletBoxes(`outlet-${side}`, wall, tvU + offset, F)) add({ ...part, roughness: .6, solid: false })
   }
+  // The TV wall's fittings: the in-wall media box at the table's height, for the console's cables; and, beside the mount, the pass-through for the TV's cable and a plug at the TV's height.
+  for (const part of mediaBoxBoxes('wallbox', wall, tvU, F + table.height)) add({ ...part, roughness: .5, solid: false })
+  const tvCentreY = centre(LIVING_TV_PLACEMENT.y), mountHalf = TV_MOUNT.width / 2
+  for (const part of passThroughBoxes('cable-hole', wall, tvU + mountHalf + .13, tvCentreY)) add({ ...part, roughness: .5, solid: false })
+  for (const part of outletBoxes('outlet-tv', wall, tvU - mountHalf - .2, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
   // Its DualSense lies on the table beside it, the triggers toward the wall.
   for (const part of dualsenseBoxes(tvU + .22, tableV[0] + .24, base)) add({ ...part, id: `ps5-controller-${part.id}`, roughness: .45, solid: false })
   for (const box of BATHROOM_BOXES) {

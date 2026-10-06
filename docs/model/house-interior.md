@@ -112,3 +112,9 @@ it reaches 355 mm, tilts +3 to -15 degrees, swivels +-60 and levels +-3. The mai
 Looking at a TV: `E` switches it on (the Plex-style splash), `X` takes it off its wall mount (the mount stays; look at the spot to hang it back) and `Q` unfolds the mount's
 arm, bringing the TV 29 cm out into the room, and folds it again. The state lives with the doors', under `mount-<name>` and `arm-<name>`. The arm is drawn as two pairs of links
 that join the wall plate to the head; the elbow bulges out a little as it unfolds.
+
+## The TV wall
+
+Besides the table, the PS5 and the two outlets, the living's TV wall has (`wall-fittings.ts`): an ECHOGEAR in-wall **media box** (trim ring 403 by 275 mm, a cover with a slot along its lower edge) centred under the TV at the height of the table's top;
+a round **cable pass-through** (150 mm across, assumed) beside the mount, with the TV's cable going up behind it; and a **plug** (the Argentine kind) at the TV's height on the other side. All three are
+behind the TV when it is mounted: take it off with `X` to see them.

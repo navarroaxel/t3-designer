@@ -10,9 +10,9 @@ export const OUTLET = { width: .114, height: .072, thickness: .008, socketOffset
 
 const PLATE = '#212326', SLOT = '#050506'
 
-export function outletBoxes(name: string, wallV: number, centreU: number, floorY: number): OutletBox[] {
+export function outletBoxes(name: string, wallV: number, centreU: number, floorY: number, centreHeight = OUTLET.centreHeight): OutletBox[] {
   const { width, height, thickness, socketOffset, slotLength, slotWidth, slantDegrees } = OUTLET
-  const y0 = floorY + OUTLET.centreHeight
+  const y0 = floorY + centreHeight
   // Viewed from the room, facing the wall, the right hand is the lower u.
   const at = (id: string, across: number, up: number, size: [number, number], color: string, roll = 0): OutletBox => ({
     id: `${name}-${id}`, u: [centreU - across - size[0] / 2, centreU - across + size[0] / 2], v: [wallV + thickness, wallV + thickness + .0008], y: [y0 + up - size[1] / 2, y0 + up + size[1] / 2], color, roll,

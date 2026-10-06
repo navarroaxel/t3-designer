@@ -451,3 +451,32 @@ test('Q unfolds a TV mount\'s arm: the TV comes out 29 cm, the links join the wa
   const device = furnishingDevices('first', 3.2).find(item => item.id === 'tv-living')!
   assert.ok(device.halfDepth * 2 >= .03 + (.355 - .067) - 1e-9)
 })
+
+test('the TV wall has the in-wall media box at the table\'s height, the cable pass-through beside the mount and a plug at the TV\'s height', () => {
+  const pieces = furnishingsOn('first')
+  const find = (id: string) => pieces.find(piece => piece.id === id)!
+  const table = find('living-table-top'), tv = find('tv-living'), wallV = table.v[0] - .03
+  // The media box: 403 by 275 mm trim ring, centred under the TV, at the height of the table's top, flat on the wall.
+  const left = find('wallbox-trim-left'), right = find('wallbox-trim-right'), top = find('wallbox-trim-top'), bottom = find('wallbox-trim-bottom')
+  close(left.u[1] - right.u[0], .403, 1e-9); close(top.y[1] - bottom.y[0], .275, 1e-9)
+  close((top.y[0] + bottom.y[1]) / 2, table.y[1], 1e-9)
+  close((left.u[1] + right.u[0]) / 2, (tv.u[0] + tv.u[1]) / 2, 1e-9)
+  close(top.v[0], wallV, 1e-9)
+  // Its cover has a slot along the lower edge, about two thirds of its width.
+  const cover = find('wallbox-cover'), slot = find('wallbox-slot')
+  assert.ok(slot.y[0] < cover.y[0] + .02 && (slot.u[1] - slot.u[0]) / (cover.u[1] - cover.u[0]) > .6)
+  // The pass-through: round, 150 mm, beside the mount (past its plate), at the TV's height, with a cable that goes up behind the TV.
+  const plate = find('cable-hole-plate'), mountPlate = find('tv-living-mount-wall-plate')
+  close(plate.u[1] - plate.u[0], .15, 1e-9); assert.ok(plate.disc)
+  assert.ok(plate.u[0] > mountPlate.u[1] || plate.u[1] < mountPlate.u[0], 'beside the mount, not behind it')
+  close((plate.y[0] + plate.y[1]) / 2, (tv.y[0] + tv.y[1]) / 2, 1e-9)
+  assert.ok(find('cable-hole-cable-up').v[1] < tv.v[0], 'the cable goes up behind the TV')
+  // The plug at the TV's height: an outlet plate on the other side of the mount.
+  const outlet = find('outlet-tv-plate')
+  close((outlet.y[0] + outlet.y[1]) / 2, (tv.y[0] + tv.y[1]) / 2, 1e-9)
+  assert.ok(outlet.u[1] < mountPlate.u[0] || outlet.u[0] > mountPlate.u[1])
+  const mountMiddle = (mountPlate.u[0] + mountPlate.u[1]) / 2
+  assert.ok(((outlet.u[0] + outlet.u[1]) / 2 - mountMiddle) * ((plate.u[0] + plate.u[1]) / 2 - mountMiddle) < 0, 'the plug and the hole are on opposite sides of the mount')
+  // They are all behind the TV (v: the wall to the TV's back): none sticks out past 67 mm.
+  for (const piece of pieces.filter(item => /^(wallbox|cable-hole|outlet-tv)-/.test(item.id))) assert.ok(piece.v[1] <= wallV + .067 + 1e-9, piece.id)
+})
