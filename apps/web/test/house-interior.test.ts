@@ -349,3 +349,20 @@ test('under the living\'s TV: a low table against the party wall with a PlayStat
   // On the table's top, inside it.
   assert.ok(core.u[0] >= table.u[0] && core.u[1] <= table.u[1] && core.v[0] >= table.v[0] && core.v[1] <= table.v[1])
 })
+
+test('both TVs hang on the same articulated VESA mount, folded 67 mm from the wall, rails as far apart as each TV\'s pattern', () => {
+  const pieces = furnishingsOn('first')
+  for (const [name, vesa] of [['main', .2], ['living', .4]] as const) {
+    const mount = pieces.filter(piece => piece.id.startsWith(`tv-${name}-mount-`))
+    assert.ok(mount.length >= 6, `${name}: plate, links, head and two rails`)
+    const rails = mount.filter(piece => piece.id.includes('-rail-')), tv = pieces.find(piece => piece.id === `tv-${name}`)!
+    close(Math.abs((rails[0].u[0] + rails[0].u[1]) / 2 - (rails[1].u[0] + rails[1].u[1]) / 2), vesa, 1e-9)
+    // The rails are 420 mm tall and the mount reaches 67 mm out: the TV's back is where they end.
+    close(rails[0].y[1] - rails[0].y[0], .42, 1e-9)
+    close(Math.max(...mount.map(piece => piece.v[1])) - Math.min(...mount.map(piece => piece.v[0])), .067, 1e-9)
+    assert.ok(tv.v[0] >= Math.max(...mount.map(piece => piece.v[1])) - 1e-9, 'the TV does not touch the mount\'s plate')
+    // The wall plate is 440 by 135 mm.
+    const plate = mount.find(piece => piece.id.endsWith('wall-plate'))!
+    close(plate.u[1] - plate.u[0], .44, 1e-9); close(plate.y[1] - plate.y[0], .135, 1e-9)
+  }
+})

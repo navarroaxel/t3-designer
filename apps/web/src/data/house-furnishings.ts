@@ -4,13 +4,14 @@ import { FIREPLACE_BOXES } from './fireplace.ts'
 import { GARAGE_EQUIPMENT } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOXES } from './rack.ts'
+import { tvMountBoxes } from './tv-mount.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
 import { KITCHEN_BOXES, KITCHEN_SIZES, type KitchenBox } from './kitchen.ts'
 import {
-  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, QUEEN_BED,
+  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
 } from './house-plan.ts'
 
@@ -58,7 +59,8 @@ function firstFloor(): Furnishing[] {
   add({ id: 'bed-secondary-pillow', u: [centre(SECONDARY_BED.u) - .3, centre(SECONDARY_BED.u) + .3], v: [SECONDARY_BED.v[0] + .15, SECONDARY_BED.v[0] + .55], y: [F + SINGLE_BED.height, F + SINGLE_BED.height + .12], color: PILLOW, roughness: .95, solid: false })
   for (const [name, tv] of [['main', MAIN_TV_PLACEMENT], ['living', LIVING_TV_PLACEMENT]] as const) {
     add({ id: `tv-${name}`, u: tv.u, v: tv.v, y: tv.y, color: '#0d0e10', roughness: .15, metalness: .4, solid: false })
-    add({ id: `tv-${name}-bracket`, u: [centre(tv.u) - tv.bracket.width / 2, centre(tv.u) + tv.bracket.width / 2], v: tv.bracket.v, y: [centre(tv.y) - tv.bracket.height / 2, centre(tv.y) + tv.bracket.height / 2], color: '#3b3d40', roughness: .5, metalness: .6, solid: false })
+    // The mount: an articulated VESA bracket, folded; the TV's back stands where its rails end.
+    for (const part of tvMountBoxes(name, tv.bracket.v[0], centre(tv.u), centre(tv.y), name === 'main' ? MAIN_TV.vesa : LIVING_TV.vesa)) add({ ...part, roughness: .5, solid: false })
   }
   // Under the living's TV: a low table against the party wall, with a PlayStation 5 standing on it and its controller beside.
   const tvU = centre(LIVING_TV_PLACEMENT.u), wall = KITCHEN_LIVING.v[0]

@@ -451,10 +451,19 @@ export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
 /**
  * The main room's TV (owner): a Samsung OLED S90 of 55 inches, hung on a wall bracket, hung on the wall it shares with the secondary room, centred
  * between the front wall and the hall-side wall, and facing the main room. A 55 inch 16:9 screen is 1.218 m by 0.685 m
- * (the diagonal is 1.397 m); the body is about 0.03 m thick and the bracket holds it about 0.03 m off the wall.
+ * (the diagonal is 1.397 m); the body is about 0.03 m thick and the folded wall mount (TV_MOUNT) holds it 67 mm off the wall; its VESA pattern is 200 by 200 (assumed).
  * The height of its centre, 1.1 m, is assumed.
  */
-export const MAIN_TV = { model: 'Samsung OLED S90', inches: 55, aspect: [16, 9] as const, thickness: .03, standoff: .03, centreHeight: 1.1 }
+/**
+ * The wall mount of both TVs (owner's pick): an articulated, full-motion VESA bracket, 50 kg, black steel. A plate on the wall (440 by 135 mm), two
+ * links, a head plate and two vertical rails 420 mm long that take the TV's VESA holes (100 to 400 mm apart). It folds to 67 mm from the wall and reaches
+ * 355 mm; it tilts +3 to -15 degrees, swivels +-60 and levels +-3. The TVs hang with it folded.
+ */
+export const TV_MOUNT = {
+  model: 'Articulated full-motion VESA wall mount', maxKg: 50, width: .44, railHeight: .42, plateHeight: .135, depthFolded: .067, depthExtended: .355,
+  tiltDegrees: [-15, 3] as const, swivelDegrees: 60, levelDegrees: 3, vesaWidthRange: [.1, .4] as const,
+}
+export const MAIN_TV = { model: 'Samsung OLED S90', inches: 55, aspect: [16, 9] as const, thickness: .03, standoff: TV_MOUNT.depthFolded, centreHeight: 1.1, vesa: [.2, .2] as const }
 const TV_DIAGONAL = MAIN_TV.inches * .0254
 const TV_HYPOT = Math.hypot(MAIN_TV.aspect[0], MAIN_TV.aspect[1])
 export const TV_SIZE = { width: TV_DIAGONAL * MAIN_TV.aspect[0] / TV_HYPOT, height: TV_DIAGONAL * MAIN_TV.aspect[1] / TV_HYPOT }
@@ -466,7 +475,7 @@ export const MAIN_TV_PLACEMENT = {
   u: [sharedWallMiddleU - TV_SIZE.width / 2, sharedWallMiddleU + TV_SIZE.width / 2] as [number, number],
   /** The wall's face on the main room's side is at main.v[0]. */
   v: [FRONT_ROOMS.main.v[0] + MAIN_TV.standoff, FRONT_ROOMS.main.v[0] + MAIN_TV.standoff + MAIN_TV.thickness] as [number, number],
-  bracket: { v: [FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[0] + MAIN_TV.standoff] as [number, number], width: .4, height: .3 },
+  bracket: { v: [FRONT_ROOMS.main.v[0], FRONT_ROOMS.main.v[0] + MAIN_TV.standoff] as [number, number], width: TV_MOUNT.width, height: TV_MOUNT.plateHeight },
   y: [FLOOR_HEIGHT + MAIN_TV.centreHeight - TV_SIZE.height / 2, FLOOR_HEIGHT + MAIN_TV.centreHeight + TV_SIZE.height / 2] as [number, number],
 }
 
@@ -487,7 +496,7 @@ export const MAIN_BED = {
  * corner, on the bathroom's side, and centred on the living's depth. The height of its centre is
  * 1.35 m (owner: 30 cm above the 1.05 m first assumed). The cutaway draws it whole, even where it reaches past its 1.5 m cut for the walls.
  */
-export const LIVING_TV = { model: 'Samsung OLED', inches: 65, thickness: .03, standoff: .03, centreHeight: 1.35 }
+export const LIVING_TV = { model: 'Samsung OLED', inches: 65, thickness: .03, standoff: TV_MOUNT.depthFolded, centreHeight: 1.35, vesa: [.4, .3] as const }
 const LIVING_TV_DIAGONAL = LIVING_TV.inches * .0254
 export const LIVING_TV_SIZE = { width: LIVING_TV_DIAGONAL * 16 / TV_HYPOT, height: LIVING_TV_DIAGONAL * 9 / TV_HYPOT }
 const livingMiddleU = (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2
@@ -495,7 +504,7 @@ export const LIVING_TV_PLACEMENT = {
   u: [livingMiddleU - LIVING_TV_SIZE.width / 2, livingMiddleU + LIVING_TV_SIZE.width / 2] as [number, number],
   /** The party wall's face inside the living is at KITCHEN_LIVING v[0]. */
   v: [KITCHEN_LIVING.v[0] + LIVING_TV.standoff, KITCHEN_LIVING.v[0] + LIVING_TV.standoff + LIVING_TV.thickness] as [number, number],
-  bracket: { v: [KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[0] + LIVING_TV.standoff] as [number, number], width: .4, height: .3 },
+  bracket: { v: [KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[0] + LIVING_TV.standoff] as [number, number], width: TV_MOUNT.width, height: TV_MOUNT.plateHeight },
   y: [FLOOR_HEIGHT + LIVING_TV.centreHeight - LIVING_TV_SIZE.height / 2, FLOOR_HEIGHT + LIVING_TV.centreHeight + LIVING_TV_SIZE.height / 2] as [number, number],
 }
 

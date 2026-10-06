@@ -93,3 +93,9 @@ door at the top: white aluminium with glass, its threshold 1 m above the laundry
 the roof is a slab to stand on, and the ceiling of the rooms below. On it stand the parapets, the tank on its columns and the solar array raised 1.25 m on its beams: a visitor
 ducks under the panels and does not walk through them. They are built from the same volumes the exterior view draws. The roof opens to the sky; you can start there
 from the room list in *Set up your visit*.
+
+## The TV mount
+
+Both TVs hang on the same articulated, full-motion VESA mount (owner's pick; `TV_MOUNT` in `house-plan.ts`, boxes in `tv-mount.ts`): a 440 by 135 mm plate on the wall, two
+links, a head plate and two 420 mm rails the VESA holes screw to (100 to 400 mm apart), black steel, 50 kg. Folded it stands 67 mm off the wall, which is where the TVs hang;
+it reaches 355 mm, tilts +3 to -15 degrees, swivels +-60 and levels +-3. The main room's 55 inch is taken to be 200 by 200 and the living's 65 inch 400 by 300 (assumed).
