@@ -471,6 +471,9 @@ test('the TV wall has the in-wall media box at the table\'s height, the cable pa
   assert.ok(plate.u[0] > mountPlate.u[1] || plate.u[1] < mountPlate.u[0], 'beside the mount, not behind it')
   close((plate.y[0] + plate.y[1]) / 2, (tv.y[0] + tv.y[1]) / 2, 1e-9)
   assert.ok(find('cable-hole-cable-up').v[1] < tv.v[0], 'the cable goes up behind the TV')
+  // It is flat on the wall (4 mm), an HDMI cable's pass-through: no raised dish, and the cable ends in an HDMI plug.
+  close(plate.v[1] - plate.v[0], .004, 1e-9)
+  assert.ok(!pieces.some(piece => piece.id === 'cable-hole-dish') && find('cable-hole-hdmi-body') && find('cable-hole-hdmi-tip'))
   // The plug at the TV's height: an outlet plate on the other side of the mount.
   const outlet = find('outlet-tv-plate')
   close((outlet.y[0] + outlet.y[1]) / 2, (tv.y[0] + tv.y[1]) / 2, 1e-9)
