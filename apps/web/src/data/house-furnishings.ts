@@ -10,7 +10,7 @@ import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
 import { KITCHEN_BOXES, KITCHEN_SIZES, type KitchenBox } from './kitchen.ts'
 import {
-  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, QUEEN_BED,
+  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, QUEEN_BED,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
 } from './house-plan.ts'
 
@@ -60,6 +60,22 @@ function firstFloor(): Furnishing[] {
     add({ id: `tv-${name}`, u: tv.u, v: tv.v, y: tv.y, color: '#0d0e10', roughness: .15, metalness: .4, solid: false })
     add({ id: `tv-${name}-bracket`, u: [centre(tv.u) - tv.bracket.width / 2, centre(tv.u) + tv.bracket.width / 2], v: tv.bracket.v, y: [centre(tv.y) - tv.bracket.height / 2, centre(tv.y) + tv.bracket.height / 2], color: '#3b3d40', roughness: .5, metalness: .6, solid: false })
   }
+  // Under the living's TV: a low table against the party wall, with a PlayStation 5 standing on it and its controller beside.
+  const tvU = centre(LIVING_TV_PLACEMENT.u), wall = KITCHEN_LIVING.v[0]
+  const table = { width: 1, depth: .45, height: .42, top: .04, leg: .05 }, tableV: [number, number] = [wall + .03, wall + .03 + table.depth]
+  const tableU: [number, number] = [tvU - table.width / 2, tvU + table.width / 2]
+  add({ id: 'living-table-top', u: tableU, v: tableV, y: [F + table.height - table.top, F + table.height], color: '#a98456', roughness: .6 })
+  for (const [index, [uEdge, vEdge]] of [[tableU[0], tableV[0]], [tableU[1] - table.leg, tableV[0]], [tableU[0], tableV[1] - table.leg], [tableU[1] - table.leg, tableV[1] - table.leg]].entries()) {
+    add({ id: `living-table-leg-${index + 1}`, u: [uEdge, uEdge + table.leg], v: [vEdge, vEdge + table.leg], y: [F, F + table.height - table.top], color: '#8e6a40', roughness: .7, solid: index === 0 })
+  }
+  // The PS5 stands upright on its base: 104 mm thick, 260 mm deep and 390 mm tall with its stand (12 mm of it), two white shells round a black centre. It is a PS5 of the standard model.
+  const ps5U = tvU - .25, ps5V: [number, number] = [tableV[0] + .1, tableV[0] + .1 + .26], base = F + table.height
+  for (const [id, from, to, color] of [['shell-a', -.052, -.017, '#f4f5f7'], ['core', -.017, .017, '#1b1c1f'], ['shell-b', .017, .052, '#f4f5f7']] as const) {
+    add({ id: `ps5-${id}`, u: [ps5U + from, ps5U + to], v: ps5V, y: [base + .012, base + .39], color, roughness: .35, solid: false })
+  }
+  add({ id: 'ps5-stand', u: [ps5U - .06, ps5U + .06], v: [ps5V[0] + .03, ps5V[1] - .03], y: [base, base + .012], color: '#d8dade', roughness: .5, solid: false })
+  add({ id: 'ps5-controller', u: [tvU + .15, tvU + .27], v: [tableV[0] + .12, tableV[0] + .24], y: [base, base + .04], color: '#f4f5f7', roughness: .4, solid: false })
+  add({ id: 'ps5-controller-stick', u: [tvU + .19, tvU + .23], v: [tableV[0] + .16, tableV[0] + .2], y: [base + .04, base + .05], color: '#1b1c1f', roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The mirror and the glass panel are sawn off at the cut; give them their height back.
     const top = box.y[1] === cut ? F + (box.id === 'mirror' || box.id === 'mirror-shelf' ? 1.9 : 2) : box.y[1]
