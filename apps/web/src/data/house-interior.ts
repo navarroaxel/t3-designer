@@ -124,8 +124,8 @@ function openingSpec(floor: Floor, wallId: string, index: number, bottom: number
   // The balcony's 3 m door and the terrace's 1.78 m one are ways out: an open frame, not glazing the visitor bumps into.
   // The main room's 3 m door onto the balcony and the kitchen-living's 1.78 m door onto the terrace are the same white aluminium sliding door.
   if (floor === 'first' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'sliding' as const, finish: 'white' as const, color: '#f3f2ee' }
-  // The ground floor's way out to the light well, the pulmón (1.8 m): two white aluminium leaves.
-  if (floor === 'ground' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'double' as const, finish: 'white' as const, color: '#f3f2ee' }
+  // The ground floor's way out to the light well, the pulmón (1.8 m): a white aluminium sliding door of two leaves, like the first floor's.
+  if (floor === 'ground' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'sliding' as const, finish: 'white' as const, color: '#f3f2ee' }
   if (bottom <= .05 && width > 1.5) return { id, kind: 'balcony-door' as const }
   if (bottom <= .05) return { id, kind: 'door' as const, appearance: floor === 'ground' ? 'panel' as const : 'glazed' as const, finish: 'gray' as const }
   return { id, kind: 'window' as const }

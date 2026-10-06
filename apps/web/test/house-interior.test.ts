@@ -243,17 +243,17 @@ test('the fridge can be aimed at from the aisle and opened with E', () => {
   close(fridge.y[1] - fridge.y[0], 1.785 - .04 + .04, 1e-6)
 })
 
-test('the ground floor opens onto the light well through a double door, and the patio is walkable', () => {
-  const door = HOUSE_FLOORS.ground.doors.find(item => item.appearance === 'double')!
+test('the ground floor opens onto the light well through a sliding door of two leaves, and the patio is walkable', () => {
+  const door = HOUSE_FLOORS.ground.doors.find(item => item.appearance === 'sliding')!
   assert.ok(door && Math.abs(door.width - 1.8) < 1e-9 && door.color === '#f3f2ee')
   const scene = publicScene('ground', [])
   const closed = buildWalkWorld(scene, { [door.id]: 0 }), open = buildWalkWorld(scene, { [door.id]: 1 })
-  assert.equal(closed.doors.filter(item => item.id === door.id).length, 2, 'two leaves')
   // The well's back wall stands at u = 4.46 and its door is centred on v = 0.4 (z = -0.4): living inside, patio outside.
   const living: [number, number] = [3.9, -.4], patio: [number, number] = [6, -.4], threshold: [number, number] = [4.46, -.4]
   assert.ok(isWalkPositionFree(closed, living) && isWalkPositionFree(closed, patio), 'both sides are floor')
-  assert.ok(!isWalkPositionFree(closed, threshold), 'shut: the leaves meet in the middle')
-  assert.ok(isWalkPositionFree(open, threshold), 'open: the way is clear')
+  assert.ok(!isWalkPositionFree(closed, threshold), 'shut: the panels fill the span')
+  // Open, the sliding panel rests over the fixed one: the way is clear on the half it uncovered.
+  assert.ok(isWalkPositionFree(open, [4.46, -.4 + .45]) || isWalkPositionFree(open, [4.46, -.4 - .45]), 'open: half the span is clear')
   // The rear wall of the patio is at the lot behind: past it, nothing.
   assert.ok(!isWalkPositionFree(open, [8.7, -.4]))
   assert.equal(roomAtPosition(open, patio)?.id, 'light-well')

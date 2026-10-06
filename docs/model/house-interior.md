@@ -81,7 +81,7 @@ partition, 0.40 m (`FREEZER` in `kitchen.ts`).
 
 ## The patio and the rack
 
-- The ground floor's way out to the light well, the pulmón, is a **double door** of two white aluminium leaves (1.8 m, owner), hinged on the two jambs, one `E` for both. The
+- The ground floor's way out to the light well, the pulmón, is a white aluminium **sliding door** of two leaves (1.8 m, owner), like the first floor's: one fixed, one that slides over it, opened with `E`. The
   patio is a room of its own, with a wall at the lot behind; it is open to the sky.
 - The pantry beside the garage has a wall-mounted 6U **network rack** (`rack.ts`), high on the south-west party wall, the medianera: a UniFi Dream Machine Pro and a 24-port patch panel, with
   blank panels below. It is above the floor cutaway's 1.5 m cut, so only the walkthrough shows it.
