@@ -2,6 +2,7 @@ import { cpSync, rmSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { siteMetaTags } from './site-meta'
 
 /** Vercel looks for `dist` at the repository root, whatever the build command or
@@ -29,5 +30,5 @@ const siteMeta = (): Plugin => ({
 })
 
 export default defineConfig({
-  plugins: [react(), publishToRepositoryRoot(), siteMeta()],
+  plugins: [react(), tailwindcss(), publishToRepositoryRoot(), siteMeta()],
 })

@@ -102,3 +102,23 @@ h1 { font-size: 25px; letter-spacing: -0.065rem; font-weight: 620; margin: 5px 0
 .view-buttons button[aria-pressed=true] { background: #e9eee2; color: #3c5432; }
 @media (max-width: 1000px) { .workspace { grid-template-columns: minmax(0, 1fr) 235px; padding: 0 14px; gap: 10px; } .inspector { padding: 17px 12px; } .scene-guide small { max-width: 180px; line-height: 1.5; } .viewport-bottom { align-items: flex-start; flex-direction: column-reverse; gap: 10px; } }
 @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; padding: 0 8px; } .workspace .viewport { height: 65dvh; min-height: 500px; } .inspector { min-height: 0; max-height: none; padding: 20px; } .room-navigation { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; } .finish-list { display: none; } .asset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 15px; } .stage-label { display: block; margin: 4px 0 0; font-size: 10px; } .inspector-heading p { margin-bottom: 14px; } }
+
+/* Workspace switcher and apartment inspector, from the apartment viewer */
+.area-stat { display: flex; flex-direction: column; gap: 3px; border-left: 1px solid #e1e4db; padding-left: 25px; }
+.area-stat strong { font-size: 20px; letter-spacing: -0.025em; font-weight: 600; }
+.area-stat > span { color: #8a9186; font-size: 10px; }
+.inspector-tabs { display: flex; gap: 3px; background: #f0f1ea; padding: 3px; border-radius: 6px; margin-bottom: 15px; }
+.inspector-tabs button { flex: 1; border: 0; border-radius: 4px; padding: 9px 4px; color: #839079; background: transparent; font-size: 11px; }
+.inspector-tabs button[aria-pressed=true] { background: #fffefa; color: #46563f; box-shadow: 0 1px 5px #35413910; }
+.inspector-tabs span { font-size: 9px; margin-left: 5px; color: #99a28f; }
+.asset-details { background: #f2f3ec; padding: 14px; border-radius: 5px; margin: 16px 0; }
+.asset-details h2 { color: #5e6e54; line-height: 1.5; }
+.asset-details p { font-size: 12px; color: #53664a; line-height: 1.5; }
+.asset-details p span { display: block; font-size: 9px; color: #8d9783; }
+.asset-details > small { color: #9c8765; font-size: 9px; }
+.asset-details p.asset-evidence { font-size: 10px; color: #859078; }
+.asset-details a { font-size: 10px; color: #5c754d; text-decoration: none; }
+.workspace-switcher { display: flex; gap: 4px; margin: -5px 22px 16px; padding: 4px; border-radius: 7px; background: #edf0e8; width: fit-content; max-width: calc(100% - 44px); overflow-x: auto; }
+.workspace-switcher button { flex-shrink: 0; white-space: nowrap; border: 0; border-radius: 4px; background: transparent; padding: 9px 17px; font-size: 11px; color: #819076; }
+.workspace-switcher button[aria-pressed=true] { background: #fffefa; color: #405634; box-shadow: 0 1px 5px #35413912; }
+.workspace-switcher button span { font-size: 8px; color: #a18b5b; margin-left: 8px; text-transform: uppercase; letter-spacing: .04em; }

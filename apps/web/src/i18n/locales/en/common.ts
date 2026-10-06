@@ -1,11 +1,14 @@
 export default {
   app: {
     eyebrow: 'Tapalque / Solar study',
+    navigation: 'Choose project view',
     loading: 'Opening {{workspace}}…',
     title: 'T3 Designer · {{workspace}}',
   },
   workspaces: {
-    building: { title: 'House and surroundings' },
+    walkthrough: { title: 'First-person walkthrough', badge: 'At human scale', nav: 'Walkthrough' },
+    apartment: { title: 'Apartment daylight', badge: 'Estimated measurements', nav: 'Apartment' },
+    building: { title: 'House and surroundings', nav: 'House and sun' },
   },
   settings: {
     title: 'Settings',
