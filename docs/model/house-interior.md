@@ -109,7 +109,7 @@ it reaches 355 mm, tilts +3 to -15 degrees, swivels +-60 and levels +-3. The mai
 
 ## Taking a TV off its mount, and the arm
 
-Looking at a TV: `E` switches it on (the Plex-style splash), `X` takes it off its wall mount (the mount stays; look at the spot to hang it back) and `Q` unfolds the mount's
+Looking at a TV (or the spot where it hung): `E` switches it on (the Plex-style splash), `X` takes it off its wall mount (the mount stays; look at the spot to hang it back) and `Q` unfolds the mount's
 arm, bringing the TV 29 cm out into the room, and folds it again. The state lives with the doors', under `mount-<name>` and `arm-<name>`. The arm is drawn as two pairs of links
 that join the wall plate to the head; the elbow bulges out a little as it unfolds.
 

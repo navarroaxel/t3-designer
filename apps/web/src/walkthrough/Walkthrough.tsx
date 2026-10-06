@@ -114,9 +114,9 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
       // X takes the TV off its wall mount, or hangs it back; E needs it on the wall.
       const key = tvMountKey(target.id), mounted = isTvMounted(doorStates, target.id)
       if (action === 'detach') { setVisitDoors({ snapshot, values: { ...doorStates, [key]: mounted ? 0 : 1 } }); setPose(currentPose); return }
-      if (!mounted) return
       // Q unfolds the mount's arm, bringing the TV out into the room; or folds it back against the wall.
       if (action === 'extend') { const arm = armKey(target.id); setVisitDoors({ snapshot, values: { ...doorStates, [arm]: (doorStates[arm] ?? 0) >= .5 ? 0 : 1 } }); setPose(currentPose); return }
+      if (!mounted) return
     } else if (action !== 'use') return
     const openness = target.open ? 0 : 1
     if (!canSetWalkDoorOpenness(world, doorStates, target.id, openness, currentPose)) return
@@ -198,7 +198,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
             onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.open ? c.closeDoor : c.openDoor}</button>
           {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
             onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isTvMounted(doorStates, interaction.id) ? c.tvRemove : c.tvMount}</button>}
-          {/^tv-(main|living)$/.test(interaction.id) && isTvMounted(doorStates, interaction.id) && <button type="button" className="walk-button" data-testid="walk-extend" data-tv-id={interaction.id}
+          {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-extend" data-tv-id={interaction.id}
             onClick={() => { input.current.extend = true }}><kbd>Q</kbd> {isArmExtended(doorStates, interaction.id) ? c.armFold : c.armExtend}</button>}
           {doorBlocked && <span role="status">{c.doorBlocked}</span>}
         </div>}

@@ -163,5 +163,5 @@ export const isTvMounted = (states: Readonly<Record<string, number>>, tvId: stri
 /** The mount's arm is folded unless the visit has unfolded it (Q): `arm-<name>`, 0 folded and 1 reaching its full 355 mm. */
 export const armKey = (tvId: string) => `arm-${tvId.replace(/^tv-/, '')}`
 export const isArmExtended = (states: Readonly<Record<string, number>>, tvId: string) => (states[armKey(tvId)] ?? 0) >= .5
-/** How far the TV has come out of its folded place, in metres. */
-export const armReach = (states: Readonly<Record<string, number>>, tvId: string) => isTvMounted(states, tvId) && isArmExtended(states, tvId) ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
+/** How far the mount's head has come out of its folded place, in metres: the TV with it, if it is on the mount. */
+export const armReach = (states: Readonly<Record<string, number>>, tvId: string) => isArmExtended(states, tvId) ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0

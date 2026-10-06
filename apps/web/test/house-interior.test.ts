@@ -427,8 +427,8 @@ test('Q unfolds a TV mount\'s arm: the TV comes out 29 cm, the links join the wa
   assert.equal(armKey('tv-living'), 'arm-living')
   assert.equal(armReach({}, 'tv-living'), 0)
   close(armReach({ 'arm-living': 1 }, 'tv-living'), .355 - .067, 1e-9)
-  // Off its mount, the TV does not come out.
-  assert.equal(armReach({ 'arm-living': 1, 'mount-living': 0 }, 'tv-living'), 0)
+  // The arm unfolds with the TV off the mount too: the mount's head comes out, the TV is not there to come with it.
+  close(armReach({ 'arm-living': 1, 'mount-living': 0 }, 'tv-living'), .355 - .067, 1e-9)
   const plate = furnishingsOn('first').find(piece => piece.id === 'tv-living-mount-wall-plate')!
   const wallV = plate.v[0], centreU = (plate.u[0] + plate.u[1]) / 2, centreY = (plate.y[0] + plate.y[1]) / 2
   for (const reach of [0, .1, .288]) {
