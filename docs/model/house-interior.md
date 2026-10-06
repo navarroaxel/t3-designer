@@ -51,7 +51,7 @@ The furniture comes from the same data files in both views.
 ## Doors, floors and where the visit starts
 
 - Each door keeps the colour the plan gives it (the main room's wenge, the bathroom's, the office's), through the optional `color` of a door.
-- The main room's 3 m door onto the balcony is a white aluminium **sliding** door (two panels, one fixed, one that slides over it). It starts closed and `E` opens and closes it.
+- The main room's 3 m door onto the balcony and the kitchen-living's 1.78 m door onto the terrace are the same white aluminium **sliding** door (two panels, one fixed, one that slides over it). It starts closed and `E` opens and closes it.
 - The floors are the plan's own tiling, the same patches the cutaway lays (Saing planks, Navona tiles); the balcony is Navona natural too.
 - The terrace with the grill and the laundry are walkable; the terrace is open to the sky, so it has no ceiling.
 - The first floor starts in the middle of the living, facing the kitchen.

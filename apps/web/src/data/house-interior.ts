@@ -117,9 +117,8 @@ function openingSpec(floor: Floor, wallId: string, index: number, bottom: number
   const id = `${wallId}-opening-${index + 1}`
   if (bottom <= .05 && top - bottom > 2.3 && width > 3) return { id, kind: 'door' as const, appearance: 'passage' as const, finish: 'gray' as const } // the garage door, shown as an open frame: a 4 m leaf would swing across the street
   // The balcony's 3 m door and the terrace's 1.78 m one are ways out: an open frame, not glazing the visitor bumps into.
-  // The main room's door onto the balcony (3 m) is a white aluminium sliding door; the terrace's is an open frame.
-  if (floor === 'first' && bottom <= .05 && width > 2.5) return { id, kind: 'door' as const, appearance: 'sliding' as const, finish: 'white' as const, color: '#f3f2ee' }
-  if (floor === 'first' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'passage' as const, finish: 'white' as const }
+  // The main room's 3 m door onto the balcony and the kitchen-living's 1.78 m door onto the terrace are the same white aluminium sliding door.
+  if (floor === 'first' && bottom <= .05 && width > 1.5) return { id, kind: 'door' as const, appearance: 'sliding' as const, finish: 'white' as const, color: '#f3f2ee' }
   if (bottom <= .05 && width > 1.5) return { id, kind: 'balcony-door' as const }
   if (bottom <= .05) return { id, kind: 'door' as const, appearance: floor === 'ground' ? 'panel' as const : 'glazed' as const, finish: 'gray' as const }
   return { id, kind: 'window' as const }

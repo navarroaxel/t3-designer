@@ -124,7 +124,10 @@ test('the first floor opens in the middle of the living, facing the kitchen, on 
 })
 
 test('the main room\'s balcony door is a white aluminium sliding door that opens and closes', () => {
-  const door = HOUSE_FLOORS.first.doors.find(item => item.appearance === 'sliding')!
+  const sliding = HOUSE_FLOORS.first.doors.filter(item => item.appearance === 'sliding')
+  // The terrace's door, in the kitchen-living, is the same door at 1.78 m.
+  assert.deepEqual(sliding.map(item => Math.round(item.width * 100)).sort(), [178, 300])
+  const door = sliding.find(item => Math.abs(item.width - 3) < 1e-9)!
   assert.ok(door && Math.abs(door.width - 3) < 1e-9 && door.color === '#f3f2ee')
   const scene = publicScene('first', [])
   const closed = buildWalkWorld(scene, { [door.id]: 0 }), open = buildWalkWorld(scene, { [door.id]: 1 })
