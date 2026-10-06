@@ -40,3 +40,10 @@ Wall height is 3.0 m (the 3.2 m storey less the 0.2 m slab) and door height 2.1 
 
 `apps/web/test/house-interior.test.ts` checks that both floors parse, that the owner's sizes survive the conversion, that the frames agree
 with `houseToSite`, that each fixture stands in its room and that the walkthrough can start on both floors.
+
+## One source for the walls
+
+The **House and sun** floor cutaway no longer builds its own walls. `HouseShell` draws `shellWallBoxes(floor, top)` from `house-interior.ts`: the same
+walls, doors and windows the walkthrough walks through, sawn off at the cut. A test compares their volume with the plan's own `wallBoxes` plus the
+partitions, so the two views cannot drift apart. The balcony and the laundry stay out of it: the cutaway draws them from the facade and the laundry volumes.
+The furniture comes from the same data files in both views.

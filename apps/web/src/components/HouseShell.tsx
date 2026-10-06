@@ -3,7 +3,7 @@ import { Line } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, GROUND_PARTITIONS, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, FIRST_FLOOR_PARTITIONS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, SIDE_OPENINGS, SLAB_THICKNESS, STAIRWELL_HOLE, wallBoxes,
+  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, LIVING_TV_PLACEMENT, MAIN_BED, QUEEN_BED, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, SECONDARY_BED, WARDROBE_LEAVES, SINGLE_BED, SECONDARY_WARDROBE, WARDROBE, FIRST_OUTLINE, GROUND_OUTLINE, SLAB_THICKNESS, STAIRWELL_HOLE,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { BATHROOM_BOXES } from '../data/bathroom'
@@ -14,6 +14,7 @@ import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
 import { KITCHEN_BOXES, type KitchenBox } from '../data/kitchen'
 import { WASHING_MACHINE_BOXES } from '../data/washing-machine'
 import { SPIN_DRYER_PARTS } from '../data/spin-dryer'
+import { shellWallBoxes } from '../data/house-interior'
 import { polygonShape } from '../lib/polygon-shape'
 
 /** The stairwell opening in the first-floor slab, as a ring. Defined once so the slab's geometry is not rebuilt on every render. */
@@ -38,14 +39,6 @@ function Slab({ outline, top, castShadow = false, holes = [] }: { outline: PlanP
   return <mesh geometry={geometry} position={[0, top - SLAB_THICKNESS, 0]} castShadow={castShadow} receiveShadow>
     <meshStandardMaterial color={SLAB_COLOR} roughness={.95} />
   </mesh>
-}
-
-/** Interior walls between two heights, from their plan rectangles. */
-function InteriorWalls({ walls, from, to, castShadow = false }: { walls: readonly [number, number, number, number][]; from: number; to: number; castShadow?: boolean }) {
-  return <>{walls.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, (from + to) / 2, -(v0 + v1) / 2]} castShadow={castShadow} receiveShadow>
-    <boxGeometry args={[u1 - u0, to - from, v1 - v0]} />
-    <meshStandardMaterial color={PARTITION_COLOR} roughness={.95} />
-  </mesh>)}</>
 }
 
 /** The stair's concrete slabs, floating, drawn up to `top` (the cut, or the underside of the first-floor slab). */
@@ -179,12 +172,12 @@ function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, 
 }
 
 function Walls({ floor, top, castShadow = false }: { floor: Floor; top: number; castShadow?: boolean }) {
-  const level = FLOOR_LEVEL[floor]
-  const boxes = useMemo(() => wallBoxes(floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE, OPENINGS[floor], level, top, undefined, SIDE_OPENINGS[floor]), [floor, level, top])
+  // The exterior walls and the partitions, from the same walls the walkthrough walks through.
+  const boxes = useMemo(() => shellWallBoxes(floor, top), [floor, top])
   return <>
     {boxes.map((box, index) => <mesh key={index} position={[box.center[0], box.center[1], -box.center[2]]} castShadow={castShadow} receiveShadow>
       <boxGeometry args={[box.size[0], box.size[1], box.size[2]]} />
-      <meshStandardMaterial color={WALL_COLOR} roughness={.95} />
+      <meshStandardMaterial color={box.kind === 'exterior' ? WALL_COLOR : PARTITION_COLOR} roughness={.95} />
     </mesh>)}
   </>
 }
@@ -199,7 +192,6 @@ export function HouseShell({ floor }: { floor: Floor }) {
     {floor === 'ground' && <>
       <Slab outline={GROUND_OUTLINE} top={GROUND_FLOOR_LEVEL} />
       <Walls floor="ground" top={CUT_HEIGHT} />
-      <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={CUT_HEIGHT} />
       {/* The UniFi doorbell beside the entrance door, on the recess's back wall. */}
       {DOORBELL_BOXES.map(box => <mesh key={box.id} position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} castShadow>
         <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
@@ -225,7 +217,6 @@ export function HouseShell({ floor }: { floor: Floor }) {
     {floor === 'first' && <>
       {/* The ground floor below is shown whole, capped by the first-floor slab. */}
       <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} />
-      <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={FLOOR_HEIGHT - SLAB_THICKNESS} />
       <StairBlocks top={STAIR_CEILING} />
       <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} holes={STAIRWELL_RINGS} />
       {/* The first floor is built over the entrance recess, so its floor covers it. */}
@@ -365,10 +356,6 @@ export function HouseShell({ floor }: { floor: Floor }) {
       <GlazedLeaf centre={[(LIVING_DOOR.u[0] + LIVING_DOOR.u[1]) / 2, LIVING_DOOR.v[1] - LIVING_DOOR_LEAVES.narrow / 2]} alongU={false} length={LIVING_DOOR_LEAVES.narrow} />
       {/* The doors, open 90 degrees with their swings; all right-handed. */}
       {FIRST_FLOOR_DOOR_SWINGS.map(door => <DoorSwingView key={door.id} door={door} />)}
-      {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + CUT_HEIGHT / 2, -(v0 + v1) / 2]} receiveShadow>
-        <boxGeometry args={[u1 - u0, CUT_HEIGHT, v1 - v0]} />
-        <meshStandardMaterial color={PARTITION_COLOR} roughness={.95} />
-      </mesh>)}
     </>}
   </group>
 }
@@ -382,14 +369,9 @@ export function HouseShell({ floor }: { floor: Floor }) {
 export function HouseShellPhysical() {
   return <group position={[HOUSE_CENTER[0], 0, HOUSE_CENTER[1]]} rotation={[0, HOUSE_YAW, 0]}>
     <Walls floor="ground" top={FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
-    <InteriorWalls walls={GROUND_PARTITIONS} from={0} to={FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
     <Slab outline={GROUND_OUTLINE} top={FLOOR_HEIGHT} castShadow holes={STAIRWELL_RINGS} />
     <Slab outline={ENTRY_RECESS_OUTLINE} top={FLOOR_HEIGHT} castShadow />
     <Walls floor="first" top={2 * FLOOR_HEIGHT - SLAB_THICKNESS} castShadow />
     <Slab outline={FIRST_OUTLINE} top={2 * FLOOR_HEIGHT} castShadow />
-    {FIRST_FLOOR_PARTITIONS.map(([u0, u1, v0, v1]) => <mesh key={`${u0}-${v0}`} position={[(u0 + u1) / 2, FLOOR_HEIGHT + (FLOOR_HEIGHT - SLAB_THICKNESS) / 2, -(v0 + v1) / 2]} castShadow>
-      <boxGeometry args={[u1 - u0, FLOOR_HEIGHT - SLAB_THICKNESS, v1 - v0]} />
-      <meshStandardMaterial color={PARTITION_COLOR} />
-    </mesh>)}
   </group>
 }

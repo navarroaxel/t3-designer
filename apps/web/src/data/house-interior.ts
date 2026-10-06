@@ -1,3 +1,4 @@
+import { segmentWall } from '@t3-designer/geometry'
 import { ApartmentSchema, SCENE_SCHEMA_VERSION, type Apartment, type Door, type Point2D, type Room, type Wall, type Window } from '@t3-designer/scene-schema'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import {
@@ -257,4 +258,35 @@ export { level as FLOOR_ELEVATION }
 /** The floor a room belongs to, for anything that carries a room id: fixtures, labels, layouts. */
 export function floorOfRoom(roomId: string): Floor | undefined {
   return HOUSE_FLOOR_ORDER.find(floor => HOUSE_FLOORS[floor].rooms.some(room => room.id === roomId))
+}
+
+export type ShellBox = { center: [number, number, number]; size: [number, number, number]; kind: Wall['kind'] }
+const ANNEX = /^first-(laundry|balcony)/
+
+/**
+ * The walls of one floor as solid boxes in the house frame ([u, y, v], absolute heights), sawn off at `top`: what the floor cutaway draws.
+ * They come from the same walls, doors and windows the walkthrough walks through, so the two views cannot drift apart. The balcony and the
+ * laundry are left out: the cutaway draws them from the facade and the laundry's own volumes.
+ */
+export function shellWallBoxes(floor: Floor, top: number): ShellBox[] {
+  const apartment = HOUSE_FLOORS[floor], base = level[floor]
+  const boxes: ShellBox[] = []
+  for (const wall of apartment.walls) {
+    if (ANNEX.test(wall.id)) continue
+    const dx = wall.to[0] - wall.from[0], dz = wall.to[1] - wall.from[1], length = Math.hypot(dx, dz)
+    const ux = dx / length, uz = dz / length
+    const alongU = Math.abs(ux) > .5
+    const openings = [...apartment.doors, ...apartment.windows].filter(opening => opening.wallId === wall.id)
+    for (const segment of segmentWall(wall, openings)) {
+      const bottom = base + segment.bottom, roof = Math.min(base + segment.bottom + segment.height, top)
+      if (roof - bottom < 1e-6) continue
+      const along = segment.offset + segment.length / 2
+      const x = wall.from[0] + ux * along, z = wall.from[1] + uz * along
+      boxes.push({
+        center: [x, (bottom + roof) / 2, -z], kind: wall.kind,
+        size: alongU ? [segment.length, roof - bottom, wall.thickness] : [wall.thickness, roof - bottom, segment.length],
+      })
+    }
+  }
+  return boxes
 }

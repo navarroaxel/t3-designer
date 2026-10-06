@@ -2,8 +2,9 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { pointInEditorPolygon } from '@t3-designer/scene-schema'
 import { currentFixtures } from '../src/data/current-state.ts'
-import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom } from '../src/data/house-interior.ts'
-import { BATHROOM, FIRST_FLOOR_BATHROOM, FRONT_ROOMS, GARAGE, GROUND_GARAGE, OFFICE_WIDTH, GROUND_OFFICE } from '../src/data/house-plan.ts'
+import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
+import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
+import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENINGS, OUTLINES, SIDE_OPENINGS, wallBoxes, FIRST_FLOOR_BATHROOM, FRONT_ROOMS, GARAGE, GROUND_GARAGE, OFFICE_WIDTH, GROUND_OFFICE } from '../src/data/house-plan.ts'
 import { houseToSite } from '../src/data/frame.ts'
 import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirectionToApartment } from '../src/data/house-placement.ts'
 import { publicScene } from '../src/lib/public-scene.ts'
@@ -100,4 +101,16 @@ test('the visitor can step out onto the balcony, and is stopped by its railing a
   assert.ok(!isWalkPositionFree(world, [3, -3.5]))
   assert.ok(room('first', 'laundry') && room('first', 'balcony'))
   assert.ok(isWalkPositionFree(world, [5.2, -3.3]), 'the laundry floor is walkable')
+})
+
+test('the cutaway draws the same walls as the walkthrough walks through', () => {
+  // Before the two shared a source, the cutaway built its walls from the outline and the partitions; the volume must not change.
+  const volume = (boxes: { size: [number, number, number] }[]) => boxes.reduce((sum, box) => sum + box.size[0] * box.size[1] * box.size[2], 0)
+  for (const floor of HOUSE_FLOOR_ORDER) {
+    const level = floor === 'ground' ? 0 : FLOOR_HEIGHT
+    const top = level + CUT_HEIGHT
+    const fromPlan = wallBoxes(OUTLINES[floor], OPENINGS[floor], level, top, undefined, SIDE_OPENINGS[floor])
+    const partitions = (floor === 'ground' ? GROUND_PARTITIONS : FIRST_FLOOR_PARTITIONS).map(([u0, u1, v0, v1]) => ({ size: [u1 - u0, CUT_HEIGHT, v1 - v0] as [number, number, number] }))
+    close(volume(shellWallBoxes(floor, top)), volume(fromPlan) + volume(partitions), 1e-6)
+  }
 })
