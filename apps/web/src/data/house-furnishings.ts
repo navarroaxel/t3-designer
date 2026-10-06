@@ -112,3 +112,14 @@ export function furnishingBlockers(floor: Floor, level: number) {
     bottom: piece.y[0] - level, top: piece.y[1] - level,
   }))
 }
+
+/** The TVs, which a visitor can switch on: a screen on each, facing +v, in the walkthrough's boxes. */
+export const TV_IDS = ['tv-main', 'tv-living'] as const
+export function furnishingDevices(floor: Floor, level: number) {
+  return furnishingsOn(floor).filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => ({
+    id: piece.id,
+    center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1]) / 2] as [number, number],
+    halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0]) / 2, cos: 1, sin: 0,
+    bottom: piece.y[0] - level, top: piece.y[1] - level,
+  }))
+}

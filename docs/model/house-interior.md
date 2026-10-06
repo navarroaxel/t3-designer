@@ -55,3 +55,8 @@ The furniture comes from the same data files in both views.
 - The floors are the plan's own tiling, the same patches the cutaway lays (Saing planks, Navona tiles); the balcony is Navona natural too.
 - The terrace with the grill and the laundry are walkable; the terrace is open to the sky, so it has no ceiling.
 - The first floor starts in the middle of the living, facing the kitchen.
+
+## The TVs and the street door
+
+- Look at a TV and press `E`: it switches on and shows the Prex wordmark (drawn in `HouseFurnishings.tsx`; an approximation, not the brand's artwork). A TV is aimed at like a door and keeps its state in the same visit record.
+- The street door in the entrance recess opens inward with the right hand: hinged on the lower v, seen from the street.

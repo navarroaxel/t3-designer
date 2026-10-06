@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { polygonCentroid } from '@t3-designer/geometry'
 import { pointInEditorPolygon } from '@t3-designer/scene-schema'
+import { MAIN_TV_PLACEMENT } from '../src/data/house-plan.ts'
 import { currentFixtures } from '../src/data/current-state.ts'
 import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
@@ -9,7 +10,7 @@ import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENIN
 import { houseToSite } from '../src/data/frame.ts'
 import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirectionToApartment } from '../src/data/house-placement.ts'
 import { publicScene } from '../src/lib/public-scene.ts'
-import { buildWalkWorld, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
+import { buildWalkWorld, canSetWalkDoorOpenness, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
 
 const close = (actual: number, expected: number, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`)
 const room = (floor: 'ground' | 'first', id: string) => HOUSE_FLOORS[floor].rooms.find(item => item.id === id)!
@@ -135,4 +136,31 @@ test('the main room\'s balcony door is a white aluminium sliding door that opens
   const farHalf: [number, number] = [-5, -.4], nearHalf: [number, number] = [-5, -2.8]
   assert.ok(!isWalkPositionFree(closed, farHalf) && !isWalkPositionFree(closed, nearHalf))
   assert.ok(isWalkPositionFree(open, [-4.6, -.4]) && !isWalkPositionFree(open, nearHalf))
+})
+
+test('the street door opens inward with the right hand: hinged on the lower v, swinging toward the rear', () => {
+  const apartment = HOUSE_FLOORS.ground
+  const door = apartment.doors.find(item => item.wallId.startsWith('ground-exterior') && item.width < 1 && item.height > 2 && item.id.includes('opening'))!
+  const wall = apartment.walls.find(item => item.id === door.wallId)!
+  const length = Math.hypot(wall.to[0] - wall.from[0], wall.to[1] - wall.from[1])
+  const along = (distance: number) => [wall.from[0] + (wall.to[0] - wall.from[0]) / length * distance, wall.from[1] + (wall.to[1] - wall.from[1]) / length * distance]
+  const [startZ, endZ] = [along(door.offset)[1], along(door.offset + door.width)[1]]
+  const hingeZ = door.hinge === 'start' ? startZ : endZ, freeZ = door.hinge === 'start' ? endZ : startZ
+  // z = -v: the lower v is the larger z.
+  assert.ok(hingeZ > freeZ, 'hinged on the lower v')
+  // The leaf swings to wall-local +z (-dz, dx) when opensToward is 1: toward +x, the rear, means the normal's x has the sign of opensToward.
+  const normalX = -(wall.to[1] - wall.from[1]) / length
+  assert.ok(normalX * door.opensToward > 0, 'opens toward the rear')
+})
+
+test('the main room\'s TV can be aimed at and switched on with E, and nothing else answers there', () => {
+  const world = buildWalkWorld(publicScene('first', []))
+  assert.ok(world.doors.some(door => door.id === 'tv-main') && world.doors.some(door => door.id === 'tv-living'))
+  const u = (MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, v = MAIN_TV_PLACEMENT.v[1]
+  // Standing 1.5 m from the screen, in the main room (higher v), facing it (toward -v is +z; yaw pi), looking down at its centre.
+  const pose = { x: u, z: -(v + 1.5), yaw: Math.PI, pitch: Math.atan2(1.1 - 1.65, 1.5), eyeHeight: 1.65, feetOffset: 0 }
+  const target = findWalkDoorTarget(world, {}, pose)
+  assert.deepEqual(target, { id: 'tv-main', open: false })
+  assert.ok(canSetWalkDoorOpenness(world, {}, 'tv-main', 1, pose))
+  assert.deepEqual(findWalkDoorTarget(world, { 'tv-main': 1 }, pose), { id: 'tv-main', open: true })
 })

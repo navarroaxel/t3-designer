@@ -39,7 +39,7 @@ function Minimap({ snapshot, world, doorStates, pose, label }: { snapshot: Proje
         x1={wall.from[0] + ux * segment.offset} y1={wall.from[1] + uz * segment.offset}
         x2={wall.from[0] + ux * (segment.offset + segment.length)} y2={wall.from[1] + uz * (segment.offset + segment.length)} stroke="#4b584d" strokeWidth={wall.thickness} />)
     })}
-    {world.blockers.flatMap(leaf => leaf.doorId ? [<line key={`door-${leaf.doorId}`} data-door-id={leaf.doorId} data-openness={doorStates[leaf.doorId]}
+    {world.blockers.flatMap(leaf => leaf.doorId && !leaf.device ? [<line key={`door-${leaf.doorId}`} data-door-id={leaf.doorId} data-openness={doorStates[leaf.doorId]}
       x1={leaf.center[0] - leaf.cos * leaf.halfWidth} y1={leaf.center[1] + leaf.sin * leaf.halfWidth}
       x2={leaf.center[0] + leaf.cos * leaf.halfWidth} y2={leaf.center[1] - leaf.sin * leaf.halfWidth}
       stroke="#956a3c" strokeWidth={.065} strokeLinecap="round" />] : [])}
@@ -182,7 +182,7 @@ export function Walkthrough({ snapshot, onClose, initialMoment, reference = fals
         {active && <div className={`walk-crosshair${interaction ? ' walk-crosshair-target' : ''}`} aria-hidden="true" />}
         {interaction && <div className="walk-interaction">
           <button type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
-            onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.open ? c.closeDoor : c.openDoor}</button>
+            onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.open ? c.closeDoor : c.openDoor}</button>
           {doorBlocked && <span role="status">{c.doorBlocked}</span>}
         </div>}
         {!active && ready && !settingsOpen && <div className="walk-overlay"><div className="walk-start-card">

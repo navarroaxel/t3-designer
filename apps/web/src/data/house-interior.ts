@@ -97,8 +97,13 @@ function exteriorWalls(floor: Floor, outline: PlanPoint[]) {
       const spec = openingSpec(floor, wallIds.get(index)!, openingIndex, bottom, top, width)
       kinds[spec.id] = spec
       if (spec.kind === 'door') {
+        // The street door, in the entrance recess, opens inward with the right hand: seen from the street, facing the rear (+u), the hinges are
+        // on the right, which is the lower v. The wall runs from v = a[1] to b[1]; inward is +u.
+        const streetDoor = floor === 'ground' && Math.abs(du) < EPS && Math.abs(a[0] + 4) < EPS && width < 1.2
+        const lowEndFirst = dv > 0
         doors.push({
-          id: spec.id, wallId: id, offset, width, height: top - bottom, hinge: 'start', opensToward: 1, locationConfidence: 'observed',
+          id: spec.id, wallId: id, offset, width, height: top - bottom,
+          hinge: streetDoor && !lowEndFirst ? 'end' : 'start', opensToward: streetDoor && !lowEndFirst ? -1 : 1, locationConfidence: 'observed',
           appearance: spec.appearance, finish: spec.finish, color: 'color' in spec ? spec.color : undefined, estimated: true,
         })
       } else {

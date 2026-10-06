@@ -250,7 +250,7 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, 
     {apartment.walls.map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />
-    {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} /></>}
+    {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} devices={doorStates} /></>}
     {snapshot.fixtures.map(fixture => {
       const asset = assetMap.get(fixture.assetId)
       return asset ? <PlacedObject key={fixture.id} fixture={fixture} asset={asset} projectId={snapshot.project.id} /> : null
