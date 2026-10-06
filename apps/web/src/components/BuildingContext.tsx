@@ -207,8 +207,10 @@ export function SiteGround() {
  * physical obstacles used by the sunlight pass. */
 export type FloorView = 'exterior' | Floor
 
-export function BuildingContext({ visible = true, showNeighbors = true, showPanels = true, panelShade = null, installedPanels = null, floor = 'exterior' }: {
+export function BuildingContext({ visible = true, showHouse = true, showNeighbors = true, showPanels = true, panelShade = null, installedPanels = null, floor = 'exterior' }: {
   visible?: boolean
+  /** Off for the interior views, which draw the house themselves; its shadows stay. */
+  showHouse?: boolean
   showNeighbors?: boolean
   showPanels?: boolean
   panelShade?: Record<string, number> | null
@@ -231,7 +233,7 @@ export function BuildingContext({ visible = true, showNeighbors = true, showPane
   return <>
     <ShadowOnly>{physical}</ShadowOnly>
     {visible && <>
-      {floor === 'exterior'
+      {!showHouse ? null : floor === 'exterior'
         ? <>
             {house.map(building => <Volume key={building.id} building={building} castShadow={false} />)}
             <HouseFacade />

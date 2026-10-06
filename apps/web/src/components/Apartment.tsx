@@ -2,8 +2,6 @@ import type { Apartment as ApartmentData, Fixture } from '@t3-designer/scene-sch
 import { Floor } from './Floor'
 import { Wall } from './Wall'
 import { Fixtures, type FixtureEditing } from './Fixtures'
-import { ServiceDetails } from './ServiceDetails'
-import { ArchitecturalDetails } from './ArchitecturalDetails'
 import { roomFinish } from '../materials/surfaces'
 import { ApartmentSolarEnvelope } from './ApartmentSolarEnvelope'
 
@@ -36,8 +34,7 @@ export function Apartment({ apartment, cutaway, showFixtures = true, solarStudy 
           cutaway={cutaway}
         />
       ))}
-      <ArchitecturalDetails apartment={apartment} cutaway={solarStudy ? false : cutaway} />
-      {showFixtures && <><Fixtures fixtures={fixtures} editing={editing} /><ServiceDetails apartment={apartment} cutaway={cutaway} fixtures={fixtures} /></>}
+      {showFixtures && <Fixtures fixtures={fixtures} editing={editing} />}
     </group>
   )
 }

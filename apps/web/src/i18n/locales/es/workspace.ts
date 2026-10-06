@@ -1,28 +1,5 @@
 const workspace = {
   building: {
-    "department": "Nuestro departamento",
-    "apartmentLocationTitle": "El T3, en su lugar.",
-    "apartmentFloor": "T3 · {{floor}}.er piso estimado",
-    "courtyardAssumption": "Fachada al patio · Posición ilustrativa.",
-    "buildingCuts": "Cortes del edificio",
-    "wholeBuilding": "Completo",
-    "floorCut": "Corte de piso",
-    "interior": "Ver interior",
-    "wholeBuildingLink": "Ver edificio completo ↗",
-    "locateApartment": "Ubicar mi departamento ↗",
-    "exploreApartment": "Explorar luz en el departamento",
-    "nationalBuildingRegister": "Registro Nacional de Edificios ↗",
-    "registerDescription": "Guía del registro; el ejemplo usa identificadores propios. {{address}}.",
-    "ignTopo": "IGN · BD TOPO ↗",
-    "ignDescription": "Geometría adaptada y generalizada. Altura del modelo: {{height}}; {{floors}} plantas. Incertidumbre original: {{planar}} en planta y {{vertical}} en altura.",
-    "cadastre": "Método catastral · ejemplo {{label}} ↗",
-    "parcelDescription": "Área ilustrativa de {{area}}; no identifica una parcela real.",
-    "apartmentLabel": "Nuestro T3",
-    "apartmentKey": "Nuestro T3",
-    "footerTitle": "Edificio + sol",
-    "footerDescription": "Geometría de contexto conservada · Identificadores generalizados · Posición ilustrativa del T3",
-    "mapLink": "Método de datos geográficos ↗",
-    "demoName": "Edificio de demostración",
     sceneAria: 'Casa y entorno en tres dimensiones', locationEyebrow: 'La casa y su entorno',
     location: 'Buenos Aires · Argentina', camera: 'Cámara de la escena',
     perspective: 'Perspectiva', plan: 'Vista superior', resetView: 'Restablecer vista', labels: 'Rótulos',
@@ -159,7 +136,6 @@ const workspace = {
     floorNote: 'Las medianeras tienen 15 cm de este lado (30 cm compartidos); los demás muros exteriores son de 0,3 m supuestos. El interior se modela ambiente por ambiente, y todavía no está todo.',
   },
   solar: {
-    "demoLocalTime": "Hora local · Europe/Paris",
     chartAria: 'Altura del sol a lo largo del día; la marca señala la hora elegida',
     dayOfYear: 'Día del año',
     compareSeasons: 'Comparar estaciones',
@@ -196,21 +172,26 @@ const workspace = {
     hours: 'h',
   },
   rooms: {
-    "bedroom-1": "Habitación 1",
-    "bedroom-2": "Habitación 2",
-    "living": "Living / comedor",
-    "entrance": "Entrada",
-    "wc": "WC",
+    "secondary-room": "Dormitorio secundario",
+    "main-room": "Dormitorio principal",
+    "closet": "Vestidor",
     "bathroom": "Baño",
-    "kitchen": "Cocina",
-    "closet": "Placard",
-    "balcony": "Balcón",
+    "hall": "Pasillo",
+    "stair-corridor": "Pasillo de la escalera",
+    "kitchen-living": "Cocina y living",
+    "garage": "Cochera",
+    "entrance-hall": "Recibidor",
+    "ground-living": "Living",
+    "pantry": "Despensa",
+    "ground-bathroom": "Baño",
+    "office": "Oficina",
+    "light-well": "Pulmón",
     "unknown": "Ambiente"
   },
   apartment: {
-    "modelAria": "Modelo del departamento con luz solar",
-    "caption": "Nuestro T3",
-    "sunInDemo": "Sol en la demo",
+    "modelAria": "Interior de la casa con luz solar",
+    "caption": "La casa",
+    "sunInDemo": "Sol en la casa",
     "cameraView": "Vista de cámara",
     "perspective": "Perspectiva",
     "plan": "Planta",
@@ -224,9 +205,9 @@ const workspace = {
     "cutaway": "Corte",
     "fixtures": "Equipamiento",
     "labels": "Rótulos",
-    "inspectorAria": "Explorar el departamento y la luz solar",
-    "insideEyebrow": "Adentro del T3",
-    "tagline": "Tu casa, a la luz del día.",
+    "inspectorAria": "Explorá la casa y su luz solar",
+    "insideEyebrow": "Adentro de la casa",
+    "tagline": "Tu casa a la luz del día.",
     "inspectorContents": "Contenido del inspector",
     "sunTab": "Sol",
     "roomsTab": "Ambientes",
@@ -234,25 +215,20 @@ const workspace = {
     "observeLight": "Observar la luz por ambiente",
     "lookAtLight": "Mirar la luz en",
     "focusRoom": "Enfocar ambiente",
-    "allApartment": "Todo el T3",
-    "living": "Living",
-    "bedroomOne": "Habitación 1",
-    "bedroomTwo": "Habitación 2",
+    "allApartment": "Toda la planta",
     "compareSeasons": "Comparar estaciones",
-    "lightInstruction": "Mové la hora y compará estaciones para ver hasta dónde entra el sol por las ventanas.",
-    "livingFacade": "Living",
-    "bedroomsFacade": "Habitaciones",
+    "lightInstruction": "Cambiá la hora y comparás estaciones para ver hasta dónde llega el sol por las ventanas y la puerta del balcón.",
     "estimatedOrientation": "Orientación estimada",
     "buildingShadowTitle": "El edificio también da sombra.",
-    "buildingShadowBody": "Mostrarlo u ocultarlo solo cambia la vista. Sus sombras y las de los vecinos siguen presentes; el corte conserva el efecto de muros y techo.",
-    "sunLocationPrecision": "Ubicación y precisión del sol",
-    "placementUnconfirmed": "Piso, posición y orientación quedan por confirmar.",
-    "sunMethod": "La posición solar usa un origen regional aproximado (48° N, 4° O) y Europe/Paris. La geometría es ilustrativa; no representa un estudio de radiación del inmueble.",
-    "placementAssumption": "Posición ilustrativa: tercera planta, living al suroeste y habitaciones al noreste.",
+    "buildingShadowBody": "Mostrar u ocultar a los vecinos solo cambia la vista. Sus sombras, el techo y el primer piso siguen ahí.",
+    "sunLocationPrecision": "Ubicación del sol y precisión",
+    "placementUnconfirmed": "Las alturas de paredes y puertas son supuestas; los ambientes detrás del contrafrente de la planta baja todavía no están modelados.",
+    "sunMethod": "La posición del sol se calcula para el barrio de la casa (redondeado a 0,01°) y America/Argentina/Buenos_Aires. No es un estudio de irradiancia.",
+    "placementAssumption": "Las plantas se arman con las medidas y fotos del dueño; el plano es el del modelo de la casa.",
     "unknownAsset": "Elemento",
     "sunSource": "Cálculo solar · NOAA / Meeus ↗",
     "fullView": "Vista completa",
-    "materials": "Materiales existentes",
+    "materials": "Terminaciones",
     "roomArea": "{{area}}",
     "assetCountNote": "{{count}} elementos colocados. Elegí un elemento para ver sus dimensiones y su ambiente.",
     "assetDimensions": "ancho × alto × fondo",
@@ -261,108 +237,102 @@ const workspace = {
     "evidenceSources": "Fuentes y alcance",
     "reportedArea": "{{area}}",
     "extraArea": "{{area}} · balcón",
-    "canvasFallback": "La vista del departamento necesita WebGL. Activá la aceleración gráfica del navegador.",
-    "canvasAria": "Modelo 3D del departamento con luz solar por sus ventanas. Arrastrar para orbitar, rueda para acercar.",
+    "canvasFallback": "La vista de la casa necesita WebGL. Activá la aceleración gráfica del navegador.",
+    "canvasAria": "Modelo 3D del interior de la casa con el sol entrando por las ventanas. Arrastrá para girar, usá la rueda para acercar.",
     "roomLabelsAria": "Nombres de ambientes y superficies declaradas",
-    "parquet": "Parquet existente",
-    "parquetRooms": "Living y dormitorios",
-    "darkTile": "Cerámica oscura",
-    "darkTileRooms": "Cocina",
-    "lightTile": "Cerámica clara",
-    "lightTileRooms": "Baño",
-    "greenGrayFloor": "Piso gris verdoso",
-    "greenGrayFloorRooms": "Entrada y WC",
-    "blueGrayPaint": "Pintura azul gris",
-    "blueGrayPaintRooms": "Marcos de servicio",
-    "footerTitle": "Departamento + sol",
-    "footerDescription": "Geometría de demostración conservada, con origen solar regional aproximado.",
+    "footerTitle": "Casa + sol",
+    "footerDescription": "Las plantas de la casa, con las medidas del dueño, bajo el sol de su barrio.",
     "wallHeight": "Altura: {{height}}",
-    "estimated": "estimada"
+    "estimated": "estimada",
+    "floorSwitch": "Planta",
+    "floorGround": "Planta baja",
+    "floorFirst": "Primer piso",
+    "frontFacade": "El frente a la calle mira al",
+    "rearFacade": "El contrafrente mira al",
+    "planksAlmond": "Tablones Saing almendra",
+    "planksAlmondRooms": "Dormitorios y oficina",
+    "planksHoney": "Tablones Saing miel",
+    "planksHoneyRooms": "Living y cocina",
+    "navonaTiles": "Porcelanato Navona natural",
+    "navonaTilesRooms": "Baños y pulmón"
   },
   assets: {
     "fridge-freezer": {
       "label": "Heladera con freezer",
-      "evidence": "P06 / P11 · acero inoxidable, dos puertas"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "washing-machine": {
       "label": "Lavarropas frontal",
-      "evidence": "P02 · frontal blanco bajo mesada"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "oven-cooktop": {
       "label": "Horno y placa",
-      "evidence": "P08 / V02 · horno negro y placa de cuatro zonas"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "microwave": {
       "label": "Microondas",
-      "evidence": "P08 / P11 · negro, sobre mesada"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "extractor-hood": {
       "label": "Campana extractora",
-      "evidence": "P08 · campana y chimenea de acero"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "boiler": {
       "label": "Caldera mural",
-      "evidence": "P06 / P11 · carcasa blanca"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "base-cabinet": {
       "label": "Mueble bajo de cocina",
-      "evidence": "P06 / P08 / V02 · roble, frentes enmarcados"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "sink-cabinet": {
       "label": "Mueble con pileta y escurridor",
-      "evidence": "P06 / P11 · una pileta de acero"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "wall-cabinet": {
       "label": "Alacena",
-      "evidence": "P06 / P11 · roble, dos hojas"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "bathroom-vanity": {
       "label": "Vanitory y lavabo",
-      "evidence": "P02 · un lavabo circular de acero; el segundo es un reflejo"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "toilet": {
       "label": "Inodoro",
-      "evidence": "P03 / V04 · cerámica blanca"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "radiator": {
       "label": "Radiador",
-      "evidence": "P07 / P10 / V04 · panel blanco"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "towel-rail": {
       "label": "Toallero radiador",
-      "evidence": "P02 · blanco, visible en espejo"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "glass-block-screen": {
       "label": "Mampara de bloques de vidrio",
-      "evidence": "P02 / V04 · bloques translúcidos"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "shower-tray": {
       "label": "Receptor de ducha",
-      "evidence": "V04 03s · receptor elevado blanco"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "electrical-panel": {
       "label": "Tablero eléctrico",
-      "evidence": "P04 · sobre paso entrada–living"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "low-table": {
       "label": "Mesa baja de madera",
-      "evidence": "V04 44s · junto al acceso al balcón"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     },
     "wall-mirror": {
       "label": "Espejo de baño",
-      "evidence": "P02 · sobre lavabo y lavarropas"
+      "evidence": "Réplica visual de un modelo típico; no es el de la casa."
     }
   },
   fixtures: {
     "retry": "Reintentar",
     "failed": "No se pudo cargar: {{label}}"
-  },
-  reconstruction: {
-    "note1": "Pisos, colores, aberturas y equipamiento reconstruidos con 11 fotos y 4 videos.",
-    "note2": "Las superficies provienen del plano. Medidas lineales, alturas y posiciones son estimaciones.",
-    "note3": "Cocina en U, acceso al balcón y separación entre dormitorios ajustados según los videos.",
-    "note4": "La distribución precisa de la ducha y la mampara queda pendiente de un plano medido del baño.",
-    "note5": "Desgaste representativo; esta base todavía no reproduce cada rotura o irregularidad."
   },
 } as const
 

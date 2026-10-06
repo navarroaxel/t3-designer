@@ -74,3 +74,5 @@
   .walkthrough:fullscreen .walk-stage { height: 100dvh; }
 }
 @media (prefers-reduced-motion: reduce) { .walkthrough * { scroll-behavior: auto; } }
+
+.walkthrough-floors { position: static; margin: 0 22px 12px; width: fit-content; }

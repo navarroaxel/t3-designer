@@ -143,8 +143,7 @@ export function floorSurface(finish: FloorFinish): Surface {
 }
 
 export function roomFinish(roomId: string): FloorFinish {
-  if (roomId === 'bathroom') return 'ivory-tile'
-  if (roomId === 'kitchen') return 'slate'
-  if (roomId === 'entrance' || roomId === 'wc') return 'entry-tile'
+  if (roomId === 'bathroom' || roomId === 'ground-bathroom' || roomId === 'light-well') return 'ivory-tile'
+  if (roomId === 'garage' || roomId === 'pantry' || roomId === 'entrance-hall') return 'entry-tile'
   return 'parquet'
 }

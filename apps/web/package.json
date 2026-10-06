@@ -17,7 +17,6 @@
   "dependencies": {
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.8.0",
-    "@t3-designer/asset-schema": "workspace:*",
     "@t3-designer/geometry": "workspace:*",
     "@t3-designer/scene-schema": "workspace:*",
     "@vercel/analytics": "^2.0.1",

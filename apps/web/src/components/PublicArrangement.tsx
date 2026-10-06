@@ -4,11 +4,14 @@ import { assetLabel, roomLabel } from '../i18n/workspace-labels'
 import { movableDemoFixture, toggleDemoFixture } from '../lib/demo-layout'
 import type { DemoLayout } from '../lib/useDemoLayout'
 import { demoFixtureCatalog } from '../data/demo-catalog'
+import { floorOfRoom } from '../data/house-interior'
+import type { Floor } from '../data/house-plan'
 import { demoLayoutCopy } from './demo-layout-copy'
 import { ViewerIcon, ViewerPanel } from './ViewerPanel'
 
-export function PublicArrangement({ layout, onClose, selectedId, onSelect, error, onClearError }: {
+export function PublicArrangement({ layout, floor, onClose, selectedId, onSelect, error, onClearError }: {
   layout: DemoLayout
+  floor: Floor
   onClose: () => void
   selectedId: string | null
   onSelect: (id: string | null) => void
@@ -19,6 +22,7 @@ export function PublicArrangement({ layout, onClose, selectedId, onSelect, error
   const { locale } = useLocale(), c = demoLayoutCopy[locale]
   const warning = layout.status === 'unavailable' || layout.status === 'recovered'
   const selected = layout.fixtures.find(fixture => fixture.id === selectedId)
+  const onFloor = demoFixtureCatalog.filter(item => floorOfRoom(item.fixture.roomId) === floor)
 
   function setPresent(id: string, present: boolean) {
     onClearError()
@@ -37,18 +41,18 @@ export function PublicArrangement({ layout, onClose, selectedId, onSelect, error
     <div className="arrangement-controls">
       <p className="arrangement-help">{selected && !movableDemoFixture(selected) ? c.fixedHelp : c.moveHelp}</p>
       {error && <p role="alert" className="tw:m-0 tw:text-sm tw:text-red-700">{c.error}</p>}
-      {(['generated', 'apartment'] as const).map(source => <details className="arrangement-catalog-section" key={source} data-catalog-source={source} aria-label={source === 'generated' ? c.generated : c.objects} open>
-        <summary><span>{source === 'generated' ? c.generated : c.objects}</span><span className="arrangement-catalog-count">{demoFixtureCatalog.filter(item => item.source === source).length}</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
+      {(['apartment'] as const).map(source => <details className="arrangement-catalog-section" key={source} data-catalog-source={source} aria-label={c.objects} open>
+        <summary><span>{c.objects}</span><span className="arrangement-catalog-count">{onFloor.length}</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
         <ul className="arrangement-catalog">
-          {demoFixtureCatalog.filter(item => item.source === source).map(({ fixture, asset, previewUrl }) => {
+          {onFloor.map(({ fixture, previewUrl }) => {
             const current = layout.fixtures.find(item => item.id === fixture.id)
             const present = !!current
-            const label = source === 'generated' ? asset.label : assetLabel(t, fixture.assetId)
+            const label = assetLabel(t, fixture.assetId)
             const room = roomLabel(t, current?.roomId ?? fixture.roomId)
             const description = `${label} · ${room}`
             return <li key={fixture.id} data-fixture-id={fixture.id} className={`arrangement-catalog-card${selectedId === fixture.id && present ? ' is-selected' : ''}${present ? ' is-present' : ' is-absent'}`}>
               <button type="button" className="arrangement-catalog-select" aria-label={`${present ? c.select : c.addAndSelect}: ${description}`} aria-pressed={selectedId === fixture.id && present} onClick={() => setPresent(fixture.id, true)}>
-                <span className="arrangement-catalog-preview"><img src={previewUrl} alt="" loading="lazy" decoding="async" width="160" height="104" />{source === 'generated' && <span className="arrangement-catalog-draft">{c.draft}</span>}</span>
+                <span className="arrangement-catalog-preview"><img src={previewUrl} alt="" loading="lazy" decoding="async" width="160" height="104" /></span>
                 <span className="arrangement-catalog-name">{label}</span>
                 <span className="arrangement-catalog-room">{room}{!movableDemoFixture(fixture) && <span> · {c.fixed}</span>}</span>
               </button>

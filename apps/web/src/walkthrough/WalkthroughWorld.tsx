@@ -3,9 +3,9 @@ import { useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { apartmentBounds } from '@t3-designer/geometry'
 import { defaultDesignCustomization, fixtureLightPosition, type DesignCustomization, type Fixture, type Point2D, type ProjectSnapshot } from '@t3-designer/scene-schema'
-import { Color, DirectionalLight, DoubleSide, Mesh, Object3D, Path, PMREMGenerator, Shape, Vector3 } from 'three'
+import { Color, DirectionalLight, DoubleSide, Mesh, Object3D, PMREMGenerator, Shape, Vector3 } from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { ArchitecturalDetails } from '../components/ArchitecturalDetails'
+import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
 import { Wall } from '../components/Wall'
 import type { SolarPosition } from '../lib/solar'
@@ -25,23 +25,13 @@ type WalkthroughWorldProps = {
   doorStates: Record<string, number>
 }
 
-function footprintShape(points: Point2D[], holes: Point2D[][] = []): Shape {
-  const shape = new Shape()
-  points.forEach(([x, z], index) => index ? shape.lineTo(x, -z) : shape.moveTo(x, -z))
-  shape.closePath()
-  shape.holes = holes.map(points => {
-    const path = new Path()
-    points.forEach(([x, z], index) => index ? path.lineTo(x, -z) : path.moveTo(x, -z))
-    path.closePath()
-    return path
-  })
-  return shape
-}
-
-function Volume({ polygon, holes, base, height, color }: {
-  polygon: Point2D[]; holes?: Point2D[][]; base: number; height: number; color: string
-}) {
-  const shape = useMemo(() => footprintShape(polygon, holes), [polygon, holes])
+function Volume({ polygon, base, height, color }: { polygon: Point2D[]; base: number; height: number; color: string }) {
+  const shape = useMemo(() => {
+    const result = new Shape()
+    polygon.forEach(([x, z], index) => index ? result.lineTo(x, -z) : result.moveTo(x, -z))
+    result.closePath()
+    return result
+  }, [polygon])
   if (height <= 0 || polygon.length < 3) return null
   return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, base, 0]} castShadow receiveShadow>
     <extrudeGeometry args={[shape, { depth: height, bevelEnabled: false }]} />
@@ -52,8 +42,7 @@ function Volume({ polygon, holes, base, height, color }: {
 
 /** Entire context remains in the persisted site frame, including its vertical datum. */
 function SiteContext({ snapshot }: { snapshot: ProjectSnapshot }) {
-  const { placement, geometry } = snapshot
-  const sections = geometry.contextSections
+  const { placement } = snapshot
   return <group rotation={[0, -placement.rotationY, 0]}>
     <group position={[-placement.position[0], -placement.position[1], -placement.position[2]]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.1, 0]} receiveShadow>
@@ -68,15 +57,8 @@ function SiteContext({ snapshot }: { snapshot: ProjectSnapshot }) {
           <boxGeometry args={[road.width, .02, length]} /><meshStandardMaterial color={road.isPath ? '#c8c5b5' : '#969e97'} roughness={1} />
         </mesh>
       }))}
-      {snapshot.buildings.map(building => building.isTarget ? <group key={building.id}>
-        <Volume polygon={building.footprint} holes={building.holes} base={building.groundOffset}
-          height={sections.belowTop - building.groundOffset} color="#d4ceb9" />
-        {[sections.before, sections.after].map((polygon, index) => <Volume key={index} polygon={polygon}
-          base={sections.belowTop} height={building.groundOffset + building.height - sections.belowTop} color="#d4ceb9" />)}
-        <Volume polygon={sections.apartmentBand} base={sections.ceilingBase}
-          height={building.groundOffset + building.height - sections.ceilingBase} color="#d4ceb9" />
-      </group> : <Volume key={building.id} polygon={building.footprint} holes={building.holes}
-        base={building.groundOffset} height={building.height} color="#bac5bd" />)}
+      {/* The house is drawn by the walkthrough itself; its neighbours and the shadows they cast come from the building context. */}
+      <BuildingContext showHouse={false} showPanels={false} />
     </group>
   </group>
 }
@@ -247,8 +229,7 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, 
       openness: resolveWalkDoorOpenness(doorStates, door.id, customization?.doors[door.id]?.openness ?? 1),
     }])),
   }), [apartment.doors, customization, doorStates])
-  // Preserve finishes for previously saved copies of the original template.
-  const canonicalFinishes = apartment.id === 'demo-t3' || apartment.id === 'quimper-t3'
+  const canonicalFinishes = true
   return <>
     <color attach="background" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b']} />
     <fog attach="fog" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b', 100, 400]} />
@@ -266,7 +247,6 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, sun, 
     {apartment.walls.map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />
-    <ArchitecturalDetails apartment={apartment} cutaway={false} />
     {snapshot.fixtures.map(fixture => {
       const asset = assetMap.get(fixture.assetId)
       return asset ? <PlacedObject key={fixture.id} fixture={fixture} asset={asset} projectId={snapshot.project.id} /> : null

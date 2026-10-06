@@ -7,7 +7,7 @@ export default {
   },
   workspaces: {
     walkthrough: { title: 'Recorrido en primera persona', badge: 'A escala humana', nav: 'Recorrido' },
-    apartment: { title: 'Luz en el departamento', badge: 'Medidas estimadas', nav: 'Departamento' },
+    apartment: { title: 'Interior de la casa', badge: 'Plantas, con medidas', nav: 'Interior' },
     building: { title: 'Casa y entorno', nav: 'Casa y sol' },
   },
   settings: {

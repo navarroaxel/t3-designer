@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import { useSolarStudy } from './lib/useSolarStudy'
-import { useApartmentSolarStudy } from './lib/useApartmentSolarStudy'
 import { useApartmentView } from './lib/useApartmentView'
 import { useDemoLayout } from './lib/useDemoLayout'
 import { workspaceFromHash, workspaceViews, type WorkspaceView } from './lib/workspace-view'
@@ -18,12 +17,10 @@ const ReferenceWalkthrough = lazy(() => import('./walkthrough/ReferenceWalkthrou
 export default function App() {
   const { t } = useTranslation('common')
   const solar = useSolarStudy()
-  const apartmentSolar = useApartmentSolarStudy()
   const apartmentView = useApartmentView()
   const demoLayout = useDemoLayout()
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() => workspaceFromHash(window.location.hash))
   const { setPlaying } = solar
-  const { setPlaying: setApartmentPlaying } = apartmentSolar
   useEffect(listenForLanguageChanges, [])
   useEffect(listenForThemeChanges, [])
   useEffect(() => {
@@ -33,7 +30,6 @@ export default function App() {
     function handleNavigation() {
       setWorkspaceView(workspaceFromHash(window.location.hash))
       setPlaying(false)
-      setApartmentPlaying(false)
     }
     window.addEventListener('hashchange', handleNavigation)
     window.addEventListener('popstate', handleNavigation)
@@ -41,12 +37,11 @@ export default function App() {
       window.removeEventListener('hashchange', handleNavigation)
       window.removeEventListener('popstate', handleNavigation)
     }
-  }, [setPlaying, setApartmentPlaying])
+  }, [setPlaying])
 
   function switchWorkspace(next: WorkspaceView) {
     setWorkspaceView(next)
     solar.setPlaying(false)
-    apartmentSolar.setPlaying(false)
     if (window.location.hash !== `#${next}`) window.history.pushState(null, '', `#${next}`)
   }
 
@@ -69,9 +64,9 @@ export default function App() {
 
       <Suspense fallback={<div className="workspace-loading" role="status">{t('app.loading', { workspace: t(`workspaces.${workspaceView}.title`) })}</div>}>
       {workspaceView === 'walkthrough'
-        ? <ReferenceWalkthrough solar={apartmentSolar} fixtures={demoLayout.fixtures} onClose={() => switchWorkspace('apartment')} />
+        ? <ReferenceWalkthrough solar={solar} floor={apartmentView.floor} onFloorChange={apartmentView.setFloor} fixtures={demoLayout.fixtures} onClose={() => switchWorkspace('apartment')} />
         : workspaceView === 'apartment'
-        ? <ApartmentExplorer solar={apartmentSolar} state={apartmentView} layout={demoLayout} />
+        ? <ApartmentExplorer solar={solar} state={apartmentView} layout={demoLayout} />
         : <BuildingExplorer solar={solar} />}
       </Suspense>
       <Analytics />

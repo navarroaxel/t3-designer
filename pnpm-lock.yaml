@@ -199,9 +199,6 @@ importers:
       '@react-three/fiber':
         specifier: ^9.8.0
         version: 9.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.0)
-      '@t3-designer/asset-schema':
-        specifier: workspace:*
-        version: link:../../packages/asset-schema
       '@t3-designer/geometry':
         specifier: workspace:*
         version: link:../../packages/geometry
@@ -260,16 +257,6 @@ importers:
       vite:
         specifier: ^8.3.1
         version: 8.3.1(@types/node@24.13.6)(jiti@2.7.0)
-
-  packages/asset-schema:
-    dependencies:
-      zod:
-        specifier: ^4.6.5
-        version: 4.6.5
-    devDependencies:
-      '@types/node':
-        specifier: ^24.13.6
-        version: 24.13.6
 
   packages/geometry:
     dependencies:

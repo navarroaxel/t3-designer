@@ -8,8 +8,10 @@ for any date and time of the year. The aim is to see how the surroundings shade
 the roof before installing solar panels.
 
 This is a fork of the original T3 Designer, rebuilt around a new site. The
-apartment, the property dossier and the Blender pipeline of the original were
-removed; they remain available in the git history.
+property dossier and the Blender pipeline of the original were removed; they
+remain available in the git history. The apartment viewer and the first-person
+walkthrough of the original were ported and now show the house: see
+[`docs/model/house-interior.md`](docs/model/house-interior.md).
 
 ## Quick start
 
@@ -32,6 +34,14 @@ Open the Vite URL shown in the terminal, normally
 3. Switch to **Top view** to see how far each neighbour's shadow reaches.
 4. Use **Floors** to cut the house open at the ground floor or the first floor. Only the exterior walls are modelled so far.
 5. Tick **Panels** to show the planned array of 16 panels (9.92 kWp) on the azotea. The panel shows the energy they generate, a day and a year, calibrated with a measured January.
+
+Two more tabs look inside the house:
+
+- **Interior** shows one floor at a time (ground or first), with the sun entering
+  through its windows, room labels, the objects the house has and a way to move
+  the movable ones. The choice is saved in your browser only.
+- **Walkthrough** walks that floor in the first person (WASD and the mouse, `E`
+  to open a door), under the sun of the date and time you picked.
 
 The solar controls calculate locally; changing the date or time does not call an
 external API. Time follows `America/Argentina/Buenos_Aires` (UTC-3, no daylight

@@ -7,15 +7,20 @@ function hasOwnKey<T extends object>(record: T, key: PropertyKey): key is keyof 
 }
 
 const roomKeys = {
-  'bedroom-1': 'rooms.bedroom-1',
-  'bedroom-2': 'rooms.bedroom-2',
-  living: 'rooms.living',
-  entrance: 'rooms.entrance',
-  wc: 'rooms.wc',
-  bathroom: 'rooms.bathroom',
-  kitchen: 'rooms.kitchen',
-  closet: 'rooms.closet',
-  balcony: 'rooms.balcony',
+  'secondary-room': 'rooms.secondary-room',
+  'main-room': 'rooms.main-room',
+  'closet': 'rooms.closet',
+  'bathroom': 'rooms.bathroom',
+  'hall': 'rooms.hall',
+  'stair-corridor': 'rooms.stair-corridor',
+  'kitchen-living': 'rooms.kitchen-living',
+  'garage': 'rooms.garage',
+  'entrance-hall': 'rooms.entrance-hall',
+  'ground-living': 'rooms.ground-living',
+  'pantry': 'rooms.pantry',
+  'ground-bathroom': 'rooms.ground-bathroom',
+  'office': 'rooms.office',
+  'light-well': 'rooms.light-well',
 } as const
 
 export type WorkspaceRoomId = keyof typeof roomKeys

@@ -1,28 +1,5 @@
 const workspace = {
   building: {
-    "department": "Our apartment",
-    "apartmentLocationTitle": "The T3 in context.",
-    "apartmentFloor": "T3 · estimated floor {{floor}}",
-    "courtyardAssumption": "Courtyard facade · Illustrative placement.",
-    "buildingCuts": "Building cutaways",
-    "wholeBuilding": "Whole building",
-    "floorCut": "Floor cutaway",
-    "interior": "Show interior",
-    "wholeBuildingLink": "View the whole building ↗",
-    "locateApartment": "Locate my apartment ↗",
-    "exploreApartment": "Explore sunlight in the apartment",
-    "nationalBuildingRegister": "National Building Register ↗",
-    "registerDescription": "Registry guide; the example uses its own identifiers. {{address}}.",
-    "ignTopo": "IGN · BD TOPO ↗",
-    "ignDescription": "Adapted and generalized geometry. Model height: {{height}}; {{floors}} storeys. Original uncertainty: {{planar}} horizontally and {{vertical}} vertically.",
-    "cadastre": "Cadastral method · example {{label}} ↗",
-    "parcelDescription": "Illustrative area of {{area}}; it does not identify a real plot.",
-    "apartmentLabel": "Our T3",
-    "apartmentKey": "Our T3",
-    "footerTitle": "Building + sun",
-    "footerDescription": "Preserved context geometry · Generalized identifiers · Illustrative T3 placement",
-    "mapLink": "Geographic data method ↗",
-    "demoName": "Demonstration building",
     sceneAria: 'House and surroundings in 3D', locationEyebrow: 'The house and its surroundings',
     location: 'Buenos Aires · Argentina', camera: 'Scene camera',
     perspective: 'Perspective', plan: 'Top view', resetView: 'Reset view', labels: 'Labels',
@@ -159,7 +136,6 @@ const workspace = {
     floorNote: 'Cut at 1.5 m above the floor. The party walls are 15 cm on this lot (30 cm shared); the other exterior walls are assumed 0.3 m thick. The interior is modelled room by room, and not all of it yet.',
   },
   solar: {
-    "demoLocalTime": "Local time · Europe/Paris",
     chartAria: 'Sun altitude through the day; the marker shows the selected time', dayOfYear: 'Day of the year',
     compareSeasons: 'Compare seasons', spring: 'Spring', summer: 'Summer', autumn: 'Autumn', winter: 'Winter',
     localTime: 'Time in Buenos Aires', localTimeAria: 'Local time in Buenos Aires', pauseDay: 'Pause day timeline',
@@ -175,21 +151,26 @@ const workspace = {
     noSunDirect: 'No direct sun', hours: 'h',
   },
   rooms: {
-    "bedroom-1": "Bedroom 1",
-    "bedroom-2": "Bedroom 2",
-    "living": "Living room / dining area",
-    "entrance": "Entryway",
-    "wc": "WC",
+    "secondary-room": "Secondary room",
+    "main-room": "Main room",
+    "closet": "Walk-in closet",
     "bathroom": "Bathroom",
-    "kitchen": "Kitchen",
-    "closet": "Closet",
-    "balcony": "Balcony",
+    "hall": "Hall",
+    "stair-corridor": "Stair corridor",
+    "kitchen-living": "Kitchen and living",
+    "garage": "Garage",
+    "entrance-hall": "Entrance hall",
+    "ground-living": "Living",
+    "pantry": "Pantry",
+    "ground-bathroom": "Bathroom",
+    "office": "Office",
+    "light-well": "Light well",
     "unknown": "Room"
   },
   apartment: {
-    "modelAria": "Apartment model with sunlight",
-    "caption": "Our T3",
-    "sunInDemo": "Sun in the demo",
+    "modelAria": "Interior of the house with sunlight",
+    "caption": "The house",
+    "sunInDemo": "Sun in the house",
     "cameraView": "Camera view",
     "perspective": "Perspective",
     "plan": "Floor plan",
@@ -203,9 +184,9 @@ const workspace = {
     "cutaway": "Cutaway",
     "fixtures": "Fixtures",
     "labels": "Labels",
-    "inspectorAria": "Explore the apartment and sunlight",
-    "insideEyebrow": "Inside the T3",
-    "tagline": "Your home in daylight.",
+    "inspectorAria": "Explore the house and its sunlight",
+    "insideEyebrow": "Inside the house",
+    "tagline": "Your house in daylight.",
     "inspectorContents": "Inspector contents",
     "sunTab": "Sun",
     "roomsTab": "Rooms",
@@ -213,25 +194,20 @@ const workspace = {
     "observeLight": "Explore light by room",
     "lookAtLight": "Look at the light in",
     "focusRoom": "Focus room",
-    "allApartment": "Entire T3",
-    "living": "Living room",
-    "bedroomOne": "Bedroom 1",
-    "bedroomTwo": "Bedroom 2",
+    "allApartment": "Whole floor",
     "compareSeasons": "Compare seasons",
-    "lightInstruction": "Change the time and compare seasons to see how far sunlight reaches through the windows.",
-    "livingFacade": "Living room",
-    "bedroomsFacade": "Bedrooms",
+    "lightInstruction": "Change the time and compare seasons to see how far sunlight reaches through the windows and the balcony door.",
     "estimatedOrientation": "Estimated orientation",
     "buildingShadowTitle": "The building casts a shadow too.",
-    "buildingShadowBody": "Showing or hiding it only changes the view. Its shadows and those of nearby buildings remain; the cutaway preserves the effect of the walls and roof.",
+    "buildingShadowBody": "Showing or hiding the neighbours only changes the view. Their shadows, the roof and the first floor remain.",
     "sunLocationPrecision": "Sun location and accuracy",
-    "placementUnconfirmed": "Floor, position and orientation are still to be confirmed.",
-    "sunMethod": "Solar position uses an approximate regional origin (48° N, 4° W) and Europe/Paris. Geometry is illustrative; this is not a property irradiance study.",
-    "placementAssumption": "Illustrative placement: third floor, living room southwest and bedrooms northeast.",
+    "placementUnconfirmed": "Heights of walls and doors are assumed; the rooms behind the ground floor's back wall are not modelled yet.",
+    "sunMethod": "Solar position is computed for the house's neighbourhood (rounded to 0.01°) and America/Argentina/Buenos_Aires. This is not a property irradiance study.",
+    "placementAssumption": "The floors are built from the owner's measurements and photos; the plan is the one in the house model.",
     "unknownAsset": "Item",
     "sunSource": "Solar calculation · NOAA / Meeus ↗",
     "fullView": "Full view",
-    "materials": "Existing materials",
+    "materials": "Finishes",
     "roomArea": "{{area}}",
     "assetCountNote": "{{count}} placed items. Select one to see its dimensions and room.",
     "assetDimensions": "width × height × depth",
@@ -240,108 +216,102 @@ const workspace = {
     "evidenceSources": "Sources and scope",
     "reportedArea": "{{area}}",
     "extraArea": "{{area}} · balcony area",
-    "canvasFallback": "The apartment view requires WebGL. Enable your browser’s graphics acceleration.",
-    "canvasAria": "3D apartment model with sunlight through its windows. Drag to orbit, scroll to zoom.",
+    "canvasFallback": "The house view requires WebGL. Enable your browser’s graphics acceleration.",
+    "canvasAria": "3D model of the house interior with sunlight through its windows. Drag to orbit, scroll to zoom.",
     "roomLabelsAria": "Room names and reported areas",
-    "parquet": "Existing parquet",
-    "parquetRooms": "Living room and bedrooms",
-    "darkTile": "Dark tile",
-    "darkTileRooms": "Kitchen",
-    "lightTile": "Light tile",
-    "lightTileRooms": "Bathroom",
-    "greenGrayFloor": "Green-gray floor",
-    "greenGrayFloorRooms": "Entryway and WC",
-    "blueGrayPaint": "Blue-gray paint",
-    "blueGrayPaintRooms": "Service door frames",
-    "footerTitle": "Apartment + sun",
-    "footerDescription": "Preserved demonstration geometry with an approximate regional solar origin.",
+    "footerTitle": "House + sun",
+    "footerDescription": "The floors of the house, from the owner's measurements, under the sun of its neighbourhood.",
     "wallHeight": "Height: {{height}}",
-    "estimated": "estimated"
+    "estimated": "estimated",
+    "floorSwitch": "Floor",
+    "floorGround": "Ground floor",
+    "floorFirst": "First floor",
+    "frontFacade": "Street front faces",
+    "rearFacade": "Rear faces",
+    "planksAlmond": "Saing almendra planks",
+    "planksAlmondRooms": "Bedrooms and office",
+    "planksHoney": "Saing miel planks",
+    "planksHoneyRooms": "Living and kitchen",
+    "navonaTiles": "Navona natural tiles",
+    "navonaTilesRooms": "Bathrooms and light well"
   },
   assets: {
     "fridge-freezer": {
       "label": "Fridge-freezer",
-      "evidence": "P06 / P11 · stainless steel, two doors"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "washing-machine": {
       "label": "Front-loading washing machine",
-      "evidence": "P02 · white front-loader under the counter"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "oven-cooktop": {
       "label": "Oven and cooktop",
-      "evidence": "P08 / V02 · black oven and four-zone cooktop"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "microwave": {
       "label": "Microwave",
-      "evidence": "P08 / P11 · black, on the counter"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "extractor-hood": {
       "label": "Extractor hood",
-      "evidence": "P08 · steel hood and flue"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "boiler": {
       "label": "Wall-mounted boiler",
-      "evidence": "P06 / P11 · white casing"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "base-cabinet": {
       "label": "Kitchen base cabinet",
-      "evidence": "P06 / P08 / V02 · oak, framed fronts"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "sink-cabinet": {
       "label": "Sink cabinet and drainer",
-      "evidence": "P06 / P11 · single steel sink"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "wall-cabinet": {
       "label": "Wall cabinet",
-      "evidence": "P06 / P11 · oak, two doors"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "bathroom-vanity": {
       "label": "Vanity and basin",
-      "evidence": "P02 · one round steel basin; the second is a reflection"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "toilet": {
       "label": "Toilet",
-      "evidence": "P03 / V04 · white ceramic"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "radiator": {
       "label": "Radiator",
-      "evidence": "P07 / P10 / V04 · white panel"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "towel-rail": {
       "label": "Heated towel rail",
-      "evidence": "P02 · white, visible in the mirror"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "glass-block-screen": {
       "label": "Glass-block shower screen",
-      "evidence": "P02 / V04 · translucent blocks"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "shower-tray": {
       "label": "Shower tray",
-      "evidence": "V04 03s · raised white tray"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "electrical-panel": {
       "label": "Electrical panel",
-      "evidence": "P04 · above the entry-to-living passage"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "low-table": {
       "label": "Low wooden table",
-      "evidence": "V04 44s · beside the balcony entrance"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     },
     "wall-mirror": {
       "label": "Bathroom mirror",
-      "evidence": "P02 · above the basin and washing machine"
+      "evidence": "Visual replica of a typical unit; not the house's own model."
     }
   },
   fixtures: {
     "retry": "Retry",
     "failed": "Could not load: {{label}}"
-  },
-  reconstruction: {
-    "note1": "Floors, colours, openings and fixtures reconstructed from 11 photos and 4 videos.",
-    "note2": "Areas come from the floor plan. Linear dimensions, heights and positions are estimates.",
-    "note3": "The U-shaped kitchen, balcony access and division between bedrooms were adjusted using the videos.",
-    "note4": "The exact shower and screen layout awaits measured bathroom plans.",
-    "note5": "Wear is representative; this model does not yet reproduce every crack or irregularity."
   },
 } as const
 

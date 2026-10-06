@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import type { Floor } from '../data/house-plan'
 
 /** Owned by App so switching workspaces does not discard apartment selections. */
 export function useApartmentView() {
+  const [floor, setFloorState] = useState<Floor>('first')
   const [cutaway, setCutaway] = useState(true)
   const [showLabels, setShowLabels] = useState(false)
   const [showFixtures, setShowFixtures] = useState(true)
@@ -15,13 +17,18 @@ export function useApartmentView() {
   function resetView(mode: '3d' | 'top') {
     setView(previous => ({ mode, revision: previous.revision + 1 }))
   }
+  function setFloor(next: Floor) {
+    setFloorState(next)
+    setFocusRoomId(undefined)
+    resetView(view.mode)
+  }
   function focusRoom(id?: string) {
     setFocusRoomId(id)
     resetView(view.mode)
   }
 
   return {
-    cutaway, setCutaway, showLabels, setShowLabels, showFixtures, setShowFixtures,
+    floor, setFloor, cutaway, setCutaway, showLabels, setShowLabels, showFixtures, setShowFixtures,
     focusRoomId, setFocusRoomId, panel, setPanel, showContext, setShowContext,
     selectedAsset, setSelectedAsset, view, resetView, focusRoom, arranging, setArranging,
   }

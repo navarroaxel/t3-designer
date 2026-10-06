@@ -88,7 +88,7 @@ const placement = z.object({
   floorIndex: nonnegative.int(), storeyHeight: positive, floorElevation: number,
   facadeOffset: nonnegative, exteriorInset: nonnegative, wallHeight: positive,
   bounds: z.object({ minX: number, maxX: number, minZ: number, maxZ: number, width: positive, depth: positive }),
-  livingFacadeAzimuth: nonnegative.max(360), bedroomFacadeAzimuth: nonnegative.max(360),
+  frontFacadeAzimuth: nonnegative.max(360), rearFacadeAzimuth: nonnegative.max(360),
   label: id, assumption: id,
 })
 const surface = z.object({ polygon, elevation: number, thickness: positive })

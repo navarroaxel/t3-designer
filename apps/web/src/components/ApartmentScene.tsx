@@ -6,8 +6,9 @@ import { apartmentBounds, polygonBounds, polygonCentroid } from '@t3-designer/ge
 import type { Apartment as ApartmentData, Fixture, Point2D } from '@t3-designer/scene-schema'
 import { Apartment } from './Apartment'
 import { InteriorSunlight } from './InteriorSunlight'
-import { BuildingContext } from './ApartmentBuildingContext'
-import { APARTMENT_PLACEMENT } from '../data/apartment-placement'
+import { BuildingContext } from './BuildingContext'
+import { housePlacement } from '../data/house-placement'
+import type { Floor } from '../data/house-plan'
 import type { SolarPosition } from '../lib/solar'
 import { advanceCameraTransition, type CameraTransition } from '../lib/camera-transition'
 import { useTranslation } from 'react-i18next'
@@ -22,6 +23,7 @@ type ViewRequest = { mode: '3d' | 'top'; revision: number }
 
 type ApartmentSceneProps = {
   apartment: ApartmentData
+  floor: Floor
   cutaway: boolean
   showLabels: boolean
   showFixtures?: boolean
@@ -139,11 +141,12 @@ function SceneCamera({ apartment, view, focusRoomId, showContext, controlsRef, t
   )
 }
 
-export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = true, focusRoomId, view, sun, showContext, fixtures = currentFixtures, editing }: ApartmentSceneProps) {
+export function ApartmentScene({ apartment, floor, cutaway, showLabels, showFixtures = true, focusRoomId, view, sun, showContext, fixtures = currentFixtures, editing }: ApartmentSceneProps) {
   const { t } = useTranslation('workspace')
   const { formatArea } = useUnits()
   const bounds = apartmentBounds(apartment)
   const [x, z] = bounds.center
+  const placement = useMemo(() => housePlacement(floor), [floor])
   // Canvas owns one explicit camera; controls and labels always use that same instance.
   const camera = useMemo(() => {
     const perspective = new PerspectiveCamera(42, 1, 0.1, 500)
@@ -174,12 +177,12 @@ export function ApartmentScene({ apartment, cutaway, showLabels, showFixtures = 
     >
       <color attach="background" args={[sun.isDaylight ? '#e8eae4' : '#687684']} />
       <InteriorSunlight apartment={apartment} sun={sun} />
-      <group rotation={[0, -APARTMENT_PLACEMENT.rotationY, 0]}>
-        <group position={APARTMENT_PLACEMENT.position.map(value => -value) as [number, number, number]}>
-          <BuildingContext visible={showContext} cutaway="floor" showNeighbors />
+      <group rotation={[0, -placement.rotationY, 0]}>
+        <group position={placement.position.map(value => -value) as [number, number, number]}>
+          <BuildingContext visible={showContext} showHouse={false} showNeighbors showPanels={false} />
         </group>
       </group>
-      <mesh position={[x, showContext ? -APARTMENT_PLACEMENT.position[1] - .15 : -.155, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={showContext}>
+      <mesh position={[x, showContext ? -placement.position[1] - .15 : -.155, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow={showContext}>
         <planeGeometry args={[120, 120]} />
         <meshStandardMaterial color="#e8eae4" roughness={1} />
       </mesh>

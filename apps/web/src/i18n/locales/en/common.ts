@@ -7,7 +7,7 @@ export default {
   },
   workspaces: {
     walkthrough: { title: 'First-person walkthrough', badge: 'At human scale', nav: 'Walkthrough' },
-    apartment: { title: 'Apartment daylight', badge: 'Estimated measurements', nav: 'Apartment' },
+    apartment: { title: 'House interior', badge: 'Floor plans, measured', nav: 'Interior' },
     building: { title: 'House and surroundings', nav: 'House and sun' },
   },
   settings: {

@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { apartmentBounds } from '@t3-designer/geometry'
 import type { Apartment } from '@t3-designer/scene-schema'
 import type { SolarPosition } from '../lib/solar'
-import { siteDirectionToApartment } from '../data/apartment-placement'
+import { siteDirectionToApartment } from '../data/house-placement'
 
 export function InteriorSunlight({ apartment, sun }: { apartment: Apartment; sun: SolarPosition }) {
   const light = useRef<DirectionalLight>(null)

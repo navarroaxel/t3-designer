@@ -1,14 +1,15 @@
 import { isFixtureMovable, pointInEditorPolygon, type Fixture } from '@t3-designer/scene-schema'
 import { currentFixtures } from '../data/current-state.ts'
 import { demoAssets, demoFixtures } from '../data/demo-catalog.ts'
-import { t3Apartment } from '../data/t3.ts'
+import { HOUSE_FLOORS, floorOfRoom } from '../data/house-interior.ts'
 
-export const DEMO_LAYOUT_KEY = 't3-designer.demo-layout.v1'
+export const DEMO_LAYOUT_KEY = 't3-designer.house-layout.v1'
+const LAYOUT_ID = 'house'
 const fullTurn = Math.PI * 2
 const assets = new Map(demoAssets.map(asset => [asset.id, asset]))
 const originals = new Map(currentFixtures.map(fixture => [fixture.id, fixture]))
 const catalog = new Map(demoFixtures.map(fixture => [fixture.id, fixture]))
-const generated = new Set(demoFixtures.filter(fixture => !originals.has(fixture.id)).map(fixture => fixture.id))
+const generated = new Set<string>()
 export type DemoLayoutStatus = 'original' | 'saved' | 'unavailable' | 'recovered'
 type Placement = { id: string; position: Fixture['position']; rotation: number; baseline: { position: Fixture['position']; rotation: number } }
 
@@ -37,8 +38,12 @@ export function moveDemoFixture(fixtures: Fixture[], id: string, patch: { positi
   const position = patch.position ?? current.position, rotation = patch.rotation ?? current.rotation
   if (!Array.isArray(position) || position.length !== 3 || !position.every(Number.isFinite) || !Number.isFinite(rotation)) throw new Error('Invalid placement')
   // Public rearrangement is horizontal: mounted height and source geometry stay canonical.
-  if (position[1] !== original.position[1] || !pointInEditorPolygon([position[0], position[2]], t3Apartment.perimeter)) throw new Error('Invalid placement')
-  const roomId = t3Apartment.rooms.find(room => pointInEditorPolygon([position[0], position[2]], room.polygon))?.id
+  // An object stays on the floor it belongs to.
+  const floor = floorOfRoom(original.roomId)
+  if (!floor) throw new Error('Invalid placement')
+  const apartment = HOUSE_FLOORS[floor]
+  if (position[1] !== original.position[1] || !pointInEditorPolygon([position[0], position[2]], apartment.perimeter)) throw new Error('Invalid placement')
+  const roomId = apartment.rooms.find(room => pointInEditorPolygon([position[0], position[2]], room.polygon))?.id
   if (!roomId) throw new Error('Object must be inside a room')
   return fixtures.map(fixture => fixture.id === id ? { ...original, roomId, position: [...position], rotation: ((rotation % fullTurn) + fullTurn) % fullTurn } : fixture)
 }
@@ -61,7 +66,7 @@ export function encodeDemoLayout(fixtures: Fixture[]): string | null {
     if (!changed(checked, original)) continue
     placements.push({ id: original.id, position: checked.position, rotation: checked.rotation, baseline: { position: original.position, rotation: original.rotation } })
   }
-  return hidden.length || added.length || placements.length ? JSON.stringify({ version: 2, apartmentId: t3Apartment.id, hidden, added, placements }) : null
+  return hidden.length || added.length || placements.length ? JSON.stringify({ version: 2, apartmentId: LAYOUT_ID, hidden, added, placements }) : null
 }
 
 export function decodeDemoLayout(raw: string | null): { fixtures: Fixture[]; status: DemoLayoutStatus } {
@@ -70,7 +75,7 @@ export function decodeDemoLayout(raw: string | null): { fixtures: Fixture[]; sta
   try {
     if (raw.length > 32_000) throw new Error('Oversized layout')
     const data = JSON.parse(raw)
-    if ((data.version !== 1 && data.version !== 2) || data.apartmentId !== t3Apartment.id || !Array.isArray(data.placements) || data.placements.length > (data.version === 1 ? currentFixtures.length : demoFixtures.length)) throw new Error('Unsupported layout')
+    if ((data.version !== 1 && data.version !== 2) || data.apartmentId !== LAYOUT_ID || !Array.isArray(data.placements) || data.placements.length > (data.version === 1 ? currentFixtures.length : demoFixtures.length)) throw new Error('Unsupported layout')
     let recovered = false
     if (data.version === 2) {
       if (!Array.isArray(data.hidden) || data.hidden.length > originals.size || !Array.isArray(data.added) || data.added.length > generated.size) throw new Error('Unsupported membership')
