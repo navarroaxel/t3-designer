@@ -85,3 +85,11 @@ partition, 0.40 m (`FREEZER` in `kitchen.ts`).
   patio is a room of its own, with a wall at the lot behind; it is open to the sky.
 - The pantry beside the garage has a wall-mounted 6U **network rack** (`rack.ts`), high on the south-west party wall, the medianera: a UniFi Dream Machine Pro and a 24-port patch panel, with
   blank panels below. It is above the floor cutaway's 1.5 m cut, so only the walkthrough shows it.
+
+## The azotea
+
+The walkthrough goes up to the roof by the owner's stair outside the laundry: the first flight inside the laundry, on the light-well side, 1 m up to a landing past its back wall (a
+door at the top), then the second flight back over the laundry's north-east half, 12 steps up to the azotea (`azotea.ts`). The steps and the landing are climbable;
+the roof is a slab to stand on, and the ceiling of the rooms below. On it stand the parapets, the tank on its columns and the solar array raised 1.25 m on its beams: a visitor
+ducks under the panels and does not walk through them. They are built from the same volumes the exterior view draws. The roof opens to the sky; you can start there
+from the room list in *Set up your visit*.

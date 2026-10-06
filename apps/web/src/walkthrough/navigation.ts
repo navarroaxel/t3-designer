@@ -1,6 +1,7 @@
 import { polygonBounds, polygonCentroid, segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
 import { furnishingBlockers, furnishingDevices } from '../data/house-furnishings.ts'
-import { floorOfApartment, walkOutline } from '../data/house-interior.ts'
+import { AZOTEA_LEVEL, AZOTEA_OBSTACLES, AZOTEA_OUTLINE, AZOTEA_ROOM, LANDING_LEVEL, LANDING_OUTLINE } from '../data/azotea.ts'
+import { ceilingPolygon, floorOfApartment, walkOutline } from '../data/house-interior.ts'
 import { STAIR_BLOCKS } from '../data/stair.ts'
 import { pointInEditorPolygon, type Point2D, type ProjectSnapshot, type Room } from '@t3-designer/scene-schema'
 
@@ -167,7 +168,21 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
     }
     levels.push({ elevation: level, perimeter: walkOutline(floorOfApartment(upper.apartment) ?? 'first') })
     rooms.push(...upper.apartment.rooms.map(room => ({ ...room, polygon: room.polygon.map(point => [...point]) as Point2D[], elevation: level })))
-    ceilingElevation = level + upper.geometry.ceiling.elevation
+    // Above the first floor, the owner's stair outside the laundry climbs to the azotea. The roof is a slab to stand on, and the rooms below, a ceiling.
+    if (floorOfApartment(upper.apartment) === 'first') {
+      const roof = ceilingPolygon('first'), roofBounds = polygonBounds(roof)
+      blockers.push({ center: roofBounds.center, halfWidth: roofBounds.width / 2, halfDepth: roofBounds.depth / 2, cos: 1, sin: 0,
+        bottom: level + upper.geometry.ceiling.elevation, top: level + upper.geometry.ceiling.elevation + upper.geometry.ceiling.thickness, polygon: roof.map(point => [...point]), climb: true })
+      for (const obstacle of AZOTEA_OBSTACLES) {
+        const box = polygonBounds(obstacle.polygon)
+        blockers.push({ center: box.center, halfWidth: box.width / 2, halfDepth: box.depth / 2, cos: 1, sin: 0, bottom: obstacle.bottom, top: obstacle.top,
+          polygon: obstacle.polygon.map(point => [...point]), ...(obstacle.climb ? { climb: true as const } : {}) })
+      }
+      levels.push({ elevation: LANDING_LEVEL, perimeter: LANDING_OUTLINE.map(point => [...point]) }, { elevation: AZOTEA_LEVEL, perimeter: AZOTEA_OUTLINE.map(point => [...point]) })
+      rooms.push({ ...AZOTEA_ROOM, polygon: AZOTEA_ROOM.polygon.map(point => [...point]) as Point2D[], elevation: AZOTEA_LEVEL })
+      // Open sky above the azotea: the roof slab is the ceiling of what lies below it.
+      ceilingElevation = 40
+    } else ceilingElevation = level + upper.geometry.ceiling.elevation
   }
   const world: WalkWorld = { blockers, staticBlockers: blockers, doors, perimeter, levels, rooms, floorElevation, ceilingElevation }
   return withWalkDoorStates(world, doorStates)

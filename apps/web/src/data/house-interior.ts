@@ -225,7 +225,7 @@ function groundAnnex() {
 }
 
 function firstFloorAnnex() {
-  const walls: Wall[] = [], windows: Window[] = []
+  const walls: Wall[] = [], windows: Window[] = [], doors: Door[] = []
   const wall = (id: string, from: [number, number], to: [number, number], thickness: number, height = WALL_HEIGHT): Wall => {
     const result: Wall = { id, from: local(...from), to: local(...to), thickness, height, kind: 'exterior', estimated: true }
     walls.push(result)
@@ -235,7 +235,16 @@ function firstFloorAnnex() {
   wall('first-laundry-party', [4, HOUSE_HALF_WIDTH - PARTY_WALL / 2], [LAUNDRY_BACK, HOUSE_HALF_WIDTH - PARTY_WALL / 2], PARTY_WALL)
   const glazed = wall('first-laundry-glass', [4, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], [LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], LAUNDRY.wallThickness)
   windows.push({ id: 'first-laundry-glazing', wallId: glazed.id, offset: .1, width: LAUNDRY.length - .1, height: 2.7, sillHeight: .1, estimated: true, kind: 'casement', locationConfidence: 'observed' })
-  wall('first-laundry-back', [LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, LAUNDRY_V0 - LAUNDRY.wallThickness], [LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, HOUSE_HALF_WIDTH - PARTY_WALL], LAUNDRY.wallThickness)
+  // The back wall: full height beside the first flight, whose door leads out to the landing; only 0.8 m under the second flight (it stands on it), which is how
+  // the visitor gets from the landing back over the laundry's north-east half.
+  const backU = LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, flightEnd = LAUNDRY_V0 + LAUNDRY.flight.width
+  const back = wall('first-laundry-back', [backU, LAUNDRY_V0 - LAUNDRY.wallThickness], [backU, flightEnd], LAUNDRY.wallThickness)
+  wall('first-laundry-back-low', [backU, flightEnd], [backU, HOUSE_HALF_WIDTH - PARTY_WALL], LAUNDRY.wallThickness, .8)
+  // The door at the top of the first flight, onto the landing 1 m up: an open frame, taller than a door by that metre, so a body at the landing's height clears it.
+  doors.push({
+    id: 'first-laundry-back-door', wallId: back.id, offset: LAUNDRY.wallThickness + LAUNDRY.door.frame, width: LAUNDRY.door.width, height: LAUNDRY.landing.rise + LAUNDRY.door.height,
+    hinge: 'start', opensToward: 1, locationConfidence: 'observed', appearance: 'passage', finish: 'white', estimated: true,
+  })
   // The balcony's railing: 1 m, on its front and its two sides.
   wall('first-balcony-rail-front', [BALCONY_FRONT + RAIL / 2, -BALCONY_V], [BALCONY_FRONT + RAIL / 2, BALCONY_V], RAIL, 1)
   wall('first-balcony-rail-south-west', [BALCONY_FRONT, -BALCONY_V + RAIL / 2], [-5, -BALCONY_V + RAIL / 2], RAIL, 1)
@@ -245,7 +254,7 @@ function firstFloorAnnex() {
   wall('first-terrace-party', [4, TERRACE_SW(4)], [TERRACE_REAR, TERRACE_SW(TERRACE_REAR)], TERRACE_WALL_THICKNESS, TERRACE_PARTY_WALL)
   wall('first-terrace-rear', [TERRACE_REAR - TERRACE_REAR_WALL / 2, houseSouthWestEdge(TERRACE_REAR) + TERRACE_WALL_THICKNESS], [TERRACE_REAR - TERRACE_REAR_WALL / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS], TERRACE_REAR_WALL, TERRACE_PARTY_WALL)
   wall('first-terrace-rail', [4, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], [TERRACE_REAR, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], TERRACE_WALL_THICKNESS, TERRACE_RAILING)
-  return { walls, windows }
+  return { walls, windows, doors }
 }
 
 /** Where a visitor may stand on a floor: its outline, with the stairwell filled in. The stairwell is a way down, not a wall. */
@@ -253,16 +262,24 @@ export function walkOutline(floor: Floor): Point2D[] {
   return floor === 'first' ? firstFloorPerimeter(true, false) : HOUSE_FLOORS[floor].perimeter
 }
 
-/** The ceiling the walkthrough draws: the house's roof. The terrace is open to the sky. */
+/**
+ * The roof the walkthrough draws and walks on: the 9 m block with the 1 m cantilever in front, and the laundry's sheet roof over its glazed half. The laundry's
+ * north-east half is the stair's second flight, open to the sky, and the stairwell is not a hole in the roof.
+ */
 export function ceilingPolygon(floor: Floor): Point2D[] {
-  return floor === 'first' ? firstFloorPerimeter(false) : HOUSE_FLOORS[floor].perimeter
+  if (floor !== 'first') return HOUSE_FLOORS[floor].perimeter
+  const sw = FIRST_OUTLINE[0][1], wall = LAUNDRY.wallThickness
+  return [
+    local(-6, sw), local(4, sw), local(4, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, FIRST_NE - LAUNDRY.flight.width - wall),
+    local(4, FIRST_NE - LAUNDRY.flight.width - wall), local(4, HOUSE_HALF_WIDTH), local(-6, HOUSE_HALF_WIDTH),
+  ]
 }
 
 function buildFloor(floor: Floor): Apartment {
   const outline = floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE
   const exterior = exteriorWalls(floor, outline)
   const interior = interiorWalls(floor, floor === 'ground' ? GROUND_PARTITIONS : FIRST_FLOOR_PARTITIONS, floor === 'ground' ? GROUND_DOORS : FIRST_DOORS)
-  const annex = floor === 'first' ? firstFloorAnnex() : groundAnnex()
+  const annex: { walls: Wall[]; windows: Window[]; doors: Door[] } = floor === 'first' ? firstFloorAnnex() : { ...groundAnnex(), doors: [] }
   const rooms = floor === 'ground' ? groundRooms : firstRooms
   return ApartmentSchema.parse({
     schemaVersion: SCENE_SCHEMA_VERSION,
@@ -273,7 +290,7 @@ function buildFloor(floor: Floor): Apartment {
     perimeter: floor === 'ground' ? groundPerimeter() : firstFloorPerimeter(),
     rooms,
     walls: [...exterior.walls, ...annex.walls, ...interior.walls],
-    doors: [...exterior.doors, ...interior.doors],
+    doors: [...exterior.doors, ...annex.doors, ...interior.doors],
     windows: [...exterior.windows, ...annex.windows],
     metadata: {
       source: 'Built from the house plan (src/data/house-plan.ts): owner measurements, photos and Street View.',

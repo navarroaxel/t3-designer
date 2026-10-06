@@ -189,6 +189,7 @@ const workspace = {
     "laundry": "Lavadero",
     "balcony": "Balcón",
     "terrace": "Terraza",
+    "azotea": "Azotea",
     "unknown": "Ambiente"
   },
   apartment: {

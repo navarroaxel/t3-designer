@@ -3,12 +3,11 @@ import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE_BOXES } from './fireplace.ts'
 import { GARAGE_EQUIPMENT } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
-import { LAUNDRY } from './laundry.ts'
 import { RACK_BOXES } from './rack.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
-import { HOUSE_HALF_WIDTH, HOUSE_REAR, PARTY_WALL, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
+import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
 import { KITCHEN_BOXES, KITCHEN_SIZES, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV_PLACEMENT, QUEEN_BED,
@@ -74,12 +73,7 @@ function firstFloor(): Furnishing[] {
   // The laundry: the washing machine and the spin dryer against the party wall, and the stair's first flight on the light-well side.
   for (const box of WASHING_MACHINE_BOXES) add({ ...box, roughness: .35, solid: box.y[0] - F < 1 })
   for (const part of SPIN_DRYER_PARTS) add({ id: `dryer-${part.id}`, u: part.u, v: part.v, y: part.y, color: part.color, metalness: part.metalness, roughness: .3, shape: part.shape === 'cylinder' ? 'ellipse' : undefined, solid: true })
-  const { width, length, flight, landing } = LAUNDRY
-  const doorU = 4 + length, v0 = HOUSE_HALF_WIDTH - PARTY_WALL - width, riser = landing.rise / flight.risersFirst
-  for (let step = 1; step < flight.risersFirst; step++) {
-    const end = doorU - (flight.risersFirst - 1 - step) * flight.tread
-    add({ id: `laundry-step-${step}`, u: [end - flight.tread, end], v: [v0, v0 + flight.width], y: [F, F + step * riser], color: '#b9b6ae', roughness: .95 })
-  }
+  // The laundry's first flight is a stair, climbed on foot: its steps are in the azotea's obstacles, not here.
   // The terrace's grill, with its grate, and the shelf with the sink beside it, against the wall at the back.
   const back = HOUSE_REAR.southWest - TERRACE_REAR_WALL - .05
   add({ id: 'terrace-grill', u: [back - TERRACE_GRILL.depth, back], v: [TERRACE_CENTRE_V - TERRACE_GRILL.width / 2, TERRACE_CENTRE_V + TERRACE_GRILL.width / 2], y: [F, F + TERRACE_GRILL.height], color: '#8c4a33', roughness: .9 })

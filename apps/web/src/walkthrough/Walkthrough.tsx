@@ -102,7 +102,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const validMoment = !!solar.resolution?.instants.length
   const architecture = snapshot.editor?.architectures.find(item => item.id === snapshot.editor?.activeArchitectureId)
   const layout = architecture?.layouts.find(item => item.id === architecture.activeLayoutId)
-  const currentRoom = [...snapshot.apartment.rooms, ...(upper?.apartment.rooms ?? [])].find(room => room.id === pose?.roomId)
+  const currentRoom = initialWorld.rooms.find(room => room.id === pose?.roomId)
   const interaction = active && pose ? findWalkDoorTarget(world, doorStates, pose) : null
   const doorBlocked = interaction && pose && !canSetWalkDoorOpenness(world, doorStates, interaction.id, interaction.open ? 0 : 1, pose)
   const interact = useCallback((currentPose: WalkPose) => {
@@ -121,8 +121,8 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
     // A server save/reload can replace the scene while this view stays mounted.
     // Stop before adopting its new collision world, and discard stale location UI.
     pause(); setPose(null)
-    setRoomId(previous => [...snapshot.apartment.rooms, ...(upper?.apartment.rooms ?? [])].some(room => room.id === previous) ? previous : '')
-  }, [snapshot, upper, pause])
+    setRoomId(previous => initialWorld.rooms.some(room => room.id === previous) ? previous : '')
+  }, [snapshot, upper, initialWorld, pause])
   useEffect(() => {
     function changed() { setFullscreen(document.fullscreenElement === root.current) }
     document.addEventListener('fullscreenchange', changed)
@@ -207,7 +207,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         <div className="walk-version"><span className="walk-eyebrow">{c.version}</span><strong>{reference ? c.reference : snapshot.project.name}</strong>{architecture && <span>{architecture.name} / {layout?.name}</span>}<p>{c.draft}</p></div>
         <fieldset disabled={active}>
           <legend>{c.settings}</legend>
-          <label>{c.room}<select value={roomId} onChange={event => { setRoomId(event.target.value); restart() }}><option value="">{c.entrance}</option>{[...snapshot.apartment.rooms, ...(upper?.apartment.rooms ?? [])].map(room => <option key={room.id} value={room.id}>{roomName(room)}</option>)}</select></label>
+          <label>{c.room}<select value={roomId} onChange={event => { setRoomId(event.target.value); restart() }}><option value="">{c.entrance}</option>{initialWorld.rooms.map(room => <option key={room.id} value={room.id}>{roomName(room)}</option>)}</select></label>
           <button className="walk-button" onClick={restart}>{c.reset} ↺</button>
           <div className="walk-form-row"><label>{c.date}<input type="date" min="1900-01-01" max="2100-12-31" value={moment.date} onChange={event => setMoment(previous => ({ ...previous, date: event.target.value }))} /></label><label>{c.time}<input type="time" value={clockValue(moment.minutes)} onChange={event => { const [hours, minutes] = event.target.value.split(':').map(Number); if (Number.isFinite(hours + minutes)) setMoment(previous => ({ ...previous, minutes: hours * 60 + minutes })) }} /></label></div>
           <small>{snapshot.site.timeZone}</small>

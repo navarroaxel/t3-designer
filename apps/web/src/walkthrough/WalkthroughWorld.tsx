@@ -62,7 +62,7 @@ function SiteContext({ snapshot }: { snapshot: ProjectSnapshot }) {
         </mesh>
       }))}
       {/* The house is drawn by the walkthrough itself; its neighbours and the shadows they cast come from the building context. */}
-      <BuildingContext showHouse={false} showPanels={false} />
+      <BuildingContext showHouse={false} showRoof />
     </group>
   </group>
 }
@@ -173,7 +173,7 @@ function NaturalLighting({ snapshot, upper, sun }: Pick<WalkthroughWorldProps, '
     const camera = source.shadow.camera
     const corners: Vector3[] = []
     for (const x of [bounds.min[0], bounds.max[0]]) for (const z of [bounds.min[1], bounds.max[1]]) {
-      for (const y of [snapshot.geometry.floor.elevation, (upper ? upper.placement.floorElevation + upper.geometry.ceiling.elevation : snapshot.geometry.ceiling.elevation) + .3]) {
+      for (const y of [snapshot.geometry.floor.elevation, (upper ? upper.placement.floorElevation + upper.geometry.ceiling.elevation + 4 : snapshot.geometry.ceiling.elevation) + .3]) {
         corners.push(new Vector3(x, y, z).applyMatrix4(camera.matrixWorldInverse))
       }
     }

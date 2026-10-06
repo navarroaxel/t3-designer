@@ -168,6 +168,7 @@ const workspace = {
     "laundry": "Laundry",
     "balcony": "Balcony",
     "terrace": "Terrace",
+    "azotea": "Roof terrace",
     "unknown": "Room"
   },
   apartment: {

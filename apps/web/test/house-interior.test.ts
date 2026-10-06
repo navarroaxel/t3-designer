@@ -10,6 +10,7 @@ import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENIN
 import { houseToSite } from '../src/data/frame.ts'
 import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirectionToApartment } from '../src/data/house-placement.ts'
 import { publicScene } from '../src/lib/public-scene.ts'
+import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
 import { furnishingsOn } from '../src/data/house-furnishings.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
 import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
@@ -24,7 +25,7 @@ test('both floors build as valid apartments with a wall under every opening', ()
     const walls = new Set(apartment.walls.map(wall => wall.id))
     assert.ok(apartment.doors.concat().every(door => walls.has(door.wallId)))
     assert.ok(apartment.windows.every(window => walls.has(window.wallId)))
-    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || /balcony-rail|terrace/.test(wall.id)))
+    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || /balcony-rail|terrace|back-low/.test(wall.id)))
   }
 })
 
@@ -278,4 +279,34 @@ test('the pantry has a wall-mounted rack with a UniFi Dream Machine Pro and a 24
   // The Dream Machine Pro is a 1U unit: 44.5 mm high, 442 mm wide.
   close(find('udm-pro').y[1] - find('udm-pro').y[0], .0445, 1e-9)
   close(find('udm-pro').u[1] - find('udm-pro').u[0], .442, 1e-9)
+})
+
+test('the azotea can be reached on foot: the laundry\'s flight, the landing, the flight back over the laundry and the roof', () => {
+  const world = buildWalkWorld(publicScene('ground', []), undefined, publicScene('first', []))
+  const centre = (obstacle: (typeof AZOTEA_OBSTACLES)[number]): [number, number] => {
+    const xs = obstacle.polygon.map(point => point[0]), zs = obstacle.polygon.map(point => point[1])
+    return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...zs) + Math.max(...zs)) / 2]
+  }
+  const pick = (pattern: RegExp) => AZOTEA_OBSTACLES.filter(obstacle => pattern.test(obstacle.id))
+  // From the laundry floor, on the light-well side, where the first flight starts.
+  let position: [number, number] = [5, -2.63]
+  let vertical = { offset: 3.2, velocity: 0, grounded: true }
+  assert.ok(isWalkPositionFree(world, position, 1.65, 3.2))
+  const walkTo = (target: [number, number]) => {
+    for (let frame = 0; frame < 900; frame++) {
+      const dx = target[0] - position[0], dz = target[1] - position[1], distance = Math.hypot(dx, dz)
+      if (distance < .05) return
+      const step = Math.min(distance, 1.45 / 60)
+      position = moveWalkPosition(world, position, [dx / distance * step, dz / distance * step], 1.65, vertical.offset)
+      vertical = stepWalkVertical(world, position, 1.65, vertical, 1 / 60, false)
+    }
+  }
+  for (const obstacle of [...pick(/LAUNDRY-STEP-1-/), ...pick(/LAUNDRY-LANDING$/), ...pick(/LAUNDRY-STEP-2-/)]) walkTo(centre(obstacle))
+  close(vertical.offset, 6.4, 1e-6)
+  // Past the foot of the flight, the roof: through the opening the rear parapet leaves for the stair.
+  walkTo([2.5, -3.73])
+  close(vertical.offset, 6.4, 1e-6)
+  assert.equal(roomAtPosition(world, position, vertical.offset)?.id, 'azotea')
+  // The panels, raised 1.25 m on their beams, are obstacles too: a visitor ducks under them, and does not walk through.
+  assert.ok(AZOTEA_OBSTACLES.filter(obstacle => obstacle.bottom > 7.5).length >= 16)
 })
