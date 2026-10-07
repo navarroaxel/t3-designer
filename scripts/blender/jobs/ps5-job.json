@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "kind": "procedural",
+  "id": "ps5",
+  "label": "PlayStation 5",
+  "units": "meters",
+  "dimensions": [
+    0.104,
+    0.39,
+    0.26
+  ],
+  "material": {
+    "baseColor": "#f4f5f8",
+    "roughness": 0.35
+  },
+  "source": {
+    "description": "PlayStation 5, vertical with its stand: two white shells round a black core. Sony's 390 mm x 104 mm x 260 mm (height x thickness x depth); the shape is drawn from the maker's pictures, not CAD.",
+    "dimensionalStatus": "manufacturer-specified",
+    "url": null
+  },
+  "parameters": {
+    "parts": [
+      {
+        "name": "Stand",
+        "shape": "ellipsoid",
+        "dimensions": [
+          0.104,
+          0.012,
+          0.2
+        ],
+        "position": [
+          0,
+          0.006,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "color": "#d8dade",
+        "roughness": 0.5,
+        "metallic": 0,
+        "bevel": 0
+      },
+      {
+        "name": "Core",
+        "shape": "box",
+        "dimensions": [
+          0.034,
+          0.36,
+          0.215
+        ],
+        "position": [
+          0,
+          0.192,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "color": "#16171a",
+        "roughness": 0.5,
+        "metallic": 0,
+        "bevel": 0.004
+      },
+      {
+        "name": "Shell left",
+        "shape": "panel",
+        "dimensions": [
+          0.04,
+          0.372,
+          0.262
+        ],
+        "position": [
+          -0.035,
+          0.197,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "color": "#f4f5f8",
+        "roughness": 0.35,
+        "metallic": 0,
+        "bevel": 0.006,
+        "roundness": 0.6,
+        "bend": 30
+      },
+      {
+        "name": "Shell right",
+        "shape": "panel",
+        "dimensions": [
+          0.04,
+          0.372,
+          0.262
+        ],
+        "position": [
+          0.035,
+          0.197,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "color": "#f4f5f8",
+        "roughness": 0.35,
+        "metallic": 0,
+        "bevel": 0.006,
+        "roundness": 0.6,
+        "bend": -30
+      },
+      {
+        "name": "Light strip front",
+        "shape": "box",
+        "dimensions": [
+          0.006,
+          0.3,
+          0.005
+        ],
+        "position": [
+          0,
+          0.2,
+          0.1065
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "color": "#2f6bff",
+        "roughness": 0.3,
+        "metallic": 0,
+        "bevel": 0.001
+      },
+      {
+        "name": "Light strip back",
+        "shape": "box",
+        "dimensions": [
+          0.006,
+          0.3,
+          0.005
+        ],
+        "position": [
+          0,
+          0.2,
+          -0.1065
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "color": "#2f6bff",
+        "roughness": 0.3,
+        "metallic": 0,
+        "bevel": 0.001
+      }
+    ]
+  }
+}

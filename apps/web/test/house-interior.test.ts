@@ -336,17 +336,16 @@ test('under the living\'s TV: a low table against the party wall with a PlayStat
   const pieces = furnishingsOn('first')
   const find = (id: string) => pieces.find(piece => piece.id === id)!
   const table = find('living-table-top'), tv = find('tv-living')
-  assert.ok(table && find('ps5-core') && find('ps5-controller-upper'))
+  assert.ok(table && find('ps5') && find('ps5-controller-upper'))
   // The table is under the TV and centred on it, with the screen above the PS5.
   close((table.u[0] + table.u[1]) / 2, (tv.u[0] + tv.u[1]) / 2, 1e-9)
   assert.ok(table.y[1] <= 3.2 + .45 && table.y[1] < tv.y[0] - .15, 'the table is low, and the screen clears the console')
-  const core = find('ps5-core')
+  // The PS5 is a Blender model (scripts/blender/jobs/ps5-job.json) standing in a box that is its size: 104 mm thick, 260 mm deep and 390 mm tall with its stand.
+  const core = find('ps5')
+  assert.equal(core.model, '/models/house/ps5.glb')
   assert.ok(core.y[0] >= table.y[1] && core.y[1] <= tv.y[0] + .5)
-  // The PS5 is 104 mm thick, 260 mm deep.
-  const shells = ['shell-a', 'core', 'shell-b'].map(id => find(`ps5-${id}`))
-  close(Math.max(...shells.map(piece => piece.u[1])) - Math.min(...shells.map(piece => piece.u[0])), .104, 1e-9)
+  close(core.u[1] - core.u[0], .104, 1e-9)
   close(core.v[1] - core.v[0], .26, 1e-9)
-  // 390 mm with its stand: 12 mm of base and the body above.
   close(core.y[1] - table.y[1], .39, 1e-9)
   // On the table's top, inside it.
   assert.ok(core.u[0] >= table.u[0] && core.u[1] <= table.u[1] && core.v[0] >= table.v[0] && core.v[1] <= table.v[1])

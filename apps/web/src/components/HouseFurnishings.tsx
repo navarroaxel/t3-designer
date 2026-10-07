@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
-import { RoundedBox } from '@react-three/drei'
+import { Component, Suspense, useMemo, type ReactNode } from 'react'
+import { RoundedBox, useGLTF } from '@react-three/drei'
 import { edgeRadius } from '../lib/rounding'
-import { CanvasTexture, SRGBColorSpace } from 'three'
+import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, isTvMounted } from '../data/house-furnishings'
@@ -89,6 +89,23 @@ function OpenFridge({ body, lowerDoor, upperDoor, extras }: { body: Furnishing; 
 }
 
 /** `on` holds the switched-on devices by id: a TV is on at an opening of 1 or more half. */
+class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() { return { failed: true } }
+  render() { return this.state.failed ? this.props.fallback : this.props.children }
+}
+
+/** A Blender model standing on the floor at the middle of the piece's box, its front (+z in the file) toward the room (-z here, the wall's normal). */
+function PlacedModel({ url, position }: { url: string; position: [number, number, number] }) {
+  const { scene } = useGLTF(url)
+  const model = useMemo(() => {
+    const copy = scene.clone(true)
+    copy.traverse((node: Object3D) => { node.castShadow = true; node.receiveShadow = true })
+    return copy
+  }, [scene])
+  return <primitive object={model} position={position} rotation={[0, Math.PI, 0]} dispose={null} />
+}
+
 /**
  * Sawn off at `cut` like the cutaway's walls: a solid piece taller than the cut is cut to it, and anything that starts at or above it is not drawn. What hangs on a wall
  * (a TV, an outlet) is drawn whole, as long as it begins below the cut.
@@ -134,7 +151,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       // X takes a TV off its mount: the mount stays on the wall, the TV (and its picture) is gone.
       if (tv && !isTvMounted(devices, piece.id)) return null
       return <group key={piece.id} position={[0, 0, -pieceReach(piece.id)]}>
-        {(() => {
+        {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
+          <Suspense fallback={null}><PlacedModel url={piece.model} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
+        </ModelBoundary> : (() => {
           const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
           const material = <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}

@@ -37,6 +37,8 @@ export type Furnishing = {
   taper?: number
   /** The kitchen's worktops carry a pattern: those pieces are drawn by the kitchen's own component. */
   kitchen?: KitchenBox
+  /** A model made in Blender (scripts/blender), standing on the floor at the centre of this box, its front toward the room: drawn instead of the box, which stays as its size and as a fallback. */
+  model?: string
   /** A round plate on a wall: a cylinder along v, its radius half the width. */
   disc?: true
   /** A turn about the normal of the wall it is on, for the slots of an outlet. */
@@ -77,12 +79,9 @@ function firstFloor(): Furnishing[] {
   for (const [index, [uEdge, vEdge]] of [[tableU[0], tableV[0]], [tableU[1] - table.leg, tableV[0]], [tableU[0], tableV[1] - table.leg], [tableU[1] - table.leg, tableV[1] - table.leg]].entries()) {
     add({ id: `living-table-leg-${index + 1}`, u: [uEdge, uEdge + table.leg], v: [vEdge, vEdge + table.leg], y: [F, F + table.height - table.top], color: '#8e6a40', roughness: .7, solid: index === 0 })
   }
-  // The PS5 stands upright on its base: 104 mm thick, 260 mm deep and 390 mm tall with its stand (12 mm of it), two white shells round a black centre. It is a PS5 of the standard model.
+  // The PS5 stands upright on its base: 104 mm thick, 260 mm deep and 390 mm tall with its stand. It is the model scripts/blender builds (jobs/ps5-job.json).
   const ps5U = tvU - .25, ps5V: [number, number] = [tableV[0] + .1, tableV[0] + .1 + .26], base = F + table.height
-  for (const [id, from, to, color] of [['shell-a', -.052, -.017, '#f4f5f7'], ['core', -.017, .017, '#1b1c1f'], ['shell-b', .017, .052, '#f4f5f7']] as const) {
-    add({ id: `ps5-${id}`, u: [ps5U + from, ps5U + to], v: ps5V, y: [base + .012, base + .39], color, roughness: .35, solid: false })
-  }
-  add({ id: 'ps5-stand', u: [ps5U - .06, ps5U + .06], v: [ps5V[0] + .03, ps5V[1] - .03], y: [base, base + .012], color: '#d8dade', roughness: .5, solid: false })
+  add({ id: 'ps5', u: [ps5U - .052, ps5U + .052], v: ps5V, y: [base, base + .39], color: '#f4f5f8', roughness: .35, solid: false, model: '/models/house/ps5.glb' })
   // Two double outlets on the wall, one each side of the table, 25 cm clear of it: the Argentine plug, shaped like the Australian one.
   for (const [side, offset] of [['left', -(table.width / 2 + .25)], ['right', table.width / 2 + .25]] as const) {
     for (const part of outletBoxes(`outlet-${side}`, wall, tvU + offset, F)) add({ ...part, roughness: .6, solid: false })

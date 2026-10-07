@@ -15,7 +15,10 @@
     "test": "turbo run test",
     "test:e2e": "pnpm --filter @t3-designer/web test:e2e",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "check:all": "pnpm check && pnpm test:e2e"
+    "check:all": "pnpm check && pnpm test:e2e",
+    "blender:asset": "node scripts/run_blender.mjs generate_asset.py",
+    "blender:house": "node scripts/build_house_assets.mjs",
+    "blender:test": "python3 -m unittest discover -s scripts/blender/tests"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
