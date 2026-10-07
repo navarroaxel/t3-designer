@@ -1,6 +1,8 @@
 import { BATHROOM_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE_BOXES } from './fireplace.ts'
+import { MAIN_BOARD_BOX } from './main-board.ts'
+import { OFFICE_DESK_BOX } from './office-desk.ts'
 import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOXES } from './rack.ts'
@@ -127,6 +129,9 @@ function firstFloor(): Furnishing[] {
 function groundFloor(): Furnishing[] {
   return [
     ...DOORBELL_BOXES.map(box => ({ id: `doorbell-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .4, solid: false })),
+    // The hall's main supply board, flush in the left wall, and the office's standing desk: both Blender models.
+    { id: 'main-board', ...MAIN_BOARD_BOX, color: '#f3f4f3', roughness: .4, solid: false, model: '/models/house/main-board.glb', turn: 0 },
+    { id: 'office-desk', ...OFFICE_DESK_BOX, color: '#dcb67f', roughness: .55, solid: true, model: '/models/house/desk.glb', turn: 0 },
     // The inverter is a Blender model (its 60 mm of connectors hang under the box, which is the body); the board stays boxes.
     { id: 'garage-inverter', u: INVERTER_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + INVERTER.depth], y: [INVERTER.bottom - .06, INVERTER.bottom + INVERTER.height], color: '#f1f2f3', roughness: .42, solid: false, model: '/models/house/inverter.glb' },
     { id: 'garage-board', u: BOARD_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + BOARD.depth], y: [BOARD.bottom, BOARD.bottom + BOARD.height], color: '#ececec', roughness: .4, solid: false, model: '/models/house/board.glb' },
