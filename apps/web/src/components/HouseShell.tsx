@@ -146,13 +146,15 @@ function slabPicture(pattern: TilePattern) {
  * is where the top begins; a piece is drawn from there.
  */
 function SlabPiece({ u, v, y, color, pattern, origin, id }: { u: [number, number]; v: [number, number]; y: [number, number]; color: string; pattern: TilePattern; origin: [number, number]; id: string }) {
+  // The dependencies are plain numbers: the arrays are new on every render, and a new texture each time shows as a flash of white while it loads.
+  const [u0, u1, v0, v1, originU, originV] = [u[0], u[1], v[0], v[1], origin[0], origin[1]]
   const map = useMemo(() => {
     const texture = pattern.image ? slabPicture(pattern) : patternTexture(color, pattern)
     const across = pattern.width * pattern.rows
-    texture.repeat.set((u[1] - u[0]) / pattern.length, (v[1] - v[0]) / across)
-    texture.offset.set((u[0] - origin[0]) / pattern.length, (v[0] - origin[1]) / across)
+    texture.repeat.set((u1 - u0) / pattern.length, (v1 - v0) / across)
+    texture.offset.set((u0 - originU) / pattern.length, (v0 - originV) / across)
     return texture
-  }, [pattern, color, u, v, origin])
+  }, [pattern, color, u0, u1, v0, v1, originU, originV])
   useEffect(() => () => map.dispose(), [map])
   const size = [u[1] - u[0], y[1] - y[0], v[1] - v[0]] as [number, number, number]
   return <mesh position={[(u[0] + u[1]) / 2, (y[0] + y[1]) / 2, -(v[0] + v[1]) / 2]} castShadow receiveShadow name={id}>
