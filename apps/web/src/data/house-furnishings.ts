@@ -5,7 +5,6 @@ import { GARAGE_EQUIPMENT } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOXES } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
-import { dualsenseBoxes } from './dualsense.ts'
 import { outletBoxes } from './outlets.ts'
 import { mediaBoxBoxes, passThroughBoxes } from './wall-fittings.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
@@ -91,8 +90,9 @@ function firstFloor(): Furnishing[] {
   const tvCentreY = centre(LIVING_TV_PLACEMENT.y), mountHalf = TV_MOUNT.width / 2
   for (const part of passThroughBoxes('cable-hole', wall, tvU - mountHalf - .2, tvCentreY)) add({ ...part, roughness: .5, solid: false })
   for (const part of outletBoxes('outlet-tv', wall, tvU + mountHalf + .13, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
-  // Its DualSense lies on the table beside it, the triggers toward the wall.
-  for (const part of dualsenseBoxes(tvU + .22, tableV[0] + .24, base)) add({ ...part, id: `ps5-controller-${part.id}`, roughness: .45, solid: false })
+  // Its DualSense lies on the table beside it, the triggers toward the wall: 160 by 106 mm, 66 mm tall (a Blender model).
+  const padU = tvU + .22, padV = tableV[0] + .24
+  add({ id: 'ps5-controller', u: [padU - .08, padU + .08], v: [padV - .053, padV + .053], y: [base, base + .066], color: '#f4f5f8', roughness: .4, solid: false, model: '/models/house/dualsense.glb' })
   for (const box of BATHROOM_BOXES) {
     // The mirror and the glass panel are sawn off at the cut; give them their height back.
     const top = box.y[1] === cut ? F + (box.id === 'mirror' || box.id === 'mirror-shelf' ? 1.9 : 2) : box.y[1]

@@ -151,8 +151,8 @@ def build(request, _default_material):
         bar.location = (x_sign * (core_half + .001), y_sign * depth * .452, 0)
         bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
         parts.append(bar)
-    # The ports on the front (the -Y end here is the back; the front is +Y): a USB-A and a USB-C, and, on the right shell, the disc slot when it has a drive.
-    front = depth * .5
+    # The ports on the front end (-Y here, which the exporter turns into the model's +Z, the side that faces the room): a USB-A and a USB-C, and, on the right shell, the disc slot when it has a drive.
+    front = -depth * .5
     for name, z, size in [('USB-A', .19, (.012, .004, .006)), ('USB-C', .162, (.007, .004, .0035))]:
         port = slab(bpy, name, grey, size[0], size[0], size[1], size[1], z - size[2] / 2, z + size[2] / 2, 0)
         port.location = (0, front * .995, 0)

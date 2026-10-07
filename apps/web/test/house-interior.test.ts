@@ -12,7 +12,6 @@ import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirect
 import { publicScene } from '../src/lib/public-scene.ts'
 const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
-import { dualsenseBoxes } from '../src/data/dualsense.ts'
 import { armKey, armReach, furnishingDevices, furnishingsOn, isTvMounted, tvMountKey } from '../src/data/house-furnishings.ts'
 import { tvMountLinks } from '../src/data/tv-mount.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
@@ -336,7 +335,7 @@ test('under the living\'s TV: a low table against the party wall with a PlayStat
   const pieces = furnishingsOn('first')
   const find = (id: string) => pieces.find(piece => piece.id === id)!
   const table = find('living-table-top'), tv = find('tv-living')
-  assert.ok(table && find('ps5') && find('ps5-controller-upper'))
+  assert.ok(table && find('ps5') && find('ps5-controller'))
   // The table is under the TV and centred on it, with the screen above the PS5.
   close((table.u[0] + table.u[1]) / 2, (tv.u[0] + tv.u[1]) / 2, 1e-9)
   assert.ok(table.y[1] <= 3.2 + .45 && table.y[1] < tv.y[0] - .15, 'the table is low, and the screen clears the console')
@@ -368,20 +367,12 @@ test('both TVs hang on the same articulated VESA mount, folded 67 mm from the wa
   }
 })
 
-test('the DualSense is about 160 mm wide and 106 mm deep, with two sticks, four face buttons and a D-pad, and lies on the table', () => {
-  const parts = dualsenseBoxes(0, 0, 0)
-  const width = Math.max(...parts.map(part => part.u[1])) - Math.min(...parts.map(part => part.u[0]))
-  const depth = Math.max(...parts.map(part => part.v[1])) - Math.min(...parts.map(part => part.v[0]))
-  assert.ok(Math.abs(width - .157) < .004 && Math.abs(depth - .105) < .004, `${width} x ${depth}`)
-  assert.equal(parts.filter(part => part.id.startsWith('stick-')).length, 2)
-  assert.equal(parts.filter(part => part.id.startsWith('button-')).length, 4)
-  assert.equal(parts.filter(part => part.id.startsWith('dpad-')).length, 4)
-  assert.ok(parts.every(part => part.y[0] >= 0 && part.y[1] <= .066), 'no taller than its grips')
-  // On the living's table: the whole controller inside its top.
-  const pieces = furnishingsOn('first'), table = pieces.find(piece => piece.id === 'living-table-top')!
-  for (const piece of pieces.filter(item => item.id.startsWith('ps5-controller-'))) {
-    assert.ok(piece.u[0] >= table.u[0] && piece.u[1] <= table.u[1] && piece.v[0] >= table.v[0] && piece.v[1] <= table.v[1], piece.id)
-  }
+test('the DualSense is a 160 by 106 mm model, 66 mm tall, that lies on the living\'s table', () => {
+  const pieces = furnishingsOn('first'), pad = pieces.find(piece => piece.id === 'ps5-controller')!, table = pieces.find(piece => piece.id === 'living-table-top')!
+  close(pad.u[1] - pad.u[0], .16, 1e-9); close(pad.v[1] - pad.v[0], .106, 1e-9); close(pad.y[1] - pad.y[0], .066, 1e-9)
+  assert.equal(pad.model, '/models/house/dualsense.glb')
+  assert.ok(pad.u[0] >= table.u[0] && pad.u[1] <= table.u[1] && pad.v[0] >= table.v[0] && pad.v[1] <= table.v[1])
+  close(pad.y[0], table.y[1], 1e-9)
 })
 
 test('two double outlets of the Argentine kind, shaped like the Australian one, flank the living\'s low table, on the party wall', () => {

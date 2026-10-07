@@ -102,7 +102,7 @@ it reaches 355 mm, tilts +3 to -15 degrees, swivels +-60 and levels +-3. The mai
 
 ## The DualSense and the outlets
 
-- The controller on the living's table is built from the maker's picture (`dualsense.ts`): white shell and grips, black centre, two sticks, the touchpad with its blue light bar, the triggers, the D-pad and the four face buttons;
+- The controller on the living's table is a Blender model (`scripts/blender/dualsense_recipe.py`) drawn from the maker's picture: white shell and grips, black centre, two sticks, the touchpad with its blue light bar, the triggers, the D-pad and the face buttons;
   160 by 106 mm, the triggers toward the wall.
 - Two double outlets flank the table on the party wall (`outlets.ts`): the Argentine plug, which has the Australian shape (two pins in an inverted V and an earth pin below), in the matte black 114 by 72 mm plate
   of the owner's picture, 30 cm up from the floor, 25 cm clear of the table on each side.

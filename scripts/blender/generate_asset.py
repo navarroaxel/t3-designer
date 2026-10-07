@@ -40,8 +40,8 @@ def validate_request(data):
         raise ValueError('Asset request must be an object')
     if type(data.get('schemaVersion')) is not int or data['schemaVersion'] != 1:
         raise ValueError('Unsupported asset request schemaVersion')
-    if data.get('kind') not in ('table', 'procedural', 'ps5') or data.get('units') != 'meters':
-        raise ValueError('Supported recipes are table/procedural/ps5 with units=meters')
+    if data.get('kind') not in ('table', 'procedural', 'ps5', 'dualsense') or data.get('units') != 'meters':
+        raise ValueError('Supported recipes are table/procedural/ps5/dualsense with units=meters')
     if not isinstance(data.get('id'), str) or not re.fullmatch(r'[a-z][a-z0-9-]{0,63}', data['id']):
         raise ValueError('Asset id must be a safe lowercase identifier')
     if not isinstance(data.get('label'), str) or not data['label'].strip():
@@ -66,6 +66,8 @@ def validate_request(data):
     elif data['kind'] == 'ps5':
         if parameters.get('variant') not in ('disc', 'digital'):
             raise ValueError('The PS5 variant must be disc or digital')
+    elif data['kind'] == 'dualsense':
+        pass
     else:
         parts = parameters.get('parts')
         if not isinstance(parts, list) or not 1 <= len(parts) <= 128:
@@ -206,7 +208,7 @@ def generate(request, output, resolution, samples, preview):
                     (x * (width / 2 - inset - leg / 2), (height - top) / 2,
                      z * (depth / 2 - inset - leg / 2)), min(.002, leg / 4))
     else:
-        recipe_name = 'ps5_recipe' if request['kind'] == 'ps5' else 'procedural_recipe'
+        recipe_name = {'ps5': 'ps5_recipe', 'dualsense': 'dualsense_recipe'}.get(request['kind'], 'procedural_recipe')
         recipe_path = Path(__file__).with_name(recipe_name + '.py')
         spec = importlib.util.spec_from_file_location(recipe_name, recipe_path)
         module = importlib.util.module_from_spec(spec)

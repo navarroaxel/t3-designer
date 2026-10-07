@@ -80,6 +80,10 @@ class GenerateAssetTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             worker.validate_request(job)
 
+    def test_the_dualsense_job_is_valid(self):
+        job = json.loads((SCRIPTS / 'jobs/dualsense-job.json').read_text())
+        self.assertEqual(worker.validate_request(job)['dimensions'], [.16, .066, .106])
+
     def test_panel_parts_accept_roundness_and_bend_in_range(self):
         self.request['kind'] = 'procedural'
         part = {'name': 'Shell', 'shape': 'panel', 'dimensions': [.04, .37, .26], 'position': [0, .2, 0], 'rotation': [0, 0, 0],
