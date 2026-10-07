@@ -157,3 +157,4 @@ gland, four DC connectors and three glands underneath) and the surface-mounted b
 - The pantry's rack is a black cabinet with a smoked-glass door and the units behind it (`rack_recipe.py`); the boxes in `rack.ts` keep the units' sizes.
 - The living's gas fireplace (`fireplace_recipe.py`, from the owner's picture) has its black base, grey bands, open firebox with a zig-zag grate and ceramic logs, the black upper box and a cedar top.
 - The garage's tool cabinet set (`tool_cabinet_recipe.py`, from the owner's pictures; 2.70 by 0.472 by 1.92 m, owner's figures) stands against the south-west wall, to the right of the electrical board (toward the front of the house), 10 cm from it (assumed).
+- The pantry's chest freezer (`chest_freezer_recipe.py`, from the owner's picture) stands against the medianera at the end nearest the garage, under the rack; its size (0.56 by 0.58 by 0.85 m) and place are assumed.
