@@ -1,3 +1,4 @@
+import { RACK_BOXES } from '../src/data/rack.ts'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { polygonCentroid } from '@t3-designer/geometry'
@@ -263,24 +264,23 @@ test('the ground floor opens onto the light well through a sliding door of two l
 })
 
 test('the pantry has a wall-mounted rack with a UniFi Dream Machine Pro and a 24-port patch panel, high on the medianera', () => {
-  const pieces = furnishingsOn('ground').filter(piece => piece.id.startsWith('rack-'))
-  const find = (id: string) => pieces.find(piece => piece.id === `rack-${id}`)!
-  assert.ok(find('udm-pro') && find('patch-panel'))
-  assert.equal(pieces.filter(piece => /rack-port-\d+$/.test(piece.id)).length, 24)
+  // The rack is one Blender model in the walkthrough; its boxes keep the units' sizes.
+  const unit = (id: string) => RACK_BOXES.find(box => box.id === id)!
+  assert.ok(unit('udm-pro') && unit('patch-panel'))
+  assert.equal(RACK_BOXES.filter(box => /^port-\d+$/.test(box.id)).length, 24)
+  const piece = furnishingsOn('ground').find(item => item.id === 'rack')!
+  assert.equal(piece.model, '/models/house/rack.glb')
   const pantry = HOUSE_FLOORS.ground.rooms.find(item => item.id === 'pantry')!
   // The medianera is the south-west party wall, the pantry's lowest v; the rack stands out from it, toward +v, and is as wide as the wall runs along u.
   const [uLow, uHigh] = [Math.min(...pantry.polygon.map(point => point[0])), Math.max(...pantry.polygon.map(point => point[0]))]
   const wallV = Math.min(...pantry.polygon.map(point => -point[1]))
-  for (const piece of pieces) {
-    assert.ok(piece.u[0] >= uLow - 1e-6 && piece.u[1] <= uHigh + 1e-6, `${piece.id} inside the pantry's depth along the wall`)
-    assert.ok(piece.v[0] >= wallV - 1e-6, `${piece.id} stands out from the medianera`)
-  }
-  assert.ok(Math.abs(find('back').v[0] - wallV) < 1e-6, 'the back plate is on the wall')
+  assert.ok(piece.u[0] >= uLow - 1e-6 && piece.u[1] <= uHigh + 1e-6, 'inside the pantry\'s depth along the wall')
+  close(piece.v[0], wallV, 1e-6)
   // High: the bottom of the frame is above the counter height, and the units are in the upper half of the wall.
-  assert.ok(find('back').y[0] >= 1.5 && find('udm-pro').y[0] > 1.6)
+  assert.ok(piece.y[0] >= 1.5 && unit('udm-pro').y[0] > 1.6)
   // The Dream Machine Pro is a 1U unit: 44.5 mm high, 442 mm wide.
-  close(find('udm-pro').y[1] - find('udm-pro').y[0], .0445, 1e-9)
-  close(find('udm-pro').u[1] - find('udm-pro').u[0], .442, 1e-9)
+  close(unit('udm-pro').y[1] - unit('udm-pro').y[0], .0445, 1e-9)
+  close(unit('udm-pro').u[1] - unit('udm-pro').u[0], .442, 1e-9)
 })
 
 test('the azotea can be reached on foot: the laundry\'s flight, the landing, the flight back over the laundry and the roof', () => {

@@ -13,14 +13,15 @@ test('the main board is flush in the hall\'s left wall, 20 mm of it out of the w
   const wall = GROUND_HALL.v[1]
   assert.ok(Math.abs(piece.v[0] - (wall - MAIN_BOARD.frameOut - (MAIN_BOARD.depth - MAIN_BOARD.frameOut - MAIN_BOARD.behindMiddle - .008))) < .05)
   assert.ok(piece.v[0] < wall && piece.v[1] > wall, 'half in the wall, half out')
+  assert.ok(Math.abs(piece.u[0] - (GROUND_HALL.u[0] + .15)) < 1e-9, '15 cm from the street\'s wall')
   assert.ok(Math.abs((MAIN_BOARD_BOX.y[0] + MAIN_BOARD_BOX.y[1]) / 2 - 1.5) < 1e-9)
 })
 
-test('the office has a 1.40 by 0.70 m desk against its north-east wall, clear of the door', () => {
+test('the office has a 1.40 by 0.70 m desk against its south-west wall, the one opposite the north-east party wall', () => {
   const piece = furnishingsOn('ground').find(item => item.id === 'office-desk')!
   assert.ok(piece)
   assert.ok(Math.abs(piece.u[1] - piece.u[0] - OFFICE_DESK.length) < 1e-9 && Math.abs(piece.v[1] - piece.v[0] - OFFICE_DESK.depth) < 1e-9)
-  assert.ok(Math.abs(piece.v[1] - GROUND_OFFICE.v[1]) < 1e-9, 'against the wall')
+  assert.ok(Math.abs(piece.v[0] - GROUND_OFFICE.v[0]) < 1e-9, 'against the wall')
   assert.ok(piece.u[0] > GROUND_OFFICE.u[0] + 1.5 && piece.u[1] < GROUND_OFFICE.u[1])
   assert.deepEqual(OFFICE_DESK_BOX.y, [0, .75])
 })

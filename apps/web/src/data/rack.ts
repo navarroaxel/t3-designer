@@ -46,3 +46,7 @@ export const RACK_BOXES: RackBox[] = [
   // Slots 3 to 5: blank panels, with room to grow.
   ...[3, 4, 5].map(slot => box(`blank-${slot}`, [-RACK.inner / 2, RACK.inner / 2], [front - .004, front], slotY(slot), FRAME)),
 ]
+
+/** The whole rack's box, for the Blender model that stands in for the boxes above: its black cabinet, glass door included, which stands 18 mm out past the rails' front. */
+export const RACK_MODEL_DEPTH = RACK.depth + .018
+export const RACK_BOX = { u: [centre - half, centre + half] as [number, number], v: [wall, wall + RACK_MODEL_DEPTH] as [number, number], y: [RACK.bottom, top] as [number, number] }
