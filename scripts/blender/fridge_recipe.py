@@ -75,7 +75,7 @@ def build(request, _default_material):
     half = width / 2
     part = request['parameters'].get('part', 'closed')
     white = paint(bpy, 'Liner white', '#f1f3f5', .4)
-    clear = paint(bpy, 'Clear plastic', '#dfe9ee', .15, alpha=.4)
+    clear = paint(bpy, 'Clear plastic', '#f2f7fa', .12, alpha=.28)
     light = paint(bpy, 'Light bar', '#5aa7ff', .3, emission=(.2, .5, 1))
     fan = paint(bpy, 'Fan', '#3d8bff', .3, emission=(.1, .35, 1))
     grey = paint(bpy, 'Drawer grey', '#6f7377', .5)
@@ -84,6 +84,9 @@ def build(request, _default_material):
         """A clear door bin on the inside of a door (y grows into the room behind it)."""
         box(f'{name} bin', clear, (x0, x1), (y0, y0 + deep), (z0, z0 + tall), .002)
         box(f'{name} base', white, (x0, x1), (y0, y0 + deep), (z0, z0 + .004), .001)
+        box(f'{name} lip', white, (x0, x1), (y0 + deep - .006, y0 + deep), (z0, z0 + tall), .002)
+        for x in (x0, x1 - .006):
+            box(f'{name} side', white, (x, x + .006), (y0, y0 + deep), (z0, z0 + tall), .002)
 
     if part == 'closed':
         box('Body', side, (-half, half), (front + door, depth / 2), (.04, height), .004)
@@ -108,9 +111,11 @@ def build(request, _default_material):
                 finish(obj, foot, 0)
 
     elif part == 'cabinet':
-        # The empty cabinet seen from the front, doors off: grey skin, white liner, the divider under the freezer, glass shelves, the ice maker, the blue-lit fans and the vegetable drawer.
+        # The cabinet seen from the front, doors off, as in the maker's open-door picture: a white liner with grey skin outside, the divider with its front lip, the freezer with its blue-ringed fan, vents and
+        # light bar over the movable ice maker, the fridge with its icon panel, filter, second fan, three glass shelves with white rails, and the big vegetable drawer.
         t = .035
         cab = (front + door, depth / 2)
+        y_front, y_back = cab[0], depth / 2 - t
         box('Skin left', side, (-half, -half + .004), cab, (.04, height), .001)
         box('Skin right', side, (half - .004, half), cab, (.04, height), .001)
         box('Liner left', white, (-half + .004, -half + t), cab, (.04, height), .002)
@@ -118,25 +123,45 @@ def build(request, _default_material):
         box('Back', white, (-half, half), (depth / 2 - t, depth / 2), (.04, height), .002)
         box('Top', white, (-half, half), cab, (height - t, height), .002)
         box('Bottom', grey, (-half, half), cab, (.04, .04 + t), .002)
-        box('Divider', white, (-half + t, half - t), cab, (split_z - .02, split_z + .01), .002)
         inner = (-half + t, half - t)
-        for z in (split_z - .14, split_z - .44, split_z - .74):
-            box('Glass shelf', clear, inner, (cab[0] + .03, depth / 2 - t - .02), (z, z + .012), .002)
-            box('Shelf rail', white, inner, (cab[0] + .03, cab[0] + .045), (z, z + .03), .002)
-        box('Freezer shelf', light, inner, (cab[0] + .03, depth / 2 - t - .02), (split_z + .17, split_z + .182), .002)
-        box('Light bar', light, inner, (cab[0] + .03, cab[0] + .05), (split_z + .165, split_z + .182), .001)
-        box('Ice maker', white, (-half + .045, -half + .2), (cab[0] + .05, cab[0] + .3), (split_z + .02, split_z + .15), .004)
-        box('Ice maker label', clear, (-half + .05, -half + .195), (cab[0] + .04, cab[0] + .05), (split_z + .03, split_z + .1), .001)
-        box('Filter panel', white, (-.07, .07), (depth / 2 - t - .02, depth / 2 - t), (split_z - .42, split_z - .12), .002)
-        for z in (height - .1, split_z - .13):
-            bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=.055, depth=.008, location=(0, depth / 2 - t - .004, z))
+        # The divider between the compartments, with a thin dark gap along its front.
+        box('Divider', white, inner, cab, (split_z - .02, split_z + .01), .002)
+        box('Divider gap', grey, inner, (y_front, y_front + .004), (split_z - .004, split_z + .002), .0005)
+        # The freezer: two rows of vent slots in the roof, the blue-ringed fan on the back wall, the light bar and shelf under it, the movable ice maker at the lower left.
+        for index in range(6):
+            x = -.2 + index * .08
+            box(f'Vent {index}', grey, (x - .025, x + .025), (y_back - .12, y_back - .09), (height - t - .0005, height - t + .0005), .0003)
+            box(f'Vent back {index}', grey, (x - .025, x + .025), (y_back - .0005, y_back + .0005), (height - .06, height - .05), .0003)
+        for z, radius in ((height - .12, .055), (split_z - .15, .052)):
+            bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=radius + .01, depth=.006, location=(0, y_back - .003, z))
+            ring = bpy.context.object
+            ring.name = 'Fan ring'
+            ring.rotation_euler = (math.pi / 2, 0, 0)
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+            finish(ring, white, 0)
+            bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=radius, depth=.008, location=(0, y_back - .006, z))
             obj = bpy.context.object
             obj.name = 'Fan'
             obj.rotation_euler = (math.pi / 2, 0, 0)
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
             finish(obj, fan, 0)
-        box('Big Box', clear, (-half + .06, half - .06), (cab[0] + .02, depth / 2 - t - .05), (.04 + t + .01, .04 + .3), .004)
-        box('Big Box front', white, (-half + .06, half - .06), (cab[0] + .02, cab[0] + .035), (.04 + t + .01, .04 + .3), .004)
+        box('Light shelf', clear, inner, (y_front + .03, y_back - .02), (split_z + .17, split_z + .182), .002)
+        box('Light bar', light, inner, (y_front + .03, y_front + .05), (split_z + .165, split_z + .182), .001)
+        box('Ice maker', white, (-half + .045, -half + .2), (y_front + .05, y_front + .3), (split_z + .02, split_z + .15), .006)
+        box('Ice maker front', clear, (-half + .05, -half + .195), (y_front + .04, y_front + .052), (split_z + .035, split_z + .1), .001)
+        box('Ice maker label', grey, (-half + .06, -half + .185), (y_front + .036, y_front + .04), (split_z + .06, split_z + .075), .0005)
+        # The fridge: the icon panel under the divider, the filter and fan panel, three glass shelves with white front rails and side brackets, the vegetable drawer.
+        box('Icon panel', white, (-.15, .15), (y_front + .04, y_back), (split_z - .1, split_z - .02), .003)
+        box('Filter panel', white, (-.07, .07), (y_back - .02, y_back), (split_z - .42, split_z - .22), .002)
+        for z in (split_z - .14, split_z - .44, split_z - .74):
+            box('Glass shelf', clear, inner, (y_front + .02, y_back - .02), (z, z + .008), .002)
+            box('Shelf rail', white, inner, (y_front + .005, y_front + .02), (z - .002, z + .03), .003)
+            for sx in (-1, 1):
+                box('Shelf bracket', white, (sx * (half - t) - .006 if sx > 0 else -half + t, sx * (half - t) if sx > 0 else -half + t + .006), (y_front + .02, y_back - .02), (z - .006, z + .008), .002)
+        box('Big Box', clear, (-half + .06, half - .06), (y_front + .02, y_back - .05), (.04 + t + .01, .04 + .3), .004)
+        box('Big Box front', white, (-half + .06, half - .06), (y_front + .01, y_front + .03), (.04 + t + .01, .04 + .3), .006)
+        box('Big Box label', grey, (-.03, .03), (y_front + .006, y_front + .01), (.04 + t + .17, .04 + t + .2), .0005)
+        box('Big Box handle', white, (-.08, .08), (y_front - .002, y_front + .012), (.04 + t + .27, .04 + t + .3), .004)
         for sx in (-1, 1):
             for sy in (-1, 1):
                 bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=.02, depth=.04, location=(sx * (half - .04), sy * (depth / 2 - .06), .02))
