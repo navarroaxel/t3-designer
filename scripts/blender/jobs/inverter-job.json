@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "inverter",
+  "id": "inverter",
+  "label": "Deye SUN-10K-SG05LP3-EU-SM2",
+  "units": "meters",
+  "dimensions": [
+    0.386,
+    0.72,
+    0.25
+  ],
+  "material": {
+    "baseColor": "#f2f3f4",
+    "roughness": 0.42
+  },
+  "source": {
+    "description": "Deye three-phase hybrid inverter SUN-10K-SG05LP3-EU-SM2: 386 mm wide, 660 mm tall and 250 mm deep (the maker's figures), plus about 60 mm of connectors under it; the look is drawn from the maker's picture.",
+    "dimensionalStatus": "manufacturer-specified",
+    "url": null
+  },
+  "parameters": {}
+}

@@ -142,3 +142,9 @@ The worktops and the counter top are the Purastone Toscana Vena slab, 3.2 by 1.6
 top take their part of the slab from where they lie, so the veins carry on around the sink. The second counter's top has the sink's 0.60 by 0.40 m opening cut out, with an undermount
 stainless steel basin under it and a brushed brass pull-down tap at its back edge (`kitchen_fixtures_recipe.py`, from the owner's pictures). The boxes in `kitchen.ts` keep the sink and the tap as
 sizes. The pictures also show a stone backsplash up the wall; it is not drawn.
+
+## The garage's equipment
+
+The three-phase Deye inverter (`inverter_recipe.py`, from the maker's picture: white body with big rounded corners, the black panel with its screen and four buttons, the isolator switch on the left side, the big
+gland, four DC connectors and three glands underneath) and the surface-mounted board with its smoked door (`board_recipe.py`, three rows of breakers behind it) are Blender models; the boxes in
+`garage-equipment.ts` keep their sizes. The inverter's body is 660 mm, as the maker says, and its connectors hang another 60 mm under it. The board's door is closed: the picture's open door is not modelled.

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "board",
+  "id": "board",
+  "label": "Surface-mounted board",
+  "units": "meters",
+  "dimensions": [
+    0.45,
+    0.55,
+    0.12
+  ],
+  "material": {
+    "baseColor": "#f1f2f1",
+    "roughness": 0.4
+  },
+  "source": {
+    "description": "Surface-mounted three-row electrical board with a smoked black door, 450 x 550 x 120 mm (assumed); the look is drawn from the owner's photo.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

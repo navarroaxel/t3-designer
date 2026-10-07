@@ -1,7 +1,7 @@
 import { BATHROOM_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE_BOXES } from './fireplace.ts'
-import { GARAGE_EQUIPMENT } from './garage-equipment.ts'
+import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOXES } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
@@ -15,6 +15,7 @@ import { KITCHEN_BOXES, KITCHEN_SIZES, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
+  GROUND_GARAGE,
 } from './house-plan.ts'
 
 /**
@@ -126,7 +127,10 @@ function firstFloor(): Furnishing[] {
 function groundFloor(): Furnishing[] {
   return [
     ...DOORBELL_BOXES.map(box => ({ id: `doorbell-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .4, solid: false })),
-    ...GARAGE_EQUIPMENT.map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
+    // The inverter is a Blender model (its 60 mm of connectors hang under the box, which is the body); the board stays boxes.
+    { id: 'garage-inverter', u: INVERTER_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + INVERTER.depth], y: [INVERTER.bottom - .06, INVERTER.bottom + INVERTER.height], color: '#f1f2f3', roughness: .42, solid: false, model: '/models/house/inverter.glb' },
+    { id: 'garage-board', u: BOARD_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + BOARD.depth], y: [BOARD.bottom, BOARD.bottom + BOARD.height], color: '#ececec', roughness: .4, solid: false, model: '/models/house/board.glb' },
+    ...GARAGE_EQUIPMENT.filter(box => !box.id.startsWith('inverter') && !box.id.startsWith('board')).map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
     ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })),
     // The network rack on the pantry's wall, at head height: a visitor does not walk into it.
     ...RACK_BOXES.map(box => ({ id: `rack-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, metalness: box.metalness, roughness: .5, solid: box.id === 'back' || box.id.startsWith('side') })),
