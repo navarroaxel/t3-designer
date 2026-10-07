@@ -69,6 +69,29 @@ class GenerateAssetTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Export validation failed'):
                 worker.audit_export(path, self.request['dimensions'])
 
+    def test_the_ps5_job_is_valid_and_its_variant_is_checked(self):
+        job = json.loads((SCRIPTS / 'jobs/ps5-job.json').read_text())
+        self.assertEqual(worker.validate_request(job)['dimensions'], [.104, .39, .26])
+        self.assertEqual(job['source']['dimensionalStatus'], 'manufacturer-specified')
+        for variant in ('disc', 'digital'):
+            job['parameters']['variant'] = variant
+            worker.validate_request(job)
+        job['parameters']['variant'] = 'slim'
+        with self.assertRaises(ValueError):
+            worker.validate_request(job)
+
+    def test_panel_parts_accept_roundness_and_bend_in_range(self):
+        self.request['kind'] = 'procedural'
+        part = {'name': 'Shell', 'shape': 'panel', 'dimensions': [.04, .37, .26], 'position': [0, .2, 0], 'rotation': [0, 0, 0],
+                'color': '#f4f5f8', 'roughness': .3, 'metallic': 0, 'bevel': .004, 'roundness': .6, 'bend': 20}
+        self.request['parameters'] = {'parts': [part]}
+        self.assertEqual(worker.validate_request(self.request)['kind'], 'procedural')
+        for key, value in [('bend', 120), ('roundness', 2)]:
+            broken = {**part, key: value}
+            self.request['parameters'] = {'parts': [broken]}
+            with self.assertRaises(ValueError):
+                worker.validate_request(self.request)
+
     def test_procedural_recipe_accepts_data_and_bounds_geometry_complexity(self):
         self.request['kind'] = 'procedural'
         part = {'name': 'Screen', 'shape': 'box', 'dimensions': [1.2, .7, .04],

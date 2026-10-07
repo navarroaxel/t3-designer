@@ -20,7 +20,7 @@ The worker validates the request, builds the parts, **normalises the whole objec
 (size, origin, resources) and renders previews. Each run writes to a new directory under `artifacts/house-assets/` (the worker never overwrites); the validated `model.glb` and `preview.png` are copied to
 `apps/web/public/models/house/`.
 
-Parts are `box`, `ellipsoid`, `cylinder`, `cone`, `cushion` (upholstery, for beds and pillows) and `panel` (added here): a thin plate whose outline is a superellipse (`roundness` 0 to 1), extruded along
+The PS5 has a recipe of its own (`ps5_recipe.py`, `kind: "ps5"`): two white shells built as solids that taper and bow outward, a tapered black core with its blue light, the stand, the ports and the disc slot, drawn from the owner's photos. The other objects are built from parts: `box`, `ellipsoid`, `cylinder`, `cone`, `cushion` (upholstery, for beds and pillows) and `panel` (added here): a thin plate whose outline is a superellipse (`roundness` 0 to 1), extruded along
 its width and bent about the vertical axis (`bend`, degrees), for curved shells. Boxes and panels take a `bevel`. Each part has a colour, a roughness and a metallic value.
 
 ## In the app
@@ -37,5 +37,5 @@ pnpm blender:asset --input scripts/blender/jobs/ps5-job.json --output-dir artifa
 
 ## What it does not do
 
-It builds primitives and bent panels, not CAD: a model is as faithful as its parts, and the measurement contract (the outer size) is exact, not the look. For the more complex shapes (the PS5's wave, the TV's
+It builds from parts and from small recipes, not CAD: a model is as faithful as its recipe, and the measurement contract (the outer size) is exact, not the look. A new complex object gets a recipe next to `ps5_recipe.py`.
 bezel) the next step is to add a recipe next to `procedural_recipe.py` that builds them with `bmesh`.
