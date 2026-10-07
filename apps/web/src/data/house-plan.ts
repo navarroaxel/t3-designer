@@ -282,7 +282,8 @@ export const TILE_THICKNESS = .012
  * 1.2 cm thick, with a warm ivory base and golden ochre veins, inspired by Italian marble; the built-up edge
  * of the worktop makes it thicker where it shows.
  */
-export const TOSCANA_VENA_SLAB: TilePattern = { length: 3.2, width: 1.6, rows: 1, stagger: 0, grout: 0, veins: true, veinColor: 'rgba(176, 130, 58, .38)' }
+// The slab's own picture (the maker's, cropped to its 3.2 by 1.6 m); the drawn veins stand in until it loads, and wherever a canvas is all there is.
+export const TOSCANA_VENA_SLAB: TilePattern = { length: 3.2, width: 1.6, rows: 1, stagger: 0, grout: 0, veins: true, veinColor: 'rgba(176, 130, 58, .38)', image: '/textures/toscana-vena.jpg' }
 export const TOSCANA_VENA_COLOR = '#e5dac0'
 
 /** The bathroom's floor (owner): Navona natural, a travertine-coloured porcelain tile, 80 by 80 cm. */
@@ -515,7 +516,7 @@ export const LIVING_TV_PLACEMENT = {
  * [u0, u1, v0, v1] inside the walls; the hall is not tiled here because its floor was not specified.
  */
 /** How a floor is laid: the piece's size, rows before the pattern repeats, the shift between rows and the joint. */
-export type TilePattern = { length: number; width: number; rows: number; stagger: number; grout: number; veins: boolean; veinColor?: string }
+export type TilePattern = { length: number; width: number; rows: number; stagger: number; grout: number; veins: boolean; veinColor?: string; /** A picture of the whole slab (one repeat), used instead of the drawn pattern. */ image?: string }
 /** `level` is the height of the floor's top; the first floor's, FLOOR_HEIGHT, when it is left out. */
 export type FloorTiling = { id: string; color: string; rects: [number, number, number, number][]; pattern: TilePattern; level?: number }
 /** Saing almendra and Saing miel (San Lorenzo Design): wood-look porcelain planks, 20 cm by 120 cm, satin. */

@@ -38,6 +38,8 @@ export type Furnishing = {
   kitchen?: KitchenBox
   /** A model made in Blender (scripts/blender), standing on the floor at the centre of this box, its front toward the room: drawn instead of the box, which stays as its size and as a fallback. */
   model?: string
+  /** A turn of the model about the vertical, in radians, where its front is not toward the wall's normal (the default is a half turn). */
+  turn?: number
   /** A round plate on a wall: a cylinder along v, its radius half the width. */
   disc?: true
   /** A turn about the normal of the wall it is on, for the slots of an outlet. */
@@ -94,6 +96,9 @@ function firstFloor(): Furnishing[] {
   const padU = tvU + .22, padV = tableV[0] + .24
   add({ id: 'ps5-controller', u: [padU - .08, padU + .08], v: [padV - .053, padV + .053], y: [base, base + .066], color: '#f4f5f8', roughness: .4, solid: false, model: '/models/house/dualsense.glb' })
   for (const box of BATHROOM_BOXES) {
+    // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
+    if (box.id === 'toilet-lid' || box.id === 'toilet-panel' || box.id === 'toilet-light') continue
+    if (box.id === 'toilet-body') { add({ ...box, y: [box.y[0], box.y[1] + .025], roughness: .25, model: '/models/house/toilet.glb', turn: -Math.PI / 2 }); continue }
     // The mirror and the glass panel are sawn off at the cut; give them their height back.
     const top = box.y[1] === cut ? F + (box.id === 'mirror' || box.id === 'mirror-shelf' ? 1.9 : 2) : box.y[1]
     add({ ...box, y: [box.y[0], top], roughness: box.metalness ? .35 : box.id.startsWith('toilet') ? .25 : .6, solid: box.opacity === undefined && box.y[0] - F < 1 && !box.id.startsWith('mirror') })

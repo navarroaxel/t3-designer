@@ -60,7 +60,7 @@ export const DoorSchema = z.object({
   // Wall-local +X follows from → to; +Z points (-dz, dx) in the plan.
   opensToward: z.union([z.literal(1), z.literal(-1)]),
   locationConfidence: z.enum(['schematic', 'inferred', 'observed']),
-  appearance: z.enum(['passage', 'panel', 'glazed', 'sliding', 'aluminium']).optional(),
+  appearance: z.enum(['passage', 'panel', 'flush', 'glazed', 'sliding', 'aluminium']).optional(),
   /** Width of a fixed glazed leaf beside the swinging one, at the end away from the hinge: a leaf and a half. */
   fixedLeaf: positive.optional(),
   /** The height of the threshold above the wall's floor, for a door that stands higher than the floor beside it (a door onto a landing). */

@@ -91,6 +91,14 @@ class GenerateAssetTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             worker.validate_request(job)
 
+    def test_the_fridge_parts_and_kitchen_fixtures_have_valid_jobs(self):
+        for name in ('toilet', 'fridge-cabinet', 'fridge-door-lower', 'fridge-door-freezer', 'kitchen-sink', 'kitchen-tap'):
+            job = json.loads((SCRIPTS / f'jobs/{name}-job.json').read_text())
+            worker.validate_request(job)
+        job['parameters']['part'] = 'bidet'
+        with self.assertRaises(ValueError):
+            worker.validate_request(job)
+
     def test_panel_parts_accept_roundness_and_bend_in_range(self):
         self.request['kind'] = 'procedural'
         part = {'name': 'Shell', 'shape': 'panel', 'dimensions': [.04, .37, .26], 'position': [0, .2, 0], 'rotation': [0, 0, 0],

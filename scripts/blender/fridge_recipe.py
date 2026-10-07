@@ -10,7 +10,7 @@ import math
 from pathlib import Path
 
 
-def paint(bpy, name, color, roughness, metallic=0, emission=None):
+def paint(bpy, name, color, roughness, metallic=0, emission=None, alpha=1):
     item = bpy.data.materials.new(name)
     item.use_nodes = True
     srgb = [int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
@@ -20,6 +20,9 @@ def paint(bpy, name, color, roughness, metallic=0, emission=None):
     shader.inputs['Base Color'].default_value = (*linear, 1)
     shader.inputs['Roughness'].default_value = roughness
     shader.inputs['Metallic'].default_value = metallic
+    if alpha < 1:
+        shader.inputs['Alpha'].default_value = alpha
+        item.blend_method = 'BLEND'
     if emission:
         shader.inputs['Emission Color'].default_value = (*emission, 1)
         shader.inputs['Emission Strength'].default_value = 2
@@ -70,26 +73,99 @@ def build(request, _default_material):
         finish(obj, finish_material, min(bevel, (min(x[1] - x[0], y[1] - y[0], z[1] - z[0])) / 3))
 
     half = width / 2
-    box('Body', side, (-half, half), (front + door, depth / 2), (.04, height), .004)
-    box('Lower door', steel, (-half + .004, half - .004), (front, front + door), (.05, split_z - .0035), .004)
-    box('Freezer door', steel, (-half + .004, half - .004), (front, front + door), (split_z + .0035, height), .004)
-    # The handle: a black slot along the top of the lower door, with a steel lip above it.
-    box('Handle slot', black, (-half + .06, half - .06), (front - .004, front + .02), (split_z - .09, split_z - .015), .003)
-    box('Handle lip', steel, (-half + .06, half - .06), (front - .006, front), (split_z - .015, split_z - .004), .002)
-    # The dispenser: a black recess with its header, a lighter tray inside.
-    box('Dispenser', black, (-.085, .085), (front - .004, front + .02), (.61, .89), .004)
-    box('Dispenser tray', glass, (-.05, .05), (front - .006, front + .01), (.64, .78), .004)
-    box('Dispenser header', black, (-.085, .085), (front - .006, front + .02), (.845, .89), .002)
-    # The display on the freezer door and a Samsung bar at its top corner.
-    box('Display', black, (-.028, .028), (front - .002, front), (height - .2, height - .12), .002)
-    box('Display light', blue, (-.018, .018), (front - .0035, front - .002), (height - .175, height - .15), .001)
-    box('Brand', black, (.19, .27), (front - .001, front), (height - .045, height - .037), .0005)
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=.02, depth=.04, location=(sx * (half - .04), sy * (depth / 2 - .06), .02))
+    part = request['parameters'].get('part', 'closed')
+    white = paint(bpy, 'Liner white', '#f1f3f5', .4)
+    clear = paint(bpy, 'Clear plastic', '#dfe9ee', .15, alpha=.4)
+    light = paint(bpy, 'Light bar', '#5aa7ff', .3, emission=(.2, .5, 1))
+    fan = paint(bpy, 'Fan', '#3d8bff', .3, emission=(.1, .35, 1))
+    grey = paint(bpy, 'Drawer grey', '#6f7377', .5)
+
+    def bin_(name, x0, x1, y0, z0, tall=.08, deep=.09):
+        """A clear door bin on the inside of a door (y grows into the room behind it)."""
+        box(f'{name} bin', clear, (x0, x1), (y0, y0 + deep), (z0, z0 + tall), .002)
+        box(f'{name} base', white, (x0, x1), (y0, y0 + deep), (z0, z0 + .004), .001)
+
+    if part == 'closed':
+        box('Body', side, (-half, half), (front + door, depth / 2), (.04, height), .004)
+        box('Lower door', steel, (-half + .004, half - .004), (front, front + door), (.05, split_z - .0035), .004)
+        box('Freezer door', steel, (-half + .004, half - .004), (front, front + door), (split_z + .0035, height), .004)
+        # The handle: a black slot along the top of the lower door, with a steel lip above it.
+        box('Handle slot', black, (-half + .06, half - .06), (front - .004, front + .02), (split_z - .09, split_z - .015), .003)
+        box('Handle lip', steel, (-half + .06, half - .06), (front - .006, front), (split_z - .015, split_z - .004), .002)
+        # The dispenser: a black recess with its header, a lighter tray inside.
+        box('Dispenser', black, (-.085, .085), (front - .004, front + .02), (.61, .89), .004)
+        box('Dispenser tray', glass, (-.05, .05), (front - .006, front + .01), (.64, .78), .004)
+        box('Dispenser header', black, (-.085, .085), (front - .006, front + .02), (.845, .89), .002)
+        # The display on the freezer door and a Samsung bar at its top corner.
+        box('Display', black, (-.028, .028), (front - .002, front), (height - .2, height - .12), .002)
+        box('Display light', blue, (-.018, .018), (front - .0035, front - .002), (height - .175, height - .15), .001)
+        box('Brand', black, (.19, .27), (front - .001, front), (height - .045, height - .037), .0005)
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=.02, depth=.04, location=(sx * (half - .04), sy * (depth / 2 - .06), .02))
+                obj = bpy.context.object
+                obj.name = f'Foot {sx} {sy}'
+                finish(obj, foot, 0)
+
+    elif part == 'cabinet':
+        # The empty cabinet seen from the front, doors off: grey skin, white liner, the divider under the freezer, glass shelves, the ice maker, the blue-lit fans and the vegetable drawer.
+        t = .035
+        cab = (front + door, depth / 2)
+        box('Skin left', side, (-half, -half + .004), cab, (.04, height), .001)
+        box('Skin right', side, (half - .004, half), cab, (.04, height), .001)
+        box('Liner left', white, (-half + .004, -half + t), cab, (.04, height), .002)
+        box('Liner right', white, (half - t, half - .004), cab, (.04, height), .002)
+        box('Back', white, (-half, half), (depth / 2 - t, depth / 2), (.04, height), .002)
+        box('Top', white, (-half, half), cab, (height - t, height), .002)
+        box('Bottom', grey, (-half, half), cab, (.04, .04 + t), .002)
+        box('Divider', white, (-half + t, half - t), cab, (split_z - .02, split_z + .01), .002)
+        inner = (-half + t, half - t)
+        for z in (split_z - .14, split_z - .44, split_z - .74):
+            box('Glass shelf', clear, inner, (cab[0] + .03, depth / 2 - t - .02), (z, z + .012), .002)
+            box('Shelf rail', white, inner, (cab[0] + .03, cab[0] + .045), (z, z + .03), .002)
+        box('Freezer shelf', light, inner, (cab[0] + .03, depth / 2 - t - .02), (split_z + .17, split_z + .182), .002)
+        box('Light bar', light, inner, (cab[0] + .03, cab[0] + .05), (split_z + .165, split_z + .182), .001)
+        box('Ice maker', white, (-half + .045, -half + .2), (cab[0] + .05, cab[0] + .3), (split_z + .02, split_z + .15), .004)
+        box('Ice maker label', clear, (-half + .05, -half + .195), (cab[0] + .04, cab[0] + .05), (split_z + .03, split_z + .1), .001)
+        box('Filter panel', white, (-.07, .07), (depth / 2 - t - .02, depth / 2 - t), (split_z - .42, split_z - .12), .002)
+        for z in (height - .1, split_z - .13):
+            bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=.055, depth=.008, location=(0, depth / 2 - t - .004, z))
             obj = bpy.context.object
-            obj.name = f'Foot {sx} {sy}'
-            finish(obj, foot, 0)
+            obj.name = 'Fan'
+            obj.rotation_euler = (math.pi / 2, 0, 0)
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+            finish(obj, fan, 0)
+        box('Big Box', clear, (-half + .06, half - .06), (cab[0] + .02, depth / 2 - t - .05), (.04 + t + .01, .04 + .3), .004)
+        box('Big Box front', white, (-half + .06, half - .06), (cab[0] + .02, cab[0] + .035), (.04 + t + .01, .04 + .3), .004)
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=.02, depth=.04, location=(sx * (half - .04), sy * (depth / 2 - .06), .02))
+                obj = bpy.context.object
+                obj.name = f'Foot {sx} {sy}'
+                finish(obj, foot, 0)
+    else:
+        # A door seen from the room, hinge on the right (+X), lying at the closed position: the steel outside at -Y, the liner inside and the bins behind it. Z = 0 is the door's bottom.
+        w = width - .008
+        lower = part == 'lower-door'
+        z_base = .05 if lower else split_z + .0035
+        h = (split_z - .0035 - .05) if lower else height - z_base
+        box('Steel', steel, (-w / 2, w / 2), (-door, -door + .02), (0, h), .004)
+        box('Liner', white, (-w / 2, w / 2), (-door + .02, 0), (0, h), .003)
+        if lower:
+            box('Handle slot', black, (-w / 2 + .056, w / 2 - .056), (-door - .004, -door + .02), (split_z - .09 - z_base, split_z - .015 - z_base), .003)
+            box('Handle lip', steel, (-w / 2 + .056, w / 2 - .056), (-door - .006, -door), (split_z - .015 - z_base, split_z - .004 - z_base), .002)
+            box('Dispenser', black, (-.085, .085), (-door - .004, -door + .02), (.61 - z_base, .89 - z_base), .004)
+            box('Dispenser tray', glass, (-.05, .05), (-door - .006, -door + .01), (.64 - z_base, .78 - z_base), .004)
+            box('Dispenser header', black, (-.085, .085), (-door - .006, -door + .02), (.845 - z_base, .89 - z_base), .002)
+            bin_('Top', -w / 2 + .03, w / 2 - .03, 0, split_z - .26 - z_base, .1, .1)
+            for z in (.24, .62, .99):
+                bin_(f'Door {z}', -w / 2 + .03, w / 2 - .03, 0, z - z_base, .08)
+        else:
+            box('Display', black, (-.028, .028), (-door - .002, -door), (height - .2 - z_base, height - .12 - z_base), .002)
+            box('Display light', blue, (-.018, .018), (-door - .0035, -door - .002), (height - .175 - z_base, height - .15 - z_base), .001)
+            box('Brand', black, (.19, .27), (-door - .001, -door), (height - .045 - z_base, height - .037 - z_base), .0005)
+            for z in (.06, .22):
+                bin_(f'Door {z}', -w / 2 + .03, w / 2 - .03, 0, z, .08)
 
     for obj in parts:
         obj.data.transform(obj.matrix_world)

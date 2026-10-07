@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "toilet",
+  "id": "toilet",
+  "label": "Smart one-piece toilet",
+  "units": "meters",
+  "dimensions": [
+    0.48,
+    0.58,
+    0.77
+  ],
+  "material": {
+    "baseColor": "#f5f6f6",
+    "roughness": 0.12
+  },
+  "source": {
+    "description": "Smart one-piece toilet without a cistern: 77 cm long, 48 cm wide and 58 cm tall (the plan's size); the shape is drawn from the owner's pictures.",
+    "dimensionalStatus": "user-supplied",
+    "url": null
+  },
+  "parameters": {}
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "kitchen-fixture",
+  "id": "kitchen-tap",
+  "label": "kitchen-tap",
+  "units": "meters",
+  "dimensions": [
+    0.103,
+    0.466,
+    0.1832
+  ],
+  "material": {
+    "baseColor": "#b9bec4",
+    "roughness": 0.4
+  },
+  "source": {
+    "description": "Brushed brass pull-down tap, about 46 cm tall with a 15 cm reach, from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {
+    "part": "tap"
+  }
+}

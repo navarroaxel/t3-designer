@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "kitchen-fixture",
+  "id": "kitchen-sink",
+  "label": "kitchen-sink",
+  "units": "meters",
+  "dimensions": [
+    0.62,
+    0.202,
+    0.42
+  ],
+  "material": {
+    "baseColor": "#b9bec4",
+    "roughness": 0.4
+  },
+  "source": {
+    "description": "Undermount stainless steel basin, 600 x 400 mm and 200 mm deep with a 10 mm lip, from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {
+    "part": "sink"
+  }
+}
