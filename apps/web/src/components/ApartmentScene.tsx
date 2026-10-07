@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { useUnits } from '../lib/useUnits'
 import { roomLabel } from '../i18n/workspace-labels'
 import { WebGLGuard } from './WebGLGuard'
+import { AmbientOcclusion } from './AmbientOcclusion'
 import { ObjectInteractions } from '../editor/ObjectInteractions'
 import { currentFixtures } from '../data/current-state'
 import { demoAssets } from '../data/demo-catalog'
@@ -24,6 +25,7 @@ type ViewRequest = { mode: '3d' | 'top'; revision: number }
 type ApartmentSceneProps = {
   apartment: ApartmentData
   floor: Floor
+  ambientOcclusion?: boolean
   cutaway: boolean
   showLabels: boolean
   showFixtures?: boolean
@@ -141,7 +143,7 @@ function SceneCamera({ apartment, view, focusRoomId, showContext, controlsRef, t
   )
 }
 
-export function ApartmentScene({ apartment, floor, cutaway, showLabels, showFixtures = true, focusRoomId, view, sun, showContext, fixtures = currentFixtures, editing }: ApartmentSceneProps) {
+export function ApartmentScene({ apartment, floor, ambientOcclusion = false, cutaway, showLabels, showFixtures = true, focusRoomId, view, sun, showContext, fixtures = currentFixtures, editing }: ApartmentSceneProps) {
   const { t } = useTranslation('workspace')
   const { formatArea } = useUnits()
   const bounds = apartmentBounds(apartment)
@@ -188,6 +190,7 @@ export function ApartmentScene({ apartment, floor, cutaway, showLabels, showFixt
       </mesh>
       {!showContext && <gridHelper position={[x, -0.15, z]} args={[30, 30, '#dce0d6', '#e1e5db']} />}
       <Apartment apartment={apartment} fixtures={fixtures} cutaway={cutaway} showFixtures={showFixtures} solarStudy editing={editing ? { objects, enabled: editing.enabled, selectedId: editing.selectedId } : undefined} />
+      <AmbientOcclusion enabled={ambientOcclusion} />
       <SceneCamera apartment={apartment} view={view} focusRoomId={focusRoomId} showContext={showContext} controlsRef={controlsRef} transition={transition} />
       {editing?.enabled && <ObjectInteractions scene={editableScene} editable onSelect={editing.onSelect} onMove={editing.onMove} onDragStart={() => { transition.current = null }} snap={.1} mode={view.mode} objects={objects} controls={controlsRef} />}
       <LabelProjection labels={labels} elements={labelElements} enabled={showLabels} />

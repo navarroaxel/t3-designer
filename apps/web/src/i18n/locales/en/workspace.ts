@@ -187,6 +187,7 @@ const workspace = {
     "modelLayers": "Model layers",
     "cutaway": "Cutaway",
     "fixtures": "Fixtures",
+    "softShadows": "Soft shadows in corners",
     "labels": "Labels",
     "inspectorAria": "Explore the house and its sunlight",
     "insideEyebrow": "Inside the house",

@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { RoundedBox } from '@react-three/drei'
+import { edgeRadius } from '../lib/rounding'
 import { CanvasTexture, SRGBColorSpace } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
@@ -132,13 +134,19 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       // X takes a TV off its mount: the mount stays on the wall, the TV (and its picture) is gone.
       if (tv && !isTvMounted(devices, piece.id)) return null
       return <group key={piece.id} position={[0, 0, -pieceReach(piece.id)]}>
-        <mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}
-          rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? [0, 0, piece.roll] : undefined}
-          scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow receiveShadow>
-          {piece.disc ? <cylinderGeometry args={[size[0] / 2, size[0] / 2, size[2], 40]} /> : ellipse ? <cylinderGeometry args={[1, piece.taper ?? 1, size[1], 40]} /> : <boxGeometry args={size} />}
-          <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}
+        {(() => {
+          const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
+          const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
+          const material = <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}
             transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined} />
-        </mesh>
+          // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.
+          if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? [0, 0, piece.roll] : undefined} castShadow receiveShadow>{material}</RoundedBox>
+          return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? [0, 0, piece.roll] : undefined}
+            scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow receiveShadow>
+            {piece.disc ? <cylinderGeometry args={[size[0] / 2, size[0] / 2, size[2], 40]} /> : ellipse ? <cylinderGeometry args={[1, piece.taper ?? 1, size[1], 40]} /> : <boxGeometry args={size} />}
+            {material}
+          </mesh>
+        })()}
         {tv && screen && <mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[1] + .002)]} rotation={[0, Math.PI, 0]}>
           <planeGeometry args={[(piece.u[1] - piece.u[0]) * .97, (piece.y[1] - piece.y[0]) * .95]} />
           <meshBasicMaterial map={texture} toneMapped={false} />

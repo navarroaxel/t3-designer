@@ -1,4 +1,4 @@
-import type { WebGLRenderer, Scene, Camera } from 'three'
+import type { WebGLRenderer } from 'three'
 
 const two = (value: number) => String(value).padStart(2, '0')
 
@@ -8,11 +8,10 @@ export function screenshotName(when: Date): string {
 }
 
 /**
- * Saves what the camera sees as a PNG. A WebGL canvas that is not asked to keep its buffer comes out blank outside the frame that drew it, so the scene is drawn once
- * more right before the canvas is read; the blob is taken from that very buffer.
+ * Saves what the camera sees as a PNG. A WebGL canvas that is not asked to keep its buffer comes out blank outside the frame that drew it, so this is called inside a frame,
+ * after everything was drawn into it (the post-processing composer included); the blob is taken from that very buffer.
  */
-export function saveScreenshot(gl: WebGLRenderer, scene: Scene, camera: Camera, when = new Date()): Promise<string | null> {
-  gl.render(scene, camera)
+export function saveScreenshot(gl: WebGLRenderer, when = new Date()): Promise<string | null> {
   return new Promise(resolve => {
     gl.domElement.toBlob(blob => {
       if (!blob) { resolve(null); return }

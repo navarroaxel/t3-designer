@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { Line } from '@react-three/drei'
+import { Line, RoundedBox } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
@@ -10,6 +10,7 @@ import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
 import { type KitchenBox } from '../data/kitchen'
 import { shellWallBoxes } from '../data/house-interior'
 import { HouseFurnishings } from './HouseFurnishings'
+import { edgeRadius } from '../lib/rounding'
 import { polygonShape } from '../lib/polygon-shape'
 
 /** The stairwell opening in the first-floor slab, as a ring. Defined once so the slab's geometry is not rebuilt on every render. */
@@ -141,10 +142,17 @@ export function KitchenPiece({ box }: { box: KitchenBox }) {
     return texture
   }, [pattern, box.color, box.u, box.v])
   useEffect(() => () => map?.dispose(), [map])
-  return <mesh position={[(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]} receiveShadow>
-    <boxGeometry args={[box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]]} />
-    <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={box.id === 'fridge' ? .4 : map ? .35 : .6} metalness={box.id === 'fridge' ? .3 : 0} />
-  </mesh>
+  const size = [box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]] as [number, number, number]
+  const position: [number, number, number] = [(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]
+  const material = <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={box.id === 'fridge' ? .4 : map ? .35 : .6} metalness={box.id === 'fridge' ? .3 : 0} />
+  // The worktops carry a pattern laid for a flat box and stay sharp; the cabinets, the fridge and the column get a soft edge.
+  const radius = map ? 0 : edgeRadius(size)
+  return radius > 0
+    ? <RoundedBox args={size} radius={radius} smoothness={3} position={position} castShadow receiveShadow>{material}</RoundedBox>
+    : <mesh position={position} receiveShadow>
+        <boxGeometry args={size} />
+        {material}
+      </mesh>
 }
 
 /** One rectangle of a floor zone, with its pattern repeated at real scale. */

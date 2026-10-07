@@ -129,3 +129,9 @@ because a WebGL canvas that does not keep its buffer comes out blank outside the
 The floor cutaway of *House and sun* no longer draws furniture of its own: `HouseShell` lays `HouseFurnishings` (the walkthrough's) over each floor, sawn off at the 1.5 m cut like the walls. What was only in
 the walkthrough (the living's table with the PS5 and its controller, the outlets, the media box, the cable pass-through, the TV mounts) now shows in the cutaway too; a rack above the cut does not. The *Interior* tab still draws its
 own generic models (the arrangement panel moves those), which are a different set.
+
+## Looking less like voxels
+
+- **Soft edges:** the furniture's boxes get a rounded edge (`lib/rounding.ts`: a fifth of the smallest side, up to 2 cm; plates, slots and ports under 3 cm stay sharp). Walls, floors and the patterned worktops stay as they were.
+- **Ambient occlusion** (N8AO, `components/AmbientOcclusion.tsx`): soft shadows where surfaces meet, in the walkthrough and in the *Interior* tab, on by default except on a touch screen, with a checkbox in each to turn it off. The
+  composer takes over the renderer's tone mapping, so ACES is applied there; the screenshot is taken in a frame after the composer's, so the PNG has the soft shadows too.
