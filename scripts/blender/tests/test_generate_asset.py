@@ -92,7 +92,7 @@ class GenerateAssetTest(unittest.TestCase):
             worker.validate_request(job)
 
     def test_the_fridge_parts_and_kitchen_fixtures_have_valid_jobs(self):
-        for name in ('fireplace', 'rack', 'main-board', 'desk', 'inverter', 'board', 'toilet', 'fridge-cabinet', 'fridge-door-lower', 'fridge-door-freezer', 'kitchen-sink', 'kitchen-tap'):
+        for name in ('tool-cabinet', 'fireplace', 'rack', 'main-board', 'desk', 'inverter', 'board', 'toilet', 'fridge-cabinet', 'fridge-door-lower', 'fridge-door-freezer', 'kitchen-sink', 'kitchen-tap'):
             job = json.loads((SCRIPTS / f'jobs/{name}-job.json').read_text())
             worker.validate_request(job)
         job['parameters']['part'] = 'bidet'

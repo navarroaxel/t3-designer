@@ -156,3 +156,4 @@ gland, four DC connectors and three glands underneath) and the surface-mounted b
 - The office's standing desk (`desk_recipe.py`) is 1.40 by 0.70 m against the south-west wall, opposite the north-east party wall (owner), its sitter facing the room; size and place are assumed.
 - The pantry's rack is a black cabinet with a smoked-glass door and the units behind it (`rack_recipe.py`); the boxes in `rack.ts` keep the units' sizes.
 - The living's gas fireplace (`fireplace_recipe.py`, from the owner's picture) has its black base, grey bands, open firebox with a zig-zag grate and ceramic logs, the black upper box and a cedar top.
+- The garage's tool cabinet set (`tool_cabinet_recipe.py`, from the owner's pictures; 2.70 by 0.472 by 1.92 m, owner's figures) stands against the south-west wall, to the right of the electrical board (toward the front of the house), 10 cm from it (assumed).
