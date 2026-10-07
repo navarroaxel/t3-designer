@@ -84,6 +84,13 @@ class GenerateAssetTest(unittest.TestCase):
         job = json.loads((SCRIPTS / 'jobs/dualsense-job.json').read_text())
         self.assertEqual(worker.validate_request(job)['dimensions'], [.16, .066, .106])
 
+    def test_the_fridge_job_is_valid_and_needs_its_freezer_height(self):
+        job = json.loads((SCRIPTS / 'jobs/fridge-job.json').read_text())
+        self.assertEqual(worker.validate_request(job)['dimensions'], [.675, 1.825, .668])
+        job['parameters']['freezerHeight'] = 1.2
+        with self.assertRaises(ValueError):
+            worker.validate_request(job)
+
     def test_panel_parts_accept_roundness_and_bend_in_range(self):
         self.request['kind'] = 'procedural'
         part = {'name': 'Shell', 'shape': 'panel', 'dimensions': [.04, .37, .26], 'position': [0, .2, 0], 'rotation': [0, 0, 0],

@@ -95,15 +95,15 @@ class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode
   render() { return this.state.failed ? this.props.fallback : this.props.children }
 }
 
-/** A Blender model standing on the floor at the middle of the piece's box, its front (+z in the file) toward the room (-z here, the wall's normal). */
-function PlacedModel({ url, position }: { url: string; position: [number, number, number] }) {
+/** A Blender model standing on the floor at the middle of the piece's box, its front (+z in the file) toward the room (-z here, the wall's normal) unless `turn` says otherwise. */
+function PlacedModel({ url, position, turn = Math.PI }: { url: string; position: [number, number, number]; turn?: number }) {
   const { scene } = useGLTF(url)
   const model = useMemo(() => {
     const copy = scene.clone(true)
     copy.traverse((node: Object3D) => { node.castShadow = true; node.receiveShadow = true })
     return copy
   }, [scene])
-  return <primitive object={model} position={position} rotation={[0, Math.PI, 0]} dispose={null} />
+  return <primitive object={model} position={position} rotation={[0, turn, 0]} dispose={null} />
 }
 
 /**
@@ -127,8 +127,14 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   const pieces = furnishingsOn(floor)
   // What moves with the arm: the TV, its picture, and the mount's head and rails.
   const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
-  const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && pieces.some(piece => piece.id === 'kitchen-fridge')
+  const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
+  const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge
+  // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
+  const fridgeModel = !!fridge && !fridgeOpen && (cut === undefined || cut >= fridge.y[1])
   return <group name="house-furnishings" position={[0, absolute ? 0 : -FLOOR_ELEVATION[floor], 0]}>
+    {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
+      <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
+    </Suspense></ModelBoundary>}
     {fridgeOpen && <OpenFridge body={pieces.find(piece => piece.id === 'kitchen-fridge')!} lowerDoor={pieces.find(piece => piece.id === 'kitchen-fridge-door')!} upperDoor={pieces.find(piece => piece.id === 'kitchen-fridge-freezer-door')!}
       extras={pieces.filter(piece => ['kitchen-fridge-handle', 'kitchen-fridge-dispenser'].includes(piece.id))} />}
     {(['main', 'living'] as const).flatMap(name => {
@@ -140,7 +146,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
     {pieces.map(source => {
       const piece = cut === undefined ? source : clipToCut(source, cut)
       if (!piece) return null
-      if (fridgeOpen && piece.id.startsWith('kitchen-fridge')) return null
+      if ((fridgeOpen || fridgeModel) && piece.id.startsWith('kitchen-fridge')) return null
       // The folded links give way to the arm drawn below when the mount reaches out.
       if (/^tv-(main|living)-mount-link-/.test(piece.id) && armReach(devices, `tv-${piece.id.split('-')[1]}`) > 0) return null
       const screen = (devices[piece.id] ?? 0) >= .5

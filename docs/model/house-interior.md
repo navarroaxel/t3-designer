@@ -75,7 +75,7 @@ The walkthrough is one visit over both floors, joined by the owner's stair. `bui
 ## The fridge and the freezer
 
 Looking at the fridge and pressing `E` opens its two doors (right-hand hinges), showing the cabinet with its shelves, the ice maker, the vegetable drawer
-and the door bins. The fridge is the owner's: 0.675 m wide, 0.668 m deep with its handle, 1.785 m high. The freezer holds 89 L net, 101 L gross; from
+and the door bins. Closed, it is a Blender model (`scripts/blender/fridge_recipe.py`, from the maker's pictures: stainless doors, grey sides, the black handle slot, the dispenser, the display and the feet); open, it is the boxes. The fridge is the owner's: 0.675 m wide, 0.668 m deep with its handle, 1.785 m high. The freezer holds 89 L net, 101 L gross; from
 the gross volume and an assumed section (4 cm walls, 4.5 cm door and back) its liner is 0.31 m high and the freezer, with its top wall and the
 partition, 0.40 m (`FREEZER` in `kitchen.ts`).
 
