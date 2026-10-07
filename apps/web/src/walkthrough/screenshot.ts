@@ -8,8 +8,7 @@ export function screenshotName(when: Date): string {
 }
 
 /**
- * Saves what the camera sees as a PNG. A WebGL canvas that is not asked to keep its buffer comes out blank outside the frame that drew it, so this is called inside a frame,
- * after everything was drawn into it (the post-processing composer included); the blob is taken from that very buffer.
+ * Saves what the canvas shows as a PNG. The canvas keeps its drawing buffer, so what the last frame drew, the post-processing composer's pass included, is what is read.
  */
 export function saveScreenshot(gl: WebGLRenderer, when = new Date()): Promise<string | null> {
   return new Promise(resolve => {

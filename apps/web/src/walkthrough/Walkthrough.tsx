@@ -23,22 +23,18 @@ const emptyInput = (): WalkInput => ({ forward: 0, right: 0, turn: 0, lookX: 0, 
 const clockValue = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
 
 /**
- * Inside the canvas: hands the page a way to photograph what the camera sees. With post-processing on, the picture is what the composer draws, so the shot is taken in a frame of
- * its own, after the composer's (render priority 2): a request asks for that frame and waits for it.
+ * Inside the canvas: hands the page a way to photograph what the camera sees. The canvas keeps its drawing buffer (see the `gl` prop), so after a frame has been drawn, with the
+ * post-processing composer's pass included, it can be read: a request asks for a frame and, two animation frames later, saves it. Each request gets its own answer.
  */
 function ScreenshotBridge({ capture }: { capture: RefObject<(() => Promise<string | null>) | null> }) {
   const { gl, invalidate } = useThree()
-  const pending = useRef<((name: string | null) => void) | null>(null)
   useEffect(() => {
-    capture.current = () => new Promise(resolve => { pending.current = resolve; invalidate() })
+    capture.current = () => new Promise(resolve => {
+      invalidate()
+      requestAnimationFrame(() => requestAnimationFrame(() => { void saveScreenshot(gl).then(resolve) }))
+    })
     return () => { capture.current = null }
-  }, [capture, invalidate])
-  useFrame(() => {
-    const resolve = pending.current
-    if (!resolve) return
-    pending.current = null
-    void saveScreenshot(gl).then(resolve)
-  }, 2)
+  }, [capture, gl, invalidate])
   return null
 }
 
@@ -203,7 +199,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
     <div className="walk-layout">
       <div className="walk-stage" data-testid="walk-stage">
         <WebGLGuard fallback={fallback}>
-          <Canvas shadows={{ type: PCFShadowMap }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
+          <Canvas shadows={{ type: PCFShadowMap }} gl={{ preserveDrawingBuffer: true }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
             onCreated={({ gl }) => { canvas.current = gl.domElement; gl.domElement.tabIndex = 0; setReady(true) }}>
             <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} />
             <WalkController world={initialWorld} collisionWorld={world} spawn={spawn} resetKey={reset} active={active} input={input} eyeHeight={eyeHeight} sensitivity={sensitivity} onPose={setPose} onPause={pause} onInteract={interact} />
