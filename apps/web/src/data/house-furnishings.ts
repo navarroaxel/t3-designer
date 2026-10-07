@@ -1,6 +1,6 @@
 import { BATHROOM_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
-import { FIREPLACE_BOXES } from './fireplace.ts'
+import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { MAIN_BOARD_BOX } from './main-board.ts'
 import { OFFICE_DESK_BOX } from './office-desk.ts'
 import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage-equipment.ts'
@@ -139,7 +139,8 @@ function groundFloor(): Furnishing[] {
     ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })),
     // The network rack on the pantry's wall, at head height: a visitor does not walk into it.
     { id: 'rack', ...RACK_BOX, color: '#16171a', roughness: .55, solid: true, model: '/models/house/rack.glb' },
-    ...FIREPLACE_BOXES.map(box => ({ id: `fireplace-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id === 'top' ? .8 : box.shape === 'log' ? .95 : .5, solid: true })),
+    // The fireplace is one Blender model: 0.99 m at its cedar top, 0.40 m deep with the top's front overhang, against the wall, its open front toward the room.
+    { id: 'fireplace', u: [FIREPLACE_U[0] - .02, FIREPLACE_U[1] + .02], v: [FIREPLACE_V[0] - .02, FIREPLACE_V[1]], y: [0, FIREPLACE.height], color: '#17171a', roughness: .55, solid: true, model: '/models/house/fireplace.glb', turn: 0 },
   ]
 }
 
