@@ -37,7 +37,7 @@ export function ApartmentExplorer({ solar, state, layout }: { solar: SolarStudy;
   const { expanded, setExpanded, container, trigger } = useExpandedWorkspace()
   const [activePanel, setActivePanel] = useState<'sun' | 'settings' | 'furniture' | null>(() => state.arranging ? 'furniture' : null)
   const {
-    cutaway, setCutaway, showLabels, setShowLabels, showFixtures, setShowFixtures,
+    ambientOcclusion, setAmbientOcclusion, cutaway, setCutaway, showLabels, setShowLabels, showFixtures, setShowFixtures,
     focusRoomId, setFocusRoomId, panel, setPanel, showContext, setShowContext,
     selectedAsset, setSelectedAsset, view, resetView, focusRoom,
   } = state
@@ -62,7 +62,7 @@ export function ApartmentExplorer({ solar, state, layout }: { solar: SolarStudy;
   return <>
       <section ref={container} className={`apartment-viewer${expanded ? ' is-expanded' : ''}${activePanel ? ' has-panel' : ''}${canRotate ? ' has-arrangement-selection' : ''}`} role={expanded ? 'dialog' : undefined} aria-modal={expanded || undefined} aria-label={t('apartment.modelAria')}>
         <div className={`viewport apartment-viewport ${solar.sun.isDaylight ? 'is-day' : 'is-night'}`} onKeyDown={arrangement.keyDown}>
-          <ApartmentScene apartment={apartment} floor={floor} fixtures={floorFixtures} cutaway={cutaway} showLabels={showLabels} showFixtures={showFixtures} focusRoomId={focusRoomId} view={view} sun={solar.sun} showContext={showContext} editing={{ enabled: state.arranging, selectedId: arrangement.selectedId, onSelect: arrangement.onSelect, onMove: arrangement.onMove, label: demo.controls }} />
+          <ApartmentScene apartment={apartment} floor={floor} ambientOcclusion={ambientOcclusion} fixtures={floorFixtures} cutaway={cutaway} showLabels={showLabels} showFixtures={showFixtures} focusRoomId={focusRoomId} view={view} sun={solar.sun} showContext={showContext} editing={{ enabled: state.arranging, selectedId: arrangement.selectedId, onSelect: arrangement.onSelect, onMove: arrangement.onMove, label: demo.controls }} />
           {activePanel === 'furniture' && <PublicArrangement layout={layout} floor={floor} onClose={() => setActivePanel(null)} selectedId={arrangement.selectedId} onSelect={arrangement.onSelect} error={arrangement.error} onClearError={arrangement.onClearError} />}
           <div className="viewer-toolbar apartment-viewer-toolbar">
             <div className="view-buttons" role="group" aria-label={t('apartment.cameraView')}>
@@ -94,6 +94,7 @@ export function ApartmentExplorer({ solar, state, layout }: { solar: SolarStudy;
               <label><input type="checkbox" checked={cutaway} onChange={event => setCutaway(event.target.checked)} /> {t('apartment.cutaway')}</label>
               <label><input type="checkbox" checked={showFixtures} onChange={event => setShowFixtures(event.target.checked)} /> {t('apartment.fixtures')}</label>
               <label><input type="checkbox" checked={showLabels} onChange={event => setShowLabels(event.target.checked)} /> {t('apartment.labels')}</label>
+              <label><input type="checkbox" checked={ambientOcclusion} onChange={event => setAmbientOcclusion(event.target.checked)} /> {t('apartment.softShadows')}</label>
               <label><input type="checkbox" checked={showContext} onChange={event => setShowContext(event.target.checked)} /> {t('apartment.showBuilding')}</label>
             </fieldset>
             <div className="inspector-tabs" role="group" aria-label={t('apartment.inspectorContents')}>

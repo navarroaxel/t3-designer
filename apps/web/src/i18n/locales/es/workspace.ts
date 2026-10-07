@@ -208,6 +208,7 @@ const workspace = {
     "modelLayers": "Capas del modelo",
     "cutaway": "Corte",
     "fixtures": "Equipamiento",
+    "softShadows": "Sombras suaves en las esquinas",
     "labels": "Rótulos",
     "inspectorAria": "Explorá la casa y su luz solar",
     "insideEyebrow": "Adentro de la casa",

@@ -15,19 +15,26 @@ import { buildWalkWorld, canSetWalkDoorOpenness, WALK_STEP, findWalkDoorTarget, 
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
 import { saveScreenshot } from './screenshot'
+import { AmbientOcclusion } from '../components/AmbientOcclusion'
 import { armKey, isArmExtended, isTvMounted, tvMountKey } from '../data/house-furnishings'
 import './walkthrough.css'
 
 const emptyInput = (): WalkInput => ({ forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false, detach: false, extend: false })
 const clockValue = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
 
-/** Inside the canvas: hands the page a way to photograph what the camera sees. */
+/**
+ * Inside the canvas: hands the page a way to photograph what the camera sees. The canvas keeps its drawing buffer (see the `gl` prop), so after a frame has been drawn, with the
+ * post-processing composer's pass included, it can be read: a request asks for a frame and, two animation frames later, saves it. Each request gets its own answer.
+ */
 function ScreenshotBridge({ capture }: { capture: RefObject<(() => Promise<string | null>) | null> }) {
-  const { gl, scene, camera } = useThree()
+  const { gl, invalidate } = useThree()
   useEffect(() => {
-    capture.current = () => saveScreenshot(gl, scene, camera)
+    capture.current = () => new Promise(resolve => {
+      invalidate()
+      requestAnimationFrame(() => requestAnimationFrame(() => { void saveScreenshot(gl).then(resolve) }))
+    })
     return () => { capture.current = null }
-  }, [capture, gl, scene, camera])
+  }, [capture, gl, invalidate])
   return null
 }
 
@@ -102,6 +109,8 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const [ready, setReady] = useState(false), [pose, setPose] = useState<WalkPose | null>(null)
   const [artificialLights, setArtificialLights] = useState(() => snapshot.customization?.lighting.artificialEnabled !== false), [torch, setTorch] = useState(false)
   const [screenControls, setScreenControls] = useState(() => window.matchMedia('(pointer: coarse)').matches)
+  // Soft shadows where surfaces meet cost a little; a touch screen, usually a phone, starts without them.
+  const [ambientOcclusion, setAmbientOcclusion] = useState(() => !window.matchMedia('(pointer: coarse)').matches)
   const [fullscreen, setFullscreen] = useState(false), [message, setMessage] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [mouseCaptured, setMouseCaptured] = useState(false)
@@ -190,11 +199,12 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
     <div className="walk-layout">
       <div className="walk-stage" data-testid="walk-stage">
         <WebGLGuard fallback={fallback}>
-          <Canvas shadows={{ type: PCFShadowMap }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
+          <Canvas shadows={{ type: PCFShadowMap }} gl={{ preserveDrawingBuffer: true }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
             onCreated={({ gl }) => { canvas.current = gl.domElement; gl.domElement.tabIndex = 0; setReady(true) }}>
             <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} />
             <WalkController world={initialWorld} collisionWorld={world} spawn={spawn} resetKey={reset} active={active} input={input} eyeHeight={eyeHeight} sensitivity={sensitivity} onPose={setPose} onPause={pause} onInteract={interact} />
             <CameraSettings fov={fov} torch={torch} />
+            <AmbientOcclusion enabled={ambientOcclusion} />
             <ScreenshotBridge capture={capture} />
           </Canvas>
         </WebGLGuard>
@@ -243,6 +253,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
           <button className="walk-text-button" onClick={() => setMoment(initialMoment ?? { date: snapshot.solar.date, minutes: snapshot.solar.selected.minutes })}>{c.savedSun}</button>
           <label className="walk-check"><input type="checkbox" checked={artificialLights} onChange={event => setArtificialLights(event.target.checked)} />{c.artificial}</label>
           <label className="walk-check"><input type="checkbox" checked={torch} onChange={event => setTorch(event.target.checked)} />{c.torch}</label>
+          <label className="walk-check"><input type="checkbox" checked={ambientOcclusion} onChange={event => setAmbientOcclusion(event.target.checked)} />{c.softShadows}</label>
           <label>{c.height} <output>{formatLength(eyeHeight)}</output><input type="range" min="1.2" max="1.9" step=".05" value={eyeHeight} onChange={event => { const height = Number(event.target.value); setEyeHeight(height); if (!entered) setSpawnHeight(height) }} /></label>
           <label>{c.fov} <output>{fov}°</output><input type="range" min="50" max="95" step="1" value={fov} onChange={event => setFov(Number(event.target.value))} /></label>
           <label>{c.sensitivity} <output>{sensitivity.toFixed(1)}×</output><input type="range" min=".3" max="2" step=".1" value={sensitivity} onChange={event => setSensitivity(Number(event.target.value))} /></label>
