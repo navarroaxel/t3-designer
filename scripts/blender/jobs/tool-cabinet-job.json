@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "tool-cabinet",
+  "id": "tool-cabinet",
+  "label": "Garage tool cabinet set",
+  "units": "meters",
+  "dimensions": [
+    2.7,
+    1.92,
+    0.472
+  ],
+  "material": {
+    "baseColor": "#1c1d20",
+    "roughness": 0.65
+  },
+  "source": {
+    "description": "Garage tool cabinet set, 2.70 m wide, 0.472 m deep and 1.92 m tall (the owner's figures); the pieces' proportions and look are drawn from the owner's pictures.",
+    "dimensionalStatus": "user-supplied",
+    "url": null
+  },
+  "parameters": {}
+}

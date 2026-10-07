@@ -40,19 +40,19 @@ function partitionWall(id: string, box: Box): Wall {
   }
 }
 
-type InteriorDoor = { id: string; box: Box; swing?: DoorSwing; appearance: 'passage' | 'panel' | 'glazed' | 'aluminium'; finish?: Door['finish']; color?: string; fixedLeaf?: number; evidence?: string }
+type InteriorDoor = { id: string; box: Box; swing?: DoorSwing; appearance: 'passage' | 'panel' | 'flush' | 'glazed' | 'aluminium'; finish?: Door['finish']; color?: string; fixedLeaf?: number; evidence?: string }
 const boxOf = (door: { u: [number, number]; v: [number, number] }): Box => [door.u[0], door.u[1], door.v[0], door.v[1]]
 
 const FIRST_DOORS: InteriorDoor[] = [
   { id: 'bathroom-door', box: boxOf(BATHROOM_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'bathroom'), appearance: 'panel', finish: 'white', color: BATHROOM_DOOR_COLOR },
   { id: 'living-door', box: boxOf(LIVING_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'living'), appearance: 'aluminium', fixedLeaf: LIVING_DOOR_LEAVES.narrow, finish: 'white', color: LIVING_DOOR_COLOR },
-  { id: 'main-door', box: boxOf(MAIN_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'main'), appearance: 'panel', finish: 'gray', color: MAIN_DOOR_COLOR },
-  { id: 'secondary-door', box: boxOf(SECONDARY_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'secondary'), appearance: 'panel', finish: 'gray', color: SECONDARY_DOOR_COLOR },
+  { id: 'main-door', box: boxOf(MAIN_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'main'), appearance: 'flush', finish: 'gray', color: MAIN_DOOR_COLOR },
+  { id: 'secondary-door', box: boxOf(SECONDARY_DOOR), swing: FIRST_FLOOR_DOOR_SWINGS.find(swing => swing.id === 'secondary'), appearance: 'flush', finish: 'gray', color: SECONDARY_DOOR_COLOR },
 ]
 const GROUND_DOORS: InteriorDoor[] = [
   { id: 'garage-hall-doorway', box: boxOf(GARAGE_DOOR), appearance: 'passage', finish: 'white', evidence: 'Doorway without a door yet (owner).' },
   { id: 'hall-arch', box: boxOf(HALL_ARCH), appearance: 'passage', finish: 'white', evidence: 'Doorway without a leaf (owner).' },
-  { id: 'office-door', box: boxOf(OFFICE_DOOR), swing: GROUND_DOOR_SWINGS.find(swing => swing.id === 'office'), appearance: 'panel', finish: 'gray', color: OFFICE_DOOR_COLOR },
+  { id: 'office-door', box: boxOf(OFFICE_DOOR), swing: GROUND_DOOR_SWINGS.find(swing => swing.id === 'office'), appearance: 'flush', finish: 'gray', color: OFFICE_DOOR_COLOR },
   { id: 'living-rear-door', box: boxOf(LIVING_KITCHEN_DOOR), appearance: 'passage', finish: 'white', evidence: 'Opening only; leaf, colour and hand not known.' },
   { id: 'pantry-door', box: boxOf(PANTRY_DOOR), appearance: 'passage', finish: 'white', evidence: 'Opening only; width and centring assumed.' },
   { id: 'ground-bathroom-door', box: boxOf(GROUND_BATHROOM_DOOR), appearance: 'passage', finish: 'white', evidence: 'Opening only; leaf, colour and hand not known.' },

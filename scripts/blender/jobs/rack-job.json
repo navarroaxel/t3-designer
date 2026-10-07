@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "rack",
+  "id": "rack",
+  "label": "Wall-mounted 6U network rack",
+  "units": "meters",
+  "dimensions": [
+    0.482,
+    0.287,
+    0.318
+  ],
+  "material": {
+    "baseColor": "#16171a",
+    "roughness": 0.55
+  },
+  "source": {
+    "description": "Wall-mounted 6U network rack with a smoked-glass door, 482 x 287 mm and 318 mm deep with the door (the plan's size; the depth is assumed); the look is drawn from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

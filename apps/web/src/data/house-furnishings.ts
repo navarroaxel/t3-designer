@@ -1,11 +1,13 @@
 import { BATHROOM_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
-import { FIREPLACE_BOXES } from './fireplace.ts'
-import { GARAGE_EQUIPMENT } from './garage-equipment.ts'
+import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
+import { TOOL_CABINET_BOX } from './tool-cabinet.ts'
+import { MAIN_BOARD_BOX } from './main-board.ts'
+import { OFFICE_DESK_BOX } from './office-desk.ts'
+import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
-import { RACK_BOXES } from './rack.ts'
+import { RACK_BOX } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
-import { dualsenseBoxes } from './dualsense.ts'
 import { outletBoxes } from './outlets.ts'
 import { mediaBoxBoxes, passThroughBoxes } from './wall-fittings.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
@@ -16,6 +18,7 @@ import { KITCHEN_BOXES, KITCHEN_SIZES, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
+  GROUND_GARAGE,
 } from './house-plan.ts'
 
 /**
@@ -37,6 +40,10 @@ export type Furnishing = {
   taper?: number
   /** The kitchen's worktops carry a pattern: those pieces are drawn by the kitchen's own component. */
   kitchen?: KitchenBox
+  /** A model made in Blender (scripts/blender), standing on the floor at the centre of this box, its front toward the room: drawn instead of the box, which stays as its size and as a fallback. */
+  model?: string
+  /** A turn of the model about the vertical, in radians, where its front is not toward the wall's normal (the default is a half turn). */
+  turn?: number
   /** A round plate on a wall: a cylinder along v, its radius half the width. */
   disc?: true
   /** A turn about the normal of the wall it is on, for the slots of an outlet. */
@@ -77,12 +84,9 @@ function firstFloor(): Furnishing[] {
   for (const [index, [uEdge, vEdge]] of [[tableU[0], tableV[0]], [tableU[1] - table.leg, tableV[0]], [tableU[0], tableV[1] - table.leg], [tableU[1] - table.leg, tableV[1] - table.leg]].entries()) {
     add({ id: `living-table-leg-${index + 1}`, u: [uEdge, uEdge + table.leg], v: [vEdge, vEdge + table.leg], y: [F, F + table.height - table.top], color: '#8e6a40', roughness: .7, solid: index === 0 })
   }
-  // The PS5 stands upright on its base: 104 mm thick, 260 mm deep and 390 mm tall with its stand (12 mm of it), two white shells round a black centre. It is a PS5 of the standard model.
+  // The PS5 stands upright on its base: 104 mm thick, 260 mm deep and 390 mm tall with its stand. It is the model scripts/blender builds (jobs/ps5-job.json).
   const ps5U = tvU - .25, ps5V: [number, number] = [tableV[0] + .1, tableV[0] + .1 + .26], base = F + table.height
-  for (const [id, from, to, color] of [['shell-a', -.052, -.017, '#f4f5f7'], ['core', -.017, .017, '#1b1c1f'], ['shell-b', .017, .052, '#f4f5f7']] as const) {
-    add({ id: `ps5-${id}`, u: [ps5U + from, ps5U + to], v: ps5V, y: [base + .012, base + .39], color, roughness: .35, solid: false })
-  }
-  add({ id: 'ps5-stand', u: [ps5U - .06, ps5U + .06], v: [ps5V[0] + .03, ps5V[1] - .03], y: [base, base + .012], color: '#d8dade', roughness: .5, solid: false })
+  add({ id: 'ps5', u: [ps5U - .052, ps5U + .052], v: ps5V, y: [base, base + .39], color: '#f4f5f8', roughness: .35, solid: false, model: '/models/house/ps5.glb' })
   // Two double outlets on the wall, one each side of the table, 25 cm clear of it: the Argentine plug, shaped like the Australian one.
   for (const [side, offset] of [['left', -(table.width / 2 + .25)], ['right', table.width / 2 + .25]] as const) {
     for (const part of outletBoxes(`outlet-${side}`, wall, tvU + offset, F)) add({ ...part, roughness: .6, solid: false })
@@ -92,9 +96,13 @@ function firstFloor(): Furnishing[] {
   const tvCentreY = centre(LIVING_TV_PLACEMENT.y), mountHalf = TV_MOUNT.width / 2
   for (const part of passThroughBoxes('cable-hole', wall, tvU - mountHalf - .2, tvCentreY)) add({ ...part, roughness: .5, solid: false })
   for (const part of outletBoxes('outlet-tv', wall, tvU + mountHalf + .13, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
-  // Its DualSense lies on the table beside it, the triggers toward the wall.
-  for (const part of dualsenseBoxes(tvU + .22, tableV[0] + .24, base)) add({ ...part, id: `ps5-controller-${part.id}`, roughness: .45, solid: false })
+  // Its DualSense lies on the table beside it, the triggers toward the wall: 160 by 106 mm, 66 mm tall (a Blender model).
+  const padU = tvU + .22, padV = tableV[0] + .24
+  add({ id: 'ps5-controller', u: [padU - .08, padU + .08], v: [padV - .053, padV + .053], y: [base, base + .066], color: '#f4f5f8', roughness: .4, solid: false, model: '/models/house/dualsense.glb' })
   for (const box of BATHROOM_BOXES) {
+    // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
+    if (box.id === 'toilet-lid' || box.id === 'toilet-panel' || box.id === 'toilet-light') continue
+    if (box.id === 'toilet-body') { add({ ...box, y: [box.y[0], box.y[1] + .025], roughness: .25, model: '/models/house/toilet.glb', turn: -Math.PI / 2 }); continue }
     // The mirror and the glass panel are sawn off at the cut; give them their height back.
     const top = box.y[1] === cut ? F + (box.id === 'mirror' || box.id === 'mirror-shelf' ? 1.9 : 2) : box.y[1]
     add({ ...box, y: [box.y[0], top], roughness: box.metalness ? .35 : box.id.startsWith('toilet') ? .25 : .6, solid: box.opacity === undefined && box.y[0] - F < 1 && !box.id.startsWith('mirror') })
@@ -122,11 +130,19 @@ function firstFloor(): Furnishing[] {
 function groundFloor(): Furnishing[] {
   return [
     ...DOORBELL_BOXES.map(box => ({ id: `doorbell-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .4, solid: false })),
-    ...GARAGE_EQUIPMENT.map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
+    // The hall's main supply board, flush in the left wall, and the office's standing desk: both Blender models.
+    { id: 'main-board', ...MAIN_BOARD_BOX, color: '#f3f4f3', roughness: .4, solid: false, model: '/models/house/main-board.glb', turn: 0 },
+    { id: 'office-desk', ...OFFICE_DESK_BOX, color: '#dcb67f', roughness: .55, solid: true, model: '/models/house/desk.glb' },
+    { id: 'tool-cabinet', ...TOOL_CABINET_BOX, color: '#1c1d20', roughness: .65, solid: true, model: '/models/house/tool-cabinet.glb' },
+    // The inverter is a Blender model (its 60 mm of connectors hang under the box, which is the body); the board stays boxes.
+    { id: 'garage-inverter', u: INVERTER_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + INVERTER.depth], y: [INVERTER.bottom - .06, INVERTER.bottom + INVERTER.height], color: '#f1f2f3', roughness: .42, solid: false, model: '/models/house/inverter.glb' },
+    { id: 'garage-board', u: BOARD_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + BOARD.depth], y: [BOARD.bottom, BOARD.bottom + BOARD.height], color: '#ececec', roughness: .4, solid: false, model: '/models/house/board.glb' },
+    ...GARAGE_EQUIPMENT.filter(box => !box.id.startsWith('inverter') && !box.id.startsWith('board')).map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
     ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })),
     // The network rack on the pantry's wall, at head height: a visitor does not walk into it.
-    ...RACK_BOXES.map(box => ({ id: `rack-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, metalness: box.metalness, roughness: .5, solid: box.id === 'back' || box.id.startsWith('side') })),
-    ...FIREPLACE_BOXES.map(box => ({ id: `fireplace-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id === 'top' ? .8 : box.shape === 'log' ? .95 : .5, solid: true })),
+    { id: 'rack', ...RACK_BOX, color: '#16171a', roughness: .55, solid: true, model: '/models/house/rack.glb' },
+    // The fireplace is one Blender model: 0.99 m at its cedar top, 0.40 m deep with the top's front overhang, against the wall, its open front toward the room.
+    { id: 'fireplace', u: [FIREPLACE_U[0] - .02, FIREPLACE_U[1] + .02], v: [FIREPLACE_V[0] - .02, FIREPLACE_V[1]], y: [0, FIREPLACE.height], color: '#17171a', roughness: .55, solid: true, model: '/models/house/fireplace.glb', turn: 0 },
   ]
 }
 

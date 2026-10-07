@@ -75,7 +75,7 @@ The walkthrough is one visit over both floors, joined by the owner's stair. `bui
 ## The fridge and the freezer
 
 Looking at the fridge and pressing `E` opens its two doors (right-hand hinges), showing the cabinet with its shelves, the ice maker, the vegetable drawer
-and the door bins. The fridge is the owner's: 0.675 m wide, 0.668 m deep with its handle, 1.785 m high. The freezer holds 89 L net, 101 L gross; from
+and the door bins. Closed, it is a Blender model (`scripts/blender/fridge_recipe.py`, from the maker's pictures: stainless doors, grey sides, the black handle slot, the dispenser, the display and the feet); open, it is the cabinet and the two doors, three more models (shelves, ice maker, the blue-lit fans, the vegetable drawer and the door bins). The fridge is the owner's: 0.675 m wide, 0.668 m deep with its handle, 1.785 m high. The freezer holds 89 L net, 101 L gross; from
 the gross volume and an assumed section (4 cm walls, 4.5 cm door and back) its liner is 0.31 m high and the freezer, with its top wall and the
 partition, 0.40 m (`FREEZER` in `kitchen.ts`).
 
@@ -102,7 +102,7 @@ it reaches 355 mm, tilts +3 to -15 degrees, swivels +-60 and levels +-3. The mai
 
 ## The DualSense and the outlets
 
-- The controller on the living's table is built from the maker's picture (`dualsense.ts`): white shell and grips, black centre, two sticks, the touchpad with its blue light bar, the triggers, the D-pad and the four face buttons;
+- The controller on the living's table is a Blender model (`scripts/blender/dualsense_recipe.py`) drawn from the maker's picture: white shell and grips, black centre, two sticks, the touchpad with its blue light bar, the triggers, the D-pad and the face buttons;
   160 by 106 mm, the triggers toward the wall.
 - Two double outlets flank the table on the party wall (`outlets.ts`): the Argentine plug, which has the Australian shape (two pins in an inverted V and an earth pin below), in the matte black 114 by 72 mm plate
   of the owner's picture, 30 cm up from the floor, 25 cm clear of the table on each side.
@@ -135,3 +135,25 @@ own generic models (the arrangement panel moves those), which are a different se
 - **Soft edges:** the furniture's boxes get a rounded edge (`lib/rounding.ts`: a fifth of the smallest side, up to 2 cm; plates, slots and ports under 3 cm stay sharp). Walls, floors and the patterned worktops stay as they were.
 - **Ambient occlusion** (N8AO, `components/AmbientOcclusion.tsx`): soft shadows where surfaces meet, in the walkthrough and in the *Interior* tab, on by default except on a touch screen, with a checkbox in each to turn it off. The
   composer takes over the renderer's tone mapping, so ACES is applied there; the screenshot is taken in a frame after the composer's, so the PNG has the soft shadows too.
+
+## The worktops
+
+The worktops and the counter top are the Purastone Toscana Vena slab, 3.2 by 1.6 m, drawn with the maker's picture (`public/textures/toscana-vena.jpg`) at its real size; the pieces of one
+top take their part of the slab from where they lie, so the veins carry on around the sink. The second counter's top has the sink's 0.60 by 0.40 m opening cut out, with an undermount
+stainless steel basin under it and a brushed brass pull-down tap at its back edge (`kitchen_fixtures_recipe.py`, from the owner's pictures). The boxes in `kitchen.ts` keep the sink and the tap as
+sizes. The pictures also show a stone backsplash up the wall; it is not drawn.
+
+## The garage's equipment
+
+The three-phase Deye inverter (`inverter_recipe.py`, from the maker's picture: white body with big rounded corners, the black panel with its screen and four buttons, the isolator switch on the left side, the big
+gland, four DC connectors and three glands underneath) and the surface-mounted board with its smoked door (`board_recipe.py`, three rows of breakers behind it) are Blender models; the boxes in
+`garage-equipment.ts` keep their sizes. The inverter's body is 660 mm, as the maker says, and its connectors hang another 60 mm under it. The board's door is closed: the picture's open door is not modelled.
+
+## The hall's board, the office's desk, the rack and the fireplace
+
+- The main supply board is flush in the hall's left wall (the north-east party wall, coming in from the street), its nearer edge 0.15 m from the street's wall (owner), 1.5 m to its middle: a 300 by 170 mm frame
+  and smoked door 20 mm out of the wall, with fourteen modules inside (`board_flush_recipe.py`).
+- The office's standing desk (`desk_recipe.py`) is 1.40 by 0.70 m against the south-west wall, opposite the north-east party wall (owner), its sitter facing the room; size and place are assumed.
+- The pantry's rack is a black cabinet with a smoked-glass door and the units behind it (`rack_recipe.py`); the boxes in `rack.ts` keep the units' sizes.
+- The living's gas fireplace (`fireplace_recipe.py`, from the owner's picture) has its black base, grey bands, open firebox with a zig-zag grate and ceramic logs, the black upper box and a cedar top.
+- The garage's tool cabinet set (`tool_cabinet_recipe.py`, from the owner's pictures; 2.70 by 0.472 by 1.92 m, owner's figures) stands against the south-west wall, to the right of the electrical board (toward the front of the house), 10 cm from it (assumed).

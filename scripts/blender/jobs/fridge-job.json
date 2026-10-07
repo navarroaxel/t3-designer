@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "fridge",
+  "id": "fridge",
+  "label": "Samsung RT29K577JS8",
+  "units": "meters",
+  "dimensions": [
+    0.675,
+    1.825,
+    0.668
+  ],
+  "material": {
+    "baseColor": "#c9cdd1",
+    "roughness": 0.42
+  },
+  "source": {
+    "description": "Samsung RT29K577JS8 top-freezer with water dispenser: 675 mm wide, 668 mm deep with the handle, 1.785 m tall plus 40 mm feet (owner's measurements); the freezer is about 0.40 m, from its 101 L gross capacity. The look is drawn from the maker's pictures.",
+    "dimensionalStatus": "user-supplied",
+    "url": null
+  },
+  "parameters": {
+    "freezerHeight": 0.3997
+  }
+}

@@ -1,13 +1,13 @@
 import { useEffect, useMemo } from 'react'
 import { Line, RoundedBox } from '@react-three/drei'
-import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace } from 'three'
+import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace, TextureLoader } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
   CUT_HEIGHT, ENTRY_RECESS_OUTLINE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, FIRST_FLOOR_DOOR_SWINGS, FIRST_OUTLINE, GROUND_OUTLINE, SLAB_THICKNESS, STAIRWELL_HOLE,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
-import { type KitchenBox } from '../data/kitchen'
+import { KITCHEN_SINK, type KitchenBox } from '../data/kitchen'
 import { shellWallBoxes } from '../data/house-interior'
 import { HouseFurnishings } from './HouseFurnishings'
 import { edgeRadius } from '../lib/rounding'
@@ -132,21 +132,58 @@ function patternTexture(base: string, pattern: TilePattern) {
   return texture
 }
 
-/** A kitchen piece: a plain box, or a slab with its pattern (the worktops' Toscana Vena veins). */
+/** The slab's picture, tiled at the slab's real size (a canvas drawing stands in until it loads). */
+function slabPicture(pattern: TilePattern) {
+  const texture = new TextureLoader().load(pattern.image!)
+  texture.wrapS = texture.wrapT = RepeatWrapping
+  texture.colorSpace = SRGBColorSpace
+  texture.anisotropy = 8
+  return texture
+}
+
+/**
+ * One piece of a slab: the part of the slab's pattern that falls on [u, v], so that pieces of the same top (the strips around the sink's opening) line up. `origin`
+ * is where the top begins; a piece is drawn from there.
+ */
+function SlabPiece({ u, v, y, color, pattern, origin, id }: { u: [number, number]; v: [number, number]; y: [number, number]; color: string; pattern: TilePattern; origin: [number, number]; id: string }) {
+  // The dependencies are plain numbers: the arrays are new on every render, and a new texture each time shows as a flash of white while it loads.
+  const [u0, u1, v0, v1, originU, originV] = [u[0], u[1], v[0], v[1], origin[0], origin[1]]
+  const map = useMemo(() => {
+    const texture = pattern.image ? slabPicture(pattern) : patternTexture(color, pattern)
+    const across = pattern.width * pattern.rows
+    texture.repeat.set((u1 - u0) / pattern.length, (v1 - v0) / across)
+    texture.offset.set((u0 - originU) / pattern.length, (v0 - originV) / across)
+    return texture
+  }, [pattern, color, u0, u1, v0, v1, originU, originV])
+  useEffect(() => () => map.dispose(), [map])
+  const size = [u[1] - u[0], y[1] - y[0], v[1] - v[0]] as [number, number, number]
+  return <mesh position={[(u[0] + u[1]) / 2, (y[0] + y[1]) / 2, -(v[0] + v[1]) / 2]} castShadow receiveShadow name={id}>
+    <boxGeometry args={size} />
+    <meshStandardMaterial color="#ffffff" map={map} roughness={.28} />
+  </mesh>
+}
+
+/** A kitchen piece: a plain box, or a slab with its pattern (the worktops' Toscana Vena); the second counter's top has the sink's opening cut out. */
 export function KitchenPiece({ box }: { box: KitchenBox }) {
   const { pattern } = box
-  const map = useMemo(() => {
-    if (!pattern) return null
-    const texture = patternTexture(box.color, pattern)
-    texture.repeat.set((box.u[1] - box.u[0]) / pattern.length, (box.v[1] - box.v[0]) / (pattern.width * pattern.rows))
-    return texture
-  }, [pattern, box.color, box.u, box.v])
-  useEffect(() => () => map?.dispose(), [map])
+  if (pattern && box.id === 'counter-top' && box.y[1] - box.y[0] > .02) {
+    // The top around the sink's opening: the strip in front, the strip behind and the two between, all from the same slab.
+    const [su, sv] = [KITCHEN_SINK.u, KITCHEN_SINK.v]
+    const origin: [number, number] = [box.u[0], box.v[0]]
+    const piece = (name: string, u: [number, number], v: [number, number]) => <SlabPiece key={name} id={`${box.id}-${name}`} u={u} v={v} y={box.y} color={box.color} pattern={pattern} origin={origin} />
+    return <>
+      {piece('front', box.u, [box.v[0], sv[0]])}
+      {piece('back', box.u, [sv[1], box.v[1]])}
+      {piece('left', [box.u[0], su[0]], sv)}
+      {piece('right', [su[1], box.u[1]], sv)}
+    </>
+  }
+  if (pattern) return <SlabPiece id={box.id} u={box.u} v={box.v} y={box.y} color={box.color} pattern={pattern} origin={[box.u[0], box.v[0]]} />
   const size = [box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]] as [number, number, number]
   const position: [number, number, number] = [(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]
-  const material = <meshStandardMaterial color={map ? '#ffffff' : box.color} map={map} roughness={box.id === 'fridge' ? .4 : map ? .35 : .6} metalness={box.id === 'fridge' ? .3 : 0} />
-  // The worktops carry a pattern laid for a flat box and stay sharp; the cabinets, the fridge and the column get a soft edge.
-  const radius = map ? 0 : edgeRadius(size)
+  const material = <meshStandardMaterial color={box.color} roughness={box.id === 'fridge' ? .4 : .6} metalness={box.id === 'fridge' ? .3 : 0} />
+  // The cabinets, the fridge and the column get a soft edge; the slabs stay sharp.
+  const radius = edgeRadius(size)
   return radius > 0
     ? <RoundedBox args={size} radius={radius} smoothness={3} position={position} castShadow receiveShadow>{material}</RoundedBox>
     : <mesh position={position} receiveShadow>

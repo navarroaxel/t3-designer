@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "board-flush",
+  "id": "main-board",
+  "label": "Main supply board, flush-mounted",
+  "units": "meters",
+  "dimensions": [
+    0.3,
+    0.17,
+    0.116
+  ],
+  "material": {
+    "baseColor": "#f3f4f3",
+    "roughness": 0.38
+  },
+  "source": {
+    "description": "Flush-mounted single-row board with a smoked black door (the main supply board): 300 x 170 mm face, 20 mm of frame and door outside the wall and about 80 mm of box inside it (assumed); the look is drawn from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}
