@@ -31,7 +31,7 @@ def build(request, _default_material):
 
     white = paint(bpy, 'Enclosure white', '#f1f2f1', .4)
     inside = paint(bpy, 'Inside', '#dcdedd', .5)
-    smoke = paint(bpy, 'Smoked door', '#17181a', .12, alpha=.82)
+    smoke = paint(bpy, 'Smoked door', '#17181a', .12, alpha=.66)
     rail = paint(bpy, 'DIN rail', '#a9adb1', .4, .9)
     module = paint(bpy, 'Breaker', '#eceeed', .45)
     lever = paint(bpy, 'Lever', '#202124', .5)
@@ -66,20 +66,38 @@ def build(request, _default_material):
     box('Right', white, (half - wall, half), (front, d / 2), (0, h), .004)
     box('Top', white, (-half, half), (front, d / 2), (h - .045, h), .01)
     box('Bottom', white, (-half, half), (front, d / 2), (0, .045), .01)
-    # Three rows: a DIN rail, twelve modules (nine breakers with their levers, three blanking plates) and the row's channel.
-    for row in range(3):
+    # Three rows of Schneider Easy9 breakers filling the board (the owner's picture): light grey bodies, 18 mm a pole, a screw terminal at the top and one at the bottom of each pole, the
+    # dark grey handles of a two-pole breaker joined by a bar, and the green EZ mark. Each row is a list of poles per breaker; what is left over is closed with a blanking plate.
+    grey = paint(bpy, 'Easy9 grey', '#dfe0dc', .45)
+    handle = paint(bpy, 'Easy9 handle', '#3b3c3f', .5)
+    screw = paint(bpy, 'Terminal', '#16171a', .6)
+    mark = paint(bpy, 'EZ green', '#14a44d', .4)
+    rows = ([2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1])
+    pole = .018
+    start = -half + wall + .02
+    limit = half - wall - .015
+    for row, layout in enumerate(rows):
         z = .115 + row * .16
         box(f'Rail {row}', rail, (-half + wall + .01, half - wall - .01), (-.002, .008), (z - .0175, z + .0175), .0005)
         box(f'Channel {row}', inside, (-half + wall, half - wall), (d / 2 - .02, d / 2 - .008), (z - .06, z + .06), .001)
-        for index in range(20):
-            x0 = -half + wall + .02 + index * .018
-            if x0 + .018 > half - wall - .015:
+        x0 = start
+        for index, poles in enumerate(layout):
+            x1 = x0 + poles * pole
+            if x1 > limit:
                 break
-            if index < 13:
-                box(f'Breaker {row} {index}', module, (x0 + .0005, x0 + .0175), (-.045, .03), (z - .045, z + .045), .001)
-                box(f'Lever {row} {index}', lever, (x0 + .005, x0 + .013), (-.05, -.043), (z - .008, z + .018), .0008)
-            else:
-                box(f'Blank {row} {index}', blank, (x0 + .0005, x0 + .0175), (-.035, -.03), (z - .045, z + .045), .001)
+            box(f'Breaker {row} {index}', grey, (x0 + .0004, x1 - .0004), (-.045, .03), (z - .045, z + .045), .0012)
+            for step in range(poles):
+                px = x0 + step * pole + pole / 2
+                box(f'Handle {row} {index} {step}', handle, (px - .006, px + .006), (-.054, -.045), (z - .012, z + .012), .0012)
+                for dz in (-.0355, .0355):
+                    box(f'Terminal {row} {index} {step} {dz}', screw, (px - .004, px + .004), (-.0465, -.045), (z + dz - .004, z + dz + .004), .0003)
+            if poles > 1:
+                box(f'Bar {row} {index}', handle, (x0 + .003, x1 - .003), (-.056, -.05), (z - .006, z + .002), .001)
+            box(f'Mark {row} {index}', mark, (x0 + .0045, x0 + .0105), (-.0455, -.045), (z + .016, z + .022), .0002)
+            x0 = x1
+        while x0 + pole <= limit:
+            box(f'Blank {row} {x0:.3f}', blank, (x0 + .0004, x0 + pole - .0004), (-.035, -.03), (z - .045, z + .045), .001)
+            x0 += pole
     # The smoked door, inside the frame's lip, with its small latch.
     box('Door', smoke, (-half + wall - .003, half - wall + .003), (front + .004, front + .014), (.04, h - .04), .004)
     box('Latch', white, (half - wall - .02, half - wall), (front, front + .014), (h / 2 - .02, h / 2 + .01), .002)
