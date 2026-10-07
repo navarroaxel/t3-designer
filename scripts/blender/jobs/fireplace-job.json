@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "fireplace",
+  "id": "fireplace",
+  "label": "Gas fireplace",
+  "units": "meters",
+  "dimensions": [
+    0.99,
+    0.85,
+    0.4
+  ],
+  "material": {
+    "baseColor": "#17171a",
+    "roughness": 0.55
+  },
+  "source": {
+    "description": "Gas fireplace box, 0.95 m wide (0.99 m at its cedar top), 0.38 m deep (0.40 m at the top) and 0.85 m tall (the plan's size, read from the owner's photos); the look is drawn from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

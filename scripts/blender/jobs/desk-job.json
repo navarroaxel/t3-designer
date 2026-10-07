@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "desk",
+  "id": "desk",
+  "label": "Standing desk",
+  "units": "meters",
+  "dimensions": [
+    1.4,
+    0.75,
+    0.7
+  ],
+  "material": {
+    "baseColor": "#dcb67f",
+    "roughness": 0.55
+  },
+  "source": {
+    "description": "Height-adjustable desk, 1.40 x 0.70 m with a light wood top on white legs, at 0.75 m (assumed); the look is drawn from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "ps5",
+  "id": "ps5",
+  "label": "PlayStation 5",
+  "units": "meters",
+  "dimensions": [
+    0.104,
+    0.39,
+    0.26
+  ],
+  "material": {
+    "baseColor": "#f4f5f8",
+    "roughness": 0.32
+  },
+  "source": {
+    "description": "PlayStation 5 with disc drive, vertical on its stand. Sony's 390 x 104 x 260 mm (height x thickness x depth); the shape is drawn from the maker's pictures (owner's photos), not CAD.",
+    "dimensionalStatus": "manufacturer-specified",
+    "url": null
+  },
+  "parameters": {
+    "variant": "disc"
+  }
+}

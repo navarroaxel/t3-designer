@@ -17,10 +17,13 @@
   "dependencies": {
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.8.0",
+    "@react-three/postprocessing": "3.1.3",
     "@t3-designer/geometry": "workspace:*",
     "@t3-designer/scene-schema": "workspace:*",
     "@vercel/analytics": "^2.0.1",
     "i18next": "26.4.2",
+    "n8ao": "2.0.1",
+    "postprocessing": "^6.39.5",
     "react": "~19.3.0",
     "react-dom": "~19.3.0",
     "react-i18next": "17.0.15",

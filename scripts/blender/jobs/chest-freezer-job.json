@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "chest-freezer",
+  "id": "chest-freezer",
+  "label": "Chest freezer",
+  "units": "meters",
+  "dimensions": [
+    0.56,
+    0.85,
+    0.58
+  ],
+  "material": {
+    "baseColor": "#f6f7f7",
+    "roughness": 0.3
+  },
+  "source": {
+    "description": "Chest freezer, about 0.56 m wide, 0.58 m deep and 0.85 m tall on its castors (assumed from the picture); the look is drawn from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

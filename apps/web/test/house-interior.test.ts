@@ -1,3 +1,4 @@
+import { RACK_BOXES } from '../src/data/rack.ts'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { polygonCentroid } from '@t3-designer/geometry'
@@ -12,7 +13,6 @@ import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirect
 import { publicScene } from '../src/lib/public-scene.ts'
 const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
-import { dualsenseBoxes } from '../src/data/dualsense.ts'
 import { armKey, armReach, furnishingDevices, furnishingsOn, isTvMounted, tvMountKey } from '../src/data/house-furnishings.ts'
 import { tvMountLinks } from '../src/data/tv-mount.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
@@ -264,24 +264,23 @@ test('the ground floor opens onto the light well through a sliding door of two l
 })
 
 test('the pantry has a wall-mounted rack with a UniFi Dream Machine Pro and a 24-port patch panel, high on the medianera', () => {
-  const pieces = furnishingsOn('ground').filter(piece => piece.id.startsWith('rack-'))
-  const find = (id: string) => pieces.find(piece => piece.id === `rack-${id}`)!
-  assert.ok(find('udm-pro') && find('patch-panel'))
-  assert.equal(pieces.filter(piece => /rack-port-\d+$/.test(piece.id)).length, 24)
+  // The rack is one Blender model in the walkthrough; its boxes keep the units' sizes.
+  const unit = (id: string) => RACK_BOXES.find(box => box.id === id)!
+  assert.ok(unit('udm-pro') && unit('patch-panel'))
+  assert.equal(RACK_BOXES.filter(box => /^port-\d+$/.test(box.id)).length, 24)
+  const piece = furnishingsOn('ground').find(item => item.id === 'rack')!
+  assert.equal(piece.model, '/models/house/rack.glb')
   const pantry = HOUSE_FLOORS.ground.rooms.find(item => item.id === 'pantry')!
   // The medianera is the south-west party wall, the pantry's lowest v; the rack stands out from it, toward +v, and is as wide as the wall runs along u.
   const [uLow, uHigh] = [Math.min(...pantry.polygon.map(point => point[0])), Math.max(...pantry.polygon.map(point => point[0]))]
   const wallV = Math.min(...pantry.polygon.map(point => -point[1]))
-  for (const piece of pieces) {
-    assert.ok(piece.u[0] >= uLow - 1e-6 && piece.u[1] <= uHigh + 1e-6, `${piece.id} inside the pantry's depth along the wall`)
-    assert.ok(piece.v[0] >= wallV - 1e-6, `${piece.id} stands out from the medianera`)
-  }
-  assert.ok(Math.abs(find('back').v[0] - wallV) < 1e-6, 'the back plate is on the wall')
+  assert.ok(piece.u[0] >= uLow - 1e-6 && piece.u[1] <= uHigh + 1e-6, 'inside the pantry\'s depth along the wall')
+  close(piece.v[0], wallV, 1e-6)
   // High: the bottom of the frame is above the counter height, and the units are in the upper half of the wall.
-  assert.ok(find('back').y[0] >= 1.5 && find('udm-pro').y[0] > 1.6)
+  assert.ok(piece.y[0] >= 1.5 && unit('udm-pro').y[0] > 1.6)
   // The Dream Machine Pro is a 1U unit: 44.5 mm high, 442 mm wide.
-  close(find('udm-pro').y[1] - find('udm-pro').y[0], .0445, 1e-9)
-  close(find('udm-pro').u[1] - find('udm-pro').u[0], .442, 1e-9)
+  close(unit('udm-pro').y[1] - unit('udm-pro').y[0], .0445, 1e-9)
+  close(unit('udm-pro').u[1] - unit('udm-pro').u[0], .442, 1e-9)
 })
 
 test('the azotea can be reached on foot: the laundry\'s flight, the landing, the flight back over the laundry and the roof', () => {
@@ -336,17 +335,16 @@ test('under the living\'s TV: a low table against the party wall with a PlayStat
   const pieces = furnishingsOn('first')
   const find = (id: string) => pieces.find(piece => piece.id === id)!
   const table = find('living-table-top'), tv = find('tv-living')
-  assert.ok(table && find('ps5-core') && find('ps5-controller-upper'))
+  assert.ok(table && find('ps5') && find('ps5-controller'))
   // The table is under the TV and centred on it, with the screen above the PS5.
   close((table.u[0] + table.u[1]) / 2, (tv.u[0] + tv.u[1]) / 2, 1e-9)
   assert.ok(table.y[1] <= 3.2 + .45 && table.y[1] < tv.y[0] - .15, 'the table is low, and the screen clears the console')
-  const core = find('ps5-core')
+  // The PS5 is a Blender model (scripts/blender/jobs/ps5-job.json) standing in a box that is its size: 104 mm thick, 260 mm deep and 390 mm tall with its stand.
+  const core = find('ps5')
+  assert.equal(core.model, '/models/house/ps5.glb')
   assert.ok(core.y[0] >= table.y[1] && core.y[1] <= tv.y[0] + .5)
-  // The PS5 is 104 mm thick, 260 mm deep.
-  const shells = ['shell-a', 'core', 'shell-b'].map(id => find(`ps5-${id}`))
-  close(Math.max(...shells.map(piece => piece.u[1])) - Math.min(...shells.map(piece => piece.u[0])), .104, 1e-9)
+  close(core.u[1] - core.u[0], .104, 1e-9)
   close(core.v[1] - core.v[0], .26, 1e-9)
-  // 390 mm with its stand: 12 mm of base and the body above.
   close(core.y[1] - table.y[1], .39, 1e-9)
   // On the table's top, inside it.
   assert.ok(core.u[0] >= table.u[0] && core.u[1] <= table.u[1] && core.v[0] >= table.v[0] && core.v[1] <= table.v[1])
@@ -369,20 +367,12 @@ test('both TVs hang on the same articulated VESA mount, folded 67 mm from the wa
   }
 })
 
-test('the DualSense is about 160 mm wide and 106 mm deep, with two sticks, four face buttons and a D-pad, and lies on the table', () => {
-  const parts = dualsenseBoxes(0, 0, 0)
-  const width = Math.max(...parts.map(part => part.u[1])) - Math.min(...parts.map(part => part.u[0]))
-  const depth = Math.max(...parts.map(part => part.v[1])) - Math.min(...parts.map(part => part.v[0]))
-  assert.ok(Math.abs(width - .157) < .004 && Math.abs(depth - .105) < .004, `${width} x ${depth}`)
-  assert.equal(parts.filter(part => part.id.startsWith('stick-')).length, 2)
-  assert.equal(parts.filter(part => part.id.startsWith('button-')).length, 4)
-  assert.equal(parts.filter(part => part.id.startsWith('dpad-')).length, 4)
-  assert.ok(parts.every(part => part.y[0] >= 0 && part.y[1] <= .066), 'no taller than its grips')
-  // On the living's table: the whole controller inside its top.
-  const pieces = furnishingsOn('first'), table = pieces.find(piece => piece.id === 'living-table-top')!
-  for (const piece of pieces.filter(item => item.id.startsWith('ps5-controller-'))) {
-    assert.ok(piece.u[0] >= table.u[0] && piece.u[1] <= table.u[1] && piece.v[0] >= table.v[0] && piece.v[1] <= table.v[1], piece.id)
-  }
+test('the DualSense is a 160 by 106 mm model, 66 mm tall, that lies on the living\'s table', () => {
+  const pieces = furnishingsOn('first'), pad = pieces.find(piece => piece.id === 'ps5-controller')!, table = pieces.find(piece => piece.id === 'living-table-top')!
+  close(pad.u[1] - pad.u[0], .16, 1e-9); close(pad.v[1] - pad.v[0], .106, 1e-9); close(pad.y[1] - pad.y[0], .066, 1e-9)
+  assert.equal(pad.model, '/models/house/dualsense.glb')
+  assert.ok(pad.u[0] >= table.u[0] && pad.u[1] <= table.u[1] && pad.v[0] >= table.v[0] && pad.v[1] <= table.v[1])
+  close(pad.y[0], table.y[1], 1e-9)
 })
 
 test('two double outlets of the Argentine kind, shaped like the Australian one, flank the living\'s low table, on the party wall', () => {

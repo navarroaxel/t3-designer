@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Path, Shape } from 'three'
+import { useEffect, useMemo } from 'react'
+import { CanvasTexture, Path, RepeatWrapping, SRGBColorSpace, Shape } from 'three'
 import type { DesignCustomization, Door as DoorData, Wall as WallData } from '@t3-designer/scene-schema'
 
 type DoorProps = {
@@ -107,6 +107,50 @@ function PaneledLeaf({ width, fullHeight, visibleHeight, color, damaged, glazed 
       ))}
     </group>
   )
+}
+
+/** Fine vertical grain over a base colour, for the flush wenge doors: a deterministic scatter of darker and lighter streaks. */
+function grainTexture(base: string) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 256; canvas.height = 512
+  const context = canvas.getContext('2d')!
+  context.fillStyle = base
+  context.fillRect(0, 0, 256, 512)
+  let seed = 7
+  const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  for (let index = 0; index < 150; index++) {
+    const x = random() * 256, light = random() > .5
+    context.strokeStyle = light ? `rgba(120, 95, 80, ${.05 + random() * .09})` : `rgba(0, 0, 0, ${.08 + random() * .16})`
+    context.lineWidth = .5 + random() * 2.2
+    context.beginPath(); context.moveTo(x, 0); context.bezierCurveTo(x + random() * 5 - 2.5, 170, x + random() * 5 - 2.5, 340, x + random() * 4 - 2, 512); context.stroke()
+  }
+  const texture = new CanvasTexture(canvas)
+  texture.wrapS = texture.wrapT = RepeatWrapping
+  texture.colorSpace = SRGBColorSpace
+  return texture
+}
+
+/**
+ * A flush door, as in the owner's picture of the wenge ones: a plain slab of dark, fine-grained wood with no panels, a slim lever handle in satin chrome on a round rose and, below it,
+ * the keyhole's escutcheon, on both faces. `width` runs from the hinge; the free edge is at `width`.
+ */
+function FlushLeaf({ width, fullHeight, visibleHeight, color }: { width: number; fullHeight: number; visibleHeight: number; color: string }) {
+  const leafHeight = Math.min(fullHeight, visibleHeight)
+  const grain = useMemo(() => grainTexture(color), [color])
+  useEffect(() => () => grain.dispose(), [grain])
+  return <group>
+    <mesh position={[width / 2, leafHeight / 2, 0]} castShadow receiveShadow>
+      <boxGeometry args={[width, leafHeight, .04]} />
+      <meshStandardMaterial color="#ffffff" map={grain} roughness={.55} />
+    </mesh>
+    {leafHeight > 1.1 && [-1, 1].map(face => <group key={face} position={[width - .06, 1.01, face * .0215]}>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, face * .003]} castShadow><cylinderGeometry args={[.026, .026, .006, 24]} /><meshStandardMaterial color="#aeb3b6" metalness={.9} roughness={.25} /></mesh>
+      <mesh position={[-.055, 0, face * .03]} castShadow><boxGeometry args={[.115, .014, .012]} /><meshStandardMaterial color="#c4c8ca" metalness={.9} roughness={.22} /></mesh>
+      <mesh position={[0, 0, face * .018]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.009, .009, .03, 12]} /><meshStandardMaterial color="#b9bdbf" metalness={.9} roughness={.25} /></mesh>
+      <mesh position={[0, -.06, face * .0025]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.013, .013, .005, 20]} /><meshStandardMaterial color="#a9aeb1" metalness={.9} roughness={.3} /></mesh>
+      <mesh position={[0, -.06, face * .006]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.004, .004, .004, 10]} /><meshStandardMaterial color="#17181a" roughness={.6} /></mesh>
+    </group>)}
+  </group>
 }
 
 /** A glazed leaf in a white aluminium frame: stiles, a bottom rail and a translucent pane, like the plan's living door. */
@@ -217,7 +261,7 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
       {!passage && !sliding && [{ x: hingeX, dir: leafDirection }].map(({ x, dir }) => (
         <group key={x} position={[x, 0.025, 0]} rotation={[0, (customization ? customization.openness * Math.PI / 2 : (Math.PI * 76) / 180) * door.opensToward * -dir, 0]}>
           <group scale={[dir, 1, 1]}>
-            {aluminium ? <AluminiumLeaf width={leafWidth} height={Math.max(0, door.height - 0.05)} color={door.color ?? '#f3f2ee'} /> : <PaneledLeaf width={leafWidth} fullHeight={door.height - 0.05} visibleHeight={Math.max(0, height - 0.025)} color={leafColor} damaged={!customization && door.condition === 'damaged-panel'} glazed={customization?.style === 'glazed'} />}
+            {aluminium ? <AluminiumLeaf width={leafWidth} height={Math.max(0, door.height - 0.05)} color={door.color ?? '#f3f2ee'} /> : style === 'flush' ? <FlushLeaf width={leafWidth} fullHeight={door.height - 0.05} visibleHeight={Math.max(0, height - 0.025)} color={leafColor} /> : <PaneledLeaf width={leafWidth} fullHeight={door.height - 0.05} visibleHeight={Math.max(0, height - 0.025)} color={leafColor} damaged={!customization && door.condition === 'damaged-panel'} glazed={customization?.style === 'glazed'} />}
           </group>
         </group>
       ))}

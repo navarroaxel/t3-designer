@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "dualsense",
+  "id": "dualsense",
+  "label": "DualSense",
+  "units": "meters",
+  "dimensions": [
+    0.16,
+    0.066,
+    0.106
+  ],
+  "material": {
+    "baseColor": "#f4f5f8",
+    "roughness": 0.38
+  },
+  "source": {
+    "description": "PlayStation 5 DualSense controller, lying flat. About 160 x 106 x 66 mm (width x depth x height at the grips); the shape is drawn from the maker's pictures (owner's photos), not CAD.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

@@ -5,6 +5,8 @@ import type { Floor } from '../data/house-plan'
 export function useApartmentView() {
   const [floor, setFloorState] = useState<Floor>('first')
   const [cutaway, setCutaway] = useState(true)
+  // Soft shadows where surfaces meet: on, except on a touch screen (usually a phone).
+  const [ambientOcclusion, setAmbientOcclusion] = useState(() => !window.matchMedia('(pointer: coarse)').matches)
   const [showLabels, setShowLabels] = useState(false)
   const [showFixtures, setShowFixtures] = useState(true)
   const [focusRoomId, setFocusRoomId] = useState<string>()
@@ -28,7 +30,7 @@ export function useApartmentView() {
   }
 
   return {
-    floor, setFloor, cutaway, setCutaway, showLabels, setShowLabels, showFixtures, setShowFixtures,
+    floor, setFloor, ambientOcclusion, setAmbientOcclusion, cutaway, setCutaway, showLabels, setShowLabels, showFixtures, setShowFixtures,
     focusRoomId, setFocusRoomId, panel, setPanel, showContext, setShowContext,
     selectedAsset, setSelectedAsset, view, resetView, focusRoom, arranging, setArranging,
   }
