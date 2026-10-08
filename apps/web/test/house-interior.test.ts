@@ -13,10 +13,10 @@ import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirect
 import { publicScene } from '../src/lib/public-scene.ts'
 const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
-import { armKey, armReach, furnishingDevices, furnishingsOn, isTvMounted, tvMountKey } from '../src/data/house-furnishings.ts'
+import { armKey, armReach, furnishingDevices, furnishingsOn, isLivingSetPiece, isLivingSetPresent, isTvMounted, LIVING_SET_ID, livingSetKey, tvMountKey } from '../src/data/house-furnishings.ts'
 import { tvMountLinks } from '../src/data/tv-mount.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
-import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
+import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, withWalkDoorStates, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
 
 const close = (actual: number, expected: number, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`)
 const room = (floor: 'ground' | 'first', id: string) => HOUSE_FLOORS[floor].rooms.find(item => item.id === id)!
@@ -472,4 +472,20 @@ test('the TV wall has the in-wall media box at the table\'s height, the cable pa
   assert.ok(((outlet.u[0] + outlet.u[1]) / 2 - mountMiddle) * ((plate.u[0] + plate.u[1]) / 2 - mountMiddle) < 0, 'the plug and the hole are on opposite sides of the mount')
   // They are all behind the TV (v: the wall to the TV's back): none sticks out past 67 mm.
   for (const piece of pieces.filter(item => /^(wallbox|cable-hole|outlet-tv)-/.test(item.id))) assert.ok(piece.v[1] <= wallV + .067 + 1e-9, piece.id)
+})
+
+test('the living\'s table, PS5 and controller are one device: aimed at they can be taken away, and the spot stays free to walk through', () => {
+  const world = buildWalkWorld(publicScene('first', []))
+  const device = world.doors.find(door => door.id === LIVING_SET_ID)
+  assert.ok(device?.device)
+  const table = furnishingsOn('first').find(piece => piece.id === 'living-table-top')!
+  const u = (table.u[0] + table.u[1]) / 2, v = table.v[1]
+  // Standing 1 m from the table's front edge in the living, facing the party wall, looking at the table top.
+  const pose = { x: u, z: -(v + 1), yaw: Math.PI, pitch: Math.atan2(.42 - 1.65, 1), eyeHeight: 1.65, feetOffset: 0 }
+  assert.deepEqual(findWalkDoorTarget(world, {}, pose), { id: LIVING_SET_ID, open: false })
+  // Taken away, it can still be aimed at (to set it back), but it no longer stops the visitor.
+  assert.equal(findWalkDoorTarget(world, { [livingSetKey]: 0 }, pose)?.id, LIVING_SET_ID)
+  assert.ok(withWalkDoorStates(world, {}).blockers.length > withWalkDoorStates(world, { [livingSetKey]: 0 }).blockers.length)
+  assert.equal(isLivingSetPresent({ [livingSetKey]: 0 }), false)
+  assert.ok(['living-table-top', 'living-table-leg-1', 'ps5', 'ps5-controller'].every(isLivingSetPiece) && !isLivingSetPiece('wallbox-trim-top'))
 })

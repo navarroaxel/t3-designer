@@ -1,5 +1,5 @@
 import { polygonBounds, polygonCentroid, segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
-import { furnishingBlockers, furnishingDevices } from '../data/house-furnishings.ts'
+import { furnishingBlockers, furnishingDevices, isLivingSetPresent, LIVING_SET_ID } from '../data/house-furnishings.ts'
 import { AZOTEA_LEVEL, AZOTEA_OBSTACLES, AZOTEA_OUTLINE, AZOTEA_ROOM, LANDING_LEVEL, LANDING_OUTLINE } from '../data/azotea.ts'
 import { ceilingPolygon, floorOfApartment, walkOutline } from '../data/house-interior.ts'
 import { STAIR_BLOCKS } from '../data/stair.ts'
@@ -248,6 +248,8 @@ export function walkDoorLeaf(door: WalkDoor, openness: number): WalkBlocker | nu
 /** Reuses fixed geometry and replaces leaves, never accumulating old colliders. */
 export function withWalkDoorStates(world: WalkWorld, states: WalkDoorStates): WalkWorld {
   const leaves = world.doors.flatMap(door => {
+    // A table taken away leaves its spot free to walk through, though it can still be aimed at to set it back.
+    if (door.id === LIVING_SET_ID && !isLivingSetPresent(states)) return []
     const leaf = walkDoorLeaf(door, resolveWalkDoorOpenness(states, door.id, (door.leaf ?? door.slide ?? door.device)?.initialOpenness))
     return leaf ? [leaf] : []
   })

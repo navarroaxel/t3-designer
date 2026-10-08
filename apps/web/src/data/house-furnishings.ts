@@ -83,7 +83,7 @@ function firstFloor(): Furnishing[] {
   const tableU: [number, number] = [tvU - table.width / 2, tvU + table.width / 2]
   add({ id: 'living-table-top', u: tableU, v: tableV, y: [F + table.height - table.top, F + table.height], color: '#a98456', roughness: .6 })
   for (const [index, [uEdge, vEdge]] of [[tableU[0], tableV[0]], [tableU[1] - table.leg, tableV[0]], [tableU[0], tableV[1] - table.leg], [tableU[1] - table.leg, tableV[1] - table.leg]].entries()) {
-    add({ id: `living-table-leg-${index + 1}`, u: [uEdge, uEdge + table.leg], v: [vEdge, vEdge + table.leg], y: [F, F + table.height - table.top], color: '#8e6a40', roughness: .7, solid: index === 0 })
+    add({ id: `living-table-leg-${index + 1}`, u: [uEdge, uEdge + table.leg], v: [vEdge, vEdge + table.leg], y: [F, F + table.height - table.top], color: '#8e6a40', roughness: .7, solid: false })
   }
   // The PS5 stands upright on its base: 104 mm thick, 260 mm deep and 390 mm tall with its stand. It is the model scripts/blender builds (jobs/ps5-job.json).
   const ps5U = tvU - .25, ps5V: [number, number] = [tableV[0] + .1, tableV[0] + .1 + .26], base = F + table.height
@@ -163,7 +163,16 @@ export function furnishingBlockers(floor: Floor, level: number) {
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open. */
 export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge'] as const
 export function furnishingDevices(floor: Floor, level: number) {
-  return furnishingsOn(floor).filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => {
+  const pieces = furnishingsOn(floor)
+  // The living's table with the PS5 and its controller is one device, as tall as the console: X takes the three away, or sets them back.
+  const set = pieces.filter(piece => isLivingSetPiece(piece.id))
+  const setDevices = set.length ? [{
+    id: LIVING_SET_ID,
+    center: [(Math.min(...set.map(piece => piece.u[0])) + Math.max(...set.map(piece => piece.u[1]))) / 2, -(Math.min(...set.map(piece => piece.v[0])) + Math.max(...set.map(piece => piece.v[1]))) / 2] as [number, number],
+    halfWidth: (Math.max(...set.map(piece => piece.u[1])) - Math.min(...set.map(piece => piece.u[0]))) / 2, halfDepth: (Math.max(...set.map(piece => piece.v[1])) - Math.min(...set.map(piece => piece.v[0]))) / 2, cos: 1, sin: 0,
+    bottom: Math.min(...set.map(piece => piece.y[0])) - level, top: Math.max(...set.map(piece => piece.y[1])) - level,
+  }] : []
+  return [...setDevices, ...pieces.filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => {
     // The aim volume of a TV reaches as far as its mount's arm does, so a TV brought out into the room can still be looked at.
     const reach = piece.id.startsWith('tv-') ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
     return {
@@ -172,8 +181,14 @@ export function furnishingDevices(floor: Floor, level: number) {
       halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
       bottom: piece.y[0] - level, top: piece.y[1] - level,
     }
-  })
+  })]
 }
+
+/** The living's table, the PS5 and its controller come and go together (X): `set-living`, 1 in place and 0 taken away. */
+export const LIVING_SET_ID = 'living-table'
+export const livingSetKey = 'set-living'
+export const isLivingSetPiece = (id: string) => id.startsWith('living-table-') || id === 'ps5' || id === 'ps5-controller'
+export const isLivingSetPresent = (states: Readonly<Record<string, number>>) => (states[livingSetKey] ?? 1) >= .5
 
 /** A TV is on its wall mount unless the visit has taken it off (X): the state lives with the doors', under `mount-<name>`. */
 export const tvMountKey = (tvId: string) => `mount-${tvId.replace(/^tv-/, '')}`

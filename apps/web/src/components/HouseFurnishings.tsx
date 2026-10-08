@@ -4,7 +4,7 @@ import { edgeRadius } from '../lib/rounding'
 import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
-import { armReach, furnishingsOn, isTvMounted } from '../data/house-furnishings'
+import { armReach, furnishingsOn, isLivingSetPiece, isLivingSetPresent, isTvMounted } from '../data/house-furnishings'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
 import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
@@ -132,6 +132,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (piece.kitchen) return <KitchenPiece key={piece.id} box={piece.kitchen} />
       const size: [number, number, number] = [piece.u[1] - piece.u[0], piece.y[1] - piece.y[0], piece.v[1] - piece.v[0]]
       const ellipse = piece.shape === 'ellipse'
+      // X takes the living's table away with the PS5 and its controller: the wall behind them shows.
+      if (isLivingSetPiece(piece.id) && !isLivingSetPresent(devices)) return null
       const tv = piece.id === 'tv-main' || piece.id === 'tv-living'
       // X takes a TV off its mount: the mount stays on the wall, the TV (and its picture) is gone.
       if (tv && !isTvMounted(devices, piece.id)) return null
