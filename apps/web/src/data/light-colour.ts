@@ -23,3 +23,19 @@ export function kelvinRgb(kelvin: number): [number, number, number] {
 
 /** The same as a `#rrggbb` string. */
 export const kelvinColour = (kelvin: number) => `#${kelvinRgb(kelvin).map(channel => channel.toString(16).padStart(2, '0')).join('')}`
+
+/** The time of day the light panel offers to test the lights at (owner: the sun control at hand), in minutes from midnight: a bright afternoon, dusk and night. */
+export const TEST_TIMES = { day: 13 * 60, dusk: 19 * 60 + 30, night: 23 * 60 } as const
+
+/** Minutes from midnight as `HH:MM`. */
+export const clockLabel = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+
+/**
+ * How much brighter the lights are in the dark (owner: they were left at a quarter for the day, and are too weak at night). 1 in daylight, where the lights are the weak ones the day wants, and
+ * `NIGHT_GAIN` from the end of civil twilight (the sun 6 degrees under the horizon) on, with a smooth run between, over the twelve degrees from 6 above to 6 below.
+ */
+export const NIGHT_GAIN = 4
+export function lightGain(sunAltitudeDegrees: number): number {
+  const darkness = Math.max(0, Math.min(1, (6 - sunAltitudeDegrees) / 12))
+  return 1 + (NIGHT_GAIN - 1) * darkness * darkness * (3 - 2 * darkness)
+}

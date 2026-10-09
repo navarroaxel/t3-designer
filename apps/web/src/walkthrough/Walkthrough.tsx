@@ -14,7 +14,7 @@ import { walkCopy } from './copy'
 import { buildWalkWorld, canSetWalkDoorOpenness, WALK_STEP, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, isWalkPositionFree, withWalkDoorStates, type WalkDoorStates, type WalkSpawn, type WalkWorld } from './navigation'
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
-import { DEFAULT_KITCHEN_KELVIN, KELVIN, KITCHEN_LIGHT_GROUPS, kelvinColour, type KitchenLightGroup, type KitchenLightKelvin } from '../data/light-colour'
+import { clockLabel, DEFAULT_KITCHEN_KELVIN, lightGain, KELVIN, TEST_TIMES, KITCHEN_LIGHT_GROUPS, kelvinColour, type KitchenLightGroup, type KitchenLightKelvin } from '../data/light-colour'
 import { saveScreenshot } from './screenshot'
 import { AmbientOcclusion } from '../components/AmbientOcclusion'
 import { armKey, isArmExtended, isInPlace, isRemovable, isTvMounted, LIVING_SET_ID, REMOVABLE, tvMountKey } from '../data/house-furnishings'
@@ -215,7 +215,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         <WebGLGuard fallback={fallback}>
           <Canvas shadows={{ type: PCFShadowMap }} gl={{ preserveDrawingBuffer: true }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
             onCreated={({ gl }) => { canvas.current = gl.domElement; gl.domElement.tabIndex = 0; setReady(true) }}>
-            <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} kitchenKelvin={kitchenKelvin} />
+            <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} kitchenKelvin={kitchenKelvin} lightGain={lightGain(solar.sun.altitude)} />
             <WalkController world={initialWorld} collisionWorld={world} spawn={spawn} resetKey={reset} active={active} input={input} eyeHeight={eyeHeight} sensitivity={sensitivity} onPose={setPose} onPause={pause} onInteract={interact} />
             <CameraSettings fov={fov} torch={torch} />
             <AmbientOcclusion enabled={ambientOcclusion} />
@@ -277,6 +277,13 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         </fieldset>
         <fieldset className="walk-light-panel" data-testid="walk-light-panel">
           <legend>{c.kitchenLights}</legend>
+          {/* The sun at hand, to see the lights at their best: it is the tour's own time of day, here and not only in the settings above, which are locked while the tour runs. */}
+          <label>{c.timeOfDay} <output data-testid="walk-light-time">{clockLabel(moment.minutes)}</output>
+            <input type="range" data-testid="walk-light-clock" min="0" max="1425" step="15" value={Math.min(1425, Math.round(moment.minutes / 15) * 15)} onChange={event => setMoment(previous => ({ ...previous, minutes: Number(event.target.value) }))} /></label>
+          <div className="walk-light-presets" role="group" aria-label={c.timeOfDay}>
+            {([['day', c.timeDay], ['dusk', c.timeDusk], ['night', c.timeNight]] as const).map(([name, label]) =>
+              <button key={name} type="button" className="walk-text-button" data-testid={`walk-time-${name}`} onClick={() => setMoment(previous => ({ ...previous, minutes: TEST_TIMES[name] }))}>{label} · {clockLabel(TEST_TIMES[name])}</button>)}
+          </div>
           <div className="walk-light-presets" role="group" aria-label={c.kitchenLights}>
             {([['warm', c.lightWarm], ['neutral', c.lightNeutral], ['cool', c.lightCool]] as const).map(([name, label]) =>
               <button key={name} type="button" className="walk-text-button" data-testid={`walk-light-${name}`} onClick={() => setGroupKelvin('all', KELVIN[name])}><span className="walk-swatch" style={{ background: kelvinColour(KELVIN[name]) }} aria-hidden="true" /> {label}</button>)}

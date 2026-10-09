@@ -137,10 +137,12 @@ function clipToCut(piece: Furnishing, cut: number): Furnishing | null {
   return { ...piece, y: [piece.y[0], cut], ...(piece.kitchen ? { kitchen: { ...piece.kitchen, y: [piece.kitchen.y[0], cut] as [number, number] } } : {}) }
 }
 
-export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, kitchenKelvin = DEFAULT_KITCHEN_KELVIN }: {
+export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, kitchenKelvin = DEFAULT_KITCHEN_KELVIN, lightGain = 1 }: {
   floor: Floor; devices?: Record<string, number>
   /** The colour temperature of the kitchen's lights, in kelvin, by group: the island's pendants, its light line and the conduit box's downlights. */
   kitchenKelvin?: KitchenLightKelvin
+  /** How much brighter than by day the lights shine: 1 by day, up to 4 at night (the sun's elevation sets it). */
+  lightGain?: number
   /** The heights are the plan's own, from the ground floor's level: for a parent that already works in that frame (the floor cutaway). */
   absolute?: boolean
   /** Saw the furniture off at this height, as the cutaway does its walls. */
@@ -171,19 +173,19 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
     </Suspense></ModelBoundary>}
     {/* The island's three pendant lamps light the worktop: a warm point light in each shade, 10 cm over its rim. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v]} color={kelvinColour(kitchenKelvin.pendants)} intensity={1.8} distance={2.8} decay={2} />)}
+      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v]} color={kelvinColour(kitchenKelvin.pendants)} intensity={1.8 * lightGain} distance={2.8} decay={2} />)}
     {/* The bathroom's three downlights: a neutral white light 10 cm under each. */}
     {floor === 'first' && cut === undefined && bathroomOn && BATHROOM_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`bathroom-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.6, -at.v]} color="#fff1dc" intensity={1.4} distance={2.6} decay={2} />)}
+      <pointLight key={`bathroom-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.6, -at.v]} color="#fff1dc" intensity={1.4 * lightGain} distance={2.6} decay={2} />)}
     {/* The conduit box's downlights: a warm light under every second one, 10 cm below the box, to keep the scene's light count down. */}
     {floor === 'first' && cut === undefined && conduitOn && CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).map((at, index) =>
-      <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color={kelvinColour(kitchenKelvin.conduit)} intensity={1.2} distance={3} decay={2} />)}
+      <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color={kelvinColour(kitchenKelvin.conduit)} intensity={1.2 * lightGain} distance={3} decay={2} />)}
     {/* The balcony's three lanterns: a warm light 8 cm out of each. */}
     {floor === 'first' && cut === undefined && balconyOn && BALCONY_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`balcony-light-${index}`} position={[at.u - .08, BALCONY_LANTERN_Y, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
+      <pointLight key={`balcony-light-${index}`} position={[at.u - .08, BALCONY_LANTERN_Y, -at.v]} color="#ffe3bd" intensity={1.2 * lightGain} distance={3} decay={2} />)}
     {/* The light line: a faint warm light over the middle of each LED strip, 5 cm above it, washing the white box and the ceiling. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).map(strip =>
-      <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color={kelvinColour(kitchenKelvin.line)} intensity={.5} distance={2.2} decay={2} />)}
+      <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color={kelvinColour(kitchenKelvin.line)} intensity={.5 * lightGain} distance={2.2} decay={2} />)}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
     </Suspense></ModelBoundary>}
@@ -238,7 +240,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
           const material = <meshStandardMaterial color={piece.grain ? '#ffffff' : lit && tint ? tint : piece.color} map={piece.grain ? walnut : null} roughness={piece.grain ? .45 : piece.roughness ?? .6} metalness={piece.metalness ?? 0}
             transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined}
-            {...(lit ? { emissive: tint ?? piece.color, emissiveIntensity: 1.6, toneMapped: false } : {})} />
+            {...(lit ? { emissive: tint ?? piece.color, emissiveIntensity: 1.6 * Math.min(1.6, 1 + (lightGain - 1) / 5), toneMapped: false } : {})} />
           // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.
           if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? rollRotation(piece) : undefined} castShadow receiveShadow>{material}</RoundedBox>
           return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? rollRotation(piece) : undefined}
