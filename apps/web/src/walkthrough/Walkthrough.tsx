@@ -21,7 +21,7 @@ import { perfRequested } from './perf'
 import { clockLabel, DEFAULT_KITCHEN_KELVIN, lightGain, KELVIN, TEST_TIMES, KITCHEN_LIGHT_GROUPS, kelvinColour, type KitchenLightGroup, type KitchenLightKelvin } from '../data/light-colour'
 import { saveScreenshot } from './screenshot'
 import { AmbientOcclusion } from '../components/AmbientOcclusion'
-import { armKey, isArmExtended, isInPlace, isRemovable, isTvMounted, LIVING_SET_ID, REMOVABLE, tvMountKey } from '../data/house-furnishings'
+import { availableActions, deviceAction, isDevice, type Action } from '../data/devices'
 import './walkthrough.css'
 
 const emptyInput = (): WalkInput => ({ forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false, detach: false, extend: false })
@@ -84,12 +84,6 @@ function HoldButton({ label, children, field, value, input }: { label: string; c
 }
 
 /** A disposable visit of the supplied active version; never calls project persistence. */
-/** What X does to what a visitor aims at, in words: take it away while it is in place, put it back when it is not. */
-function removeLabel(id: string, inPlace: boolean, c: Record<string, string>) {
-  const names = id === LIVING_SET_ID ? 'set' : id === 'kitchen-fridge' ? 'fridge' : id === 'kitchen-island-cheek' ? 'cheek' : id === 'island-canopy-wall-panel' ? 'wood' : id === 'kitchen-stools' ? 'stool' : 'microwave'
-  return c[`${names}${inPlace ? 'Remove' : 'Restore'}`]
-}
-
 export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference = false, startAt }: {
   snapshot: ProjectSnapshot
   /** A second floor above, joined to the first by its stair: the visitor can walk from one to the other. */
@@ -141,24 +135,19 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const layout = architecture?.layouts.find(item => item.id === architecture.activeLayoutId)
   const currentRoom = initialWorld.rooms.find(room => room.id === pose?.roomId)
   const interaction = active && pose ? findWalkDoorTarget(world, doorStates, pose) : null
+  const actions: Partial<Record<Action, string>> = interaction ? (isDevice(interaction.id) ? availableActions(interaction.id, doorStates) : { use: interaction.open ? 'closeDoor' : 'openDoor' }) : {}
   const doorBlocked = interaction && pose && !canSetWalkDoorOpenness(world, doorStates, interaction.id, interaction.open ? 0 : 1, pose)
-  const interact = useCallback((currentPose: WalkPose, action: 'use' | 'detach' | 'extend' = 'use') => {
+  const interact = useCallback((currentPose: WalkPose, action: Action = 'use') => {
     const target = findWalkDoorTarget(world, doorStates, currentPose)
     if (!target) return
-    if (isRemovable(target.id)) {
-      // X takes the table with the PS5 and the controller, the fridge or the microwave away, or puts it back. E works on the fridge's doors while it is in place, and on nothing else here.
-      if (action === 'detach') { setVisitDoors({ snapshot, values: { ...doorStates, [REMOVABLE[target.id].key]: isInPlace(doorStates, target.id) ? 0 : 1 } }); setPose(currentPose); return }
-      if (action !== 'use' || target.id !== 'kitchen-fridge' || !isInPlace(doorStates, target.id)) return
+    // A device (see data/devices.ts) does what the table says: E uses it, X takes it away or puts it back, Q folds the TV's arm; each only while it can.
+    if (isDevice(target.id)) {
+      const change = deviceAction(target.id, action, doorStates)
+      if (change) { setVisitDoors({ snapshot, values: { ...doorStates, ...change } }); setPose(currentPose) }
+      return
     }
-    const tv = /^tv-(main|living)$/.exec(target.id)
-    if (tv) {
-      // X takes the TV off its wall mount, or hangs it back; E needs it on the wall.
-      const key = tvMountKey(target.id), mounted = isTvMounted(doorStates, target.id)
-      if (action === 'detach') { setVisitDoors({ snapshot, values: { ...doorStates, [key]: mounted ? 0 : 1 } }); setPose(currentPose); return }
-      // Q unfolds the mount's arm, bringing the TV out into the room; or folds it back against the wall.
-      if (action === 'extend') { const arm = armKey(target.id); setVisitDoors({ snapshot, values: { ...doorStates, [arm]: (doorStates[arm] ?? 0) >= .5 ? 0 : 1 } }); setPose(currentPose); return }
-      if (!mounted) return
-    } else if (action !== 'use') return
+    // A door opens and closes with E, if its leaf does not sweep through the visitor.
+    if (action !== 'use') return
     const openness = target.open ? 0 : 1
     if (!canSetWalkDoorOpenness(world, doorStates, target.id, openness, currentPose)) return
     setVisitDoors({ snapshot, values: { ...doorStates, [target.id]: openness } })
@@ -240,14 +229,12 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         {message && <p className="walk-message" role="status">{message}</p>}
         {active && <div className={`walk-crosshair${interaction ? ' walk-crosshair-target' : ''}`} aria-hidden="true" />}
         {interaction && <div className="walk-interaction">
-          {(!isRemovable(interaction.id) || (interaction.id === 'kitchen-fridge' && isInPlace(doorStates, interaction.id))) && <button type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
-            onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.id === 'kitchen-column' ? (interaction.open ? c.nookClose : c.nookOpen) : interaction.id.endsWith('island-switch-plate') ? (interaction.open ? c.islandLightsOff : c.islandLightsOn) : interaction.id === 'bathroom-switch-plate' ? (interaction.open ? c.bathroomLightsOff : c.bathroomLightsOn) : interaction.id === 'kitchen-switch-plate' ? (interaction.open ? c.kitchenLightsOff : c.kitchenLightsOn) : interaction.id === 'kitchen-upper-glass-pane' ? (interaction.open ? c.glassDoorClose : c.glassDoorOpen) : interaction.id === 'balcony-switch-plate' ? (interaction.open ? c.balconyLightsOff : c.balconyLightsOn) : interaction.open ? c.closeDoor : c.openDoor}</button>}
-          {isRemovable(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
-            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {removeLabel(interaction.id, isInPlace(doorStates, interaction.id), c)}</button>}
-          {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
-            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isTvMounted(doorStates, interaction.id) ? c.tvRemove : c.tvMount}</button>}
-          {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-extend" data-tv-id={interaction.id}
-            onClick={() => { input.current.extend = true }}><kbd>Q</kbd> {isArmExtended(doorStates, interaction.id) ? c.armFold : c.armExtend}</button>}
+          {/* What E, X and Q do to what is aimed at, from the table of devices (a door has only E). */}
+          {Object.entries(actions).map(([action, label]) => action === 'use'
+            ? <button key={action} type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
+              onClick={() => { input.current.interact = true }}><kbd>E</kbd> {(c as Record<string, string>)[label]}</button>
+            : <button key={action} type="button" className="walk-button" data-testid={action === 'detach' ? 'walk-detach' : 'walk-extend'} data-tv-id={interaction.id}
+              onClick={() => { input.current[action as 'detach' | 'extend'] = true }}><kbd>{action === 'detach' ? 'X' : 'Q'}</kbd> {(c as Record<string, string>)[label]}</button>)}
           {doorBlocked && <span role="status">{c.doorBlocked}</span>}
         </div>}
         {!active && ready && !settingsOpen && <div className="walk-overlay"><div className="walk-start-card">

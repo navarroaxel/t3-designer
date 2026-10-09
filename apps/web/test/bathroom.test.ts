@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
+import { isOn } from '../src/data/devices.ts'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, bathroomLightsOn, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -131,5 +132,5 @@ test('the bathroom has a light switch inside, beside the door, between its edge 
   near((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + 1.1)
   const device = furnishingDevices('first', 3.2).find(item => item.id === BATHROOM_SWITCH_ID) as { initialOpenness?: number } | undefined
   assert.ok(device && device.initialOpenness === 1)
-  assert.ok(bathroomLightsOn({}) && !bathroomLightsOn({ [BATHROOM_SWITCH_ID]: 0 }))
+  assert.ok(isOn({}, BATHROOM_SWITCH_ID) && !isOn({ [BATHROOM_SWITCH_ID]: 0 }, BATHROOM_SWITCH_ID))
 })

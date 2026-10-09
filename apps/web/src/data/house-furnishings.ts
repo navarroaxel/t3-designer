@@ -1,6 +1,7 @@
+import { DEVICES, TV_IDS, dependsOnDevice, isArmExtended, isInPlace } from './devices.ts'
 import { DOG, DOG_BOX } from './dog.ts'
-import { BALCONY_BOXES, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID } from './balcony-lights.ts'
-import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, BATHROOM_SWITCH_ID, MIRROR_LIGHT_BOXES } from './bathroom.ts'
+import { BALCONY_BOXES, BALCONY_LIGHT_POSITIONS } from './balcony-lights.ts'
+import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
@@ -17,7 +18,7 @@ import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
-import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_PANEL_BOXES, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, KITCHEN_SWITCH_ID, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, GLASS_DOOR_ID, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_RUN_FRONTS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
+import { ISLAND_CANOPY_BOXES, ISLAND_PANEL_BOXES, ISLAND_WOOD_BOXES, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, ISLAND_SWITCH_BOXES, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_RUN_FRONTS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
@@ -160,7 +161,7 @@ function firstFloor(): Furnishing[] {
   for (const [index, at] of [.25, .75].entries()) {
     for (const part of outletBoxes(`outlet-island-${index + 1}`, 0, 0, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) {
       const v = islandTop[0] + (islandTop[1] - islandTop[0]) * at
-      add({ ...part, u: [KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL + part.v[0], KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL + part.v[1]], v: [v - part.u[1], v - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
+      add({ ...part, u: [KITCHEN_LIVING.u[0] + part.v[0], KITCHEN_LIVING.u[0] + part.v[1]], v: [v - part.u[1], v - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
     }
   }
   // The island's canopy: the drywall slab and box over it, the light line and the three downlights; drawn only in the walkthrough (it hangs above the cut).
@@ -252,78 +253,35 @@ export function furnishingBlockers(floor: Floor, level: number) {
   }))
 }
 
-/** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open; and with `X`, what can be taken away (REMOVABLE): the fridge and the microwave too. */
-export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-island-cheek', ISLAND_WOOD_ID, 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID, KITCHEN_SWITCH_ID, BALCONY_SWITCH_ID, GLASS_DOOR_ID] as const
 export function furnishingDevices(floor: Floor, level: number) {
   const pieces = furnishingsOn(floor)
-  // A group is one device whose aim volume holds all of its pieces: the living's table with the PS5 and its controller, as tall as the console, and the three stools at the island (X takes the group away, or sets it back).
-  const group = (id: string, members: Furnishing[]) => members.length ? [{
+  // A group is one device whose aim volume holds all of its pieces.
+  const boxOf = (id: string, members: readonly Furnishing[], reach = 0, from?: number) => ({
     id,
-    center: [(Math.min(...members.map(piece => piece.u[0])) + Math.max(...members.map(piece => piece.u[1]))) / 2, -(Math.min(...members.map(piece => piece.v[0])) + Math.max(...members.map(piece => piece.v[1]))) / 2] as [number, number],
-    halfWidth: (Math.max(...members.map(piece => piece.u[1])) - Math.min(...members.map(piece => piece.u[0]))) / 2, halfDepth: (Math.max(...members.map(piece => piece.v[1])) - Math.min(...members.map(piece => piece.v[0]))) / 2, cos: 1, sin: 0,
-    bottom: Math.min(...members.map(piece => piece.y[0])) - level, top: Math.max(...members.map(piece => piece.y[1])) - level,
-  }] : []
-  const setDevices = [...group(LIVING_SET_ID, pieces.filter(piece => isLivingSetPiece(piece.id))), ...group(STOOLS_ID, pieces.filter(piece => isStool(piece.id)))]
-  return [...setDevices, ...pieces.filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => {
-    // The aim volume of a TV reaches as far as its mount's arm does, so a TV brought out into the room can still be looked at.
-    const reach = piece.id.startsWith('tv-') ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
-    return {
-      id: piece.id,
-      // The lights start on: a switch's openness is 1 until a visitor flips it.
-      ...(piece.id === ISLAND_SWITCH_ID || piece.id === BATHROOM_SWITCH_ID || piece.id === KITCHEN_SWITCH_ID || piece.id === BALCONY_SWITCH_ID ? { initialOpenness: 1 } : {}),
-      center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1] + reach) / 2] as [number, number],
-      halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
-      // The island's wood is aimed at above the switch and the outlets: its board's volume, from the worktop up, would swallow the switch (a thin plate inside it), and E would never reach it.
-      bottom: (piece.id === ISLAND_WOOD_ID ? Math.max(piece.y[0], FLOOR_HEIGHT + 1.45) : piece.y[0]) - level, top: piece.y[1] - level,
-    }
-  })]
+    center: [(Math.min(...members.map(piece => piece.u[0])) + Math.max(...members.map(piece => piece.u[1]))) / 2, -(Math.min(...members.map(piece => piece.v[0])) + Math.max(...members.map(piece => piece.v[1])) + reach) / 2] as [number, number],
+    halfWidth: (Math.max(...members.map(piece => piece.u[1])) - Math.min(...members.map(piece => piece.u[0]))) / 2, halfDepth: (Math.max(...members.map(piece => piece.v[1])) - Math.min(...members.map(piece => piece.v[0])) + reach) / 2, cos: 1, sin: 0,
+    bottom: (from === undefined ? Math.min(...members.map(piece => piece.y[0])) : Math.max(Math.min(...members.map(piece => piece.y[0])), FLOOR_HEIGHT + from)) - level, top: Math.max(...members.map(piece => piece.y[1])) - level,
+  })
+  return DEVICES.flatMap(device => {
+    const members = device.group ? pieces.filter(piece => device.group!(piece.id)) : pieces.filter(piece => piece.id === device.id)
+    if (!members.length) return []
+    // The aim volume of a TV reaches as far as its mount's arm does, so a TV brought out into the room can still be looked at; a switch that is on by default says so, for the walk's own states.
+    const reach = (TV_IDS as readonly string[]).includes(device.id) ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
+    return [{ ...boxOf(device.id, members, reach, device.aimFrom), ...(device.use?.initial === 1 ? { initialOpenness: 1 } : {}) }]
+  })
 }
 
-/** The living's table, the PS5 and its controller come and go together (X): `set-living`, 1 in place and 0 taken away. */
-export const LIVING_SET_ID = 'living-table'
-export const STOOLS_ID = 'kitchen-stools'
-export const isStool = (id: string) => id.startsWith('kitchen-stool-')
-export const livingSetKey = 'set-living'
-export const isLivingSetPiece = (id: string) => id.startsWith('living-table-') || id === 'ps5' || id === 'ps5-controller'
-export const isLivingSetPresent = (states: Readonly<Record<string, number>>) => (states[livingSetKey] ?? 1) >= .5
-
-/**
- * What X takes away and puts back, by the id of the device a visitor aims at: the living's table with the PS5 and its controller, the fridge (to reach the outlet behind it) and the microwave
- * (for its outlet). `key` is where the state lives, with the doors', 1 in place and 0 taken away; `owns` says which pieces of the furnishings go with it.
- */
-export const REMOVABLE: Record<string, { key: string; owns: (pieceId: string) => boolean; startsAway?: boolean }> = {
-  [LIVING_SET_ID]: { key: livingSetKey, owns: isLivingSetPiece },
-  'kitchen-fridge': { key: 'away-fridge', owns: id => id.startsWith('kitchen-fridge') },
-  'kitchen-microwave': { key: 'away-microwave', owns: id => id === 'kitchen-microwave' },
-  'kitchen-island-cheek': { key: 'away-island-cheek', owns: id => id === 'kitchen-island-cheek' },
-  // The island's wood, to compare with and without (owner): the wall's board and the ceiling's slats (the stool side's panel is fixed); it starts off (owner), X puts it on.
-  [ISLAND_WOOD_ID]: { key: 'away-island-wood', owns: id => /^island-canopy-(wall-panel|soffit-)/.test(id), startsAway: true },
-  // The three stools at the island come out together, so that the island can be seen with them or without.
-  [STOOLS_ID]: { key: 'away-stools', owns: isStool },
-}
-export const isRemovable = (deviceId: string) => deviceId in REMOVABLE
-export const isInPlace = (states: Readonly<Record<string, number>>, deviceId: string) => (states[REMOVABLE[deviceId].key] ?? (REMOVABLE[deviceId].startsAway ? 0 : 1)) >= .5
-/** Whether a piece of the furnishings has been taken away with the device that owns it. */
-export const isPieceAway = (states: Readonly<Record<string, number>>, pieceId: string) =>
-  Object.entries(REMOVABLE).some(([deviceId, removable]) => removable.owns(pieceId) && !isInPlace(states, deviceId))
-
-/** A TV is on its wall mount unless the visit has taken it off (X): the state lives with the doors', under `mount-<name>`. */
-export const tvMountKey = (tvId: string) => `mount-${tvId.replace(/^tv-/, '')}`
-export const isTvMounted = (states: Readonly<Record<string, number>>, tvId: string) => (states[tvMountKey(tvId)] ?? 1) >= .5
-/** The mount's arm is folded unless the visit has unfolded it (Q): `arm-<name>`, 0 folded and 1 reaching its full 355 mm. */
-export const armKey = (tvId: string) => `arm-${tvId.replace(/^tv-/, '')}`
-export const isArmExtended = (states: Readonly<Record<string, number>>, tvId: string) => (states[armKey(tvId)] ?? 0) >= .5
-/** How far the mount's head has come out of its folded place, in metres: the TV with it, if it is on the mount. */
+/** How far the TV's mount's head has come out of its folded place, in metres: the TV with it, if it is on the mount. */
 export const armReach = (states: Readonly<Record<string, number>>, tvId: string) => isArmExtended(states, tvId) ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
-
-/** The island's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
-export const islandLightsOn = (states: Readonly<Record<string, number>>) => (states[ISLAND_SWITCH_ID] ?? 1) >= .5
+/** Whether a TV is on its wall mount: not taken off with X. */
+export const isTvMounted = (states: Readonly<Record<string, number>>, tvId: string) => isInPlace(states, tvId)
 
 /**
- * What the walkthrough can draw once and bake: the pieces whose looks never depend on the visit, not on the doors' states, the lights, the pieces taken away, the TV's arm, the island's wood or the glass door.
- * Everything else (the TVs and their mounts, the fridge, the microwave, the nook, the stools, the glass door, the island's canopy, wood and switch, the lights of the bathroom, the conduit box and the balcony,
- * and anything that can be taken away) is left to be drawn at each change. Models are drawn by their own placing, and what glows or is see-through is not baked.
+ * What the walkthrough can draw once and bake: the pieces whose looks never depend on the visit. A piece that belongs to a device, or reacts to one (the TVs and their mounts, the fridge, the nook, the
+ * stools, the glass door, the island's wood and its lamps, the lights of the bathroom, the conduit box and the balcony...) is left to be drawn at each change, whatever it is: that is read from the table of
+ * devices, so a new device keeps its pieces out of the bake by being in it. Models are drawn by their own placing, and what glows or is see-through is not baked.
  */
-const DYNAMIC_PIECES = /^(tv-|kitchen-(fridge|microwave|column|nook-|island-cheek|stool-|upper-glass-|conduit-|switch-|sink|tap)|living-table|ps5|island-canopy-|island-switch|outlet-island-|bathroom-(ceiling-|switch-)|balcony-)/
 export const isStaticFurnishing = (piece: Furnishing) =>
-  !piece.model && !piece.glow && piece.opacity === undefined && !piece.disc && !piece.grain && !DYNAMIC_PIECES.test(piece.id) && !Object.values(REMOVABLE).some(removable => removable.owns(piece.id))
+  !piece.model && !piece.glow && piece.opacity === undefined && !piece.disc && !piece.grain && !dependsOnDevice(piece.id) && !NEVER_BAKED.test(piece.id)
+/** The sink and the tap are drawn as models by the component, not from their pieces. */
+const NEVER_BAKED = /^kitchen-(sink|tap)$/

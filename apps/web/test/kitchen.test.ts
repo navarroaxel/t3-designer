@@ -3,9 +3,10 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_PANEL_BOXES, ISLAND_WOOD, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_PANEL_BOXES, ISLAND_WOOD, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
-import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, isStaticFurnishing, islandLightsOn, isStool, REMOVABLE, STOOLS_ID } from '../src/data/house-furnishings.ts'
+import { DEVICES, STOOLS_ID, isDetachable, isInPlace, isOn, isPieceAway, isStool } from '../src/data/devices.ts'
+import { furnishingDevices, furnishingsOn, isStaticFurnishing } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
 
@@ -211,7 +212,7 @@ test('the fridge, the microwave and the living\'s table can be taken away: the p
   assert.ok(!isPieceAway(states, 'outlet-fridge-plate') && !isPieceAway(states, 'outlet-microwave-plate') && !isPieceAway(states, 'kitchen-base'), 'what is behind them stays')
   assert.ok(!isPieceAway({}, 'kitchen-fridge') && isInPlace({}, 'kitchen-microwave'))
   const devices = furnishingDevices('first', 3.2).map(device => device.id)
-  for (const id of ['kitchen-fridge', 'kitchen-microwave', 'living-table']) assert.ok(devices.includes(id) && isRemovable(id), id)
+  for (const id of ['kitchen-fridge', 'kitchen-microwave', 'living-table']) assert.ok(devices.includes(id) && isDetachable(id), id)
 })
 
 test('the tall column is a breakfast nook: its door opens (E), with a Nespresso on the worktops\' shelf, an outlet behind it at 1.10 m and several shelves', () => {
@@ -269,7 +270,7 @@ test('the island has a light switch on the wall and a light line round the drywa
   assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (outlet1.y[0] + outlet1.y[1]) / 2) < 1e-9, 'the same height as the outlets')
   const device = furnishingDevices('first', 3.2).find(item => item.id === ISLAND_SWITCH_ID) as { initialOpenness?: number } | undefined
   assert.ok(device && device.initialOpenness === 1, 'a device that starts on')
-  assert.ok(islandLightsOn({}) && !islandLightsOn({ [ISLAND_SWITCH_ID]: 0 }))
+  assert.ok(isOn({}, ISLAND_SWITCH_ID) && !isOn({ [ISLAND_SWITCH_ID]: 0 }, ISLAND_SWITCH_ID))
   // The light line: three warm strips on the bare slab round the box, and no wash up its white faces.
   const led = ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')), drywall = ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-drywall')!
   assert.equal(led.length, 3); assert.ok(!ISLAND_CANOPY_BOXES.some(piece => piece.id.startsWith('canopy-wash-')), 'no painted wash up the box: only the strip')
@@ -305,7 +306,7 @@ test('the conduit box has recessed lights along its underside, none where the is
   assert.ok(plate.v[0] > LIVING_DOOR.v[1] && plate.v[0] - LIVING_DOOR.v[1] < .3, 'beside the door, on the latch side')
   assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (box('worktop').y[0] - .9 + 1.1)) < 1e-9)
   const device = furnishingDevices('first', 3.2).find(item => item.id === KITCHEN_SWITCH_ID) as { initialOpenness?: number } | undefined
-  assert.ok(device && device.initialOpenness === 1 && conduitLightsOn({}) && !conduitLightsOn({ [KITCHEN_SWITCH_ID]: 0 }))
+  assert.ok(device && device.initialOpenness === 1 && isOn({}, KITCHEN_SWITCH_ID) && !isOn({ [KITCHEN_SWITCH_ID]: 0 }, KITCHEN_SWITCH_ID))
 })
 
 test('the conduit box turns the corner and carries on along the party wall, over the whole kitchen run, as deep as the cabinets and flush with them, to the rear wall', () => {
@@ -432,7 +433,7 @@ test('the island has a Toscana Vena cover on its open end, 1 m wide, and the cov
   assert.ok(Math.abs(cheek.y[0] - FLOOR_HEIGHT) < 1e-9 && Math.abs(cheek.y[1] - counter.y[1]) < 1e-9, 'from the floor to the top')
   // Removable with X, and so are the three stools, together, as one device whose aim volume holds all of them; once away they no longer stop anyone.
   const all = furnishingDevices('first', 3.2), stools = furnishingsOn('first').filter(piece => isStool(piece.id)), group = all.find(device => device.id === STOOLS_ID)!
-  assert.ok(all.some(device => device.id === 'kitchen-island-cheek') && isRemovable('kitchen-island-cheek') && isRemovable(STOOLS_ID))
+  assert.ok(all.some(device => device.id === 'kitchen-island-cheek') && isDetachable('kitchen-island-cheek') && isDetachable(STOOLS_ID))
   assert.equal(stools.length, 3)
   assert.ok(group && stools.every(piece => piece.u[0] >= group.center[0] - group.halfWidth - 1e-9 && piece.u[1] <= group.center[0] + group.halfWidth + 1e-9 && -piece.v[1] >= group.center[1] - group.halfDepth - 1e-9 && -piece.v[0] <= group.center[1] + group.halfDepth + 1e-9), 'the device holds the three')
   assert.ok(stools.every(piece => isPieceAway({ 'away-stools': 0 }, piece.id)) && !isPieceAway({ 'away-stools': 0 }, 'kitchen-island-cheek'), 'together, and nothing else')
@@ -523,7 +524,7 @@ test('the island\'s wood (a walnut-like board on the wall, a fluted oak under th
   assert.ok(panelSlats.every(slat => Math.abs(slat.y[0] - counter.y[0]) < 1e-9 && Math.abs(slat.y[1] - counter.y[1]) < 1e-9 && slat.v[1] <= panelBacking.v[0] + 1e-9), 'from the plinth to the top, in front of the backing')
   // A device that starts off, on and off with X; the wood's pieces go with it, and the slab and the lamps do not.
   const pieces = furnishingsOn('first')
-  assert.ok(isRemovable(ISLAND_WOOD_ID) && !isInPlace({}, ISLAND_WOOD_ID) && isInPlace({ 'away-island-wood': 1 }, ISLAND_WOOD_ID), 'it starts off')
+  assert.ok(isDetachable(ISLAND_WOOD_ID) && !isInPlace({}, ISLAND_WOOD_ID) && isInPlace({ 'away-island-wood': 1 }, ISLAND_WOOD_ID), 'it starts off')
   assert.ok(furnishingDevices('first', 3.2).some(device => device.id === ISLAND_WOOD_ID))
   assert.ok(pieces.filter(piece => /^island-canopy-(wall-panel|soffit-)/.test(piece.id)).every(piece => isPieceAway({}, piece.id) && !isPieceAway({ 'away-island-wood': 1 }, piece.id)), 'the wall\'s board and the ceiling\'s slats are away until they are put on')
   assert.ok(pieces.filter(piece => piece.id.startsWith('island-panel-')).length > 70 && pieces.filter(piece => piece.id.startsWith('island-panel-')).every(piece => !isPieceAway({}, piece.id) && !isPieceAway({ 'away-island-wood': 0 }, piece.id)), 'the stool side\'s panel is fixed: X leaves it')
@@ -541,10 +542,17 @@ test('the pieces that are baked are the ones no visit can change: not the TVs, t
   for (const id of ['tv-main', 'tv-living-mount-head', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', 'kitchen-nook-shelf-1', 'kitchen-stool-1', 'kitchen-upper-glass-pane', 'kitchen-upper-glass-frame-top', 'kitchen-island-cheek', 'island-canopy-wall-panel', 'island-canopy-slab', 'island-switch-plate', 'outlet-island-1-plate', 'ps5', 'living-table-top', 'kitchen-conduit-box', 'kitchen-switch-plate', 'balcony-lantern-1', 'bathroom-ceiling-box'])
     assert.ok(dynamic.some(piece => piece.id === id), `${id} is not baked`)
   // Whatever can be taken away with X, glows, is see-through or is a model is never baked.
-  assert.ok(pieces.filter(piece => Object.values(REMOVABLE).some(removable => removable.owns(piece.id))).every(piece => !isStaticFurnishing(piece)))
+  assert.ok(pieces.filter(piece => DEVICES.some(device => device.detach && device.pieces?.(piece.id))).every(piece => !isStaticFurnishing(piece)))
   assert.ok(pieces.filter(piece => piece.glow || piece.opacity !== undefined || piece.model).every(piece => !isStaticFurnishing(piece)))
   // What is baked stands still under every state: not away, whatever was taken away.
-  const everything = Object.fromEntries(Object.values(REMOVABLE).map(removable => [removable.key, 0]))
+  const everything = Object.fromEntries(DEVICES.flatMap(device => device.detach ? [[device.detach.key, 0]] : []))
   assert.ok(fixed.every(piece => !isPieceAway(everything, piece.id)), 'nothing baked goes with X')
   for (const id of ['kitchen-base', 'kitchen-upper-bottom', 'kitchen-worktop', 'outlet-kitchen-rest-plate', 'wardrobe-closet', 'bed-main', 'outlet-left-plate']) assert.ok(fixed.some(piece => piece.id === id), `${id} is baked`)
+})
+
+test('with the wood on the pendant lamps hang from its underside, 3 cm lower than from the slab, as the wall\'s outlets stand 3 cm out of its board', () => {
+  assert.equal(ISLAND_WOOD.thickness, .03)
+  // The wood hangs under the slab by its thickness: the slats and their backing. The lamps hang from the slab's underside when it is off, and from the wood's when it is on.
+  const wood = ISLAND_WOOD_BOXES.filter(item => item.id.startsWith('canopy-soffit-')), slab = ISLAND_CANOPY_BOXES.find(item => item.id === 'canopy-slab')!
+  assert.ok(Math.abs(slab.y[0] - Math.min(...wood.map(item => item.y[0])) - ISLAND_WOOD.thickness) < 1e-9, 'the wood is as thick as the lamps are lowered')
 })

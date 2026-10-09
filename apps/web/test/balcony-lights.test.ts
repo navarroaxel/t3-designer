@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { BALCONY_BOXES, BALCONY_CEILING, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID, balconyLightsOn } from '../src/data/balcony-lights.ts'
+import { BALCONY_BOXES, BALCONY_CEILING, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID } from '../src/data/balcony-lights.ts'
+import { isOn } from '../src/data/devices.ts'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BALCONY, FRONT_ROOMS, OPENINGS, SLAB_THICKNESS } from '../src/data/house-plan.ts'
 
@@ -29,7 +30,7 @@ test('the balcony\'s switch is inside the main room, beside the balcony door, 1.
   assert.ok(plate.v[1] < door.v[0] && plate.v[0] > FRONT_ROOMS.main.v[0], 'beside the door, on the side away from the closet')
   assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (FLOOR_HEIGHT + 1.1)) < 1e-9)
   const device = furnishingDevices('first', 3.2).find(item => item.id === BALCONY_SWITCH_ID) as { initialOpenness?: number } | undefined
-  assert.ok(device && device.initialOpenness === 1 && balconyLightsOn({}) && !balconyLightsOn({ [BALCONY_SWITCH_ID]: 0 }))
+  assert.ok(device && device.initialOpenness === 1 && isOn({}, BALCONY_SWITCH_ID) && !isOn({ [BALCONY_SWITCH_ID]: 0 }, BALCONY_SWITCH_ID))
 })
 
 test('an outlet under the balcony\'s middle light, on the front wall, 0.30 m up, clear of the balcony door', () => {

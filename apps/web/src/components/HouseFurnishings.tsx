@@ -4,16 +4,18 @@ import { edgeRadius } from '../lib/rounding'
 import { CanvasTexture, SRGBColorSpace, type Mesh, type MeshStandardMaterial, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
-import { armReach, furnishingsOn, isStaticFurnishing, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
+import { armReach, furnishingsOn, isStaticFurnishing, isTvMounted } from '../data/house-furnishings'
+import { FRIDGE_ID, ISLAND_WALL_PIECES, NOOK_ID, isHungHigh, isInPlace, isLit, isOffModel, isOn, isPieceAway } from '../data/devices'
+import { lightGroupOf } from '../data/light-colour'
 import { mergedModel } from '../lib/merge-model'
 import type { LightSource } from '../lib/light-pool'
 import { LightPool } from './LightPool'
 import { StaticBake } from './StaticBake'
 import { kelvinColour, DEFAULT_KITCHEN_KELVIN, type KitchenLightKelvin } from '../data/light-colour'
-import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
-import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
-import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, ISLAND_WOOD, ISLAND_WOOD_ID } from '../data/kitchen'
-import { CONDUIT_LIGHT_POSITIONS, conduitLightsOn, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
+import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID } from '../data/balcony-lights'
+import { BATHROOM_LIGHT_POSITIONS, BATHROOM_SWITCH_ID } from '../data/bathroom'
+import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, ISLAND_SWITCH_ID, ISLAND_WOOD, ISLAND_WOOD_ID, KITCHEN_SWITCH_ID } from '../data/kitchen'
+import { CONDUIT_LIGHT_POSITIONS, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
@@ -23,10 +25,6 @@ import { FloorPatch, KitchenPiece } from './HouseShell'
 import { AZOTEA_REAR } from '../data/building-site'
 import { LAUNDRY } from '../data/laundry'
 
-/**
- * The cutaway's furniture and equipment, standing at full height in the viewer's frame: x = u, z = -v, y up from the floor. The plan's
- * heights are absolute, so the group sinks by the floor's level.
- */
 /**
  * The picture a TV shows when it is on: a Plex-style splash, drawn here (a dark screen, the amber chevron and the wordmark). It is an
  * approximation, not the brand's own artwork.
@@ -74,14 +72,13 @@ function OpenFridge({ body, lowerDoor, upperDoor }: { body: Furnishing; lowerDoo
   </group>
 }
 
-/** `on` holds the switched-on devices by id: a TV is on at an opening of 1 or more half. */
+/** Draws the fallback if what is inside it fails (a model that does not load). */
 class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() { return { failed: true } }
   render() { return this.state.failed ? this.props.fallback : this.props.children }
 }
 
-/** A Blender model standing on the floor at the middle of the piece's box, its front (+z in the file) toward the room (-z here, the wall's normal) unless `turn` says otherwise. */
 /**
  * A dark, figured wood like the owner's slab (a walnut-like board with the grain running along the length, darker streaks and a swirl): a deterministic scatter of wavy strands over a warm
  * brown, drawn on a canvas. One board, so it is not repeated.
@@ -112,6 +109,7 @@ function walnutTexture() {
   return texture
 }
 
+/** A Blender model standing on the floor at the middle of the piece's box, its front (+z in the file) toward the room (-z here, the wall's normal) unless `turn` says otherwise. */
 function PlacedModel({ url, position, turn = Math.PI, glow }: { url: string; position: [number, number, number]; turn?: number; glow?: string }) {
   const { scene } = useGLTF(url)
   const model = useMemo(() => {
@@ -142,6 +140,9 @@ function clipToCut(piece: Furnishing, cut: number): Furnishing | null {
   return { ...piece, y: [piece.y[0], cut], ...(piece.kitchen ? { kitchen: { ...piece.kitchen, y: [piece.kitchen.y[0], cut] as [number, number] } } : {}) }
 }
 
+/**
+ * The house's furniture and equipment, standing at full height in the viewer's frame: x = u, z = -v, y up from the floor. The plan's heights are absolute, so the group sinks by the floor's level.
+ */
 export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, kitchenKelvin = DEFAULT_KITCHEN_KELVIN, lightGain = 1 }: {
   floor: Floor; devices?: Record<string, number>
   /** The colour temperature of the kitchen's lights, in kelvin, by group: the island's pendants, its light line and the conduit box's downlights. */
@@ -160,14 +161,14 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
   const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
   const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
   // The breakfast nook, the tall column: closed it is a plain box; open, its door swings about the hinge on the rear wall's side and the shelves and the coffee machine show.
-  const nookOpen = (devices['kitchen-column'] ?? 0) >= .5
+  const nookOpen = isOn(devices, NOOK_ID)
   // The glass door of the cabinet for the glasses lifts about the rail when a visitor opens it.
-  const glassOpen = (devices[GLASS_DOOR_ID] ?? 0) >= .5
+  const glassOpen = isOn(devices, GLASS_DOOR_ID)
   // The island's wood, when it is on (X): the lights are lowered with the ceiling's underside, and what is on the wall behind the island stands out of the wood.
   const woodOn = isInPlace(devices, ISLAND_WOOD_ID)
-  const lightsOn = islandLightsOn(devices), bathroomOn = bathroomLightsOn(devices), conduitOn = conduitLightsOn(devices), balconyOn = balconyLightsOn(devices)
-  const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
-  const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
+  const lightsOn = isOn(devices, ISLAND_SWITCH_ID), bathroomOn = isOn(devices, BATHROOM_SWITCH_ID), conduitOn = isOn(devices, KITCHEN_SWITCH_ID), balconyOn = isOn(devices, BALCONY_SWITCH_ID)
+  const fridgeAway = !isInPlace(devices, FRIDGE_ID)
+  const fridgeOpen = isOn(devices, FRIDGE_ID) && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
   const fridgeModel = !!fridge && !fridgeOpen && !fridgeAway && (cut === undefined || cut >= fridge.y[1])
   // What can light the kitchen, the bathroom and the balcony, as point lights, once the tour runs on the first floor: a warm light in each pendant lamp (10 cm over its rim), neutral white under each bathroom
@@ -191,14 +192,12 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
     if ((fridgeOpen || fridgeModel) && piece.id.startsWith('kitchen-fridge')) return null
     // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
     if (isPieceAway(devices, piece.id)) return null
-    if (piece.id === 'kitchen-column' && nookOpen) return null
-    // The island's canopy hangs above the cut: the cutaway does not draw it.
-    if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id.startsWith('kitchen-conduit-') || piece.id.startsWith('kitchen-switch-') || piece.id.startsWith('balcony-'))) return null
-    // Switched off, the lights and the light line go dark and the wash of light is gone.
-    if (!lightsOn && piece.id.startsWith('island-canopy-wash-')) return null
-    // The lights the panel edits take its colour: the island's light line and the conduit box's downlights (the pendants are models, tinted when they are placed).
-    const tint = /^island-canopy-led-/.test(piece.id) ? kelvinColour(kitchenKelvin.line) : /^kitchen-conduit-light-/.test(piece.id) ? kelvinColour(kitchenKelvin.conduit) : undefined
-    const lit = !!piece.glow && (/^kitchen-(conduit-light|switch-dot)/.test(piece.id) ? conduitOn : /^balcony-(light|switch-dot)/.test(piece.id) ? balconyOn : /^bathroom-/.test(piece.id) ? bathroomOn || !/^bathroom-(ceiling-light|switch-dot)/.test(piece.id) : lightsOn || !/^island-(canopy-(light|led)|switch-dot)/.test(piece.id))
+    if (piece.id === NOOK_ID && nookOpen) return null
+    // What hangs above the cut (the island's canopy and lamps, the lights of the bathroom, the conduit box and the balcony) is not drawn by the cutaway.
+    if (cut !== undefined && isHungHigh(piece.id)) return null
+    // The lights the panel edits take its colour: by group, the light line, the conduit box's downlights and the pendants (models, tinted when they are placed). A glowing piece is lit unless its switch is off.
+    const group = lightGroupOf(piece.id), tint = group && !piece.model ? kelvinColour(kitchenKelvin[group]) : undefined
+    const lit = !!piece.glow && isLit(devices, piece.id)
     if (piece.id.startsWith('kitchen-nook-') && !nookOpen) return null
     if (piece.id === 'kitchen-nook-door' || piece.id === 'kitchen-nook-handle') {
       // The door and its handle, turned about the hinge (the higher u edge of the door, on its front face).
@@ -221,9 +220,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
     if (tv && !isTvMounted(devices, piece.id)) return null
     // The glass door, its frame, its pane and its handle, turn together about the hinge: up and out.
     const hinged = glassOpen && /^kitchen-upper-glass-(frame|pane|handle)/.test(piece.id)
-    return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [woodOn && /^(outlet-island-|island-switch-)/.test(piece.id) ? ISLAND_WOOD.thickness : 0, 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : [0, 0, 0]}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
+    return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [woodOn && ISLAND_WALL_PIECES.test(piece.id) ? ISLAND_WOOD.thickness : 0, woodOn && /^island-canopy-pendant-/.test(piece.id) ? -ISLAND_WOOD.thickness : 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : [0, 0, 0]}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
       {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
-        <Suspense fallback={null}><PlacedModel glow={piece.id.startsWith('island-canopy-pendant-') && lightsOn ? kelvinColour(kitchenKelvin.pendants) : undefined} url={(piece.id.startsWith('balcony-lantern-') && !balconyOn) || (piece.id.startsWith('island-canopy-pendant-') && !lightsOn) ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
+        <Suspense fallback={null}><PlacedModel glow={group && !isOffModel(devices, piece.id) ? kelvinColour(kitchenKelvin[group]) : undefined} url={isOffModel(devices, piece.id) ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
       </ModelBoundary> : (() => {
         const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
         const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
