@@ -73,7 +73,7 @@ const KITCHEN_REAR_WALL = WALL_THICKNESS
 /** The in-wall media box's centre above the floor: its lower edge is just over 5 cm above the network socket's plate (centred 0.30 m up, 72 mm tall), so it stands at 0.525 m. */
 const MEDIA_BOX_CENTRE_HEIGHT = .525
 /** The secondary room's outlets stand this far each side of its network socket, on the wall it shares with the main room's TV. */
-const SECONDARY_PLATE_OFFSET = .3
+const SECONDARY_PLATE_OFFSET = .6
 const cut = F + CUT_HEIGHT
 const centre = ([a, b]: [number, number]) => (a + b) / 2
 
