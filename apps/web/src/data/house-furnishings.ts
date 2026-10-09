@@ -77,6 +77,22 @@ const SECONDARY_PLATE_OFFSET = .6
 const cut = F + CUT_HEIGHT
 const centre = ([a, b]: [number, number]) => (a + b) / 2
 
+/** What the data files' boxes have in common (see `fromBox`). */
+type SourceBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; glow?: boolean; round?: boolean; opacity?: number; grain?: 'walnut'; model?: string; turn?: number }
+/**
+ * A piece from a box of a data file: its place and colour, and the optional looks the boxes carry (glow, ellipse, opacity, grain, model). `prefix` is added to the id where the
+ * file names its boxes without the room; `taper` narrows an ellipse toward the floor; `modelTurn` is the turn of the box's model, where the box does not say; the rest overrides the conversion.
+ * Not solid unless it is told otherwise.
+ */
+function fromBox(box: SourceBox, prefix: string, { taper, modelTurn, ...extra }: Partial<Omit<Furnishing, 'id'>> & { roughness: number; modelTurn?: number }): Furnishing {
+  return {
+    id: `${prefix}${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, solid: false,
+    ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const, ...(taper !== undefined ? { taper } : {}) } : {}),
+    ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.grain ? { grain: box.grain } : {}),
+    ...(box.model ? { model: box.model, turn: box.turn ?? modelTurn } : {}), ...extra,
+  }
+}
+
 function firstFloor(): Furnishing[] {
   const pieces: Furnishing[] = []
   const add = (piece: Omit<Furnishing, 'solid'> & { solid?: boolean }) => pieces.push({ solid: true, ...piece })
@@ -150,9 +166,9 @@ function firstFloor(): Furnishing[] {
   const restV = (KITCHEN_BOXES.find(box => box.id === 'base')!.v[0] + KITCHEN_BOXES.find(box => box.id === 'base')!.v[1]) / 2
   for (const part of wallOutlet('outlet-kitchen-rest', '+u', KITCHEN_LIVING.u[0], restV, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The breakfast nook inside the tall column: its carcass, shelves, door and the Nespresso, drawn only while the door is open, and the outlet behind the machine, at the same height as the one beside the oven.
-  for (const box of KITCHEN_NOOK_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.startsWith('nook-cup') ? .3 : .6, solid: false, ...(box.round ? { shape: 'ellipse' as const, taper: CUP.taper } : {}), ...(box.id === 'nook-machine' ? { model: '/models/house/nespresso.glb', turn: 0, roughness: .35 } : {}) })
+  for (const box of KITCHEN_NOOK_BOXES) add(fromBox(box, 'kitchen-', { roughness: box.id.startsWith('nook-cup') ? .3 : .6, taper: CUP.taper, ...(box.id === 'nook-machine' ? { model: '/models/house/nespresso.glb', turn: 0, roughness: .35 } : {}) }))
   // The fronts of the island's cabinets on the aisle side: the door under the sink and the two large drawers for the pans.
-  for (const box of [...KITCHEN_ISLAND_FRONTS, ...KITCHEN_RUN_FRONTS]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.includes('handle') ? .3 : .6, solid: false })
+  for (const box of [...KITCHEN_ISLAND_FRONTS, ...KITCHEN_RUN_FRONTS]) add(fromBox(box, 'kitchen-', { roughness: box.id.includes('handle') ? .3 : .6 }))
   // The dishwasher in the island, between the sink and the wall behind it, its door toward the aisle (higher v): the model's front is +Z, so it turns half a turn.
   add({ id: 'kitchen-dishwasher', u: DISHWASHER_BOX.u, v: DISHWASHER_BOX.v, y: DISHWASHER_BOX.y, color: '#b9bcc0', roughness: .4, model: DISHWASHER.model, turn: Math.PI, solid: false })
   for (const part of wallOutlet('outlet-nook', '-v', KITCHEN_LIVING.v[1], NOOK_CENTRE_U - .13, F, NOOK.outletHeight)) add({ ...part, roughness: .6, solid: false, hung: true })
@@ -170,20 +186,20 @@ function firstFloor(): Furnishing[] {
   // The dog, lying on the balcony in front of the secondary room's window; it blocks the way like a piece of furniture, a quarter of the balcony's depth.
   add({ id: 'dog', u: DOG_BOX.u, v: DOG_BOX.v, y: DOG_BOX.y, color: '#161719', roughness: .95, model: DOG.model, turn: 0 })
   // The balcony's three wall lanterns, and the switch in the main room.
-  for (const box of BALCONY_BOXES) add({ id: box.id, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.model ? { model: box.model, turn: box.turn } : {}) })
+  for (const box of BALCONY_BOXES) add(fromBox(box, '', { roughness: box.glow ? .4 : .9 }))
   // An outlet under the balcony's middle light (owner), on the house's front wall, 0.30 m up like the other low ones: the plate faces the balcony, toward lower u, on the wall's outer face at u = -5.
   const balconyMiddle = BALCONY_LIGHT_POSITIONS[Math.floor(BALCONY_LIGHT_POSITIONS.length / 2)].v
   for (const part of wallOutlet('outlet-balcony', '-u', -5, balconyMiddle, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The conduit box along the wall behind the island, which the island's box crosses.
-  for (const box of [...KITCHEN_CONDUIT_BOXES, ...KITCHEN_SWITCH_BOXES]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, hung: true, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
-  for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_WOOD_BOXES, ...ISLAND_PANEL_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.grain ? { grain: box.grain } : {}), ...(box.model ? { model: box.model, turn: 0 } : {}) })
+  for (const box of [...KITCHEN_CONDUIT_BOXES, ...KITCHEN_SWITCH_BOXES]) add(fromBox(box, 'kitchen-', { roughness: box.glow ? .4 : .9, hung: true }))
+  for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_WOOD_BOXES, ...ISLAND_PANEL_BOXES, ...ISLAND_SWITCH_BOXES]) add(fromBox(box, 'island-', { roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, modelTurn: 0 }))
   // On the kitchen's rear wall, between the light well's window and the terrace's balcony door, an outlet 0.30 m up (owner), centred between them: the plate faces the kitchen, toward lower u.
   const rearOpenings = OPENINGS.first.filter(opening => Math.abs(opening.u - (KITCHEN_LIVING.u[1] + KITCHEN_REAR_WALL)) < 1e-9).sort((a, b) => a.v[0] - b.v[0])
   const [balconyDoor, wellWindow] = [rearOpenings[0], rearOpenings[1]]
   const rearOutletV = (balconyDoor.v[1] + wellWindow.v[0]) / 2
   for (const part of wallOutlet('outlet-kitchen-rear', '-u', KITCHEN_LIVING.u[1], rearOutletV, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The bathroom's light box on the wall facing the mirror, with its three recessed LED downlights; drawn only in the walkthrough (it hangs above the cut).
-  for (const box of [...BATHROOM_LIGHT_BOXES, ...BATHROOM_SWITCH_BOXES]) add({ id: `bathroom-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, hung: true, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
+  for (const box of [...BATHROOM_LIGHT_BOXES, ...BATHROOM_SWITCH_BOXES]) add(fromBox(box, 'bathroom-', { roughness: box.glow ? .4 : .9, hung: true }))
   for (const box of MIRROR_LIGHT_BOXES) add({ ...box, roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
@@ -199,7 +215,7 @@ function firstFloor(): Furnishing[] {
     add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, ...(box.id.startsWith('stool-') ? { model: '/models/house/stool.glb' } : { kitchen: { ...box, y: [box.y[0], top] } }), roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge') && !box.id.startsWith('stool-') })
   }
   // The upper cabinet with the microwave, over the run next to the fridge; hung high, so it is not stopped on.
-  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.round ? { shape: 'ellipse' as const, taper: GLASS_CABINET.glass.taper } : {}), ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) })
+  for (const box of KITCHEN_UPPER_BOXES) add(fromBox(box, 'kitchen-', { roughness: box.id === 'microwave' ? .35 : .6, taper: GLASS_CABINET.glass.taper, ...(box.pattern ? { kitchen: box } : {}), ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) }))
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
   for (const part of wallOutlet('outlet-microwave', '-v', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The laundry: the washing machine and the spin dryer against the party wall, and the stair's first flight on the light-well side.
