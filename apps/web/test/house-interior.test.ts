@@ -6,6 +6,7 @@ import { pointInEditorPolygon } from '@t3-designer/scene-schema'
 import { KITCHEN_LIVING, MAIN_BED, MAIN_TV_PLACEMENT, QUEEN_BED } from '../src/data/house-plan.ts'
 import { currentFixtures } from '../src/data/current-state.ts'
 import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
+import { armKey, isInPlace, isLivingSetPiece, LIVING_SET_ID, tvMountKey } from '../src/data/devices.ts'
 import { AZOTEA_REAR, FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENINGS, OUTLINES, SIDE_OPENINGS, wallBoxes, FIRST_FLOOR_BATHROOM, FRONT_ROOMS, GARAGE, GROUND_GARAGE, OFFICE_WIDTH, GROUND_OFFICE } from '../src/data/house-plan.ts'
 import { houseToSite } from '../src/data/frame.ts'
@@ -13,7 +14,7 @@ import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirect
 import { publicScene } from '../src/lib/public-scene.ts'
 const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
-import { armKey, armReach, furnishingDevices, furnishingsOn, isLivingSetPiece, isLivingSetPresent, isTvMounted, LIVING_SET_ID, livingSetKey, tvMountKey } from '../src/data/house-furnishings.ts'
+import { armReach, furnishingDevices, furnishingsOn, isTvMounted } from '../src/data/house-furnishings.ts'
 import { tvMountLinks } from '../src/data/tv-mount.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
 import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, withWalkDoorStates, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
@@ -490,9 +491,9 @@ test('the living\'s table, PS5 and controller are one device: aimed at they can 
   const pose = { x: u, z: -(v + 1), yaw: Math.PI, pitch: Math.atan2(.42 - 1.65, 1), eyeHeight: 1.65, feetOffset: 0 }
   assert.deepEqual(findWalkDoorTarget(world, {}, pose), { id: LIVING_SET_ID, open: false })
   // Taken away, it can still be aimed at (to set it back), but it no longer stops the visitor.
-  assert.equal(findWalkDoorTarget(world, { [livingSetKey]: 0 }, pose)?.id, LIVING_SET_ID)
-  assert.ok(withWalkDoorStates(world, {}).blockers.length > withWalkDoorStates(world, { [livingSetKey]: 0 }).blockers.length)
-  assert.equal(isLivingSetPresent({ [livingSetKey]: 0 }), false)
+  assert.equal(findWalkDoorTarget(world, { 'set-living': 0 }, pose)?.id, LIVING_SET_ID)
+  assert.ok(withWalkDoorStates(world, {}).blockers.length > withWalkDoorStates(world, { 'set-living': 0 }).blockers.length)
+  assert.equal(isInPlace({ 'set-living': 0 }, LIVING_SET_ID), false)
   assert.ok(['living-table-top', 'living-table-leg-1', 'ps5', 'ps5-controller'].every(isLivingSetPiece) && !isLivingSetPiece('wallbox-trim-top'))
 })
 

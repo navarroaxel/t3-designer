@@ -122,5 +122,3 @@ export const BATHROOM_SWITCH_BOXES: (BathroomBox & { glow?: boolean; round?: boo
   { id: 'switch-rocker', u: [switchU - .014, switchU + .014], v: [switchWall - .011, switchWall - .008], y: [switchY - .024, switchY + .024], color: '#d9d8d3' },
   { id: 'switch-dot', u: [switchU + .024, switchU + .029], v: [switchWall - .0085, switchWall - .008], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
 ]
-/** The bathroom's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
-export const bathroomLightsOn = (states: Readonly<Record<string, number>>) => (states[BATHROOM_SWITCH_ID] ?? 1) >= .5

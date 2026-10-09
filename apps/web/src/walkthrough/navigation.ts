@@ -1,5 +1,6 @@
 import { polygonBounds, polygonCentroid, segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
-import { furnishingBlockers, furnishingDevices, isInPlace, isRemovable } from '../data/house-furnishings.ts'
+import { furnishingBlockers, furnishingDevices } from '../data/house-furnishings.ts'
+import { isDetachable, isInPlace } from '../data/devices.ts'
 import { AZOTEA_LEVEL, AZOTEA_OBSTACLES, AZOTEA_OUTLINE, AZOTEA_ROOM, LANDING_LEVEL, LANDING_OUTLINE } from '../data/azotea.ts'
 import { ceilingPolygon, floorOfApartment, walkOutline } from '../data/house-interior.ts'
 import { STAIR_BLOCKS } from '../data/stair.ts'
@@ -249,7 +250,7 @@ export function walkDoorLeaf(door: WalkDoor, openness: number): WalkBlocker | nu
 export function withWalkDoorStates(world: WalkWorld, states: WalkDoorStates): WalkWorld {
   const leaves = world.doors.flatMap(door => {
     // What was taken away (the table, the fridge, the microwave) leaves its spot free to walk through, though it can still be aimed at to put it back.
-    if (isRemovable(door.id) && !isInPlace(states, door.id)) return []
+    if (isDetachable(door.id) && !isInPlace(states, door.id)) return []
     const leaf = walkDoorLeaf(door, resolveWalkDoorOpenness(states, door.id, (door.leaf ?? door.slide ?? door.device)?.initialOpenness))
     return leaf ? [leaf] : []
   })

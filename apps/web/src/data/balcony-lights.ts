@@ -24,6 +24,4 @@ export const BALCONY_BOXES: BalconyPiece[] = [
   { id: 'balcony-switch-rocker', u: [wallFace + .008, wallFace + .011], v: [switchV - .014, switchV + .014], y: [switchY - .024, switchY + .024], color: '#d9d8d3' },
   { id: 'balcony-switch-dot', u: [wallFace + .008, wallFace + .0085], v: [switchV + .024, switchV + .029], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
 ]
-/** The balcony's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
-export const balconyLightsOn = (states: Readonly<Record<string, number>>) => (states[BALCONY_SWITCH_ID] ?? 1) >= .5
 export const BALCONY_CEILING = ceiling

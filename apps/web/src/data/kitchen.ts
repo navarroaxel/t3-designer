@@ -6,7 +6,7 @@ import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, TO
  * cabinets along the party wall with neighbour A, facing the 65 inch TV wall, and a second counter in front of it, 2.20 m
  * by 1.00 m, against the wall behind the bathroom, with three stools on the living's side. The render has no dimensions, so
  * every size here is read from it and assumed, scaled to the living, whose depth is 3.11 m: from the
- * rear wall, a tall dark column, the fridge, then base cabinets with the oven and the cooktop, and the second counter 1.1 m in front. Upper cabinets are left out: they hang above the 1.5 m cut.
+ * rear wall, a tall dark column, the fridge, then base cabinets with the oven and the cooktop, and the second counter 1.1 m in front. The upper cabinets, the hood and the lights hang above the 1.5 m cut, so they are drawn apart (KITCHEN_UPPER_BOXES, the canopy and the conduit box).
  * House frame [u, v], heights above the ground-floor level.
  */
 export type KitchenBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; pattern?: TilePattern; wall?: true }
@@ -233,14 +233,12 @@ export const KITCHEN_NOOK_BOXES: IslandPiece[] = [
 ]
 
 /**
- * The island's canopy: a lowered ceiling over the island, the "techito", all drywall now (owner: the wood, first a fluted oak and then a walnut-like board, is out): a slab 10 cm thick whose
+ * The island's canopy: a lowered ceiling over the island, the "techito", all drywall (owner: the wood is not part of it; see ISLAND_WOOD, which comes on and off): a slab 10 cm thick whose
  * underside is at the height of the conduit box's, 2.75 m (owner), 1.82 m over the worktop, and above it, set in 3 cm all round, the drywall box, the "cajón", up to the real ceiling at 3.00 m. The 3 cm of the slab left bare round the box carry the
  * light line, a warm LED strip (no painted wash up the box's faces: owner). Three pendant lamps (owner: instead of recessed downlights), black domes on cords hung from the slab's underside in a row along the island's middle, 0.95 m down, their rims 0.80 m over the worktop, light it. The island's two outlets and
  * its switch are on the wall, which is plain again. Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
  */
 export const ISLAND_CANOPY = { soffit: UPPER_CABINET.ceiling - KITCHEN_CONDUIT_BOX.height, slab: .1, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, light: { diameter: .3, count: 3, from: .4, to: 1.8, drop: .95 } }
-/** What stood out of the wall behind the island: nothing, now that the wood is out; the outlets and the switch are on the wall itself. */
-export const ISLAND_CANOPY_WALL = 0
 export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean; opacity?: number; grain?: 'walnut'; model?: string }
 const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!
 const canopyU: [number, number] = islandTop.u, canopyV: [number, number] = islandTop.v
@@ -278,7 +276,7 @@ export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
  * it and presses E to switch the three downlights and the light line off and on; they start on. It is a device of its own, `island-switch-plate`.
  */
 export const ISLAND_SWITCH_ID = 'island-switch-plate'
-const switchFace = canopyU[0] + ISLAND_CANOPY_WALL, switchV = ISLAND_AXIS_V, switchY = floor + 1.1
+const switchFace = canopyU[0], switchV = ISLAND_AXIS_V, switchY = floor + 1.1
 export const ISLAND_SWITCH_BOXES: IslandPiece[] = [
   { id: 'switch-plate', u: [switchFace, switchFace + .008], v: [switchV - .036, switchV + .036], y: [switchY - .036, switchY + .036], color: '#212326' },
   { id: 'switch-rocker', u: [switchFace + .008, switchFace + .011], v: [switchV - .014, switchV + .014], y: [switchY - .024, switchY + .024], color: '#e8e8e4' },
@@ -324,8 +322,6 @@ export const KITCHEN_SWITCH_BOXES: IslandPiece[] = [
   { id: 'switch-rocker', u: [frontU + .008, frontU + .011], v: [kitchenSwitchV - .014, kitchenSwitchV + .014], y: [kitchenSwitchY - .024, kitchenSwitchY + .024], color: '#d9d8d3' },
   { id: 'switch-dot', u: [frontU + .008, frontU + .0085], v: [kitchenSwitchV + .024, kitchenSwitchV + .029], y: [kitchenSwitchY + .024, kitchenSwitchY + .029], color: '#ffcf8a', glow: true },
 ]
-/** The conduit box's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
-export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (states[KITCHEN_SWITCH_ID] ?? 1) >= .5
 
 /**
  * The dishwasher (owner): a Whirlpool slimline of 45 cm, stainless steel, 0.85 m tall and 0.59 m deep, in the island between the sink and the wall behind it (the hall wall), close to
@@ -401,7 +397,7 @@ export const KITCHEN_RUN_FRONTS: IslandPiece[] = [
 /**
  * The island's wood (owner: to compare, X puts it on and takes it off; the island starts without it): a smooth board of dark figured wood, a walnut-like one, up the wall behind the island from the
  * worktop to the lowered ceiling, and under the ceiling's slab a fluted oak, the "techito": slats 24 mm wide on a 30 mm pitch and 18 mm thick over a dark backing board that shows in the grooves,
- * running out from the wall so that each line is the board's; and the same fluted oak on the cabinets' stool side, as a panel, upright. The wood is 3 cm thick, so what is on the wall (the outlets and the switch) stands 3 cm out of it, and the pendant lamps hang from the wood's underside as from the slab's. It is a device of its own: the wall's board is what a visitor aims at.
+ * running out from the wall so that each line is the board's; and the same fluted oak on the cabinets' stool side, as a panel, upright. The wood is 3 cm thick, so what is on the wall (the outlets and the switch) stands 3 cm out of it, and the pendant lamps hang 3 cm lower, from the wood's underside (the component lowers them). It is a device of its own: the wall's board is what a visitor aims at.
  */
 export const ISLAND_WOOD = { thickness: .03, slat: .024, pitch: .03, slatDepth: .018, backing: .012 }
 export const ISLAND_WOOD_ID = 'island-canopy-wall-panel'

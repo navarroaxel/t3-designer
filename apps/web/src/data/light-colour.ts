@@ -39,3 +39,11 @@ export function lightGain(sunAltitudeDegrees: number): number {
   const darkness = Math.max(0, Math.min(1, (6 - sunAltitudeDegrees) / 12))
   return 1 + (NIGHT_GAIN - 1) * darkness * darkness * (3 - 2 * darkness)
 }
+
+/** The group of the panel that a piece of the lights belongs to, by its id: the island's pendants and light line, and the conduit box's downlights. */
+export function lightGroupOf(pieceId: string): KitchenLightGroup | undefined {
+  if (pieceId.startsWith('island-canopy-pendant-')) return 'pendants'
+  if (pieceId.startsWith('island-canopy-led-')) return 'line'
+  if (pieceId.startsWith('kitchen-conduit-light-')) return 'conduit'
+  return undefined
+}
