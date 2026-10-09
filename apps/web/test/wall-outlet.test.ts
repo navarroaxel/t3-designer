@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { CUT_HEIGHT, FRONT_ROOMS } from '../src/data/house-plan.ts'
+import { CUT_HEIGHT, FRONT_ROOMS, SECONDARY_BED } from '../src/data/house-plan.ts'
 import { furnishingsOn } from '../src/data/house-furnishings.ts'
 import { outletBoxes, wallOutlet } from '../src/data/outlets.ts'
 
@@ -36,5 +36,14 @@ test('the secondary room has outlet, network socket, outlet on the other side of
   assert.ok(data && left && right, 'all three plates exist')
   const middle = (p: { u: [number, number] }) => (p.u[0] + p.u[1]) / 2
   near(middle(left) + middle(right), 2 * middle(data))
+  near(middle(data), (FRONT_ROOMS.secondary.u[0] + FRONT_ROOMS.secondary.u[1]) / 2)
   for (const plate of [data, left, right]) assert.ok(plate.v[1] <= FRONT_ROOMS.secondary.v[1] + 1e-9 && plate.v[1] > FRONT_ROOMS.secondary.v[1] - .05, 'the plate sits on the wall face and sticks out into the secondary room')
+})
+
+test('the secondary room has an outlet each side of the bed, on the party wall at its head', () => {
+  const pieces = furnishingsOn('first'), at = (id: string) => pieces.find(p => p.id === id)!
+  const left = at('secondary-bed-outlet-left-plate'), right = at('secondary-bed-outlet-right-plate')
+  assert.ok(left && right)
+  assert.ok(left.u[1] < SECONDARY_BED.u[0] && right.u[0] > SECONDARY_BED.u[1], 'both are clear of the bed')
+  assert.ok(left.v[0] >= FRONT_ROOMS.secondary.v[0] && left.v[0] < FRONT_ROOMS.secondary.v[0] + .05)
 })

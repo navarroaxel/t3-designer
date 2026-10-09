@@ -128,11 +128,15 @@ function firstFloor(): Furnishing[] {
   for (const part of mediaBoxBoxes('main-wallbox', mainWall, mainU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false, hung: true })
   for (const part of passThroughBoxes('main-cable-hole', mainWall, mainU - TV_MOUNT.width / 2 - .2, mainTvY)) add({ ...part, roughness: .5, solid: false, hung: true })
   for (const part of wallOutlet('main-outlet-tv', '+v', mainWall, mainU + TV_MOUNT.width / 2 + .13, F, mainTvY - F)) add({ ...part, roughness: .6, solid: false, hung: true })
-  // The other side of that wall, in the secondary room (owner): outlet, network socket, outlet in a row, centred on the same line as the main room's, at the height of the plates there.
-  const secondaryWall = FRONT_ROOMS.secondary.v[1]
-  for (const part of wallDataSocket('secondary-data', '-v', secondaryWall, mainU, F)) add({ ...part, roughness: .6, solid: false, hung: true })
+  // The other side of that wall, in the secondary room (owner): outlet, network socket, outlet in a row, centred on the wall, at the height of the plates there.
+  const secondaryWall = FRONT_ROOMS.secondary.v[1], secondaryU = centre(FRONT_ROOMS.secondary.u)
+  for (const part of wallDataSocket('secondary-data', '-v', secondaryWall, secondaryU, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   for (const [side, offset] of [['left', -SECONDARY_PLATE_OFFSET], ['right', SECONDARY_PLATE_OFFSET]] as const) {
-    for (const part of wallOutlet(`secondary-outlet-${side}`, '-v', secondaryWall, mainU + offset, F)) add({ ...part, roughness: .6, solid: false, hung: true })
+    for (const part of wallOutlet(`secondary-outlet-${side}`, '-v', secondaryWall, secondaryU + offset, F)) add({ ...part, roughness: .6, solid: false, hung: true })
+  }
+  // The secondary room's party wall, in front of it (owner): an outlet each side of the single bed, 25 cm clear of it, at the bed's head.
+  for (const [side, offset] of [['left', -(SINGLE_BED.width / 2 + .25)], ['right', SINGLE_BED.width / 2 + .25]] as const) {
+    for (const part of wallOutlet(`secondary-bed-outlet-${side}`, '+v', FRONT_ROOMS.secondary.v[0], centre(SECONDARY_BED.u) + offset, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   }
   // Its DualSense lies on the table beside it, the triggers toward the wall: 160 by 106 mm, 66 mm tall (a Blender model).
   const padU = tvU + .22, padV = tableV[0] + .24
