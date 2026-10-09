@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
+import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -107,4 +107,17 @@ test('the mirror is backlit: a bright strip all around its glass, a halo on the 
   assert.ok(halo.opacity! < .3 && halo.v[0] < glass.v[0] && halo.v[1] > glass.v[1], 'the halo spills past the glass')
   // The right hand, facing the wall, is the lower v: the buttons are at the lower end, near the bottom strip.
   for (const id of ['mirror-button-1', 'mirror-button-2']) assert.ok(light(id).v[1] < (glass.v[0] + glass.v[1]) / 2 && light(id).y[1] < glass.y[0] + .15, id)
+})
+
+test('the bathroom has a drywall light box under the ceiling on the wall facing the mirror, with three lit recessed downlights in a row', () => {
+  const box = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-box')!, lights = BATHROOM_LIGHT_BOXES.filter(item => item.id.startsWith('ceiling-light-'))
+  // On the front wall, the one opposite the mirror's (the mirror is on the back wall, at the bathroom's higher u), and the width of the room.
+  near(box.u[0], FIRST_FLOOR_BATHROOM.u[0]); assert.ok(Math.abs(box.v[0] - FIRST_FLOOR_BATHROOM.v[0]) < 1e-9 && Math.abs(box.v[1] - FIRST_FLOOR_BATHROOM.v[1]) < 1e-9)
+  assert.ok(box.u[1] - box.u[0] <= .35 && box.u[1] < FIRST_FLOOR_BATHROOM.u[1] - 1, 'a slim box, far from the mirror')
+  assert.ok(Math.abs(box.y[1] - FLOOR_HEIGHT - (FLOOR_HEIGHT - SLAB_THICKNESS)) < 1e-9, 'up to the ceiling')
+  assert.equal(lights.length, 3); assert.equal(BATHROOM_LIGHT_POSITIONS.length, 3)
+  for (const light of lights) assert.ok(light.glow && light.round && light.u[0] >= box.u[0] && light.u[1] <= box.u[1] && light.v[0] >= box.v[0] && light.v[1] <= box.v[1] && light.y[0] < box.y[0] + 1e-9, light.id)
+  const steps = BATHROOM_LIGHT_POSITIONS.map(at => at.v).sort((a, b) => a - b)
+  near(steps[1] - steps[0], steps[2] - steps[1])
+  assert.ok(new Set(BATHROOM_LIGHT_POSITIONS.map(at => at.u)).size === 1, 'in a row')
 })

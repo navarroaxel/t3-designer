@@ -1,5 +1,5 @@
 import { FLOOR_HEIGHT } from './building-site.ts'
-import { CUT_HEIGHT, FIRST_FLOOR_BATHROOM } from './house-plan.ts'
+import { CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from './house-plan.ts'
 
 /**
  * The bathroom's fixtures (owner), along its wall shared with the living, from the door to the back wall: a 60 cm vanity,
@@ -91,4 +91,21 @@ export const MIRROR_LIGHT_BOXES: (BathroomBox & { glow?: boolean })[] = [
   // The two touch buttons: a round-looking square for the light and one for the demister.
   { id: 'mirror-button-1', u: stripU, v: [mirrorV[0] + .075, mirrorV[0] + .095], y: [mirrorY[0] + .055, mirrorY[0] + .075], color: '#dfe6ee', glow: true },
   { id: 'mirror-button-2', u: stripU, v: [mirrorV[0] + .045, mirrorV[0] + .065], y: [mirrorY[0] + .055, mirrorY[0] + .075], color: '#dfe6ee', glow: true },
+]
+
+/**
+ * The bathroom's light box (owner): a drywall "cajón" along the wall that faces the mirror, under the ceiling, with three recessed LED downlights in its underside, in a row along the wall. They
+ * light the face in the mirror from the front. 30 cm deep and 30 cm tall, white, the width of the room; the lights are 9 cm across, evenly spaced. Heights above the ground-floor level. It hangs
+ * above the 1.5 m cut, so it is not in BATHROOM_BOXES.
+ */
+export const BATHROOM_LIGHT_BOX = { depth: .3, height: .3, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, light: .09, count: 3 }
+const lightBoxU: [number, number] = [FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[0] + BATHROOM_LIGHT_BOX.depth]
+const lightBoxY: [number, number] = [FLOOR_HEIGHT + BATHROOM_LIGHT_BOX.ceiling - BATHROOM_LIGHT_BOX.height, FLOOR_HEIGHT + BATHROOM_LIGHT_BOX.ceiling]
+export const BATHROOM_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({ length: BATHROOM_LIGHT_BOX.count }, (_, index) => ({
+  u: (lightBoxU[0] + lightBoxU[1]) / 2,
+  v: FIRST_FLOOR_BATHROOM.v[0] + (FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0]) * (index + .5) / BATHROOM_LIGHT_BOX.count,
+}))
+export const BATHROOM_LIGHT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
+  { id: 'ceiling-box', u: lightBoxU, v: FIRST_FLOOR_BATHROOM.v, y: lightBoxY, color: '#f1efe9' },
+  ...BATHROOM_LIGHT_POSITIONS.map((at, index) => ({ id: `ceiling-light-${index + 1}`, u: [at.u - BATHROOM_LIGHT_BOX.light / 2, at.u + BATHROOM_LIGHT_BOX.light / 2] as [number, number], v: [at.v - BATHROOM_LIGHT_BOX.light / 2, at.v + BATHROOM_LIGHT_BOX.light / 2] as [number, number], y: [lightBoxY[0] - .004, lightBoxY[0] + .002] as [number, number], color: '#fff6e6', glow: true, round: true })),
 ]

@@ -1,4 +1,4 @@
-import { BATHROOM_BOXES, BATHROOM_OUTLET, MIRROR_LIGHT_BOXES } from './bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
@@ -164,6 +164,8 @@ function firstFloor(): Furnishing[] {
   for (const part of outletBoxes('outlet-kitchen-rear', 0, 0, F)) {
     add({ ...part, u: [KITCHEN_LIVING.u[1] - part.v[1], KITCHEN_LIVING.u[1] - part.v[0]], v: [rearOutletV + part.u[0], rearOutletV + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
   }
+  // The bathroom's light box on the wall facing the mirror, with its three recessed LED downlights; drawn only in the walkthrough (it hangs above the cut).
+  for (const box of BATHROOM_LIGHT_BOXES) add({ id: `bathroom-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
   for (const box of MIRROR_LIGHT_BOXES) add({ ...box, roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
