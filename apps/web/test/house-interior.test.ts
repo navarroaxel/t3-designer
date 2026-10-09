@@ -561,3 +561,15 @@ test('the main room\'s TV hangs high enough to be watched lying in bed: its cent
   const pieces = furnishingsOn('first'), box = pieces.find(piece => piece.id === 'main-wallbox-trim-top')!
   assert.ok(box.y[1] < tv.y[0], 'the media box is under the TV')
 })
+
+test('the island\'s switch is aimed at, not the wood behind it: E reaches the switch, and the wood is aimed at above it', () => {
+  const world = buildWalkWorld(publicScene('first', []))
+  const switchPlate = furnishingsOn('first').find(piece => piece.id === 'island-switch-plate')!
+  const target = (y: number) => {
+    // At the island's open end, 1.9 m from the wall, facing it (toward lower u: yaw pi/2), looking at the point at height `y` on the wall.
+    const eye = { x: switchPlate.u[0] + 1.9, z: -(switchPlate.v[0] + switchPlate.v[1]) / 2, eyeHeight: 1.65 }
+    return findWalkDoorTarget(world, {}, { x: eye.x, z: eye.z, yaw: Math.PI / 2, pitch: Math.atan2(y - FLOOR_HEIGHT - eye.eyeHeight, 1.9), eyeHeight: eye.eyeHeight, feetOffset: 0 })
+  }
+  assert.equal(target((switchPlate.y[0] + switchPlate.y[1]) / 2)?.id, 'island-switch-plate', 'aimed at the switch, E works on it')
+  assert.equal(target(FLOOR_HEIGHT + 2)?.id, 'island-canopy-wall-panel', 'aimed over it, the wood')
+})

@@ -273,7 +273,8 @@ export function furnishingDevices(floor: Floor, level: number) {
       ...(piece.id === ISLAND_SWITCH_ID || piece.id === BATHROOM_SWITCH_ID || piece.id === KITCHEN_SWITCH_ID || piece.id === BALCONY_SWITCH_ID ? { initialOpenness: 1 } : {}),
       center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1] + reach) / 2] as [number, number],
       halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
-      bottom: piece.y[0] - level, top: piece.y[1] - level,
+      // The island's wood is aimed at above the switch and the outlets: its board's volume, from the worktop up, would swallow the switch (a thin plate inside it), and E would never reach it.
+      bottom: (piece.id === ISLAND_WOOD_ID ? Math.max(piece.y[0], FLOOR_HEIGHT + 1.45) : piece.y[0]) - level, top: piece.y[1] - level,
     }
   })]
 }
