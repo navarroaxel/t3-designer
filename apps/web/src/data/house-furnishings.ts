@@ -12,7 +12,7 @@ import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOX } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
-import { ACCESS_POINT_BOXES } from './access-point.ts'
+import { ACCESS_POINT_SPOTS, CEILING_UNDERSIDE, accessPointBoxes } from './access-point.ts'
 import { wallDataSocket, wallOutlet } from './outlets.ts'
 import { mediaBoxBoxes, passThroughBoxes } from './wall-fittings.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
@@ -219,8 +219,10 @@ function firstFloor(): Furnishing[] {
   for (const box of KITCHEN_UPPER_BOXES) add(fromBox(box, 'kitchen-', { roughness: box.id === 'microwave' ? .35 : .6, taper: GLASS_CABINET.glass.taper, ...(box.pattern ? { kitchen: box } : {}), ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) }))
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
   for (const part of wallOutlet('outlet-microwave', '-v', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) add({ ...part, roughness: .6, solid: false, hung: true })
-  // The access point on the stair hall's ceiling.
-  for (const box of ACCESS_POINT_BOXES) add(fromBox(box, '', { roughness: box.glow ? .4 : .5 }))
+  // Access points on the first floor's ceiling: the stair hall's, and the living-kitchen's over the PS5's corner (the table's middle, which is where the console and its cable are).
+  for (const [name, at] of [['hall', ACCESS_POINT_SPOTS.hall.at], ['living', [tvU, centre(tableV)]]] as const) {
+    for (const box of accessPointBoxes(name, at, CEILING_UNDERSIDE.first)) add(fromBox(box, '', { roughness: box.glow ? .4 : .5 }))
+  }
   // The laundry: the washing machine and the spin dryer against the party wall, and the stair's first flight on the light-well side.
   for (const box of WASHING_MACHINE_BOXES) add({ ...box, roughness: .35, solid: box.y[0] - F < 1 })
   for (const part of SPIN_DRYER_PARTS) add({ id: `dryer-${part.id}`, u: part.u, v: part.v, y: part.y, color: part.color, metalness: part.metalness, roughness: .3, shape: part.shape === 'cylinder' ? 'ellipse' : undefined, solid: true })
@@ -237,7 +239,10 @@ function firstFloor(): Furnishing[] {
 }
 
 function groundFloor(): Furnishing[] {
+  // Access points on the ground floor's ceiling: the office's and the garage's.
+  const accessPoints = (['office', 'garage'] as const).flatMap(name => accessPointBoxes(name, ACCESS_POINT_SPOTS[name].at, CEILING_UNDERSIDE.ground).map(box => fromBox(box, '', { roughness: box.glow ? .4 : .5 })))
   return [
+    ...accessPoints,
     ...DOORBELL_BOXES.map(box => ({ id: `doorbell-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .4, solid: false })),
     // The hall's main supply board, flush in the left wall, and the office's standing desk: both Blender models.
     { id: 'main-board', ...MAIN_BOARD_BOX, color: '#f3f4f3', roughness: .4, solid: false, model: '/models/house/main-board.glb', turn: 0 },
