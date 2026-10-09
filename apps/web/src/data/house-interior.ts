@@ -256,6 +256,8 @@ function firstFloorAnnex() {
   const caveRear = STAIR_CAVE.u[1] + LAUNDRY.wallThickness / 2, caveSide = STAIR_CAVE.v[0] - LAUNDRY.wallThickness / 2
   wall('first-laundry-cave-rear', [caveRear, caveSide - LAUNDRY.wallThickness / 2], [caveRear, STAIR_CAVE.v[1]], LAUNDRY.wallThickness, STAIR_CAVE.height, 'interior')
   wall('first-laundry-cave-side', [STAIR_CAVE.u[0], caveSide], [STAIR_CAVE.u[1], caveSide], LAUNDRY.wallThickness, STAIR_CAVE.height, 'interior')
+  // The party wall goes on along the cave, as the laundry's does, with the same grey skirting.
+  wall('first-laundry-cave-party', [LAUNDRY_BACK, HOUSE_HALF_WIDTH - PARTY_WALL / 2], [STAIR_CAVE.u[1] + LAUNDRY.wallThickness, HOUSE_HALF_WIDTH - PARTY_WALL / 2], PARTY_WALL, STAIR_CAVE.height)
   // The door at the top of the first flight, onto the landing 1 m up (owner): white aluminium with glass, opening inward, into the laundry, hinged on the light-well side.
   doors.push({
     id: 'first-laundry-back-door', wallId: back.id, offset: LAUNDRY.wallThickness + LAUNDRY.door.frame, width: LAUNDRY.door.width, height: LAUNDRY.door.height, sill: LAUNDRY.landing.rise,

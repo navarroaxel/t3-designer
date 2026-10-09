@@ -292,6 +292,6 @@ export function HouseFloorTiles({ floor }: { floor: Floor }) {
       return <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={clipped} />
     }))}
     {/* The cave under the stair's landing is part of the laundry: its floor goes on in the same tile. */}
-    {floor === 'first' && cave && <FloorPatch zone={cave} rect={[STAIR_CAVE.u[0], STAIR_CAVE.u[1], STAIR_CAVE.v[0], STAIR_CAVE.v[1]]} />}
+    {floor === 'first' && cave && <FloorPatch zone={cave} rect={[STAIR_CAVE.u[0], STAIR_CAVE.u[1], STAIR_CAVE.v[0], STAIR_CAVE.v[1]]} origin={[cave.rects[0][0], cave.rects[0][2]]} />}
   </group>
 }
