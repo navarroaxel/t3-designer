@@ -8,6 +8,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
 import { HouseFloorTiles, HouseFurnishings } from '../components/HouseFurnishings'
+import { StaticBake } from '../components/StaticBake'
 import type { KitchenLightKelvin } from '../data/light-colour'
 import { floorOfApartment } from '../data/house-interior'
 import { Wall } from '../components/Wall'
@@ -270,7 +271,8 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, upper
     <NaturalLighting snapshot={snapshot} upper={upper} sun={sun} />
     <ArtificialLighting snapshot={snapshot} enabled={artificialLights} />
     {upper && <ArtificialLighting snapshot={upper} enabled={artificialLights} />}
-    <SiteContext snapshot={snapshot} />
+    {/* The site, the neighbours and the street, stands still: baked into a few meshes (a few hundred before). */}
+    <StaticBake deps={[snapshot]}><SiteContext snapshot={snapshot} /></StaticBake>
     <FloorContent snapshot={snapshot} doorStates={doorStates} withRoof={!upper} kitchenKelvin={kitchenKelvin} lightGain={lightGain} />
     {upper && <FloorContent snapshot={upper} doorStates={doorStates} withRoof kitchenKelvin={kitchenKelvin} lightGain={lightGain} />}
   </>

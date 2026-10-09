@@ -318,3 +318,12 @@ export const armReach = (states: Readonly<Record<string, number>>, tvId: string)
 
 /** The island's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
 export const islandLightsOn = (states: Readonly<Record<string, number>>) => (states[ISLAND_SWITCH_ID] ?? 1) >= .5
+
+/**
+ * What the walkthrough can draw once and bake: the pieces whose looks never depend on the visit, not on the doors' states, the lights, the pieces taken away, the TV's arm, the island's wood or the glass door.
+ * Everything else (the TVs and their mounts, the fridge, the microwave, the nook, the stools, the glass door, the island's canopy, wood and switch, the lights of the bathroom, the conduit box and the balcony,
+ * and anything that can be taken away) is left to be drawn at each change. Models are drawn by their own placing, and what glows or is see-through is not baked.
+ */
+const DYNAMIC_PIECES = /^(tv-|kitchen-(fridge|microwave|column|nook-|island-cheek|stool-|upper-glass-|conduit-|switch-|sink|tap)|living-table|ps5|island-canopy-|island-switch|outlet-island-|bathroom-(ceiling-|switch-)|balcony-)/
+export const isStaticFurnishing = (piece: Furnishing) =>
+  !piece.model && !piece.glow && piece.opacity === undefined && !piece.disc && !piece.grain && !DYNAMIC_PIECES.test(piece.id) && !Object.values(REMOVABLE).some(removable => removable.owns(piece.id))

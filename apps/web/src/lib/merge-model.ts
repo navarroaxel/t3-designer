@@ -5,7 +5,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 export function materialSignature(material: Material): string {
   const standard = material as MeshStandardMaterial
   if (!standard.isMeshStandardMaterial || standard.map || standard.normalMap || standard.roughnessMap || standard.metalnessMap || standard.emissiveMap) return material.uuid
-  return [standard.color.getHexString(), standard.roughness.toFixed(3), standard.metalness.toFixed(3), standard.emissive.getHexString(), standard.emissiveIntensity.toFixed(3), standard.opacity.toFixed(3), standard.transparent, standard.side, standard.flatShading, standard.vertexColors].join('|')
+  return [standard.color.getHexString(), standard.roughness.toFixed(3), standard.metalness.toFixed(3), standard.emissive.getHexString(), standard.emissiveIntensity.toFixed(3), standard.opacity.toFixed(3), standard.transparent, standard.side, standard.flatShading, standard.vertexColors, standard.colorWrite, standard.depthWrite, standard.depthTest, standard.alphaTest, standard.polygonOffset, standard.polygonOffsetFactor, standard.polygonOffsetUnits, standard.toneMapped].join('|')
 }
 
 /**
