@@ -87,19 +87,21 @@ export const KITCHEN_SINK = { u: sinkBox.u, v: sinkBox.v, top: sinkBox.y[0], dep
 export const KITCHEN_TAP = { u: (tapBox.u[0] + tapBox.u[1]) / 2, v: (tapBox.v[0] + tapBox.v[1]) / 2, base: tapBox.y[0] }
 
 /**
- * The upper cabinets on the party wall (owner), one run of oak from the tall column to the hall wall and from 1.40 m up to the ceiling: over the base run
+ * The upper cabinets on the party wall (owner), one run of oak from the tall column to the hall wall and from 1.40 m up to the underside of the conduit box, which carries on over them along the wall (KITCHEN_CONDUIT_BOXES): over the base run
  * they hang 47 cm over the worktop, and over the fridge they start above it, at 1.90 m. The carcass is 0.42 m deep. The microwave (the 0.48 by 0.29
  * by 0.38 m replica of the workspace's catalogue) is in an open bay next to the fridge, with a door over it; over the cooktop there is no cabinet but the
- * extractor hood (owner's picture: a stainless steel chimney hood, a pyramid canopy under a square duct to the ceiling), centred on it. The microwave stands
+ * extractor hood (owner's picture: a stainless steel chimney hood, a pyramid canopy under a square duct, which goes up into the conduit box), centred on it. The microwave stands
  * 4 cm off the wall, leaving room for the plug of the outlet behind it, whose centre is 1.5 m above the floor (owner).
  * Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
  */
+/** The conduit box's section (owner): 25 cm deep along the hall wall, 25 cm tall under the ceiling; along the party wall it is as deep as the cabinets, so it carries on their line. */
+export const KITCHEN_CONDUIT_BOX = { depth: .25, height: .25 }
 export const UPPER_CABINET = { depth: .42, bottom: 1.4, overFridge: 1.9, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, panel: .02, microwave: { width: .48, height: .29, depth: .38, gapToWall: .04 }, outletHeight: 1.5 }
 /** The chimney hood: 54 cm wide (the most that fits between the hall side's cabinet and the microwave over the cooktop), 50 cm deep, its canopy's lower edge level with the cabinets' (owner), 1.40 m. */
 export const HOOD = { width: .54, depth: .5, canopyBottom: UPPER_CABINET.bottom, canopyHeight: .2 }
 const upperU: [number, number] = [frontU, columnU[0]]
 const upperV: [number, number] = [wallV - UPPER_CABINET.depth, wallV]
-const lowY = floor + UPPER_CABINET.bottom, overFridgeY = floor + UPPER_CABINET.overFridge, topY = floor + UPPER_CABINET.ceiling
+const lowY = floor + UPPER_CABINET.bottom, overFridgeY = floor + UPPER_CABINET.overFridge, topY = floor + UPPER_CABINET.ceiling - KITCHEN_CONDUIT_BOX.height
 const P = UPPER_CABINET.panel
 const microwaveU: [number, number] = [fridgeU[0] - .01 - UPPER_CABINET.microwave.width, fridgeU[0] - .01]
 const microwaveY: [number, number] = [lowY + P + .01, lowY + P + .01 + UPPER_CABINET.microwave.height]
@@ -132,7 +134,7 @@ export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
   { id: 'upper-door-over-fridge', u: [fridgeU[0] + .005, upperU[1] - .005], v: front, y: [overFridgeY + P + .005, topY - .005], color: DOOR },
   // The microwave is a Blender model too (scripts/blender/jobs/microwave-job.json): a black Samsung with its glass door on the left and the controls on the right.
   { id: 'microwave', u: microwaveU, v: microwaveV, y: microwaveY, color: '#0c0d0f' },
-  // The hood: a Blender model (scripts/blender/jobs/kitchen-hood-job.json) standing in a box that is its size, from the canopy's lower edge, level with the cabinets', to the ceiling.
+  // The hood: a Blender model (scripts/blender/jobs/kitchen-hood-job.json) standing in a box that is its size, from the canopy's lower edge, level with the cabinets', to the underside of the conduit box: its duct goes on inside the box.
   { id: 'hood', u: hoodU, v: [wallV - HOOD.depth, wallV], y: [canopyY, topY], color: INOX },
 ]
 
@@ -229,10 +231,9 @@ export const ISLAND_SWITCH_BOXES: IslandPiece[] = [
 
 /**
  * The kitchen's conduit box (owner): the electrical conduits travel in a drywall "cajón" that runs the whole length of the wall facing the window, the one behind the bathroom, under the ceiling, from
- * the TV wall to the upper cabinets. It is 25 cm deep and 25 cm tall, white, and it crosses the island's box, which comes out of it at right angles. Heights above the ground-floor level. It hangs
+ * the TV wall to the party wall, and turns the corner to run along the party wall, over the kitchen, to the rear wall. It is 25 cm deep (as deep as the cabinets on the party wall) and 25 cm tall, white, and it crosses the island's box, which comes out of it at right angles. Heights above the ground-floor level. It hangs
  * above the 1.5 m cut, so it is not in KITCHEN_BOXES.
  */
-export const KITCHEN_CONDUIT_BOX = { depth: .25, height: .25 }
 const conduitU: [number, number] = [frontU, frontU + KITCHEN_CONDUIT_BOX.depth]
 const conduitV: [number, number] = [KITCHEN_LIVING.v[0], upperV[0]]
 const conduitY: [number, number] = [floor + ISLAND_CANOPY.ceiling - KITCHEN_CONDUIT_BOX.height, floor + ISLAND_CANOPY.ceiling]
@@ -251,6 +252,8 @@ export const CONDUIT_LIGHT_POSITIONS: { u: number; v: number }[] = (() => {
 })()
 export const KITCHEN_CONDUIT_BOXES: IslandPiece[] = [
   { id: 'conduit-box', u: conduitU, v: conduitV, y: conduitY, color: '#f1efe9' },
+  // It turns the corner and carries on over the cabinets, the fridge and the column, along the party wall to the rear wall, as deep as the cabinets: they end where it begins, and the hood's duct goes up inside it.
+  { id: 'conduit-box-rear', u: [frontU, rearU], v: [wallV - UPPER_CABINET.depth, wallV], y: conduitY, color: '#f1efe9' },
   ...CONDUIT_LIGHT_POSITIONS.map((at, index): IslandPiece => ({ id: `conduit-light-${index + 1}`, u: [at.u - CONDUIT_LIGHT.diameter / 2, at.u + CONDUIT_LIGHT.diameter / 2], v: [at.v - CONDUIT_LIGHT.diameter / 2, at.v + CONDUIT_LIGHT.diameter / 2], y: [conduitY[0] - .004, conduitY[0] + .002], color: '#fff2d9', glow: true, round: true })),
 ]
 
