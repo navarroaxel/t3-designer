@@ -4,7 +4,7 @@ import { edgeRadius } from '../lib/rounding'
 import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
-import { armReach, furnishingsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
+import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
 import { ISLAND_CANOPY, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
@@ -108,6 +108,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
   // The breakfast nook, the tall column: closed it is a plain box; open, its door swings about the hinge on the rear wall's side and the shelves and the coffee machine show.
   const nookOpen = (devices['kitchen-column'] ?? 0) >= .5
+  const lightsOn = islandLightsOn(devices)
   const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
@@ -119,7 +120,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       <PlacedModel url="/models/house/kitchen-tap.glb" turn={Math.PI} position={[KITCHEN_TAP.u - .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v - .0716]} />
     </Suspense></ModelBoundary>}
     {/* The island's three downlights light the worktop: a warm point light under each, 10 cm below the wood. */}
-    {floor === 'first' && cut === undefined && ISLAND_LIGHT_POSITIONS.map((at, index) =>
+    {floor === 'first' && cut === undefined && lightsOn && ISLAND_LIGHT_POSITIONS.map((at, index) =>
       <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - .1, -at.v]} color="#ffd9a8" intensity={1.8} distance={2.8} decay={2} />)}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
@@ -139,7 +140,10 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (isPieceAway(devices, piece.id)) return null
       if (piece.id === 'kitchen-column' && nookOpen) return null
       // The island's canopy hangs above the cut: the cutaway does not draw it.
-      if (cut !== undefined && piece.id.startsWith('island-canopy-')) return null
+      if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-'))) return null
+      // Switched off, the lights and the light line go dark and the wash of light is gone.
+      if (!lightsOn && piece.id.startsWith('island-canopy-wash-')) return null
+      const lit = !!piece.glow && (lightsOn || !/^island-(canopy-(light|led)|switch-dot)/.test(piece.id))
       if (piece.id.startsWith('kitchen-nook-') && !nookOpen) return null
       if (piece.id === 'kitchen-nook-door' || piece.id === 'kitchen-nook-handle') {
         // The door and its handle, turned about the hinge (the higher u edge of the door, on its front face).
@@ -168,7 +172,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
           const material = <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}
             transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined}
-            {...(piece.glow ? { emissive: piece.color, emissiveIntensity: 1.6, toneMapped: false } : {})} />
+            {...(lit ? { emissive: piece.color, emissiveIntensity: 1.6, toneMapped: false } : {})} />
           // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.
           if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? rollRotation(piece) : undefined} castShadow receiveShadow>{material}</RoundedBox>
           return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? rollRotation(piece) : undefined}

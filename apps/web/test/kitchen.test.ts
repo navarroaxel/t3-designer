@@ -3,9 +3,9 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
-import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable } from '../src/data/house-furnishings.ts'
+import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
 
@@ -249,4 +249,22 @@ test('the island\'s canopy is a fluted oak in an L: slats up the wall and over t
   for (const light of lights) assert.ok(light.glow && light.round && light.u[0] >= top.u[0] && light.u[1] <= top.u[1] && light.v[0] >= top.v[0] && light.v[1] <= top.v[1], light.id)
   assert.ok(new Set(ISLAND_LIGHT_POSITIONS.map(at => at.v)).size === 1, 'in a row')
   assert.ok(Math.abs(ISLAND_CANOPY_WALL - (ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing)) < 1e-9)
+})
+
+test('the island has a light switch on the oak and a light line round the drywall box; the lights start on and the switch is a device', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const plate = find(ISLAND_SWITCH_ID), outlet1 = find('outlet-island-1-plate'), outlet2 = find('outlet-island-2-plate'), top = box('counter-top')
+  // On the oak, between the two outlets, at the same height.
+  const middle = (item: { v: [number, number] }) => (item.v[0] + item.v[1]) / 2
+  assert.ok(Math.abs(plate.u[0] - (KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL)) < 1e-9 && plate.v[0] >= top.v[0] && plate.v[1] <= top.v[1])
+  assert.ok(middle(plate) > Math.min(middle(outlet1), middle(outlet2)) && middle(plate) < Math.max(middle(outlet1), middle(outlet2)), 'between the outlets')
+  assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (outlet1.y[0] + outlet1.y[1]) / 2) < 1e-9, 'the same height as the outlets')
+  const device = furnishingDevices('first', 3.2).find(item => item.id === ISLAND_SWITCH_ID) as { initialOpenness?: number } | undefined
+  assert.ok(device && device.initialOpenness === 1, 'a device that starts on')
+  assert.ok(islandLightsOn({}) && !islandLightsOn({ [ISLAND_SWITCH_ID]: 0 }))
+  // The light line: three warm strips on the bare wood round the box, with a wash of light up its white faces.
+  const led = ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')), wash = ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-wash-')), drywall = ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-drywall')!
+  assert.equal(led.length, 3); assert.equal(wash.length, 3)
+  for (const strip of led) assert.ok(strip.glow && Math.abs(strip.y[0] - drywall.y[0]) < 1e-9, `${strip.id} on the wood's ledge, at the box's foot`)
+  for (const skin of wash) assert.ok(skin.glow && skin.opacity! < .4 && Math.abs(skin.y[0] - led[0].y[1]) < 1e-9 && skin.y[1] <= drywall.y[1], skin.id)
 })

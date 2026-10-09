@@ -144,7 +144,7 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
   const floor = floorOfApartment(snapshot.apartment)
   if (floor) blockers.push(...furnishingBlockers(floor, snapshot.placement.floorElevation))
   if (floor) for (const device of furnishingDevices(floor, snapshot.placement.floorElevation)) {
-    doors.push({ id: device.id, center: device.center, normal: [0, 1], exterior: false, clearance: 0, device: { ...device, doorId: device.id, device: true, initialOpenness: 0 } })
+    doors.push({ id: device.id, center: device.center, normal: [0, 1], exterior: false, clearance: 0, device: { ...device, doorId: device.id, device: true, initialOpenness: (device as { initialOpenness?: number }).initialOpenness ?? 0 } })
   }
   const perimeter: Point2D[] = snapshot.apartment.perimeter.map(point => [...point])
   const floorElevation = snapshot.geometry.floor.elevation

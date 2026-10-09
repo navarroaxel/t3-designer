@@ -15,7 +15,7 @@ import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
-import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, KITCHEN_BOXES, KITCHEN_NOOK_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
+import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, KITCHEN_BOXES, KITCHEN_NOOK_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
@@ -156,7 +156,7 @@ function firstFloor(): Furnishing[] {
     }
   }
   // The island's canopy: the fluted oak up the wall and over the island, the drywall box above it and the three downlights; drawn only in the walkthrough (it hangs above the cut).
-  for (const box of ISLAND_CANOPY_BOXES) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
+  for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}) })
   // On the kitchen's rear wall, between the light well's window and the terrace's balcony door, an outlet 0.30 m up (owner), centred between them: the plate faces the kitchen, toward lower u.
   const rearOpenings = OPENINGS.first.filter(opening => Math.abs(opening.u - (KITCHEN_LIVING.u[1] + KITCHEN_REAR_WALL)) < 1e-9).sort((a, b) => a.v[0] - b.v[0])
   const [balconyDoor, wellWindow] = [rearOpenings[0], rearOpenings[1]]
@@ -232,7 +232,7 @@ export function furnishingBlockers(floor: Floor, level: number) {
 }
 
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open; and with `X`, what can be taken away (REMOVABLE): the fridge and the microwave too. */
-export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column'] as const
+export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', ISLAND_SWITCH_ID] as const
 export function furnishingDevices(floor: Floor, level: number) {
   const pieces = furnishingsOn(floor)
   // The living's table with the PS5 and its controller is one device, as tall as the console: X takes the three away, or sets them back.
@@ -248,6 +248,8 @@ export function furnishingDevices(floor: Floor, level: number) {
     const reach = piece.id.startsWith('tv-') ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
     return {
       id: piece.id,
+      // The island's lights start on: the switch's openness is 1 until a visitor flips it.
+      ...(piece.id === ISLAND_SWITCH_ID ? { initialOpenness: 1 } : {}),
       center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1] + reach) / 2] as [number, number],
       halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
       bottom: piece.y[0] - level, top: piece.y[1] - level,
@@ -284,3 +286,6 @@ export const armKey = (tvId: string) => `arm-${tvId.replace(/^tv-/, '')}`
 export const isArmExtended = (states: Readonly<Record<string, number>>, tvId: string) => (states[armKey(tvId)] ?? 0) >= .5
 /** How far the mount's head has come out of its folded place, in metres: the TV with it, if it is on the mount. */
 export const armReach = (states: Readonly<Record<string, number>>, tvId: string) => isArmExtended(states, tvId) ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
+
+/** The island's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
+export const islandLightsOn = (states: Readonly<Record<string, number>>) => (states[ISLAND_SWITCH_ID] ?? 1) >= .5

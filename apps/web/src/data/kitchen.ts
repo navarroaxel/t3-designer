@@ -168,7 +168,7 @@ export const KITCHEN_NOOK_BOXES: KitchenBox[] = [
  */
 export const ISLAND_CANOPY = { soffit: 2.4, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, slat: .024, pitch: .03, slatDepth: .018, backing: .012, light: { diameter: .09, count: 3, from: .4, to: 1.8 } }
 export const ISLAND_CANOPY_WALL = ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing
-export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean }
+export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean; opacity?: number }
 const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!
 const canopyU: [number, number] = islandTop.u, canopyV: [number, number] = islandTop.v
 const canopySoffit = floor + ISLAND_CANOPY.soffit, canopyTop = floor + ISLAND_CANOPY.ceiling
@@ -180,6 +180,21 @@ export const ISLAND_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({ l
   u: canopyU[0] + ISLAND_CANOPY.light.from + (ISLAND_CANOPY.light.to - ISLAND_CANOPY.light.from) * index / (ISLAND_CANOPY.light.count - 1),
   v: (COUNTER_V[0] + COUNTER_V[1]) / 2,
 }))
+const drywallU: [number, number] = [canopyU[0], canopyU[1] - .03], drywallV: [number, number] = [canopyV[0] + .03, canopyV[1] - .03]
+const ledY: [number, number] = [canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing + .008]
+const LED = '#ffcf8a'
+function ledSides(): IslandPiece[] {
+  const strip = .012, gap = .006, wash = .002, reach = .26
+  return [
+    { id: 'canopy-led-front', u: drywallU, v: [drywallV[0] - gap - strip, drywallV[0] - gap], y: ledY, color: LED, glow: true },
+    { id: 'canopy-led-aisle', u: drywallU, v: [drywallV[1] + gap, drywallV[1] + gap + strip], y: ledY, color: LED, glow: true },
+    { id: 'canopy-led-end', u: [drywallU[1] + gap, drywallU[1] + gap + strip], v: [drywallV[0] - gap - strip, drywallV[1] + gap + strip], y: ledY, color: LED, glow: true },
+    // The wash: a warm, see-through skin over each of the three white faces, from the strip up.
+    { id: 'canopy-wash-front', u: drywallU, v: [drywallV[0] - wash, drywallV[0]], y: [ledY[1], ledY[1] + reach], color: LED, glow: true, opacity: .22 },
+    { id: 'canopy-wash-aisle', u: drywallU, v: [drywallV[1], drywallV[1] + wash], y: [ledY[1], ledY[1] + reach], color: LED, glow: true, opacity: .22 },
+    { id: 'canopy-wash-end', u: [drywallU[1], drywallU[1] + wash], v: drywallV, y: [ledY[1], ledY[1] + reach], color: LED, glow: true, opacity: .22 },
+  ]
+}
 export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
   // The backing boards: on the wall, from the worktop up to the lowered ceiling; and over the island, above the slats.
   { id: 'canopy-wall-backing', u: [canopyU[0], canopyU[0] + ISLAND_CANOPY.backing], v: canopyV, y: [floor + S.baseHeight + S.worktop, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#2e2620' },
@@ -193,7 +208,21 @@ export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
     ]
   }).flat(),
   // The drywall box over the wood, painted white, up to the ceiling: set in 3 cm all round so the wood's edge shows.
-  { id: 'canopy-drywall', u: [canopyU[0], canopyU[1] - .03], v: [canopyV[0] + .03, canopyV[1] - .03], y: [canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing, canopyTop], color: '#f1efe9' },
+  { id: 'canopy-drywall', u: drywallU, v: drywallV, y: [canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing, canopyTop], color: '#f1efe9' },
+  // The light line: a warm LED strip on the 3 cm of wood left bare round the drywall box, against its foot on the three open sides, and a faint wash of light up the white faces.
+  ...ledSides(),
   // The downlights, recessed in the wood and lit.
   ...ISLAND_LIGHT_POSITIONS.map((at, index): IslandPiece => ({ id: `canopy-light-${index + 1}`, u: [at.u - ISLAND_CANOPY.light.diameter / 2, at.u + ISLAND_CANOPY.light.diameter / 2], v: [at.v - ISLAND_CANOPY.light.diameter / 2, at.v + ISLAND_CANOPY.light.diameter / 2], y: [canopySoffit - .004, canopySoffit + .002], color: '#fff2d9', glow: true, round: true })),
+]
+
+/**
+ * The island's light switch (owner's request): a single plate on the oak, between the two outlets, at the same height as them, with a rocker and a small light that shows when the lights are on. A visitor aims at
+ * it and presses E to switch the three downlights and the light line off and on; they start on. It is a device of its own, `island-switch-plate`.
+ */
+export const ISLAND_SWITCH_ID = 'island-switch-plate'
+const switchFace = canopyU[0] + ISLAND_CANOPY_WALL, switchV = (COUNTER_V[0] + COUNTER_V[1]) / 2, switchY = floor + 1.1
+export const ISLAND_SWITCH_BOXES: IslandPiece[] = [
+  { id: 'switch-plate', u: [switchFace, switchFace + .008], v: [switchV - .036, switchV + .036], y: [switchY - .036, switchY + .036], color: '#212326' },
+  { id: 'switch-rocker', u: [switchFace + .008, switchFace + .011], v: [switchV - .014, switchV + .014], y: [switchY - .024, switchY + .024], color: '#e8e8e4' },
+  { id: 'switch-dot', u: [switchFace + .008, switchFace + .0085], v: [switchV + .024, switchV + .029], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
 ]
