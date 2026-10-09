@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn, isStool, STOOLS_ID } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -452,4 +452,39 @@ test('the island\'s cabinets, on the aisle side, have the door under the sink an
   for (const front of [door, one, two, filler]) assert.ok(Math.abs(front.v[0] - counter.v[1]) < 1e-9 && front.v[1] - front.v[0] < .01, `${front.id} is a skin on the cabinet's face`)
   for (const id of ['island-door-sink-handle', 'island-drawer-1-handle', 'island-drawer-2-handle']) assert.ok(find(id).v[1] - find(id).v[0] >= .01 && find(id).v[0] >= door.v[1] - 1e-9, `${id} stands out`)
   assert.ok(sink.u[0] > dishwasher.u[1] && one.u[0] > sink.u[1], 'from the wall: the dishwasher, the sink, the drawers')
+})
+
+test('the run has the cutlery\'s three drawers under the resting worktop, to the left of the oven: a shallow one on top, one for the utensils and a deep one', () => {
+  const drawers = KITCHEN_RUN_FRONTS.filter(item => /^run-drawer-\d$/.test(item.id)), base = box('base'), oven = box('oven'), worktop = box('worktop')
+  assert.equal(drawers.length, 3)
+  // On the hall side of the oven, the width of the resting worktop (45 cm), on the run's face (toward lower v), from the plinth to the top.
+  for (const drawer of drawers) {
+    assert.ok(drawer.u[0] >= base.u[0] && drawer.u[1] <= oven.u[0] && oven.u[0] - drawer.u[1] < .01, `${drawer.id} is under the resting worktop`)
+    assert.ok(Math.abs(drawer.v[1] - base.v[0]) < 1e-9 && drawer.v[1] - drawer.v[0] < .01, `${drawer.id} is a skin on the run's face`)
+  }
+  assert.ok(Math.abs(Math.max(...drawers.map(item => item.y[1])) - worktop.y[0]) < .005 && Math.abs(Math.min(...drawers.map(item => item.y[0])) - base.y[0]) < .005, 'the whole cabinet, from the plinth to the worktop')
+  // One over the other, the top the shallowest (the cutlery's), the bottom the deepest; a joint between each.
+  const [one, two, three] = drawers, height = (item: typeof one) => item.y[1] - item.y[0]
+  assert.ok(height(one) < height(two) && height(two) < height(three), 'shallow on top, deep at the foot')
+  assert.ok(one.y[0] > two.y[1] && two.y[0] > three.y[1] && one.y[0] - two.y[1] < .01 && two.y[0] - three.y[1] < .01, 'with a joint between them')
+  for (const index of [1, 2, 3]) {
+    const handle = KITCHEN_RUN_FRONTS.find(item => item.id === `run-drawer-${index}-handle`)!
+    assert.ok(handle.v[1] - handle.v[0] >= .01 && handle.v[1] <= base.v[0] - drawers[0].v[1] + base.v[0] + 1e-9 && handle.y[1] <= drawers[index - 1].y[1], `handle ${index} stands out of its drawer, on its top edge`)
+  }
+})
+
+test('the run has three drawers to the right of the oven too, from the cooktop\'s end to the fridge, one over the other', () => {
+  const right = KITCHEN_RUN_FRONTS.filter(item => /^run-right-drawer-\d$/.test(item.id)), base = box('base'), cooktop = box('cooktop'), worktop = box('worktop')
+  assert.equal(right.length, 3)
+  for (const drawer of right) {
+    assert.ok(drawer.u[0] >= cooktop.u[1] && drawer.u[0] - cooktop.u[1] < .01 && drawer.u[1] <= base.u[1] && base.u[1] - drawer.u[1] < .01, `${drawer.id} runs from the cooktop's end to the fridge`)
+    assert.ok(Math.abs(drawer.v[1] - base.v[0]) < 1e-9 && drawer.v[1] - drawer.v[0] < .01, `${drawer.id} is a skin on the run's face`)
+  }
+  assert.ok(Math.abs(Math.max(...right.map(item => item.y[1])) - worktop.y[0]) < .005 && Math.abs(Math.min(...right.map(item => item.y[0])) - base.y[0]) < .005, 'from the plinth to the worktop')
+  const [one, two, three] = right
+  assert.ok(one.y[0] > two.y[1] && two.y[0] > three.y[1], 'one over the other')
+  assert.ok(right[0].u[1] - right[0].u[0] > .8, 'wide drawers')
+  // They do not meet the oven's cabinet or the left drawers: the oven stands between them.
+  const left = KITCHEN_RUN_FRONTS.filter(item => /^run-drawer-\d$/.test(item.id))
+  assert.ok(Math.max(...left.map(item => item.u[1])) <= box('oven').u[0] + .01 && right[0].u[0] >= box('oven').u[1], 'the oven between the two sets')
 })

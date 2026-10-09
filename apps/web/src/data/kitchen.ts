@@ -384,3 +384,31 @@ function islandFrontBoxes(): IslandPiece[] {
   ]
 }
 export const KITCHEN_ISLAND_FRONTS: IslandPiece[] = islandFrontBoxes()
+
+/**
+ * The fronts of the run's cabinets either side of the oven (owner). To its left, under the resting worktop on the hall side: three drawers one over the other, the cutlery's, a shallow one on top for the cutlery,
+ * one for the utensils under it and a deep one at the foot, each 5 mm skin on the cabinet's face with a 3 mm joint and a steel handle along its top edge. The run's face is toward the lower v, so
+ * the skin and the handles stand out toward the lower v. House frame [u, v], absolute heights.
+ */
+export const RUN_DRAWERS = { heights: [.15, .2, .37], rightHeights: [.17, .3, .3], joint: ISLAND_FRONT.joint, skin: ISLAND_FRONT.skin, handle: ISLAND_FRONT.handle }
+function runDrawerBoxes(prefix: string, span: [number, number], heights: number[]): IslandPiece[] {
+  const J = RUN_DRAWERS.joint, face = baseV[0], skin: [number, number] = [face - RUN_DRAWERS.skin, face], grip: [number, number] = [face - RUN_DRAWERS.skin - RUN_DRAWERS.handle, face - RUN_DRAWERS.skin]
+  const u: [number, number] = [span[0] + J, span[1] - J], middle = (u[0] + u[1]) / 2, long = Math.min(.2, (u[1] - u[0]) / 2 - .05)
+  const bottom = floor + S.plinthHeight, top = floor + S.baseHeight
+  const total = heights.reduce((sum, height) => sum + height, 0), room = top - bottom - J * (heights.length + 1), scale = room / total
+  const out: IslandPiece[] = []
+  let upper = top - J
+  for (const [index, height] of heights.entries()) {
+    const tall = height * scale, y: [number, number] = [upper - tall, upper]
+    out.push({ id: `${prefix}-${index + 1}`, u, v: skin, y, color: OAK })
+    out.push({ id: `${prefix}-${index + 1}-handle`, u: [middle - long, middle + long], v: grip, y: [y[1] - .045, y[1] - .035], color: '#c9cdd1' })
+    upper = y[0] - J
+  }
+  return out
+}
+// To the left of the oven (the hall side, the resting worktop's cabinet) and to the right of it (the oven's cabinet to the fridge).
+const stoveEnd = frontU + S.stoveFromHall + S.cooktopWidth
+export const KITCHEN_RUN_FRONTS: IslandPiece[] = [
+  ...runDrawerBoxes('run-drawer', [baseU[0], frontU + S.stoveFromHall], RUN_DRAWERS.heights),
+  ...runDrawerBoxes('run-right-drawer', [stoveEnd, baseU[1]], RUN_DRAWERS.rightHeights),
+]

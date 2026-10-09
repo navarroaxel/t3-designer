@@ -17,7 +17,7 @@ import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
-import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, KITCHEN_SWITCH_ID, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, GLASS_DOOR_ID, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
+import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, KITCHEN_SWITCH_ID, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, GLASS_DOOR_ID, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_RUN_FRONTS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
@@ -143,7 +143,7 @@ function firstFloor(): Furnishing[] {
   // The breakfast nook inside the tall column: its carcass, shelves, door and the Nespresso, drawn only while the door is open, and the outlet behind the machine, at the same height as the one beside the oven.
   for (const box of KITCHEN_NOOK_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.startsWith('nook-cup') ? .3 : .6, solid: false, ...(box.round ? { shape: 'ellipse' as const, taper: CUP.taper } : {}), ...(box.id === 'nook-machine' ? { model: '/models/house/nespresso.glb', turn: 0, roughness: .35 } : {}) })
   // The fronts of the island's cabinets on the aisle side: the door under the sink and the two large drawers for the pans.
-  for (const box of KITCHEN_ISLAND_FRONTS) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.includes('handle') ? .3 : .6, solid: false })
+  for (const box of [...KITCHEN_ISLAND_FRONTS, ...KITCHEN_RUN_FRONTS]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.includes('handle') ? .3 : .6, solid: false })
   // The dishwasher in the island, between the sink and the wall behind it, its door toward the aisle (higher v): the model's front is +Z, so it turns half a turn.
   add({ id: 'kitchen-dishwasher', u: DISHWASHER_BOX.u, v: DISHWASHER_BOX.v, y: DISHWASHER_BOX.y, color: '#b9bcc0', roughness: .4, model: DISHWASHER.model, turn: Math.PI, solid: false })
   for (const part of outletBoxes('outlet-nook', KITCHEN_LIVING.v[1], NOOK_CENTRE_U - .13, F, NOOK.outletHeight)) {
