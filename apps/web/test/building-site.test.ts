@@ -3,7 +3,7 @@ import test from 'node:test'
 import { genericBuildings } from '../src/data/block.ts'
 import { OPPOSITE_LOTS } from '../src/data/opposite-block.ts'
 import { laundryVolumes } from '../src/data/laundry.ts'
-import { BUILDING_SITE, ENTRY_RECESS, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
+import { AZOTEA_REAR, BUILDING_SITE, ENTRY_RECESS, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
   return Math.abs(ring.reduce((sum, a, index) => {
@@ -80,11 +80,11 @@ test('the upper block, rear band and lot keep the owner’s dimensions', () => {
   // house is 8.66 m wide at the street line and a little narrower behind it.
   closeTo(houseSouthWestEdge(-5), -4.33, 1e-9)
   closeTo(houseSouthWestEdge(8.7), -4.225, 1e-9)
-  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), 9 * (4.33 - houseSouthWestEdge(-.5)), .02)
+  closeTo(area(block.footprint) + area(byId('HOUSE-ENTRY').footprint), (AZOTEA_REAR + 5) * (4.33 - houseSouthWestEdge(-.5)), .02)
   closeTo(area(byId('HOUSE-CANTILEVER').footprint), 1 * (4.33 - houseSouthWestEdge(-5.5)), .02)
   // The rear band: the owner's 3.95 m inside plus the walls, from the street line to the rear boundary.
-  closeTo(area(arm.footprint), (8.5 - 4) * (4.33 - 1.8), .05)
-  closeTo(area(terrace.footprint), (8.6 - 4) * (-1 - houseSouthWestEdge((4 + 8.6) / 2)), .02)
+  closeTo(area(arm.footprint), (8.5 - AZOTEA_REAR) * (4.33 - 1.8), .05)
+  closeTo(area(terrace.footprint), (8.6 - AZOTEA_REAR) * (-1 - houseSouthWestEdge((AZOTEA_REAR + 8.6) / 2)), .02)
   // The lot polygon: the municipal sketch's sides and rear with the owner's 8.66 m front, 118.06 m2 (the sketch's 8.95 m front gave 120.03 m2).
   closeTo(area(SITE_PARCEL.footprint), 118.06, .02)
   closeTo(SITE_PARCEL.area, 118.06, .02)
@@ -119,7 +119,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
     'HOUSE': [6.4, 2], 'HOUSE-ENTRY': [6.4, 1], 'HOUSE-CANTILEVER': [6.4, 0], 'HOUSE-ARM': [3.2, 1], 'HOUSE-TERRACE': [3.2, 1],
     'HOUSE-TERRACE-WALL': [4.8, 0], 'HOUSE-TERRACE-WALL-REAR': [4.8, 0], 'HOUSE-TERRACE-RAIL': [4.3, 0], 'HOUSE-TERRACE-GRILL': [4.05, 0], 'HOUSE-TERRACE-GRILL-GRATE': [4.08, 0], 'HOUSE-TERRACE-SHELF': [4.05, 0], 'HOUSE-TERRACE-SINK-BASIN': [4.07, 0],
     'NEIGHBOR-A': [3.4, 1], 'NEIGHBOR-A-UPPER': [6, 1], 'NEIGHBOR-A-PARAPET': [4.5, 0], 'NEIGHBOR-A-PARAPET-SIDE': [4.5, 0], 'NEIGHBOR-A-WALL': [1.85, 0], 'NEIGHBOR-A-GARAGE': [2.7, 1], 'NEIGHBOR-A-REAR': [5.6, 2], 'NEIGHBOR-B': [3.3, 1],
-    'HOUSE-WELL-BACK': [3.2, 1], 'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
+    'NEIGHBOR-C-UPPER': [6.6, 2], 'NEIGHBOR-C-REAR': [3, 1], 'NEIGHBOR-C-FRONT': [3, 1],
     'NEIGHBOR-C-AC': [7.35, 0], 'NEIGHBOR-C-TERRACE': [4.3, 1], 'NEIGHBOR-C-ROOM': [5.4, 1], 'NEIGHBOR-C-PARAPET': [4.1, 1],
     'NEIGHBOR-C-TANK-ROOM': [6.2, 1], 'NEIGHBOR-C-TANK': [7.4, 0],
   }
@@ -132,7 +132,7 @@ test('heights follow the reported floor counts, refined by Street View where it 
     for (const extra of extras ?? []) expected[`${id}-${extra.suffix}`] = [extra.height, 1]
   }
   // The laundry and the azotea's stair: every piece is a volume of the house.
-  for (const item of laundryVolumes(3.2, 4.33 - .15, .15, 4, 6.4, 1.9)) expected[item.id] = [item.height, 0]
+  for (const item of laundryVolumes(3.2, 4.33 - .15, .15, AZOTEA_REAR, 6.4, 1.9)) expected[item.id] = [item.height, 0]
   for (const { lot } of genericBuildings()) expected[`LOT-${String(lot.number).padStart(2, '0')}`] = [lot.height, lot.floors]
   assert.deepEqual(groundVolumes.map(building => building.id).sort(), Object.keys(expected).sort())
   for (const building of groundVolumes) {
@@ -191,13 +191,13 @@ test('every front stands on the same street line, u = -5, and A keeps a 2 m pati
   closeTo(Math.min(...byId('NEIGHBOR-C-FRONT').footprint.map(point => houseFrame(point)[1])), -15.175, .02)
 })
 
-test('the roof is 10 m deep counting a 1 m cantilever that ends on the balcony line', () => {
+test('the roof is 10.46 m deep counting a 1 m cantilever that ends on the balcony line', () => {
   const cantilever = byId('HOUSE-CANTILEVER'), block = byId('HOUSE')
   const us = (building: BuildingFootprint) => building.footprint.map(point => houseFrame(point)[0])
   closeTo(Math.min(...us(cantilever)), -6, .02)
   closeTo(Math.max(...us(cantilever)), -5, .02)
-  closeTo(Math.max(...us(block)), 4, .02)
-  closeTo(Math.max(...us(block)) - Math.min(...us(cantilever)), 10, .04)
+  closeTo(Math.max(...us(block)), AZOTEA_REAR, .02)
+  closeTo(Math.max(...us(block)) - Math.min(...us(cantilever)), AZOTEA_REAR + 6, .04)
   closeTo(cantilever.height, block.height, 1e-9)
   closeTo(cantilever.base!, block.height - .5, 1e-9)
   // The front parapet stands on the roof's front edge, 1 m in front of the facade.
@@ -216,7 +216,7 @@ test('rooftop obstacles stand on the azotea slab and inside its outline', () => 
     assert.ok(item.base! >= block.height - .001, `${item.id}: rests on or above the roof slab`)
     for (const point of item.footprint) {
       const [u, v] = houseFrame(point)
-      assert.ok(u >= -6.01 && u <= 4.01 && v >= houseSouthWestEdge(u) - .01 && v <= 4.476, `${item.id}: inside the 10 m roof, between the walls on the lot boundaries`)
+      assert.ok(u >= -6.01 && u <= AZOTEA_REAR + .01 && v >= houseSouthWestEdge(u) - .01 && v <= 4.476, `${item.id}: inside the 10 m roof, between the walls on the lot boundaries`)
     }
   }
   // The concrete tank rests on three legs that stay under its slab.
@@ -283,8 +283,8 @@ test('the terrace has a 1.6 m wall on the corner\'s party wall and a 1.1 m raili
   closeTo(rail.base ?? 0, terrace.height, 1e-9)
   // The wall runs along the south-west edge, the railing along the inner side (v = -1), both over the terrace's 4.6 m.
   const us = (item: BuildingFootprint) => item.footprint.map(point => siteToHouse(point)[0])
-  closeTo(Math.min(...us(wall)), 4, .01); closeTo(Math.max(...us(wall)), 8.6, .01)
-  closeTo(Math.min(...us(rail)), 4, .01); closeTo(Math.max(...us(rail)), 8.6, .01)
+  closeTo(Math.min(...us(wall)), AZOTEA_REAR, .01); closeTo(Math.max(...us(wall)), 8.6, .01)
+  closeTo(Math.min(...us(rail)), AZOTEA_REAR, .01); closeTo(Math.max(...us(rail)), 8.6, .01)
   for (const point of rail.footprint) assert.ok(siteToHouse(point)[1] <= -.99 && siteToHouse(point)[1] >= -1.16)
 })
 

@@ -114,7 +114,7 @@ function firstFloor(): Furnishing[] {
     add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, kitchen: { ...box, y: [box.y[0], top] }, roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge-') })
   }
   // The upper cabinet with the microwave, over the run next to the fridge; hung high, so it is not stopped on.
-  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.startsWith('microwave') ? .35 : .6, solid: false })
+  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb` } : {}) })
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
   for (const part of outletBoxes('outlet-microwave', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) {
     add({ ...part, u: [2 * MICROWAVE_CENTRE_U - part.u[1], 2 * MICROWAVE_CENTRE_U - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })

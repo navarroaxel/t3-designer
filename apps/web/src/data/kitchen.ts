@@ -5,7 +5,7 @@ import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, TOSCANA_VENA_COLOR, TOSCANA
  * The kitchen of the living (owner's render; the worktops are Purastone Toscana Vena): a parallel kitchen, with a run of
  * cabinets along the party wall with neighbour A, facing the 65 inch TV wall, and a second counter in front of it, 2.20 m
  * by 1.00 m, against the wall behind the bathroom, with three stools on the living's side. The render has no dimensions, so
- * every size here is read from it and assumed, scaled to the living, whose depth is only 2.65 m: from the
+ * every size here is read from it and assumed, scaled to the living, whose depth is 3.11 m: from the
  * rear wall, a tall dark column, the fridge, then base cabinets with the oven and the cooktop, and the second counter 1.1 m in front. Upper cabinets are left out: they hang above the 1.5 m cut.
  * House frame [u, v], heights above the ground-floor level.
  */
@@ -18,7 +18,7 @@ const cut = FLOOR_HEIGHT + CUT_HEIGHT
 
 export const KITCHEN_SIZES = {
   baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .675, fridgeDepth: .668, fridgeHeight: 1.785, fridgeFreezerFrom: 0, fridgeDoor: .03,
-  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, restFromFridge: .45, overhang: .3, stool: .36, stoolHeight: .65,
+  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, stool: .36, stoolHeight: .65,
 }
 /**
  * The freezer's height from its capacity (owner: 89 L net, 101 L gross). The gross volume is the liner: inner width times inner depth times
@@ -38,8 +38,6 @@ const floor = FLOOR_HEIGHT
 const columnU: [number, number] = [rearU - S.columnWidth, rearU]
 const fridgeU: [number, number] = [columnU[0] - S.fridgeWidth, columnU[0]]
 const baseU: [number, number] = [frontU, fridgeU[0]]
-// The resting worktop between the cooktop and the fridge is 45 cm wide (owner), like the one on the hall side: the cooktop takes up what is left of the run.
-S.cooktopWidth = fridgeU[0] - S.restFromFridge - (frontU + S.stoveFromHall)
 const baseV: [number, number] = [wallV - S.baseDepth, wallV]
 export const COUNTER_V: [number, number] = [baseV[0] - S.aisle - S.counterDepth, baseV[0] - S.aisle]
 // Against the wall behind the bathroom, like the render's second counter against its side wall.
@@ -94,8 +92,8 @@ export const KITCHEN_TAP = { u: (tapBox.u[0] + tapBox.u[1]) / 2, v: (tapBox.v[0]
  * Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
  */
 export const UPPER_CABINET = { depth: .42, bottom: 1.4, overFridge: 1.9, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, panel: .02, microwave: { width: .48, height: .29, depth: .38, gapToWall: .04 }, outletHeight: 1.5 }
-/** The chimney hood: 54 cm wide (the most that fits between the hall side's cabinet and the microwave over the cooktop), 50 cm deep, its canopy from 1.55 m. */
-export const HOOD = { width: .54, depth: .5, canopyBottom: 1.55, canopyHeight: .2, duct: .3, ductDepth: .26 }
+/** The chimney hood: 54 cm wide (the most that fits between the hall side's cabinet and the microwave over the cooktop), 50 cm deep, its canopy's lower edge level with the cabinets' (owner), 1.40 m. */
+export const HOOD = { width: .54, depth: .5, canopyBottom: UPPER_CABINET.bottom, canopyHeight: .2 }
 const upperU: [number, number] = [frontU, columnU[0]]
 const upperV: [number, number] = [wallV - UPPER_CABINET.depth, wallV]
 const lowY = floor + UPPER_CABINET.bottom, overFridgeY = floor + UPPER_CABINET.overFridge, topY = floor + UPPER_CABINET.ceiling
@@ -110,31 +108,25 @@ const hoodU: [number, number] = [hoodCentre - HOOD.width / 2, hoodCentre + HOOD.
 const bayU: [number, number] = [hoodU[1], fridgeU[0]]
 const INOX = '#b9bdc2', DOOR = '#e2cba5'
 export const MICROWAVE_CENTRE_U = (microwaveU[0] + microwaveU[1]) / 2
-const hoodStep = (id: string, width: number, depth: number, y: [number, number], color = INOX): KitchenBox => ({ id: `hood-${id}`, u: [hoodCentre - width / 2, hoodCentre + width / 2], v: [wallV - depth, wallV], y, color })
 const canopyY = floor + HOOD.canopyBottom
 export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
   // The hall side's cabinet, up to the hood.
   { id: 'upper-bottom', u: [upperU[0], hoodU[0]], v: upperV, y: [lowY, lowY + P], color: OAK },
   { id: 'upper-top', u: [upperU[0], hoodU[0]], v: upperV, y: [topY - P, topY], color: OAK },
   { id: 'upper-door', u: [upperU[0] + .005, hoodU[0] - .005], v: front, y: [lowY + .005, topY - .005], color: DOOR },
-  // The microwave's bay, between the hood and the fridge, with the shelf and the door over it.
+  // The microwave's bay, between the hood and the fridge: a closed part beside the hood, a divider, and the open niche next to the fridge with the shelf and the door over it.
   { id: 'upper-bay-bottom', u: bayU, v: upperV, y: [lowY, lowY + P], color: OAK },
-  { id: 'upper-shelf', u: bayU, v: upperV, y: [shelfY, shelfY + P], color: OAK },
-  { id: 'upper-door-over-microwave', u: [bayU[0] + .005, bayU[1] - .005], v: front, y: [shelfY + P + .005, topY - .005], color: DOOR },
   { id: 'upper-bay-top', u: bayU, v: upperV, y: [topY - P, topY], color: OAK },
+  { id: 'upper-door-beside-microwave', u: [bayU[0] + .005, microwaveU[0] - .01 - P - .005], v: front, y: [lowY + .005, topY - .005], color: DOOR },
+  { id: 'upper-divider', u: [microwaveU[0] - .01 - P, microwaveU[0] - .01], v: upperV, y: [lowY + P, topY - P], color: OAK },
+  { id: 'upper-shelf', u: [microwaveU[0] - .01, bayU[1]], v: upperV, y: [shelfY, shelfY + P], color: OAK },
+  { id: 'upper-door-over-microwave', u: [microwaveU[0] - .01 + .005, bayU[1] - .005], v: front, y: [shelfY + P + .005, topY - .005], color: DOOR },
   // Over the fridge, starting above it.
   { id: 'upper-bridge-bottom', u: [fridgeU[0], upperU[1]], v: upperV, y: [overFridgeY, overFridgeY + P], color: OAK },
   { id: 'upper-bridge-top', u: [fridgeU[0], upperU[1]], v: upperV, y: [topY - P, topY], color: OAK },
   { id: 'upper-door-over-fridge', u: [fridgeU[0] + .005, upperU[1] - .005], v: front, y: [overFridgeY + P + .005, topY - .005], color: DOOR },
-  { id: 'microwave', u: microwaveU, v: microwaveV, y: microwaveY, color: SILVER },
-  // Its window and its control strip, on the front.
-  { id: 'microwave-window', u: [microwaveU[0] + .03, microwaveU[1] - .13], v: [microwaveV[0] - .003, microwaveV[0]], y: [microwaveY[0] + .035, microwaveY[1] - .035], color: '#15171a' },
-  { id: 'microwave-controls', u: [microwaveU[1] - .1, microwaveU[1] - .02], v: [microwaveV[0] - .003, microwaveV[0]], y: [microwaveY[0] + .035, microwaveY[1] - .035], color: '#2b2c2e' },
-  // The hood: the canopy as three steps narrowing to the duct (a pyramid), the filter and the five knobs under its front lip, and the duct up to the ceiling.
-  hoodStep('canopy-base', HOOD.width, HOOD.depth, [canopyY, canopyY + .05]),
-  hoodStep('canopy-middle', HOOD.width * .75, HOOD.depth * .75, [canopyY + .05, canopyY + .12]),
-  hoodStep('canopy-top', HOOD.width * .55, HOOD.depth * .55, [canopyY + .12, canopyY + HOOD.canopyHeight]),
-  { id: 'hood-filter', u: [hoodCentre - HOOD.width / 2 + .03, hoodCentre + HOOD.width / 2 - .03], v: [wallV - HOOD.depth + .03, wallV - .03], y: [canopyY - .004, canopyY], color: '#6b6f74' },
-  { id: 'hood-controls', u: [hoodCentre - .13, hoodCentre + .13], v: [wallV - HOOD.depth - .003, wallV - HOOD.depth], y: [canopyY + .012, canopyY + .04], color: '#2b2c2e' },
-  { id: 'hood-duct', u: [hoodCentre - HOOD.duct / 2, hoodCentre + HOOD.duct / 2], v: [wallV - HOOD.ductDepth, wallV], y: [canopyY + HOOD.canopyHeight, topY], color: '#c4c8cc' },
+  // The microwave is a Blender model too (scripts/blender/jobs/microwave-job.json): a black Samsung with its glass door on the left and the controls on the right.
+  { id: 'microwave', u: microwaveU, v: microwaveV, y: microwaveY, color: '#0c0d0f' },
+  // The hood: a Blender model (scripts/blender/jobs/kitchen-hood-job.json) standing in a box that is its size, from the canopy's lower edge, level with the cabinets', to the ceiling.
+  { id: 'hood', u: hoodU, v: [wallV - HOOD.depth, wallV], y: [canopyY, topY], color: INOX },
 ]

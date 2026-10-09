@@ -1,4 +1,4 @@
-import { GROUND_WELL_EDGE, ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, PARTY_WALL, WELL_BACK_U, WELL_BACK_WALL, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
+import { AZOTEA_REAR, GROUND_WELL_EDGE, ENTRY_RECESS, FLOOR_HEIGHT, GARAGE_WIDTH, PARTY_WALL, WELL_BACK_U, WELL_BACK_WALL, HOUSE_HALF_WIDTH, HOUSE_REAR, houseSouthWestEdge } from './building-site.ts'
 import { LAUNDRY } from './laundry.ts'
 
 /**
@@ -34,7 +34,7 @@ export const GROUND_OUTLINE: PlanPoint[] = [
   [HOUSE_REAR.northEast, HALF], [-5, HALF], [-5, outer], [-5 + setback, outer], [-5 + setback, inner], [-5, inner],
 ]
 // First floor: the 9 m x 8.5 m block under the azotea (the roof adds a 1 m cantilever in front); the house fills the 8.95 m lot.
-export const FIRST_OUTLINE: PlanPoint[] = [[-5, SW], [4, SW], [4, HALF], [-5, HALF]]
+export const FIRST_OUTLINE: PlanPoint[] = [[-5, SW], [AZOTEA_REAR, SW], [AZOTEA_REAR, HALF], [-5, HALF]]
 
 /**
  * The entrance recess is open at ground level, but the first floor is built over it (HOUSE-ENTRY), so
@@ -70,18 +70,18 @@ export const OPENINGS: Record<Floor, Opening[]> = {
     { u: -5, v: [-3.87, .14], y: [0, 2.4] }, // garage door, on the street line
     { u: -4, v: [2.21, 3.5], y: [.3, 1.85] }, // barred window, in the recess
     { u: -4, v: [1.07, 1.91], y: [0, 2.1] }, // entrance door, in the recess
-    // The light well's balcony door (owner): 1.80 m wide, centred on the well (v = -1 to 1.5), on the wall that closes it, u = 4.
+    // The light well's balcony door (owner): 1.80 m wide, centred on the well (v = -1 to 1.5), on the wall that closes it, at the rear wall.
     { u: WELL_BACK_U, v: [LIGHT_WELL_CENTRE - LIGHT_WELL_DOOR_WIDTH / 2, LIGHT_WELL_CENTRE + LIGHT_WELL_DOOR_WIDTH / 2], y: [0, 2.1] },
   ],
   first: [
     { u: -5, v: [.1, 3.1], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] }, // 3 m balcony door
     { u: -5, v: [SECONDARY_WINDOW_CENTRE - 1.02, SECONDARY_WINDOW_CENTRE + 1.02], y: [FLOOR_HEIGHT + 1, FLOOR_HEIGHT + 1.9] }, // 2.04 m window of the secondary room; its 1 m sill is the owner's, the 0.9 m height assumed
-    // Rear wall, u = 4 (owner): a 1.78 m balcony door centred on the terrace, which spans from the south-west
+    // Rear wall (owner): a 1.78 m balcony door centred on the terrace, which spans from the south-west
     // wall to v = -1, and a 2.3 m wide by 1.64 m high window centred on the ground-floor light well (v = -1 to 1.5).
-    { u: 4, v: [TERRACE_CENTRE - REAR_DOOR_WIDTH / 2, TERRACE_CENTRE + REAR_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
-    { u: 4, v: [LIGHT_WELL_CENTRE - REAR_WINDOW_WIDTH / 2, LIGHT_WELL_CENTRE + REAR_WINDOW_WIDTH / 2], y: [FLOOR_HEIGHT + REAR_WINDOW_SILL, FLOOR_HEIGHT + REAR_WINDOW_SILL + REAR_WINDOW_HEIGHT] },
+    { u: AZOTEA_REAR, v: [TERRACE_CENTRE - REAR_DOOR_WIDTH / 2, TERRACE_CENTRE + REAR_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
+    { u: AZOTEA_REAR, v: [LIGHT_WELL_CENTRE - REAR_WINDOW_WIDTH / 2, LIGHT_WELL_CENTRE + REAR_WINDOW_WIDTH / 2], y: [FLOOR_HEIGHT + REAR_WINDOW_SILL, FLOOR_HEIGHT + REAR_WINDOW_SILL + REAR_WINDOW_HEIGHT] },
     // The laundry door, on the rear wall at the end of the kitchen's aisle.
-    { u: 4, v: [LAUNDRY_DOOR_CENTRE - LAUNDRY_DOOR_WIDTH / 2, LAUNDRY_DOOR_CENTRE + LAUNDRY_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
+    { u: AZOTEA_REAR, v: [LAUNDRY_DOOR_CENTRE - LAUNDRY_DOOR_WIDTH / 2, LAUNDRY_DOOR_CENTRE + LAUNDRY_DOOR_WIDTH / 2], y: [FLOOR_HEIGHT, FLOOR_HEIGHT + 2.1] },
   ],
 }
 
@@ -426,7 +426,7 @@ export const FIRST_FLOOR_PARTITIONS: [number, number, number, number][] = [
  * rear wall of the first floor. It holds the terrace door and the light-well window.
  */
 export const KITCHEN_LIVING = {
-  u: [FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, 4 - WALL_THICKNESS] as [number, number],
+  u: [FIRST_FLOOR_BATHROOM.u[1] + PARTITION_THICKNESS, AZOTEA_REAR - WALL_THICKNESS] as [number, number],
   v: [FIRST_FLOOR_BATHROOM.v[0], NE_INNER] as [number, number],
 }
 
@@ -445,7 +445,7 @@ export const FIRST_FLOOR_DOOR_SWINGS: DoorSwing[] = [
   // Living: coming in from the hall facing south-east the right hand is south-west (lower v); the wide leaf swings into the living.
   { id: 'living', hinge: [LIVING_DOOR.u[1], LIVING_DOOR.v[0]], closed: [0, 1], open: [1, 0], radius: LIVING_DOOR_LEAVES.wide, color: LIVING_DOOR_COLOR, glazed: true },
   // Laundry: coming in from the kitchen facing south-east the right hand is south-west (lower v); the leaf swings into the laundry.
-  { id: 'laundry', hinge: [4, LAUNDRY_DOOR_CENTRE - LAUNDRY_DOOR_WIDTH / 2], closed: [0, 1], open: [1, 0], radius: LAUNDRY_DOOR_WIDTH, color: LIVING_DOOR_COLOR, glazed: true },
+  { id: 'laundry', hinge: [AZOTEA_REAR, LAUNDRY_DOOR_CENTRE - LAUNDRY_DOOR_WIDTH / 2], closed: [0, 1], open: [1, 0], radius: LAUNDRY_DOOR_WIDTH, color: LIVING_DOOR_COLOR, glazed: true },
   { id: 'bathroom', hinge: [BATHROOM_DOOR_SWING.hingeU, BATHROOM_DOOR_SWING.hingeV], closed: [1, 0], open: [0, -1], radius: BATHROOM_DOOR_WIDTH, color: BATHROOM_DOOR_COLOR },
 ]
 
@@ -537,7 +537,7 @@ export const FLOOR_TILING: FloorTiling[] = [
   },
   // The first-floor terrace, over the rear ground-floor band, has the bathroom's tile (owner): from the house's rear wall to
   // the rear boundary, between the party-wall wall and the railing wall.
-  { id: 'terrace', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.southWest, houseSouthWestEdge((4 + HOUSE_REAR.southWest) / 2) + .15, -1 - .15]] },
+  { id: 'terrace', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[AZOTEA_REAR, HOUSE_REAR.southWest, houseSouthWestEdge((AZOTEA_REAR + HOUSE_REAR.southWest) / 2) + .15, -1 - .15]] },
   // The hall has the living's floor (owner): the stretch beside the bathroom, and the wider one behind the main room and the closet.
   {
     id: 'hall', color: '#c69a5d', pattern: SAING_PLANKS,
@@ -549,7 +549,7 @@ export const FLOOR_TILING: FloorTiling[] = [
   },
   // The laundry, continuous with the kitchen, has the bathroom's tile too (owner). It is taken to be the roof of the left
   // ground-floor band, at first-floor level, inset 0.15 m from its edges for the walls.
-  { id: 'laundry', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[4, HOUSE_REAR.northEast - PARTY_WALL, NE_INNER - LAUNDRY.width, NE_INNER]] },
+  { id: 'laundry', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[AZOTEA_REAR, HOUSE_REAR.northEast - PARTY_WALL, NE_INNER - LAUNDRY.width, NE_INNER]] },
   { id: 'living', color: '#c69a5d', pattern: SAING_PLANKS, rects: [[KITCHEN_LIVING.u[0], KITCHEN_LIVING.u[1], KITCHEN_LIVING.v[0], KITCHEN_LIVING.v[1]]] },
   { id: 'bathroom', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[1], FIRST_FLOOR_BATHROOM.v[0], FIRST_FLOOR_BATHROOM.v[1]]] },
 ]

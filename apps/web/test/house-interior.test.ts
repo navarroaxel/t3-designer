@@ -6,7 +6,7 @@ import { pointInEditorPolygon } from '@t3-designer/scene-schema'
 import { MAIN_TV_PLACEMENT } from '../src/data/house-plan.ts'
 import { currentFixtures } from '../src/data/current-state.ts'
 import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
-import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
+import { AZOTEA_REAR, FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENINGS, OUTLINES, SIDE_OPENINGS, wallBoxes, FIRST_FLOOR_BATHROOM, FRONT_ROOMS, GARAGE, GROUND_GARAGE, OFFICE_WIDTH, GROUND_OFFICE } from '../src/data/house-plan.ts'
 import { houseToSite } from '../src/data/frame.ts'
 import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirectionToApartment } from '../src/data/house-placement.ts'
@@ -324,7 +324,7 @@ test('the laundry\'s door onto the landing is a white aluminium door that stands
   const ground = publicScene('ground', []), first = publicScene('first', [])
   const shut = buildWalkWorld(ground, undefined, first), open = buildWalkWorld(ground, { [door.id]: 1 }, first)
   // It starts shut: at the landing's height, the doorway is closed. Open, it is clear.
-  const doorway: [number, number] = [7.05, -(LAUNDRY_FLIGHT_V)]
+  const doorway: [number, number] = [7.05 + (AZOTEA_REAR - 4), -(LAUNDRY_FLIGHT_V)]
   assert.ok(!isWalkPositionFree(shut, doorway, 1.65, 4.2))
   assert.ok(isWalkPositionFree(open, doorway, 1.65, 4.2))
   // The wall under the door is there below the sill: at the laundry's floor, the doorway is a wall.

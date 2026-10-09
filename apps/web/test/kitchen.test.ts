@@ -137,19 +137,21 @@ test('the upper cabinets run from the tall column to the hall wall, up to the ce
 })
 
 test('the chimney hood is centred over the cooktop, clear of the cabinets and the microwave, with its duct to the ceiling', () => {
-  const hood = (id: string) => KITCHEN_UPPER_BOXES.find(item => item.id === `hood-${id}`)!
-  const cooktop = box('cooktop'), canopy = hood('canopy-base'), duct = hood('duct'), microwave = KITCHEN_UPPER_BOXES.find(item => item.id === 'microwave')!
+  const cooktop = box('cooktop'), canopy = KITCHEN_UPPER_BOXES.find(item => item.id === 'hood')!, duct = canopy, microwave = KITCHEN_UPPER_BOXES.find(item => item.id === 'microwave')!
   const centre = (item: { u: [number, number] }) => (item.u[0] + item.u[1]) / 2
   assert.ok(Math.abs(centre(canopy) - centre(cooktop)) < 1e-9 && Math.abs(centre(duct) - centre(cooktop)) < 1e-9)
-  assert.ok(canopy.y[0] - cooktop.y[1] >= .5, 'room to cook under it')
+  assert.ok(Math.abs(canopy.y[0] - KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-bottom')!.y[0]) < 1e-9, 'level with the cabinets')
+  assert.ok(canopy.y[0] - cooktop.y[1] >= .45, 'room to cook under it')
+  assert.ok(Math.abs((canopy.u[1] - canopy.u[0]) - .54) < 1e-9 && Math.abs(canopy.y[1] - canopy.y[0] - 1.6) < 1e-9, 'the size of its Blender job')
   assert.ok(canopy.u[1] <= microwave.u[0] && canopy.u[0] >= KITCHEN_LIVING.u[0] + KITCHEN_SIZES.stoveFromHall - 1e-9)
   assert.ok(Math.abs(duct.y[1] - KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-top')!.y[1]) < 1e-9, 'the duct reaches the ceiling')
   const door = KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-door')!
   assert.ok(door.u[1] <= canopy.u[0], 'no cabinet over the cooktop')
 })
 
-test('the resting worktop is 45 cm wide on each side of the cooktop', () => {
+test('the resting worktop is 45 cm wide on the hall side of the cooktop, and the kitchen is 3.1 to 3.15 m wide', () => {
   const cooktop = box('cooktop'), base = box('base')
-  assert.ok(Math.abs(cooktop.u[0] - base.u[0] - .45) < 1e-9, 'hall side')
-  assert.ok(Math.abs(base.u[1] - cooktop.u[1] - .45) < 1e-9, 'fridge side')
+  assert.ok(Math.abs(cooktop.u[0] - base.u[0] - .45) < 1e-9)
+  const width = KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0]
+  assert.ok(width >= 3.1 && width <= 3.15, `${width}`)
 })

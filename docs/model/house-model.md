@@ -26,7 +26,7 @@ upper block.
 
 | Volume | Size | Level | Provenance |
 | --- | --- | --- | --- |
-| Upper block | 9 m deep, 8.5 m wide, two floors | roof slab at 6.4 m | Owner (the 10 m of the azotea include a 1 m cantilever) |
+| Upper block | 9.46 m deep, 8.5 m wide, two floors; its rear wall is level with the ground floor's (4.46 m), which leaves the kitchen-living 3.11 m wide inside | roof slab at 6.4 m | Owner (the 10.46 m of the azotea include a 1 m cantilever) |
 | Roof cantilever | 1 m past the street line, 8.5 m wide, 0.5 m thick; it ends level with the first-floor balcony, and the front parapet stands on its edge | slab top at 6.4 m | Owner |
 | Rear ground-floor band | 4.5 m deep outside: left arm 2.75 m, terrace 3.25 m; the light well is **2.8 m wide on the ground floor and 2.9 m on the first** (owner, v = -1 to 1.8 and to 1.9) | 3.2 m | Owner (3.95 m inside, plus the walls, to fit the 13.5 m lot) |
 | Office and laundry | The ground-floor office is 2.05 m wide inside, so the wall along the well is 0.33 m thick; the first-floor laundry is 2 m wide inside, with its wall on the well flush with the well's edge, and its door, 0.8 m, stands against that wall (1.2 m from the party wall) | | Owner |

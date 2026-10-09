@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "kind": "microwave",
+  "id": "microwave",
+  "label": "Samsung microwave",
+  "units": "meters",
+  "dimensions": [0.48, 0.29, 0.38],
+  "material": { "baseColor": "#0c0d0f", "roughness": 0.3 },
+  "source": {
+    "description": "Black Samsung grill microwave, 480 mm wide, 290 mm tall and 380 mm deep (the workspace's catalogue size); the look is drawn from the owner's picture.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}
