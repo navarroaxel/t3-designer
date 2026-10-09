@@ -11,6 +11,7 @@ import { LanguageToggle } from './components/LanguageToggle'
 import { listenForThemeChanges } from './lib/theme'
 
 const BuildingExplorer = lazy(() => import('./components/BuildingExplorer').then(module => ({ default: module.BuildingExplorer })))
+const GenerationExplorer = lazy(() => import('./components/GenerationExplorer').then(module => ({ default: module.GenerationExplorer })))
 const ApartmentExplorer = lazy(() => import('./components/ApartmentExplorer').then(module => ({ default: module.ApartmentExplorer })))
 const ReferenceWalkthrough = lazy(() => import('./walkthrough/ReferenceWalkthrough').then(module => ({ default: module.ReferenceWalkthrough })))
 
@@ -67,7 +68,9 @@ export default function App() {
         ? <ReferenceWalkthrough solar={solar} floor={apartmentView.floor} onFloorChange={apartmentView.setFloor} onClose={() => switchWorkspace('apartment')} />
         : workspaceView === 'apartment'
         ? <ApartmentExplorer solar={solar} state={apartmentView} layout={demoLayout} />
-        : <BuildingExplorer solar={solar} />}
+        : workspaceView === 'generation'
+        ? <GenerationExplorer solar={solar} />
+        : <BuildingExplorer solar={solar} onOpenGeneration={() => switchWorkspace('generation')} />}
       </Suspense>
       <Analytics />
     </main>

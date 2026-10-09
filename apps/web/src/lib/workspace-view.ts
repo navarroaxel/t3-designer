@@ -1,4 +1,4 @@
-export const workspaceViews = ['apartment', 'building', 'walkthrough'] as const
+export const workspaceViews = ['apartment', 'building', 'generation', 'walkthrough'] as const
 export type WorkspaceView = typeof workspaceViews[number]
 
 export function workspaceFromHash(hash: string): WorkspaceView {

@@ -39,7 +39,7 @@ function MonthBars({ generation, label, onSelect }: { generation: Generation; la
 }
 
 /** The efficiency factor: a slider and a number box, both in percent, with a way back to the calibrated value. */
-function FactorControl({ factor }: { factor: PvFactor }) {
+export function FactorControl({ factor }: { factor: PvFactor }) {
   const { t } = useTranslation('workspace')
   const { formatNumber } = useLocale()
   const [draft, setDraft] = useState<string | null>(null)
@@ -64,7 +64,7 @@ function FactorControl({ factor }: { factor: PvFactor }) {
   </div>
 }
 
-export function GenerationPanel({ solar, generation, factor, onExpand, expanded }: { solar: SolarStudy; generation: Generation; factor: PvFactor; onExpand: () => void; expanded: boolean }) {
+export function GenerationPanel({ solar, generation, factor, onExpand }: { solar: SolarStudy; generation: Generation; factor: PvFactor; onExpand: () => void }) {
   const { t } = useTranslation('workspace')
   const { formatNumber } = useLocale()
   const { day, year } = generation
@@ -72,7 +72,7 @@ export function GenerationPanel({ solar, generation, factor, onExpand, expanded 
   return <section className="generation" aria-label={t('building.genTitle')}>
     <div className="generation-head">
       <span className="eyebrow">{t('building.genTitle')}</span>
-      <button type="button" className="gen-expand" aria-expanded={expanded} onClick={onExpand}>{t('building.genExpand')}</button>
+      <button type="button" className="gen-expand" onClick={onExpand}>{t('building.genExpand')}</button>
     </div>
     <div className="generation-total"><strong>{kwh(day.typical.acKwh)}</strong><span>kWh</span><small>{t('building.genTypicalDay')}</small></div>
     <p className="array-note">{t('building.genRange', { clear: kwh(day.clear.acKwh), overcast: kwh(day.overcast.acKwh) })}</p>
