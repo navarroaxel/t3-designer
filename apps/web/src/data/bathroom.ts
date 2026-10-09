@@ -1,5 +1,5 @@
 import { FLOOR_HEIGHT } from './building-site.ts'
-import { CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from './house-plan.ts'
+import { BATHROOM_DOOR, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from './house-plan.ts'
 
 /**
  * The bathroom's fixtures (owner), along its wall shared with the living, from the door to the back wall: a 60 cm vanity,
@@ -109,3 +109,18 @@ export const BATHROOM_LIGHT_BOXES: (BathroomBox & { glow?: boolean; round?: bool
   { id: 'ceiling-box', u: lightBoxU, v: FIRST_FLOOR_BATHROOM.v, y: lightBoxY, color: '#f1efe9' },
   ...BATHROOM_LIGHT_POSITIONS.map((at, index) => ({ id: `ceiling-light-${index + 1}`, u: [at.u - BATHROOM_LIGHT_BOX.light / 2, at.u + BATHROOM_LIGHT_BOX.light / 2] as [number, number], v: [at.v - BATHROOM_LIGHT_BOX.light / 2, at.v + BATHROOM_LIGHT_BOX.light / 2] as [number, number], y: [lightBoxY[0] - .004, lightBoxY[0] + .002] as [number, number], color: '#fff6e6', glow: true, round: true })),
 ]
+
+/**
+ * The bathroom's light switch (owner's request): a single plate on the wall of the door, inside the bathroom, a hand's width past the door's edge on the side of the vanity (between the door and the
+ * vanity's end, 1.10 m up), with a rocker and a small light that shows while the lights are on. A visitor aims at it and presses E to switch the three downlights off and on; they start on. It is
+ * a device of its own, `bathroom-switch-plate`. The plate faces the bathroom, toward lower v.
+ */
+export const BATHROOM_SWITCH_ID = 'bathroom-switch-plate'
+const switchWall = FIRST_FLOOR_BATHROOM.v[1], switchU = BATHROOM_DOOR.u[1] + .14, switchY = FLOOR_HEIGHT + 1.1
+export const BATHROOM_SWITCH_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
+  { id: 'switch-plate', u: [switchU - .036, switchU + .036], v: [switchWall - .008, switchWall], y: [switchY - .036, switchY + .036], color: '#f3f2ee' },
+  { id: 'switch-rocker', u: [switchU - .014, switchU + .014], v: [switchWall - .011, switchWall - .008], y: [switchY - .024, switchY + .024], color: '#d9d8d3' },
+  { id: 'switch-dot', u: [switchU + .024, switchU + .029], v: [switchWall - .0085, switchWall - .008], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
+]
+/** The bathroom's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
+export const bathroomLightsOn = (states: Readonly<Record<string, number>>) => (states[BATHROOM_SWITCH_ID] ?? 1) >= .5

@@ -1,4 +1,4 @@
-import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, MIRROR_LIGHT_BOXES } from './bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, BATHROOM_SWITCH_ID, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
@@ -165,7 +165,7 @@ function firstFloor(): Furnishing[] {
     add({ ...part, u: [KITCHEN_LIVING.u[1] - part.v[1], KITCHEN_LIVING.u[1] - part.v[0]], v: [rearOutletV + part.u[0], rearOutletV + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
   }
   // The bathroom's light box on the wall facing the mirror, with its three recessed LED downlights; drawn only in the walkthrough (it hangs above the cut).
-  for (const box of BATHROOM_LIGHT_BOXES) add({ id: `bathroom-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
+  for (const box of [...BATHROOM_LIGHT_BOXES, ...BATHROOM_SWITCH_BOXES]) add({ id: `bathroom-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
   for (const box of MIRROR_LIGHT_BOXES) add({ ...box, roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
@@ -234,7 +234,7 @@ export function furnishingBlockers(floor: Floor, level: number) {
 }
 
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open; and with `X`, what can be taken away (REMOVABLE): the fridge and the microwave too. */
-export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', ISLAND_SWITCH_ID] as const
+export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID] as const
 export function furnishingDevices(floor: Floor, level: number) {
   const pieces = furnishingsOn(floor)
   // The living's table with the PS5 and its controller is one device, as tall as the console: X takes the three away, or sets them back.
@@ -250,8 +250,8 @@ export function furnishingDevices(floor: Floor, level: number) {
     const reach = piece.id.startsWith('tv-') ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
     return {
       id: piece.id,
-      // The island's lights start on: the switch's openness is 1 until a visitor flips it.
-      ...(piece.id === ISLAND_SWITCH_ID ? { initialOpenness: 1 } : {}),
+      // The lights start on: a switch's openness is 1 until a visitor flips it.
+      ...(piece.id === ISLAND_SWITCH_ID || piece.id === BATHROOM_SWITCH_ID ? { initialOpenness: 1 } : {}),
       center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1] + reach) / 2] as [number, number],
       halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
       bottom: piece.y[0] - level, top: piece.y[1] - level,
