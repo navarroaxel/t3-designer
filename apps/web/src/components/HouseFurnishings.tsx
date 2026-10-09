@@ -148,8 +148,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
           const material = <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}
             transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined} />
           // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.
-          if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? [0, 0, piece.roll] : undefined} castShadow receiveShadow>{material}</RoundedBox>
-          return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? [0, 0, piece.roll] : undefined}
+          if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? rollRotation(piece) : undefined} castShadow receiveShadow>{material}</RoundedBox>
+          return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? rollRotation(piece) : undefined}
             scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow receiveShadow>
             {piece.disc ? <cylinderGeometry args={[size[0] / 2, size[0] / 2, size[2], 40]} /> : ellipse ? <cylinderGeometry args={[1, piece.taper ?? 1, size[1], 40]} /> : <boxGeometry args={size} />}
             {material}
@@ -163,6 +163,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
     })}
   </group>
 }
+
+/** A plate's roll turns about the wall's normal: v for the walls that face along v, u for those that face along u. */
+const rollRotation = (piece: Furnishing): [number, number, number] => piece.rollAboutU ? [piece.roll!, 0, 0] : [0, 0, piece.roll!]
 
 /** Raises the tiles a hair over the room floors the viewers draw, so the two never fight for the same pixels. */
 const TILE_LIFT = .012

@@ -1,4 +1,4 @@
-import { BATHROOM_BOXES } from './bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_OUTLET } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
@@ -9,7 +9,7 @@ import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOX } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
-import { outletBoxes } from './outlets.ts'
+import { dataSocketBoxes, outletBoxes } from './outlets.ts'
 import { mediaBoxBoxes, passThroughBoxes } from './wall-fittings.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
@@ -49,12 +49,16 @@ export type Furnishing = {
   disc?: true
   /** A turn about the normal of the wall it is on, for the slots of an outlet. */
   roll?: number
+  /** `roll` turns about the u axis instead of the v axis: for a plate on a wall that faces along u. */
+  rollAboutU?: boolean
   /** Whether a visitor bumps into it. Hung and thin things (mirrors, TVs, pillows) do not. */
   solid: boolean
 }
 
 const BED = '#d9d2c4', HEADBOARD = '#8b6b4a', PILLOW = '#f4f1ea', WARDROBE_COLOR = '#b58b5a', LEAF_COLORS = ['#c39a64', '#b58b5a']
 const F = FLOOR_HEIGHT
+/** The in-wall media box's centre above the floor: its lower edge is just over 5 cm above the network socket's plate (centred 0.30 m up, 72 mm tall), so it stands at 0.525 m. */
+const MEDIA_BOX_CENTRE_HEIGHT = .525
 const cut = F + CUT_HEIGHT
 const centre = ([a, b]: [number, number]) => (a + b) / 2
 
@@ -92,14 +96,20 @@ function firstFloor(): Furnishing[] {
   for (const [side, offset] of [['left', -(table.width / 2 + .25)], ['right', table.width / 2 + .25]] as const) {
     for (const part of outletBoxes(`outlet-${side}`, wall, tvU + offset, F)) add({ ...part, roughness: .6, solid: false })
   }
-  // The TV wall's fittings: the in-wall media box at the table's height, for the console's cables; and, beside the mount, the pass-through for the TV's cable and a plug at the TV's height.
-  for (const part of mediaBoxBoxes('wallbox', wall, tvU, F + table.height)) add({ ...part, roughness: .5, solid: false })
+  // Behind the PS5's table, a network socket (RJ45) for its cable, centred on the wall, at the height of the power outlets on this wall.
+  for (const part of dataSocketBoxes('data-ps5', wall, tvU, F)) add({ ...part, roughness: .6, solid: false })
+  // The TV wall's fittings: the in-wall media box, raised to sit over the network socket, for the console's cables; and, beside the mount, the pass-through for the TV's cable and a plug at the TV's height.
+  for (const part of mediaBoxBoxes('wallbox', wall, tvU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false })
   const tvCentreY = centre(LIVING_TV_PLACEMENT.y), mountHalf = TV_MOUNT.width / 2
   for (const part of passThroughBoxes('cable-hole', wall, tvU - mountHalf - .2, tvCentreY)) add({ ...part, roughness: .5, solid: false })
   for (const part of outletBoxes('outlet-tv', wall, tvU + mountHalf + .13, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
   // Its DualSense lies on the table beside it, the triggers toward the wall: 160 by 106 mm, 66 mm tall (a Blender model).
   const padU = tvU + .22, padV = tableV[0] + .24
   add({ id: 'ps5-controller', u: [padU - .08, padU + .08], v: [padV - .053, padV + .053], y: [base, base + .066], color: '#f4f5f8', roughness: .4, solid: false, model: '/models/house/dualsense.glb' })
+  // The bathroom's outlet between the toilet and the vanity, on the wall shared with the living: the plate faces the bathroom, toward lower u (the outlet is drawn facing +v, turned a quarter).
+  for (const part of outletBoxes('outlet-bathroom', 0, 0, F, BATHROOM_OUTLET.height)) {
+    add({ ...part, u: [BATHROOM_OUTLET.u - part.v[1], BATHROOM_OUTLET.u - part.v[0]], v: [BATHROOM_OUTLET.v + part.u[0], BATHROOM_OUTLET.v + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
+  }
   for (const box of BATHROOM_BOXES) {
     // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
     if (box.id === 'toilet-lid' || box.id === 'toilet-panel' || box.id === 'toilet-light') continue

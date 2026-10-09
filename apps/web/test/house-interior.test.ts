@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { polygonCentroid } from '@t3-designer/geometry'
 import { pointInEditorPolygon } from '@t3-designer/scene-schema'
-import { MAIN_TV_PLACEMENT } from '../src/data/house-plan.ts'
+import { KITCHEN_LIVING, MAIN_TV_PLACEMENT } from '../src/data/house-plan.ts'
 import { currentFixtures } from '../src/data/current-state.ts'
 import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
 import { AZOTEA_REAR, FLOOR_HEIGHT } from '../src/data/building-site.ts'
@@ -442,14 +442,20 @@ test('Q unfolds a TV mount\'s arm: the TV comes out 29 cm, the links join the wa
   assert.ok(device.halfDepth * 2 >= .03 + (.355 - .067) - 1e-9)
 })
 
-test('the TV wall has the in-wall media box at the table\'s height, the cable pass-through beside the mount and a plug at the TV\'s height', () => {
+test('the TV wall has the in-wall media box over the network socket, the cable pass-through beside the mount and a plug at the TV\'s height', () => {
   const pieces = furnishingsOn('first')
   const find = (id: string) => pieces.find(piece => piece.id === id)!
   const table = find('living-table-top'), tv = find('tv-living'), wallV = table.v[0] - .03
-  // The media box: 403 by 275 mm trim ring, centred under the TV, at the height of the table's top, flat on the wall.
+  // The media box: 403 by 275 mm trim ring, centred under the TV, just over the network socket's plate, flat on the wall.
   const left = find('wallbox-trim-left'), right = find('wallbox-trim-right'), top = find('wallbox-trim-top'), bottom = find('wallbox-trim-bottom')
   close(left.u[1] - right.u[0], .403, 1e-9); close(top.y[1] - bottom.y[0], .275, 1e-9)
-  close((top.y[0] + bottom.y[1]) / 2, table.y[1], 1e-9)
+  close((top.y[0] + bottom.y[1]) / 2, table.y[1] + .105, 1e-9)
+  const data = find('data-ps5-plate')
+  assert.ok(bottom.y[0] - data.y[1] >= .05 && bottom.y[0] - data.y[1] < .06, 'the media box sits just over 5 cm above the network socket')
+  close((data.y[0] + data.y[1]) / 2, find('outlet-left-plate').y[0] + .036, 1e-9)
+  assert.ok(data.u[0] >= table.u[0] && data.u[1] <= table.u[1], 'behind the table')
+  close((data.u[0] + data.u[1]) / 2, (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2, 1e-9)
+  close(data.v[0], wallV, 1e-9)
   close((left.u[1] + right.u[0]) / 2, (tv.u[0] + tv.u[1]) / 2, 1e-9)
   close(top.v[0], wallV, 1e-9)
   // Its cover has a slot along the lower edge, about two thirds of its width.
@@ -488,4 +494,16 @@ test('the living\'s table, PS5 and controller are one device: aimed at they can 
   assert.ok(withWalkDoorStates(world, {}).blockers.length > withWalkDoorStates(world, { [livingSetKey]: 0 }).blockers.length)
   assert.equal(isLivingSetPresent({ [livingSetKey]: 0 }), false)
   assert.ok(['living-table-top', 'living-table-leg-1', 'ps5', 'ps5-controller'].every(isLivingSetPiece) && !isLivingSetPiece('wallbox-trim-top'))
+})
+
+test('the bathroom has an outlet on the wall shared with the living, centred between the toilet and the vanity', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const plate = find('outlet-bathroom-plate'), toilet = find('toilet-body'), vanity = find('vanity-body')
+  const toiletEdge = Math.max(toilet.v[0], toilet.v[1]), gap: [number, number] = [toiletEdge, vanity.v[0]]
+  assert.ok(plate.v[0] > gap[0] && plate.v[1] < gap[1], 'the plate fits in the wall between the two')
+  close((plate.v[0] + plate.v[1]) / 2, (gap[0] + gap[1]) / 2, 1e-9)
+  close((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + 1.1, 1e-9)
+  // Flat on the wall the bathroom shares with the living, facing the bathroom (lower u).
+  close(plate.u[1], FIRST_FLOOR_BATHROOM.u[1], 1e-9)
+  assert.ok(plate.u[0] < plate.u[1] && pieces.filter(piece => piece.id.startsWith('outlet-bathroom-')).every(piece => piece.u[1] <= plate.u[1] + 1e-9 && piece.rollAboutU))
 })
