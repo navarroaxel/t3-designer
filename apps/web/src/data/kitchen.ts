@@ -82,3 +82,30 @@ export const KITCHEN_BOXES: KitchenBox[] = [
 const sinkBox = KITCHEN_BOXES.find(box => box.id === 'sink')!, tapBox = KITCHEN_BOXES.find(box => box.id === 'tap')!
 export const KITCHEN_SINK = { u: sinkBox.u, v: sinkBox.v, top: sinkBox.y[0], depth: .202 }
 export const KITCHEN_TAP = { u: (tapBox.u[0] + tapBox.u[1]) / 2, v: (tapBox.v[0] + tapBox.v[1]) / 2, base: tapBox.y[0] }
+
+/**
+ * The upper cabinet on the party wall, over the base run and next to the fridge (owner): an oak carcass 0.90 m wide and 0.42 m deep, its underside at 1.40 m,
+ * with the microwave (the 0.48 by 0.29 by 0.38 m replica of the workspace's catalogue) in the open bay nearest the fridge and a door on the other bay. The
+ * microwave stands 4 cm off the wall, leaving room for the plug of the outlet behind it, whose centre is 1.5 m above the floor (owner).
+ * Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
+ */
+export const UPPER_CABINET = { width: .9, depth: .42, bottom: 1.4, height: .7, panel: .02, microwave: { width: .48, height: .29, depth: .38, gapToWall: .04 }, outletHeight: 1.5 }
+const upperU: [number, number] = [fridgeU[0] - UPPER_CABINET.width, fridgeU[0]]
+const upperV: [number, number] = [wallV - UPPER_CABINET.depth, wallV]
+const upperY: [number, number] = [floor + UPPER_CABINET.bottom, floor + UPPER_CABINET.bottom + UPPER_CABINET.height]
+const microwaveU: [number, number] = [upperU[1] - UPPER_CABINET.panel - .01 - UPPER_CABINET.microwave.width, upperU[1] - UPPER_CABINET.panel - .01]
+const microwaveY: [number, number] = [upperY[0] + UPPER_CABINET.panel + .01, upperY[0] + UPPER_CABINET.panel + .01 + UPPER_CABINET.microwave.height]
+const microwaveV: [number, number] = [wallV - UPPER_CABINET.microwave.gapToWall - UPPER_CABINET.microwave.depth, wallV - UPPER_CABINET.microwave.gapToWall]
+export const MICROWAVE_CENTRE_U = (microwaveU[0] + microwaveU[1]) / 2
+export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
+  { id: 'upper-side-low', u: [upperU[0], upperU[0] + UPPER_CABINET.panel], v: upperV, y: upperY, color: OAK },
+  { id: 'upper-side-high', u: [upperU[1] - UPPER_CABINET.panel, upperU[1]], v: upperV, y: upperY, color: OAK },
+  { id: 'upper-bottom', u: upperU, v: upperV, y: [upperY[0], upperY[0] + UPPER_CABINET.panel], color: OAK },
+  { id: 'upper-top', u: upperU, v: upperV, y: [upperY[1] - UPPER_CABINET.panel, upperY[1]], color: OAK },
+  // The door of the closed bay, with the front of the carcass.
+  { id: 'upper-door', u: [upperU[0] + UPPER_CABINET.panel, microwaveU[0] - .01], v: [upperV[0], upperV[0] + UPPER_CABINET.panel], y: [upperY[0] + UPPER_CABINET.panel, upperY[1] - UPPER_CABINET.panel], color: '#e2cba5' },
+  { id: 'microwave', u: microwaveU, v: microwaveV, y: microwaveY, color: SILVER },
+  // Its window and its control strip, on the front.
+  { id: 'microwave-window', u: [microwaveU[0] + .03, microwaveU[1] - .13], v: [microwaveV[0] - .003, microwaveV[0]], y: [microwaveY[0] + .035, microwaveY[1] - .035], color: '#15171a' },
+  { id: 'microwave-controls', u: [microwaveU[1] - .1, microwaveU[1] - .02], v: [microwaveV[0] - .003, microwaveV[0]], y: [microwaveY[0] + .035, microwaveY[1] - .035], color: '#2b2c2e' },
+]

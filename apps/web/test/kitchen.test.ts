@@ -3,8 +3,9 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, KITCHEN_SIZES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
+import { furnishingsOn } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
 
@@ -113,4 +114,19 @@ test('the freezer is as tall as its 101 L gross capacity needs: about 0.31 m of 
   assert.ok(Math.abs(FREEZER.netLitres / FREEZER.grossLitres - .88) < .01)
   // The freezer door is its height from the top of the cabinet.
   assert.ok(Math.abs(KITCHEN_SIZES.fridgeFreezerFrom + FREEZER_HEIGHT - .04 - KITCHEN_SIZES.fridgeHeight) < 1e-9)
+})
+
+test('the upper cabinet hangs on the party wall beside the fridge, with the microwave in it and its outlet behind at 1.5 m', () => {
+  const cabinet = (id: string) => KITCHEN_UPPER_BOXES.find(item => item.id === id)!
+  const microwave = cabinet('microwave'), fridge = box('fridge'), bottom = cabinet('upper-bottom'), top = cabinet('upper-top')
+  const floor = box('base').y[0]
+  // Next to the fridge, on the side of the base run, and over the worktop with clearance.
+  assert.ok(Math.abs(cabinet('upper-side-high').u[1] - fridge.u[0]) < 1e-9 && cabinet('upper-side-low').u[0] < fridge.u[0])
+  assert.ok(bottom.y[0] - box('worktop').y[1] >= .4)
+  assert.ok(microwave.u[0] >= bottom.u[0] && microwave.u[1] <= bottom.u[1] && microwave.y[0] >= bottom.y[1] && microwave.y[1] <= top.y[0], 'the microwave is inside the carcass')
+  assert.ok(microwave.v[1] <= box('base').v[1] - .03 && microwave.v[1] < box('base').v[1], 'off the wall, for the plug')
+  const pieces = furnishingsOn('first'), plate = pieces.find(piece => piece.id === 'outlet-microwave-plate')!
+  assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (floor + 1.5)) < 1e-9, 'the outlet is centred 1.5 m above the floor')
+  assert.ok(plate.u[0] >= microwave.u[0] && plate.u[1] <= microwave.u[1] && plate.y[0] >= microwave.y[0] && plate.y[1] <= microwave.y[1], 'the outlet is hidden behind the microwave')
+  assert.ok(plate.v[1] <= box('base').v[1] + 1e-9 && plate.v[0] < box('base').v[1], 'flat on the wall')
 })
