@@ -7,6 +7,7 @@ import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
 import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
 import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
+import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE } from '../data/kitchen'
 import { CONDUIT_LIGHT_POSITIONS, conduitLightsOn, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
@@ -141,6 +142,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
   // The breakfast nook, the tall column: closed it is a plain box; open, its door swings about the hinge on the rear wall's side and the shelves and the coffee machine show.
   const nookOpen = (devices['kitchen-column'] ?? 0) >= .5
+  // The glass door of the cabinet for the glasses lifts about the rail when a visitor opens it.
+  const glassOpen = (devices[GLASS_DOOR_ID] ?? 0) >= .5
   const lightsOn = islandLightsOn(devices), bathroomOn = bathroomLightsOn(devices), conduitOn = conduitLightsOn(devices), balconyOn = balconyLightsOn(devices)
   const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
@@ -209,7 +212,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       const tv = piece.id === 'tv-main' || piece.id === 'tv-living'
       // X takes a TV off its mount: the mount stays on the wall, the TV (and its picture) is gone.
       if (tv && !isTvMounted(devices, piece.id)) return null
-      return <group key={piece.id} position={[0, 0, -pieceReach(piece.id)]}>
+      // The glass door, its frame, its pane and its handle, turn together about the hinge: up and out.
+      const hinged = glassOpen && /^kitchen-upper-glass-(frame|pane|handle)/.test(piece.id)
+      return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [0, 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : undefined}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
         {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
           <Suspense fallback={null}><PlacedModel url={piece.id.startsWith('balcony-lantern-') && !balconyOn ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
         </ModelBoundary> : (() => {
@@ -230,7 +235,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
           <planeGeometry args={[(piece.u[1] - piece.u[0]) * .97, (piece.y[1] - piece.y[0]) * .95]} />
           <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>}
-      </group>
+      </group></group>
     })}
   </group>
 }

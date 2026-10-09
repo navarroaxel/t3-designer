@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -357,4 +357,34 @@ test('the breakfast nook is oak, like the cabinets', () => {
   const nook = furnishingsOn('first').filter(piece => piece.id.startsWith('kitchen-nook-') && !/cup|machine|handle/.test(piece.id))
   assert.ok(nook.length >= 10 && nook.every(piece => piece.color.toLowerCase() === '#d8bf98'), 'every panel, shelf and the door')
   assert.equal(box('column').color.toLowerCase(), '#d8bf98')
+})
+
+test('the narrow cabinet by the hall has one solid door over a glass door that lifts, and glasses on its shelves, as the owner\'s picture', () => {
+  const upper = KITCHEN_UPPER_BOXES, find = (id: string) => upper.find(item => item.id === id)!, cabinet = find('upper-bottom')
+  // The cabinet is 49 cm wide, so the solid part is a single leaf, not two.
+  assert.ok(cabinet.u[1] - cabinet.u[0] < .5)
+  assert.ok(upper.filter(item => /^upper-door(-\d+)?$/.test(item.id)).length === 1 && !upper.some(item => item.id === 'upper-door-2'), 'one leaf')
+  const door = find('upper-door'), glass = find('upper-glass-pane'), rail = find('upper-glass-rail')
+  assert.ok(door.u[0] - cabinet.u[0] < .01 && cabinet.u[1] - door.u[1] < .01, 'the leaf takes the whole width')
+  // The glass door is under it, with a transparent pane and a handle at its foot; the rail between them.
+  assert.ok(glass.opacity! < .5 && glass.y[1] <= rail.y[0] && door.y[0] >= rail.y[1], 'glass under, solid over')
+  assert.ok(find('upper-glass-handle').y[1] < glass.y[0] + .03, 'the handle is at the glass door\'s foot')
+  // Glasses stand on the bottom and on the shelf, seen through the pane.
+  const cups = upper.filter(item => item.id.startsWith('upper-glass-cup-')), shelf = find('upper-glass-shelf')
+  assert.equal(cups.length, 10)
+  assert.ok(cups.every(cup => cup.round && cup.opacity! < .6 && cup.u[0] >= cabinet.u[0] && cup.u[1] <= cabinet.u[1] && (Math.abs(cup.y[0] - cabinet.y[1]) < 1e-9 || Math.abs(cup.y[0] - shelf.y[1]) < 1e-9)), 'on the base or the shelf')
+  assert.ok(cups.every(cup => cup.y[1] < rail.y[0]), 'under the rail')
+})
+
+test('the glass door of the glasses cabinet is a device that lifts about the rail: aimed at through its pane, E opens it up and out', () => {
+  const pane = KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-glass-pane')!, rail = KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-glass-rail')!
+  assert.equal(GLASS_DOOR_ID, `kitchen-${pane.id}`)
+  const device = furnishingDevices('first', 3.2).find(item => item.id === GLASS_DOOR_ID)
+  assert.ok(device, 'the pane can be aimed at')
+  // The hinge is at the rail, along u, on the door's face; it swings about 100 degrees, a little past the vertical, up and out.
+  assert.ok(Math.abs(GLASS_HINGE.y - rail.y[0]) < 1e-9 && GLASS_HINGE.v >= KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-bottom')!.v[0] - 1e-9 && GLASS_HINGE.v < pane.v[1])
+  assert.ok(GLASS_CABINET.swing > Math.PI / 2 && GLASS_CABINET.swing < Math.PI * .65)
+  // What turns with it is the frame, the pane and the handle, the glass door's own pieces: all of them hang under the rail.
+  const door = KITCHEN_UPPER_BOXES.filter(item => /^upper-glass-(frame|pane|handle)/.test(item.id))
+  assert.ok(door.length === 6 && door.every(item => item.y[1] <= GLASS_HINGE.y + 1e-9), 'the six pieces of the door are under the hinge')
 })

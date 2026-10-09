@@ -114,13 +114,54 @@ const bayU: [number, number] = [hoodU[1], fridgeU[0]]
 const INOX = '#b9bdc2', DOOR = '#e2cba5'
 export const MICROWAVE_CENTRE_U = (microwaveU[0] + microwaveU[1]) / 2
 const canopyY = floor + HOOD.canopyBottom
-export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
+/**
+ * The hall side's cabinet, over the resting worktop, is the glass-door one of the owner's picture, for the glasses, so that guests see them without opening every door: a solid door over a
+ * glass-fronted section that lifts up, with a handle at its foot, a shelf inside and the glasses on it. The cabinet is only 49 cm wide, so the solid door is one leaf (owner), not two. The
+ * lower section is 55 cm tall and the shelf halves it; the glasses are 7.5 cm across and 12 cm tall.
+ */
+export const GLASS_CABINET = { swing: 1.75, lower: .55, glass: { diameter: .075, height: .12, count: 5, pitch: .085, taper: .85 }, frame: .05, pane: .006 }
+const glassU: [number, number] = [upperU[0], hoodU[0]]
+const glassInner: [number, number] = [glassU[0] + .005 + GLASS_CABINET.frame, glassU[1] - .005 - GLASS_CABINET.frame]
+const glassRail = lowY + GLASS_CABINET.lower, glassShelf = lowY + GLASS_CABINET.lower / 2
+const glassMiddleU = (glassU[0] + glassU[1]) / 2
+/** The glass door lifts about the rail, along u, at the door's face: a visitor aims at its pane (a device of its own) and presses E; it swings up and out, 100 degrees. */
+export const GLASS_HINGE = { y: glassRail, v: front[0] }
+export const GLASS_DOOR_ID = 'kitchen-upper-glass-pane'
+function glassCabinetBoxes(): IslandPiece[] {
+  const cups: IslandPiece[] = []
+  for (const [row, base] of [lowY + P, glassShelf + P].entries()) {
+    const start = glassMiddleU - (GLASS_CABINET.glass.count - 1) * GLASS_CABINET.glass.pitch / 2
+    for (let index = 0; index < GLASS_CABINET.glass.count; index++) {
+      const u = start + index * GLASS_CABINET.glass.pitch, v = (upperV[0] + upperV[1]) / 2 - .02
+      cups.push({ id: `upper-glass-cup-${row * GLASS_CABINET.glass.count + index + 1}`, u: [u - GLASS_CABINET.glass.diameter / 2, u + GLASS_CABINET.glass.diameter / 2], v: [v - GLASS_CABINET.glass.diameter / 2, v + GLASS_CABINET.glass.diameter / 2], y: [base, base + GLASS_CABINET.glass.height], color: '#dcecef', round: true, opacity: .45 })
+    }
+  }
+  const bar = (id: string, u: [number, number], y: [number, number]): IslandPiece => ({ id, u, v: front, y, color: DOOR })
+  return [
+    // The rail between the two sections, the shelf inside the lower one and the side against the hood.
+    { id: 'upper-glass-rail', u: glassU, v: upperV, y: [glassRail, glassRail + P], color: OAK },
+    { id: 'upper-glass-shelf', u: glassU, v: upperV, y: [glassShelf, glassShelf + P], color: OAK },
+    { id: 'upper-glass-side', u: [glassU[1] - P, glassU[1]], v: upperV, y: [lowY + P, topY - P], color: OAK },
+    // The solid door over it: one leaf, with its handle at the foot.
+    { id: 'upper-door', u: [glassU[0] + .005, glassU[1] - .005], v: front, y: [glassRail + P + .005, topY - .005], color: DOOR },
+    { id: 'upper-door-handle', u: [glassMiddleU - .05, glassMiddleU + .05], v: [front[0] - .012, front[0]], y: [glassRail + P + .03, glassRail + P + .038], color: '#c9cdd1' },
+    // The glass door that lifts: a frame all round, the pane in it and a handle at its foot.
+    bar('upper-glass-frame-top', [glassU[0] + .005, glassU[1] - .005], [glassRail - GLASS_CABINET.frame, glassRail - .005]),
+    bar('upper-glass-frame-bottom', [glassU[0] + .005, glassU[1] - .005], [lowY + .005, lowY + .005 + GLASS_CABINET.frame]),
+    bar('upper-glass-frame-left', [glassU[0] + .005, glassInner[0]], [lowY + .005 + GLASS_CABINET.frame, glassRail - GLASS_CABINET.frame]),
+    bar('upper-glass-frame-right', [glassInner[1], glassU[1] - .005], [lowY + .005 + GLASS_CABINET.frame, glassRail - GLASS_CABINET.frame]),
+    { id: 'upper-glass-pane', u: glassInner, v: [front[0] + .007, front[0] + .007 + GLASS_CABINET.pane], y: [lowY + .005 + GLASS_CABINET.frame, glassRail - GLASS_CABINET.frame], color: '#c4dadf', opacity: .32 },
+    { id: 'upper-glass-handle', u: [glassMiddleU - .05, glassMiddleU + .05], v: [front[0] - .012, front[0]], y: [lowY + .012, lowY + .02], color: '#c9cdd1' },
+    ...cups,
+  ]
+}
+export const KITCHEN_UPPER_BOXES: IslandPiece[] = [
   // The backsplash (owner): a slab of Toscana Vena on the wall, from the worktop to the underside of the cabinets and the hood, along the whole base run, 2 cm thick. Its pattern runs across its face.
   { id: 'backsplash', u: baseU, v: [wallV - .02, wallV], y: [floor + S.baseHeight + S.worktop, lowY], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB, wall: true },
-  // The hall side's cabinet, up to the hood.
+  // The hall side's cabinet, up to the hood: the glass-door one, for the glasses.
   { id: 'upper-bottom', u: [upperU[0], hoodU[0]], v: upperV, y: [lowY, lowY + P], color: OAK },
   { id: 'upper-top', u: [upperU[0], hoodU[0]], v: upperV, y: [topY - P, topY], color: OAK },
-  { id: 'upper-door', u: [upperU[0] + .005, hoodU[0] - .005], v: front, y: [lowY + .005, topY - .005], color: DOOR },
+  ...glassCabinetBoxes(),
   // The microwave's bay, between the hood and the fridge: a closed part beside the hood, a divider, and the open niche next to the fridge with the shelf and the door over it.
   { id: 'upper-bay-bottom', u: bayU, v: upperV, y: [lowY, lowY + P], color: OAK },
   { id: 'upper-bay-top', u: bayU, v: upperV, y: [topY - P, topY], color: OAK },
