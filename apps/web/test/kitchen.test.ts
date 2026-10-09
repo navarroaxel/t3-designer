@@ -28,13 +28,15 @@ test('the cabinets run along the party wall with neighbour A, facing the TV wall
   assert.ok(COUNTER_V[1] < box('base').v[0])
 })
 
-test('the second counter is 2.20 m by 1.00 m against the wall behind the bathroom, with a top, an overhang and three stools', () => {
+test('the island\'s top is 2.20 by 1.00 m and its cabinets 0.70 m deep, against the wall behind the bathroom, with an overhang and three stools', () => {
   const stools = KITCHEN_BOXES.filter(item => item.id.startsWith('stool'))
   assert.equal(stools.length, 3)
   const counter = box('counter')
-  assert.ok(Math.abs(counter.u[1] - counter.u[0] - 2.2) < 1e-9 && Math.abs(counter.v[1] - counter.v[0] - 1) < 1e-9)
+  const top = box('counter-top')
+  assert.ok(Math.abs(top.u[1] - top.u[0] - 2.2) < 1e-9 && Math.abs(top.v[1] - top.v[0] - 1) < 1e-9, 'the top is 2.20 by 1.00 m (owner)')
+  assert.ok(Math.abs(counter.v[1] - counter.v[0] - .7) < 1e-9 && Math.abs(counter.u[1] - counter.u[0] - 2.18) < 1e-9, 'the cabinets are 0.70 m deep, 2 cm short of the top\'s end')
   assert.ok(Math.abs(counter.u[0] - KITCHEN_LIVING.u[0]) < 1e-9, 'its end is against the wall behind the bathroom')
-  assert.ok(box('counter-top').v[0] < box('counter').v[0] - .2, 'overhang toward the stools')
+  assert.ok(box('counter').v[0] - box('counter-top').v[0] > .25 && box('counter').v[0] - box('counter-top').v[0] < .3, 'overhang toward the stools: 28 cm')
   for (const stool of stools) {
     assert.ok(stool.v[1] <= box('counter').v[0] + 1e-9, 'stools on the side away from the cabinets')
     assert.ok(stool.y[1] < box('counter-top').y[0], 'and tucked under the top')
@@ -56,7 +58,7 @@ test('the kitchen leaves room in front of every opening on the rear wall, and ke
       assert.ok(overlap(item.v, opening.v) < 1e-6 || item.u[1] <= KITCHEN_LIVING.u[1] - .4 + 1e-9, `${item.id} leaves 0.4 m in front of a rear opening`)
     }
   }
-  assert.ok(COUNTER_V[0] - KITCHEN_SIZES.overhang - KITCHEN_SIZES.stool > LIVING_TV_PLACEMENT.v[1] + 2, 'the stools stay well away from the TV')
+  assert.ok(box('counter-top').v[0] - KITCHEN_SIZES.stool > LIVING_TV_PLACEMENT.v[1] + 2, 'the stools stay well away from the TV')
 })
 
 test('the worktop and the counter top are Purastone Toscana Vena: an ivory slab with ochre veins', () => {
@@ -238,7 +240,7 @@ test('the island\'s canopy is a smooth dark wood board up the wall under a flute
   assert.ok(Math.abs(panel.y[0] - top.y[1]) < 1e-9 && Math.abs(panel.v[0] - top.v[0]) < 1e-9 && Math.abs(panel.v[1] - top.v[1]) < 1e-9, 'from the worktop, the width of the top')
   assert.ok(Math.abs(panel.u[1] - panel.u[0] - ISLAND_CANOPY_WALL) < 1e-9, 'as thick as the oak was')
   // The lowered ceiling keeps the fluted oak: slats 24 mm wide on a 30 mm pitch, inside the island's width.
-  assert.ok(soffitSlats.length >= 40, 'slats under the canopy')
+  assert.ok(soffitSlats.length >= 30, 'slats under the canopy')
   const [s0, s1] = [soffitSlats[0], soffitSlats[1]]
   assert.ok(Math.abs((s0.v[1] - s0.v[0]) - ISLAND_CANOPY.slat) < 1e-9 && Math.abs(s1.v[0] - s0.v[0] - ISLAND_CANOPY.pitch) < 1e-9)
   assert.ok(Math.min(...soffitSlats.map(piece => piece.v[0])) >= top.v[0] && Math.max(...soffitSlats.map(piece => piece.v[1])) <= top.v[1])
@@ -421,11 +423,11 @@ test('the breakfast nook rests on the plinth too: its sides, bottom and door sta
 
 test('the island has a Toscana Vena cover on its open end, 1 m wide, and the cover and the three stools (together) can be taken away with X', () => {
   const cheek = KITCHEN_UPPER_BOXES.find(item => item.id === 'island-cheek')!, counter = box('counter'), top = box('counter-top')
-  // A slab of Toscana Vena on the end, the whole width of the island (1 m), from the plinth to the top, flush with the top's end.
+  // A slab of Toscana Vena on the end, the top's whole width (1 m), from the floor to the top, flush with the top's end.
   assert.equal(cheek.pattern, TOSCANA_VENA_SLAB); assert.ok(cheek.wall)
-  assert.ok(Math.abs((cheek.v[1] - cheek.v[0]) - 1) < 1e-9 && Math.abs(cheek.v[0] - counter.v[0]) < 1e-9 && Math.abs(cheek.v[1] - counter.v[1]) < 1e-9, 'the whole width, 1 m')
+  assert.ok(Math.abs((cheek.v[1] - cheek.v[0]) - 1) < 1e-9 && Math.abs(cheek.v[0] - top.v[0]) < 1e-9 && Math.abs(cheek.v[1] - top.v[1]) < 1e-9, 'the top\'s whole width, 1 m')
   assert.ok(Math.abs(cheek.u[0] - counter.u[1]) < 1e-9 && Math.abs(cheek.u[1] - top.u[1]) < 1e-9, 'on the open end, flush with the top')
-  assert.ok(Math.abs(cheek.y[0] - counter.y[0]) < 1e-9 && Math.abs(cheek.y[1] - counter.y[1]) < 1e-9, 'from the plinth to the top')
+  assert.ok(Math.abs(cheek.y[0] - FLOOR_HEIGHT) < 1e-9 && Math.abs(cheek.y[1] - counter.y[1]) < 1e-9, 'from the floor to the top')
   // Removable with X, and so are the three stools, together, as one device whose aim volume holds all of them; once away they no longer stop anyone.
   const all = furnishingDevices('first', 3.2), stools = furnishingsOn('first').filter(piece => isStool(piece.id)), group = all.find(device => device.id === STOOLS_ID)!
   assert.ok(all.some(device => device.id === 'kitchen-island-cheek') && isRemovable('kitchen-island-cheek') && isRemovable(STOOLS_ID))

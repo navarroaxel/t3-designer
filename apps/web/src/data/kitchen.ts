@@ -18,7 +18,8 @@ const cut = FLOOR_HEIGHT + CUT_HEIGHT
 
 export const KITCHEN_SIZES = {
   baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .675, fridgeDepth: .668, fridgeHeight: 1.785, fridgeFreezerFrom: 0, fridgeDoor: .03,
-  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, topOverhang: .02, plinthHeight: .1, plinthRecess: .05, stool: .4, stoolHeight: .85,
+  // The island's top is 2.20 by 1.00 m and its cabinets 0.70 m deep (owner): the top stands 0.28 m out toward the stools, and 2 cm out on the aisle side and the end.
+  counterDepth: .7, counterTopDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, topOverhang: .02, plinthHeight: .1, plinthRecess: .05, stool: .4, stoolHeight: .85,
 }
 /**
  * The freezer's height from its capacity (owner: 89 L net, 101 L gross). The gross volume is the liner: inner width times inner depth times
@@ -48,6 +49,8 @@ const islandMiddleU = counterU[0] + S.counterLength / 2
 const dishwasherEnd = counterU[0] + .02 + .45
 const sinkU: [number, number] = [dishwasherEnd + .06, islandMiddleU + .03]
 const sinkMiddleU = (sinkU[0] + sinkU[1]) / 2
+// The island's top is 2.20 m long from the wall; its cabinets stop 2 cm short of its open end.
+const cabinetU: [number, number] = [counterU[0], counterU[1] - S.topOverhang]
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
 const PLINTH = '#2f3033', OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
@@ -74,16 +77,16 @@ export const KITCHEN_BOXES: KitchenBox[] = [
   // 45 cm from the wall behind the bathroom (owner), which the hall shares.
   { id: 'oven', u: [frontU + S.stoveFromHall, frontU + S.stoveFromHall + S.ovenWidth], v: [baseV[0] - .015, baseV[0]], y: [floor + .25, floor + .8], color: '#2b2c2e' },
   { id: 'cooktop', u: [frontU + S.stoveFromHall, frontU + S.stoveFromHall + S.cooktopWidth], v: [baseV[0] + .05, baseV[0] + .55], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .01], color: '#111213' },
-  { id: 'counter', u: counterU, v: COUNTER_V, y: [floor + S.plinthHeight, floor + S.baseHeight], color: WHITE },
+  { id: 'counter', u: cabinetU, v: COUNTER_V, y: [floor + S.plinthHeight, floor + S.baseHeight], color: WHITE },
   // The island's plinth is set back on the three sides that are free: the front, the aisle side and the open end; the fourth is the wall.
-  { id: 'counter-plinth', u: [counterU[0], counterU[1] - S.plinthRecess], v: [COUNTER_V[0] + S.plinthRecess, COUNTER_V[1] - S.plinthRecess], y: [floor, floor + S.plinthHeight], color: PLINTH },
-  { id: 'counter-top', u: [counterU[0], counterU[1] + S.topOverhang], v: [COUNTER_V[0] - S.overhang, COUNTER_V[1] + S.topOverhang], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
+  { id: 'counter-plinth', u: [counterU[0], cabinetU[1] - S.plinthRecess], v: [COUNTER_V[0] + S.plinthRecess, COUNTER_V[1] - S.plinthRecess], y: [floor, floor + S.plinthHeight], color: PLINTH },
+  { id: 'counter-top', u: counterU, v: [COUNTER_V[1] + S.topOverhang - S.counterTopDepth, COUNTER_V[1] + S.topOverhang], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The sink is in the second counter (owner), a ceramic basin flush with the top, with a brass tap at its back edge.
   { id: 'sink', u: sinkU, v: [COUNTER_V[1] - .08 - .4, COUNTER_V[1] - .08], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
   { id: 'tap', u: [sinkMiddleU - .02, sinkMiddleU + .02], v: [COUNTER_V[1] - .08 - .4 - .06, COUNTER_V[1] - .08 - .4 - .02], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .28], color: '#a67c3d' },
   ...stoolCentres.map((centre, index) => ({
     id: `stool-${index + 1}`, u: [centre - S.stool / 2, centre + S.stool / 2] as [number, number],
-    v: [COUNTER_V[0] - S.overhang + .05 - S.stool, COUNTER_V[0] - S.overhang + .05] as [number, number],
+    v: [COUNTER_V[1] + S.topOverhang - S.counterTopDepth + .05 - S.stool, COUNTER_V[1] + S.topOverhang - S.counterTopDepth + .05] as [number, number],
     y: [floor, floor + S.stoolHeight] as [number, number], color: STOOL,
   })),
 ]
@@ -166,8 +169,8 @@ function glassCabinetBoxes(): IslandPiece[] {
   ]
 }
 export const KITCHEN_UPPER_BOXES: IslandPiece[] = [
-  // The island's cover, a "tapa" of Toscana Vena on its open end (owner, to compare: X takes it away and puts it back): a 2 cm slab from the plinth's top to the top, flush with the top's end, like a waterfall edge.
-  { id: 'island-cheek', u: [counterU[1], counterU[1] + S.topOverhang], v: COUNTER_V, y: [floor + S.plinthHeight, floor + S.baseHeight], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB, wall: true },
+  // The island's cover, a "tapa" of Toscana Vena on its open end (owner, to compare: X takes it away and puts it back): a 2 cm slab, the top's whole width (1 m), from the floor to the top, flush with the top's end, like a waterfall edge.
+  { id: 'island-cheek', u: [cabinetU[1], counterU[1]], v: [COUNTER_V[1] + S.topOverhang - S.counterTopDepth, COUNTER_V[1] + S.topOverhang], y: [floor, floor + S.baseHeight], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB, wall: true },
   // The backsplash (owner): a slab of Toscana Vena on the wall, from the worktop to the underside of the cabinets and the hood, along the whole base run, 2 cm thick. Its pattern runs across its face.
   { id: 'backsplash', u: baseU, v: [wallV - .02, wallV], y: [floor + S.baseHeight + S.worktop, lowY], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB, wall: true },
   // The hall side's cabinet, up to the hood: the glass-door one, for the glasses.
