@@ -155,15 +155,15 @@ function firstFloor(): Furnishing[] {
   for (const part of outletBoxes('outlet-fridge', wallFace, fridgeMiddleU, F, KITCHEN_SIZES.baseHeight + KITCHEN_SIZES.worktop - .05)) {
     add({ ...part, u: [2 * fridgeMiddleU - part.u[1], 2 * fridgeMiddleU - part.u[0]], v: [2 * wallFace - part.v[1], 2 * wallFace - part.v[0]], roughness: .6, solid: false })
   }
-  // Two outlets on the wall behind the island, at the same height as the one beside the oven (owner): a quarter and three quarters across its width, facing the kitchen, toward higher u.
-  const islandV = KITCHEN_BOXES.find(box => box.id === 'counter')!.v
+  // Two outlets on the wall behind the island, at the same height as the one beside the oven (owner), symmetric about the axis of its 1 m top: a quarter and three quarters across it, facing the kitchen, toward higher u.
+  const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!.v
   for (const [index, at] of [.25, .75].entries()) {
     for (const part of outletBoxes(`outlet-island-${index + 1}`, 0, 0, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) {
-      const v = islandV[0] + (islandV[1] - islandV[0]) * at
+      const v = islandTop[0] + (islandTop[1] - islandTop[0]) * at
       add({ ...part, u: [KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL + part.v[0], KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL + part.v[1]], v: [v - part.u[1], v - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
     }
   }
-  // The island's canopy: the fluted oak up the wall and over the island, the drywall box above it and the three downlights; drawn only in the walkthrough (it hangs above the cut).
+  // The island's canopy: the drywall slab and box over it, the light line and the three downlights; drawn only in the walkthrough (it hangs above the cut).
   // The dog, lying on the balcony in front of the secondary room's window; it blocks the way like a piece of furniture, a quarter of the balcony's depth.
   add({ id: 'dog', u: DOG_BOX.u, v: DOG_BOX.v, y: DOG_BOX.y, color: '#161719', roughness: .95, model: DOG.model, turn: 0 })
   // The balcony's three wall lanterns, and the switch in the main room.

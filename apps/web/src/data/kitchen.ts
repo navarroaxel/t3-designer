@@ -233,27 +233,27 @@ export const KITCHEN_NOOK_BOXES: IslandPiece[] = [
 ]
 
 /**
- * The island's canopy (owner's idea): a fluted oak, in an L, that climbs the wall behind the island and turns over it as a lowered ceiling, the "techito". The slats are 24 mm wide on a 30 mm pitch and
- * 18 mm thick, over a dark backing board that shows in the grooves; on the wall they run up and under the canopy they run out from the wall, so the line of each one goes round the corner. The ceiling
- * over the island drops to 2.40 m, 1.47 m over the worktop, and above it stands a drywall box, the "cajón", white, up to the real ceiling at 3.00 m. Three recessed downlights in the wood, in
- * a row along the island's middle, light the worktop; the island's two outlets sit on the wood. Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
+ * The island's canopy: a lowered ceiling over the island, the "techito", all drywall now (owner: the wood, first a fluted oak and then a walnut-like board, is out): a white slab 12 cm thick whose
+ * underside is at 2.40 m, 1.47 m over the worktop, and above it, set in 3 cm all round, the drywall box, the "cajón", up to the real ceiling at 3.00 m. The 3 cm of the slab left bare round the box carry the
+ * light line, a warm LED strip with its wash up the box's faces. Three recessed downlights in the slab's underside, in a row along the island's middle, light the worktop. The island's two outlets and
+ * its switch are on the wall, which is plain again. Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
  */
-export const ISLAND_CANOPY = { soffit: 2.4, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, slat: .024, pitch: .03, slatDepth: .018, backing: .012, light: { diameter: .09, count: 3, from: .4, to: 1.8 } }
-export const ISLAND_CANOPY_WALL = ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing
+export const ISLAND_CANOPY = { soffit: 2.4, slab: .12, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, light: { diameter: .09, count: 3, from: .4, to: 1.8 } }
+/** What stood out of the wall behind the island: nothing, now that the wood is out; the outlets and the switch are on the wall itself. */
+export const ISLAND_CANOPY_WALL = 0
 export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean; opacity?: number; grain?: 'walnut' }
 const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!
 const canopyU: [number, number] = islandTop.u, canopyV: [number, number] = islandTop.v
+/** The island's axis across its 1 m top (owner: the outlets, the switch and the lights are symmetric about it). */
+export const ISLAND_AXIS_V = (canopyV[0] + canopyV[1]) / 2
 const canopySoffit = floor + ISLAND_CANOPY.soffit, canopyTop = floor + ISLAND_CANOPY.ceiling
-const slatCount = Math.floor((canopyV[1] - canopyV[0]) / ISLAND_CANOPY.pitch)
-const slatStart = canopyV[0] + ((canopyV[1] - canopyV[0]) - slatCount * ISLAND_CANOPY.pitch) / 2 + (ISLAND_CANOPY.pitch - ISLAND_CANOPY.slat) / 2
-const OAKS = ['#b98a5a', '#c4966a', '#ae7f50']
-const wallFaceU = canopyU[0] + ISLAND_CANOPY_WALL
 export const ISLAND_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({ length: ISLAND_CANOPY.light.count }, (_, index) => ({
   u: canopyU[0] + ISLAND_CANOPY.light.from + (ISLAND_CANOPY.light.to - ISLAND_CANOPY.light.from) * index / (ISLAND_CANOPY.light.count - 1),
-  v: (COUNTER_V[0] + COUNTER_V[1]) / 2,
+  v: ISLAND_AXIS_V,
 }))
 const drywallU: [number, number] = [canopyU[0], canopyU[1] - .03], drywallV: [number, number] = [canopyV[0] + .03, canopyV[1] - .03]
-const ledY: [number, number] = [canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing + .008]
+const slabTop = canopySoffit + ISLAND_CANOPY.slab
+const ledY: [number, number] = [slabTop, slabTop + .008]
 const LED = '#ffcf8a'
 function ledSides(): IslandPiece[] {
   const strip = .012, gap = .006, wash = .002, reach = .26
@@ -268,32 +268,21 @@ function ledSides(): IslandPiece[] {
   ]
 }
 export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
-  // The backing boards: on the wall, from the worktop up to the lowered ceiling; and over the island, above the slats.
-  // The wall: a smooth board of dark figured wood (owner's picture of a walnut-like slab), with the grain running along the wall, from the worktop up to the lowered ceiling. It wipes clean, which
-  // the fluted slats did not; the slats stay on the ceiling, where nothing splashes.
-  { id: 'canopy-wall-panel', u: [canopyU[0], wallFaceU], v: canopyV, y: [floor + S.baseHeight + S.worktop, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#6b4527', grain: 'walnut' },
-  { id: 'canopy-soffit-backing', u: canopyU, v: canopyV, y: [canopySoffit + ISLAND_CANOPY.slatDepth, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#2e2620' },
-  ...Array.from({ length: slatCount }, (_, index): IslandPiece[] => {
-    const v: [number, number] = [slatStart + index * ISLAND_CANOPY.pitch, slatStart + index * ISLAND_CANOPY.pitch + ISLAND_CANOPY.slat], color = OAKS[index % OAKS.length]
-    return [
-      // Under the canopy the slats run out from the wall to the island's far end.
-      { id: `canopy-soffit-slat-${index + 1}`, u: [wallFaceU, canopyU[1]], v, y: [canopySoffit, canopySoffit + ISLAND_CANOPY.slatDepth], color },
-    ]
-  }).flat(),
-  // The drywall box over the wood, painted white, up to the ceiling: set in 3 cm all round so the wood's edge shows.
-  { id: 'canopy-drywall', u: drywallU, v: drywallV, y: [canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing, canopyTop], color: '#f1efe9' },
-  // The light line: a warm LED strip on the 3 cm of wood left bare round the drywall box, against its foot on the three open sides, and a faint wash of light up the white faces.
+  // The slab of the lowered ceiling, white drywall, the whole of the island's top, and over it the box, set in 3 cm all round.
+  { id: 'canopy-slab', u: canopyU, v: canopyV, y: [canopySoffit, slabTop], color: '#f1efe9' },
+  { id: 'canopy-drywall', u: drywallU, v: drywallV, y: [slabTop, canopyTop], color: '#f1efe9' },
+  // The light line: a warm LED strip on the 3 cm of the slab left bare round the drywall box, against its foot on the three open sides, and a faint wash of light up the white faces.
   ...ledSides(),
-  // The downlights, recessed in the wood and lit.
+  // The downlights, recessed in the slab's underside and lit.
   ...ISLAND_LIGHT_POSITIONS.map((at, index): IslandPiece => ({ id: `canopy-light-${index + 1}`, u: [at.u - ISLAND_CANOPY.light.diameter / 2, at.u + ISLAND_CANOPY.light.diameter / 2], v: [at.v - ISLAND_CANOPY.light.diameter / 2, at.v + ISLAND_CANOPY.light.diameter / 2], y: [canopySoffit - .004, canopySoffit + .002], color: '#fff2d9', glow: true, round: true })),
 ]
 
 /**
- * The island's light switch (owner's request): a single plate on the oak, between the two outlets, at the same height as them, with a rocker and a small light that shows when the lights are on. A visitor aims at
+ * The island's light switch (owner's request): a single plate on the wall, between the two outlets, at the same height as them, with a rocker and a small light that shows when the lights are on. A visitor aims at
  * it and presses E to switch the three downlights and the light line off and on; they start on. It is a device of its own, `island-switch-plate`.
  */
 export const ISLAND_SWITCH_ID = 'island-switch-plate'
-const switchFace = canopyU[0] + ISLAND_CANOPY_WALL, switchV = (COUNTER_V[0] + COUNTER_V[1]) / 2, switchY = floor + 1.1
+const switchFace = canopyU[0] + ISLAND_CANOPY_WALL, switchV = ISLAND_AXIS_V, switchY = floor + 1.1
 export const ISLAND_SWITCH_BOXES: IslandPiece[] = [
   { id: 'switch-plate', u: [switchFace, switchFace + .008], v: [switchV - .036, switchV + .036], y: [switchY - .036, switchY + .036], color: '#212326' },
   { id: 'switch-rocker', u: [switchFace + .008, switchFace + .011], v: [switchV - .014, switchV + .014], y: [switchY - .024, switchY + .024], color: '#e8e8e4' },
