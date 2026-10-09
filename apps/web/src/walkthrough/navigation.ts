@@ -1,5 +1,5 @@
 import { polygonBounds, polygonCentroid, segmentWall, wallLength, wallRotation } from '@t3-designer/geometry'
-import { furnishingBlockers, furnishingDevices } from '../data/house-furnishings.ts'
+import { furnishingBlockers, furnishingDevices, isInPlace, isRemovable } from '../data/house-furnishings.ts'
 import { AZOTEA_LEVEL, AZOTEA_OBSTACLES, AZOTEA_OUTLINE, AZOTEA_ROOM, LANDING_LEVEL, LANDING_OUTLINE } from '../data/azotea.ts'
 import { ceilingPolygon, floorOfApartment, walkOutline } from '../data/house-interior.ts'
 import { STAIR_BLOCKS } from '../data/stair.ts'
@@ -144,7 +144,7 @@ export function buildWalkWorld(snapshot: ProjectSnapshot, doorStates = initialWa
   const floor = floorOfApartment(snapshot.apartment)
   if (floor) blockers.push(...furnishingBlockers(floor, snapshot.placement.floorElevation))
   if (floor) for (const device of furnishingDevices(floor, snapshot.placement.floorElevation)) {
-    doors.push({ id: device.id, center: device.center, normal: [0, 1], exterior: false, clearance: 0, device: { ...device, doorId: device.id, device: true, initialOpenness: 0 } })
+    doors.push({ id: device.id, center: device.center, normal: [0, 1], exterior: false, clearance: 0, device: { ...device, doorId: device.id, device: true, initialOpenness: (device as { initialOpenness?: number }).initialOpenness ?? 0 } })
   }
   const perimeter: Point2D[] = snapshot.apartment.perimeter.map(point => [...point])
   const floorElevation = snapshot.geometry.floor.elevation
@@ -248,6 +248,8 @@ export function walkDoorLeaf(door: WalkDoor, openness: number): WalkBlocker | nu
 /** Reuses fixed geometry and replaces leaves, never accumulating old colliders. */
 export function withWalkDoorStates(world: WalkWorld, states: WalkDoorStates): WalkWorld {
   const leaves = world.doors.flatMap(door => {
+    // What was taken away (the table, the fridge, the microwave) leaves its spot free to walk through, though it can still be aimed at to put it back.
+    if (isRemovable(door.id) && !isInPlace(states, door.id)) return []
     const leaf = walkDoorLeaf(door, resolveWalkDoorOpenness(states, door.id, (door.leaf ?? door.slide ?? door.device)?.initialOpenness))
     return leaf ? [leaf] : []
   })

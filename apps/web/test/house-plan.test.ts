@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { GROUND_WELL_EDGE, ENTRY_RECESS, FLOOR_HEIGHT, PARTY_WALL, SITE_BUILDINGS, WELL_BACK_U, WELL_BACK_WALL, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
+import { AZOTEA_REAR, GROUND_WELL_EDGE, ENTRY_RECESS, FLOOR_HEIGHT, PARTY_WALL, SITE_BUILDINGS, WELL_BACK_U, WELL_BACK_WALL, houseSouthWestEdge, type SitePoint } from '../src/data/building-site.ts'
 import {
   BALCONY, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, GROUND_BATHROOM, GROUND_BATHROOM_DOOR, GROUND_PANTRY, PANTRY, PANTRY_DOOR, LIVING_KITCHEN_DOOR, GROUND_LIVING, GROUND_LIVING_WALL, STAIRWELL_HOLE, HALL_ARCH, RIGHT_ARM_WINDOW_WIDTH, OFFICE_WINDOW_HEIGHT, OFFICE_WINDOW_SILL, OFFICE_WINDOW_WIDTH, SIDE_OPENINGS, GARAGE_DOOR, GROUND_DOOR_SWINGS, OFFICE_DOOR, GROUND_OFFICE, GROUND_OFFICE_WALL, LIGHT_WELL_DOOR_WIDTH, GARAGE, GROUND_BACK_WALL, GROUND_GARAGE, GROUND_HALL, GROUND_PARTITIONS, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, LAUNDRY_DOOR_WIDTH, LIVING_DOOR_FRAME, LIVING_DOOR, LIVING_DOOR_LEAVES, BATHROOM_FLOOR, FLOOR_TILING, NAVONA_TILES, SAING_PLANKS, LIVING_TV_PLACEMENT, LIVING_TV_SIZE, LIVING_TV, MAIN_BED, CLOSET_SLIDING_PANELS, MAIN_ROOM_CLOSET_WARDROBE, MAIN_ROOM_CLOSET, MAIN_ROOM_DRYWALL, MAIN_TV, MAIN_TV_PLACEMENT, TV_SIZE, MAIN_DOOR, FIRST_FLOOR_DOOR_SWINGS, MAIN_ROOM_SETBACK, BATHROOM_DOOR, BATHROOM_DOOR_SWING, KITCHEN_LIVING, WARDROBE_LEAVES, SECONDARY_BED, SECONDARY_DOOR, FIRST_FLOOR_BATHROOM, FIRST_FLOOR_PARTITIONS, SECONDARY_WARDROBE, FIRST_OUTLINE, FRONT_ROOMS, FLOOR_LEVEL, GROUND_OUTLINE, OPENINGS, OUTLINES, WALL_THICKNESS,
-  OFFICE_WIDTH, TV_MOUNT, polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
+  OFFICE_WIDTH, TV_MOUNT, exteriorThickness, polygonArea, wallBoxes, type Floor, type PlanBox, type PlanPoint,
 } from '../src/data/house-plan.ts'
 
 const closeTo = (actual: number, expected: number, tolerance: number) =>
@@ -25,10 +25,10 @@ const solid = (boxes: PlanBox[], point: [number, number, number]) => boxes.some(
 
 test('the plan outlines match the volumes of the site', () => {
   // The plans draw the leaning south-west wall at its mean position, so they differ from the volumes by under a square metre.
-  closeTo(Math.abs(polygonArea(GROUND_OUTLINE)), siteArea('HOUSE') + siteArea('HOUSE-ARM') + siteArea('HOUSE-TERRACE') + siteArea('HOUSE-WELL-BACK'), 1)
+  closeTo(Math.abs(polygonArea(GROUND_OUTLINE)), siteArea('HOUSE') + siteArea('HOUSE-ARM') + siteArea('HOUSE-TERRACE'), 1)
   closeTo(Math.abs(polygonArea(FIRST_OUTLINE)), siteArea('HOUSE') + siteArea('HOUSE-ENTRY'), 1)
   // First floor: the 9 m x 8.66 m house; the roof's 1 m cantilever is not a floor.
-  closeTo(Math.abs(polygonArea(FIRST_OUTLINE)), 9 * (4.33 - houseSouthWestEdge(1.8)), 1e-6)
+  closeTo(Math.abs(polygonArea(FIRST_OUTLINE)), (AZOTEA_REAR + 5) * (4.33 - houseSouthWestEdge(1.8)), 1e-6)
   // Ground floor: the same footprint at the front, less the recess, plus the rear band.
   assert.ok(Math.abs(polygonArea(GROUND_OUTLINE)) > Math.abs(polygonArea(FIRST_OUTLINE)))
 })
@@ -106,7 +106,7 @@ test('outlines that are not axis-aligned are rejected', () => {
 })
 
 test('the rear wall has a 1.78 m door centred on the terrace and a 2.3 m by 1.64 m window centred on the light well', () => {
-  const rear = OPENINGS.first.filter(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - LAUNDRY_DOOR_WIDTH) > 1e-9)
+  const rear = OPENINGS.first.filter(opening => opening.u === AZOTEA_REAR && Math.abs(opening.v[1] - opening.v[0] - LAUNDRY_DOOR_WIDTH) > 1e-9)
   assert.equal(rear.length, 2)
   const [door, window] = rear.sort((a, b) => a.v[0] - b.v[0])
   assert.ok(Math.abs(door.v[1] - door.v[0] - 1.78) < 1e-9)
@@ -236,8 +236,8 @@ test('the kitchen-living is one long room from party wall to party wall behind t
   near(KITCHEN_LIVING.v[0], FIRST_FLOOR_BATHROOM.v[0])
   near(KITCHEN_LIVING.v[1], 4.33 - .15)
   near(KITCHEN_LIVING.u[0], FIRST_FLOOR_BATHROOM.u[1] + .12)
-  // 8.2 m across and about 2.7 m deep: a long room.
-  assert.ok(KITCHEN_LIVING.v[1] - KITCHEN_LIVING.v[0] > 8 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] > 2.5 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] < 3)
+  // 8.2 m across and 3.1 to 3.15 m deep (owner): a long room, whose rear wall is level with the ground floor's.
+  assert.ok(KITCHEN_LIVING.v[1] - KITCHEN_LIVING.v[0] > 8 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] >= 3.1 && KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0] <= 3.15)
   // The wall in front of it runs the whole width, except for the door to the hall; nothing partitions the room itself.
   const front = FIRST_FLOOR_PARTITIONS.filter(([u0]) => Math.abs(u0 - FIRST_FLOOR_BATHROOM.u[1]) < 1e-9 && u0 >= FIRST_FLOOR_BATHROOM.u[1])
   const covered = front.reduce((sum, [, , v0, v1]) => sum + (v1 - v0), 0) + (LIVING_DOOR.v[1] - LIVING_DOOR.v[0])
@@ -438,12 +438,12 @@ test('the floors are Saing almendra and Saing miel planks of 20 by 120 cm and Na
     assert.ok(!(overlapU > 1e-6 && overlapV > 1e-6), `${a.zone} and ${b.zone} tiles overlap`)
   }
   // Every indoor rectangle stays inside the first floor's block; the terrace, the laundry and the balcony lie beyond its rear wall.
-  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace' && item.zone !== 'laundry' && item.zone !== 'balcony')) assert.ok(rect[0] >= -5 && rect[1] <= 4 && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
+  for (const { rect, zone } of rects.filter(item => item.zone !== 'terrace' && item.zone !== 'laundry' && item.zone !== 'balcony')) assert.ok(rect[0] >= -5 && rect[1] <= AZOTEA_REAR && rect[2] >= -4.5 && rect[3] <= 4.475, `${zone} inside the block`)
 })
 
 test('the terrace floor lies over the rear band, between its two walls', () => {
   const [u0, u1, v0, v1] = FLOOR_TILING.find(zone => zone.id === 'terrace')!.rects[0]
-  assert.ok(Math.abs(u0 - 4) < 1e-9 && u1 > 8 && u1 < 9)
+  assert.ok(Math.abs(u0 - AZOTEA_REAR) < 1e-9 && u1 > 8 && u1 < 9)
   // Between the 1.6 m wall on the party wall and the 1.1 m railing wall over the light well (v = -1).
   assert.ok(v0 < -4 && v0 > -4.5 && Math.abs(v1 - (-1.15)) < 1e-9)
 })
@@ -479,15 +479,15 @@ test('the living and laundry doors are white aluminium frames with glass, and on
 
 test('the laundry door is 0.80 m, single-leaf, right-handed and 1.20 m from the party wall, flush with the laundry\'s wall on the well, on the rear wall', () => {
   const near = (a: number, b: number, tolerance = 1e-9) => assert.ok(Math.abs(a - b) < tolerance, `${a} vs ${b}`)
-  const door = OPENINGS.first.find(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - .8) < 1e-9)!
+  const door = OPENINGS.first.find(opening => opening.u === AZOTEA_REAR && Math.abs(opening.v[1] - opening.v[0] - .8) < 1e-9)!
   near(door.y[1] - door.y[0], 2.1)
   // 1.20 m from the party wall's inner face (v = 4.18) to the door's nearer edge: the laundry is 2 m wide (owner) and the door, 0.8 m, stands against its wall on the well.
   near(KITCHEN_LIVING.v[1] - door.v[1], 1.2)
   near(door.v[0], 4.33 - .15 - 2)
   assert.ok(door.v[0] >= KITCHEN_LIVING.v[0] && door.v[1] <= KITCHEN_LIVING.v[1])
-  for (const other of OPENINGS.first.filter(opening => opening.u === 4 && opening !== door)) assert.ok(other.v[1] < door.v[0] || other.v[0] > door.v[1], 'clear of the other openings')
+  for (const other of OPENINGS.first.filter(opening => opening.u === AZOTEA_REAR && opening !== door)) assert.ok(other.v[1] < door.v[0] || other.v[0] > door.v[1], 'clear of the other openings')
   const swing = FIRST_FLOOR_DOOR_SWINGS.find(item => item.id === 'laundry')!
-  near(swing.radius, .8); near(swing.hinge[1], door.v[0]); near(swing.hinge[0], 4)
+  near(swing.radius, .8); near(swing.hinge[1], door.v[0]); near(swing.hinge[0], AZOTEA_REAR)
   assert.deepEqual(swing.open, [1, 0])
 })
 
@@ -501,9 +501,9 @@ test('the first-floor balcony is 7.94 m wide and 0.86 m deep, centred on the fac
 
 test('the laundry floor lies beyond the rear wall, on the left band, and includes the laundry door\'s way in', () => {
   const [u0, u1, v0, v1] = FLOOR_TILING.find(zone => zone.id === 'laundry')!.rects[0]
-  assert.ok(Math.abs(u0 - 4) < 1e-9 && u1 > 8 && u1 < 9)
+  assert.ok(Math.abs(u0 - AZOTEA_REAR) < 1e-9 && u1 > 8 && u1 < 9)
   assert.ok(v0 >= 1.5 && v1 <= 4.33, 'on the left ground-floor band, past the light well')
-  const door = OPENINGS.first.find(opening => opening.u === 4 && Math.abs(opening.v[1] - opening.v[0] - LAUNDRY_DOOR_WIDTH) < 1e-9)!
+  const door = OPENINGS.first.find(opening => opening.u === AZOTEA_REAR && Math.abs(opening.v[1] - opening.v[0] - LAUNDRY_DOOR_WIDTH) < 1e-9)!
   assert.ok(door.v[0] >= v0 && door.v[1] <= v1, 'the laundry door opens onto it')
 })
 
@@ -791,4 +791,10 @@ test('the ground floor\'s bathroom, living and office have the first floor\'s ba
   for (const item of GROUND_FLOOR_TILING) assert.equal(item.level, GROUND_FLOOR_LEVEL)
   assert.deepEqual(zone('ground-bathroom').rects[0], [GROUND_BATHROOM.u[0], GROUND_BATHROOM.u[1], GROUND_BATHROOM.v[0], GROUND_BATHROOM.v[1]])
   assert.deepEqual(zone('ground-living').rects[0], [GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0], GROUND_LIVING.v[1]])
+})
+
+test('the first floor\'s rear wall closes the kitchen-living with no gap: its inner face is where the floor ends', () => {
+  const rear = FIRST_OUTLINE.find((point, index) => point[0] === AZOTEA_REAR && FIRST_OUTLINE[(index + 1) % FIRST_OUTLINE.length][0] === AZOTEA_REAR)!
+  const next = FIRST_OUTLINE[(FIRST_OUTLINE.indexOf(rear) + 1) % FIRST_OUTLINE.length]
+  assert.ok(Math.abs(AZOTEA_REAR - exteriorThickness(rear, next) - KITCHEN_LIVING.u[1]) < 1e-9)
 })

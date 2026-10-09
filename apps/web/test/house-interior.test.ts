@@ -3,20 +3,20 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { polygonCentroid } from '@t3-designer/geometry'
 import { pointInEditorPolygon } from '@t3-designer/scene-schema'
-import { MAIN_TV_PLACEMENT } from '../src/data/house-plan.ts'
+import { KITCHEN_LIVING, MAIN_TV_PLACEMENT } from '../src/data/house-plan.ts'
 import { currentFixtures } from '../src/data/current-state.ts'
 import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
-import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
+import { AZOTEA_REAR, FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { BATHROOM, CUT_HEIGHT, FIRST_FLOOR_PARTITIONS, GROUND_PARTITIONS, OPENINGS, OUTLINES, SIDE_OPENINGS, wallBoxes, FIRST_FLOOR_BATHROOM, FRONT_ROOMS, GARAGE, GROUND_GARAGE, OFFICE_WIDTH, GROUND_OFFICE } from '../src/data/house-plan.ts'
 import { houseToSite } from '../src/data/frame.ts'
 import { apartmentToSite, housePlacement, siteDirectionFromApartment, siteDirectionToApartment } from '../src/data/house-placement.ts'
 import { publicScene } from '../src/lib/public-scene.ts'
 const LAUNDRY_FLIGHT_V = 2.18 + .475
 import { AZOTEA_OBSTACLES } from '../src/data/azotea.ts'
-import { armKey, armReach, furnishingDevices, furnishingsOn, isTvMounted, tvMountKey } from '../src/data/house-furnishings.ts'
+import { armKey, armReach, furnishingDevices, furnishingsOn, isLivingSetPiece, isLivingSetPresent, isTvMounted, LIVING_SET_ID, livingSetKey, tvMountKey } from '../src/data/house-furnishings.ts'
 import { tvMountLinks } from '../src/data/tv-mount.ts'
 import { STAIR_BLOCKS } from '../src/data/stair.ts'
-import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
+import { buildWalkWorld, canSetWalkDoorOpenness, roomAtPosition, moveWalkPosition, stepWalkVertical, findWalkDoorTarget, findWalkSpawn, withWalkDoorStates, isWalkPositionFree } from '../src/walkthrough/navigation.ts'
 
 const close = (actual: number, expected: number, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`)
 const room = (floor: 'ground' | 'first', id: string) => HOUSE_FLOORS[floor].rooms.find(item => item.id === id)!
@@ -324,7 +324,7 @@ test('the laundry\'s door onto the landing is a white aluminium door that stands
   const ground = publicScene('ground', []), first = publicScene('first', [])
   const shut = buildWalkWorld(ground, undefined, first), open = buildWalkWorld(ground, { [door.id]: 1 }, first)
   // It starts shut: at the landing's height, the doorway is closed. Open, it is clear.
-  const doorway: [number, number] = [7.05, -(LAUNDRY_FLIGHT_V)]
+  const doorway: [number, number] = [7.05 + (AZOTEA_REAR - 4), -(LAUNDRY_FLIGHT_V)]
   assert.ok(!isWalkPositionFree(shut, doorway, 1.65, 4.2))
   assert.ok(isWalkPositionFree(open, doorway, 1.65, 4.2))
   // The wall under the door is there below the sill: at the laundry's floor, the doorway is a wall.
@@ -442,14 +442,20 @@ test('Q unfolds a TV mount\'s arm: the TV comes out 29 cm, the links join the wa
   assert.ok(device.halfDepth * 2 >= .03 + (.355 - .067) - 1e-9)
 })
 
-test('the TV wall has the in-wall media box at the table\'s height, the cable pass-through beside the mount and a plug at the TV\'s height', () => {
+test('the TV wall has the in-wall media box over the network socket, the cable pass-through beside the mount and a plug at the TV\'s height', () => {
   const pieces = furnishingsOn('first')
   const find = (id: string) => pieces.find(piece => piece.id === id)!
   const table = find('living-table-top'), tv = find('tv-living'), wallV = table.v[0] - .03
-  // The media box: 403 by 275 mm trim ring, centred under the TV, at the height of the table's top, flat on the wall.
+  // The media box: 403 by 275 mm trim ring, centred under the TV, just over the network socket's plate, flat on the wall.
   const left = find('wallbox-trim-left'), right = find('wallbox-trim-right'), top = find('wallbox-trim-top'), bottom = find('wallbox-trim-bottom')
   close(left.u[1] - right.u[0], .403, 1e-9); close(top.y[1] - bottom.y[0], .275, 1e-9)
-  close((top.y[0] + bottom.y[1]) / 2, table.y[1], 1e-9)
+  close((top.y[0] + bottom.y[1]) / 2, table.y[1] + .105, 1e-9)
+  const data = find('data-ps5-plate')
+  assert.ok(bottom.y[0] - data.y[1] >= .05 && bottom.y[0] - data.y[1] < .06, 'the media box sits just over 5 cm above the network socket')
+  close((data.y[0] + data.y[1]) / 2, find('outlet-left-plate').y[0] + .036, 1e-9)
+  assert.ok(data.u[0] >= table.u[0] && data.u[1] <= table.u[1], 'behind the table')
+  close((data.u[0] + data.u[1]) / 2, (KITCHEN_LIVING.u[0] + KITCHEN_LIVING.u[1]) / 2, 1e-9)
+  close(data.v[0], wallV, 1e-9)
   close((left.u[1] + right.u[0]) / 2, (tv.u[0] + tv.u[1]) / 2, 1e-9)
   close(top.v[0], wallV, 1e-9)
   // Its cover has a slot along the lower edge, about two thirds of its width.
@@ -472,4 +478,73 @@ test('the TV wall has the in-wall media box at the table\'s height, the cable pa
   assert.ok(((outlet.u[0] + outlet.u[1]) / 2 - mountMiddle) * ((plate.u[0] + plate.u[1]) / 2 - mountMiddle) < 0, 'the plug and the hole are on opposite sides of the mount')
   // They are all behind the TV (v: the wall to the TV's back): none sticks out past 67 mm.
   for (const piece of pieces.filter(item => /^(wallbox|cable-hole|outlet-tv)-/.test(item.id))) assert.ok(piece.v[1] <= wallV + .067 + 1e-9, piece.id)
+})
+
+test('the living\'s table, PS5 and controller are one device: aimed at they can be taken away, and the spot stays free to walk through', () => {
+  const world = buildWalkWorld(publicScene('first', []))
+  const device = world.doors.find(door => door.id === LIVING_SET_ID)
+  assert.ok(device?.device)
+  const table = furnishingsOn('first').find(piece => piece.id === 'living-table-top')!
+  const u = (table.u[0] + table.u[1]) / 2, v = table.v[1]
+  // Standing 1 m from the table's front edge in the living, facing the party wall, looking at the table top.
+  const pose = { x: u, z: -(v + 1), yaw: Math.PI, pitch: Math.atan2(.42 - 1.65, 1), eyeHeight: 1.65, feetOffset: 0 }
+  assert.deepEqual(findWalkDoorTarget(world, {}, pose), { id: LIVING_SET_ID, open: false })
+  // Taken away, it can still be aimed at (to set it back), but it no longer stops the visitor.
+  assert.equal(findWalkDoorTarget(world, { [livingSetKey]: 0 }, pose)?.id, LIVING_SET_ID)
+  assert.ok(withWalkDoorStates(world, {}).blockers.length > withWalkDoorStates(world, { [livingSetKey]: 0 }).blockers.length)
+  assert.equal(isLivingSetPresent({ [livingSetKey]: 0 }), false)
+  assert.ok(['living-table-top', 'living-table-leg-1', 'ps5', 'ps5-controller'].every(isLivingSetPiece) && !isLivingSetPiece('wallbox-trim-top'))
+})
+
+test('the bathroom has an outlet on the wall shared with the living, centred between the toilet and the vanity', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const plate = find('outlet-bathroom-plate'), toilet = find('toilet-body'), vanity = find('vanity-body')
+  const toiletEdge = Math.max(toilet.v[0], toilet.v[1]), gap: [number, number] = [toiletEdge, vanity.v[0]]
+  assert.ok(plate.v[0] > gap[0] && plate.v[1] < gap[1], 'the plate fits in the wall between the two')
+  close((plate.v[0] + plate.v[1]) / 2, (gap[0] + gap[1]) / 2, 1e-9)
+  close((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + .15, 1e-9)  // at floor level, for the smart toilet
+  // Flat on the wall the bathroom shares with the living, facing the bathroom (lower u).
+  close(plate.u[1], FIRST_FLOOR_BATHROOM.u[1], 1e-9)
+  assert.ok(plate.u[0] < plate.u[1] && pieces.filter(piece => piece.id.startsWith('outlet-bathroom-')).every(piece => piece.u[1] <= plate.u[1] + 1e-9 && piece.rollAboutU))
+})
+
+test('the kitchen has an outlet 0.30 m up on the other side of the wall from the bathroom\'s, at the same place along it', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const kitchen = find('outlet-kitchen-hall-plate'), bathroom = find('outlet-bathroom-plate')
+  close((kitchen.v[0] + kitchen.v[1]) / 2, (bathroom.v[0] + bathroom.v[1]) / 2, 1e-9)
+  close((kitchen.y[0] + kitchen.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9)
+  // Flat on the kitchen's face of the wall, which is the bathroom's wall plus its 12 cm, facing the kitchen (higher u).
+  close(kitchen.u[0], KITCHEN_LIVING.u[0], 1e-9)
+  assert.ok(kitchen.u[0] - bathroom.u[1] > .11 && kitchen.u[1] > kitchen.u[0])
+  assert.ok(pieces.filter(piece => piece.id.startsWith('outlet-kitchen-hall-')).every(piece => piece.u[0] >= KITCHEN_LIVING.u[0] - 1e-9 && piece.rollAboutU))
+})
+
+test('the kitchen\'s rear wall has an outlet 0.30 m up between the light well\'s window and the terrace\'s balcony door', () => {
+  const pieces = furnishingsOn('first'), plate = pieces.find(piece => piece.id === 'outlet-kitchen-rear-plate')!
+  const rear = OPENINGS.first.filter(opening => opening.u === AZOTEA_REAR).sort((a, b) => a.v[0] - b.v[0])
+  const [door, window] = rear
+  assert.ok(plate.v[0] > door.v[1] && plate.v[1] < window.v[0], 'between the balcony door and the window')
+  close((plate.v[0] + plate.v[1]) / 2, (door.v[1] + window.v[0]) / 2, 1e-9)
+  close((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9)
+  // Flat on the wall's inner face, facing the kitchen (lower u).
+  close(plate.u[1], KITCHEN_LIVING.u[1], 1e-9)
+  assert.ok(pieces.filter(piece => piece.id.startsWith('outlet-kitchen-rear-')).every(piece => piece.u[1] <= KITCHEN_LIVING.u[1] + 1e-9 && piece.rollAboutU))
+})
+
+test('the main room\'s TV wall has the same scheme: a network socket, an outlet each side of the bed, the media box over the socket and the TV\'s pass-through and plug', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const tv = find('tv-main'), wallV = MAIN_TV_PLACEMENT.bracket.v[0], tvMiddle = (tv.u[0] + tv.u[1]) / 2
+  const data = find('main-data-plate'), left = find('main-outlet-left-plate'), right = find('main-outlet-right-plate'), top = find('main-wallbox-trim-top'), bottom = find('main-wallbox-trim-bottom')
+  close((data.u[0] + data.u[1]) / 2, tvMiddle, 1e-9); close((data.y[0] + data.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9); close(data.v[0], wallV, 1e-9)
+  // An outlet each side of the bed (1.60 m wide, centred like the TV), 25 cm clear of it, at the same height as the socket.
+  const bed = find('bed-main')
+  const [lower, upper] = [left, right].sort((a, b) => a.u[0] - b.u[0])
+  assert.ok(lower.u[1] <= bed.u[0] - .19 && upper.u[0] >= bed.u[1] + .19, 'one each side of the bed, clear of it')
+  for (const outlet of [left, right]) close((outlet.y[0] + outlet.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9)
+  close((left.u[0] + left.u[1]) / 2 + (right.u[0] + right.u[1]) / 2, 2 * tvMiddle, 1e-9)
+  assert.ok(bottom.y[0] - data.y[1] >= .05 && top.y[1] < tv.y[0], 'the media box is over the socket and under the TV')
+  close((top.y[0] + bottom.y[1]) / 2, find('living-table-top').y[1] + .105, 1e-9)
+  const hole = find('main-cable-hole-plate'), plug = find('main-outlet-tv-plate'), mount = find('tv-main-mount-wall-plate')
+  assert.ok(hole.disc && (hole.u[1] < mount.u[0] || hole.u[0] > mount.u[1]) && (plug.u[1] < mount.u[0] || plug.u[0] > mount.u[1]))
+  close((plug.y[0] + plug.y[1]) / 2, (tv.y[0] + tv.y[1]) / 2, 1e-9)
 })

@@ -4,12 +4,18 @@ import { edgeRadius } from '../lib/rounding'
 import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
-import { armReach, furnishingsOn, isTvMounted } from '../data/house-furnishings'
+import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
+import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
+import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
+import { CONDUIT_LIGHT_POSITIONS, conduitLightsOn, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
+import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
 import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
 import { KITCHEN_SINK, KITCHEN_TAP } from '../data/kitchen'
 import { FloorPatch, KitchenPiece } from './HouseShell'
+import { AZOTEA_REAR } from '../data/building-site'
+import { LAUNDRY } from '../data/laundry'
 
 /**
  * The cutaway's furniture and equipment, standing at full height in the viewer's frame: x = u, z = -v, y up from the floor. The plan's
@@ -102,15 +108,34 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   // What moves with the arm: the TV, its picture, and the mount's head and rails.
   const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
   const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
-  const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge
+  // The breakfast nook, the tall column: closed it is a plain box; open, its door swings about the hinge on the rear wall's side and the shelves and the coffee machine show.
+  const nookOpen = (devices['kitchen-column'] ?? 0) >= .5
+  const lightsOn = islandLightsOn(devices), bathroomOn = bathroomLightsOn(devices), conduitOn = conduitLightsOn(devices), balconyOn = balconyLightsOn(devices)
+  const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
+  const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
-  const fridgeModel = !!fridge && !fridgeOpen && (cut === undefined || cut >= fridge.y[1])
+  const fridgeModel = !!fridge && !fridgeOpen && !fridgeAway && (cut === undefined || cut >= fridge.y[1])
   return <group name="house-furnishings" position={[0, absolute ? 0 : -FLOOR_ELEVATION[floor], 0]}>
     {floor === 'first' && (cut === undefined || cut > KITCHEN_TAP.base + .46) && <ModelBoundary fallback={null}><Suspense fallback={null}>
-      {/* The sink's basin, under the opening in the top (its lip is under the slab), and the brass tap on the top at the basin's back edge. */}
+      {/* The sink's basin, under the opening in the top (its lip is under the slab), and the brass tap on the top at the basin's long side away from the oven, turned half a turn so its arch reaches over the basin (the model's arch points toward -v, and the basin is now toward +v from the tap). */}
       <PlacedModel url="/models/house/kitchen-sink.glb" turn={0} position={[(KITCHEN_SINK.u[0] + KITCHEN_SINK.u[1]) / 2, KITCHEN_SINK.top - .03 - KITCHEN_SINK.depth, -(KITCHEN_SINK.v[0] + KITCHEN_SINK.v[1]) / 2]} />
-      <PlacedModel url="/models/house/kitchen-tap.glb" turn={0} position={[KITCHEN_TAP.u + .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v + .0716]} />
+      <PlacedModel url="/models/house/kitchen-tap.glb" turn={Math.PI} position={[KITCHEN_TAP.u - .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v - .0716]} />
     </Suspense></ModelBoundary>}
+    {/* The island's three downlights light the worktop: a warm point light under each, 10 cm below the wood. */}
+    {floor === 'first' && cut === undefined && lightsOn && ISLAND_LIGHT_POSITIONS.map((at, index) =>
+      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - .1, -at.v]} color="#ffd9a8" intensity={1.8} distance={2.8} decay={2} />)}
+    {/* The bathroom's three downlights: a neutral white light 10 cm under each. */}
+    {floor === 'first' && cut === undefined && bathroomOn && BATHROOM_LIGHT_POSITIONS.map((at, index) =>
+      <pointLight key={`bathroom-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.6, -at.v]} color="#fff1dc" intensity={1.4} distance={2.6} decay={2} />)}
+    {/* The conduit box's downlights: a warm light under every second one, 10 cm below the box, to keep the scene's light count down. */}
+    {floor === 'first' && cut === undefined && conduitOn && CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).map((at, index) =>
+      <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
+    {/* The balcony's three lanterns: a warm light 8 cm out of each. */}
+    {floor === 'first' && cut === undefined && balconyOn && BALCONY_LIGHT_POSITIONS.map((at, index) =>
+      <pointLight key={`balcony-light-${index}`} position={[at.u - .08, BALCONY_LANTERN_Y, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
+    {/* The light line: a faint warm light over the middle of each LED strip, 5 cm above it, washing the white box and the ceiling. */}
+    {floor === 'first' && cut === undefined && lightsOn && ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).map(strip =>
+      <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color="#ffcf8a" intensity={.5} distance={2.2} decay={2} />)}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
     </Suspense></ModelBoundary>}
@@ -125,6 +150,24 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       const piece = cut === undefined ? source : clipToCut(source, cut)
       if (!piece) return null
       if ((fridgeOpen || fridgeModel) && piece.id.startsWith('kitchen-fridge')) return null
+      // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
+      if (isPieceAway(devices, piece.id)) return null
+      if (piece.id === 'kitchen-column' && nookOpen) return null
+      // The island's canopy hangs above the cut: the cutaway does not draw it.
+      if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id.startsWith('kitchen-conduit-') || piece.id.startsWith('kitchen-switch-') || piece.id.startsWith('balcony-'))) return null
+      // Switched off, the lights and the light line go dark and the wash of light is gone.
+      if (!lightsOn && piece.id.startsWith('island-canopy-wash-')) return null
+      const lit = !!piece.glow && (/^kitchen-(conduit-light|switch-dot)/.test(piece.id) ? conduitOn : /^balcony-(light|switch-dot)/.test(piece.id) ? balconyOn : /^bathroom-/.test(piece.id) ? bathroomOn || !/^bathroom-(ceiling-light|switch-dot)/.test(piece.id) : lightsOn || !/^island-(canopy-(light|led)|switch-dot)/.test(piece.id))
+      if (piece.id.startsWith('kitchen-nook-') && !nookOpen) return null
+      if (piece.id === 'kitchen-nook-door' || piece.id === 'kitchen-nook-handle') {
+        // The door and its handle, turned about the hinge (the higher u edge of the door, on its front face).
+        const door = pieces.find(item => item.id === 'kitchen-nook-door')!, hinge: [number, number] = [door.u[1], (door.v[0] + door.v[1]) / 2]
+        return <group key={piece.id} position={[hinge[0], 0, -hinge[1]]} rotation={[0, NOOK.doorSwing, 0]}>
+          <mesh position={[(piece.u[0] + piece.u[1]) / 2 - hinge[0], (piece.y[0] + piece.y[1]) / 2, -((piece.v[0] + piece.v[1]) / 2 - hinge[1])]} castShadow receiveShadow>
+            <boxGeometry args={[piece.u[1] - piece.u[0], piece.y[1] - piece.y[0], piece.v[1] - piece.v[0]]} /><meshStandardMaterial color={piece.color} roughness={piece.id === 'kitchen-nook-handle' ? .3 : .6} metalness={piece.id === 'kitchen-nook-handle' ? .8 : 0} />
+          </mesh>
+        </group>
+      }
       if (piece.id === 'kitchen-sink' || piece.id === 'kitchen-tap') return null
       // The folded links give way to the arm drawn below when the mount reaches out.
       if (/^tv-(main|living)-mount-link-/.test(piece.id) && armReach(devices, `tv-${piece.id.split('-')[1]}`) > 0) return null
@@ -137,15 +180,16 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (tv && !isTvMounted(devices, piece.id)) return null
       return <group key={piece.id} position={[0, 0, -pieceReach(piece.id)]}>
         {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
-          <Suspense fallback={null}><PlacedModel url={piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
+          <Suspense fallback={null}><PlacedModel url={piece.id.startsWith('balcony-lantern-') && !balconyOn ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
         </ModelBoundary> : (() => {
           const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
           const material = <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}
-            transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined} />
+            transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined}
+            {...(lit ? { emissive: piece.color, emissiveIntensity: 1.6, toneMapped: false } : {})} />
           // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.
-          if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? [0, 0, piece.roll] : undefined} castShadow receiveShadow>{material}</RoundedBox>
-          return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? [0, 0, piece.roll] : undefined}
+          if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? rollRotation(piece) : undefined} castShadow receiveShadow>{material}</RoundedBox>
+          return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? rollRotation(piece) : undefined}
             scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow receiveShadow>
             {piece.disc ? <cylinderGeometry args={[size[0] / 2, size[0] / 2, size[2], 40]} /> : ellipse ? <cylinderGeometry args={[1, piece.taper ?? 1, size[1], 40]} /> : <boxGeometry args={size} />}
             {material}
@@ -160,10 +204,13 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   </group>
 }
 
+/** A plate's roll turns about the wall's normal: v for the walls that face along v, u for those that face along u. */
+const rollRotation = (piece: Furnishing): [number, number, number] => piece.rollAboutU ? [piece.roll!, 0, 0] : [0, 0, piece.roll!]
+
 /** Raises the tiles a hair over the room floors the viewers draw, so the two never fight for the same pixels. */
 const TILE_LIFT = .012
 /** The laundry's tile runs on under the stair's landing in the plan; the visitor's floor ends at the laundry's back wall. */
-const LAUNDRY_END = 7
+const LAUNDRY_END = AZOTEA_REAR + LAUNDRY.length
 
 /**
  * The floors' own finishes, from the plan: Saing planks in the bedrooms, hall and living, Navona tiles in the bathrooms and the laundry, each at its

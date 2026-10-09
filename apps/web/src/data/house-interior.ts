@@ -10,7 +10,7 @@ import {
 } from './house-plan.ts'
 import { LAUNDRY } from './laundry.ts'
 import { TERRACE_INNER, TERRACE_PARTY_WALL, TERRACE_RAILING, TERRACE_REAR_WALL, TERRACE_WALL_THICKNESS, houseSouthWestEdge } from './building-site.ts'
-import { HOUSE_HALF_WIDTH, PARTY_WALL, WELL_BACK_U, HOUSE_REAR, GROUND_WELL_EDGE } from './building-site.ts'
+import { AZOTEA_REAR, HOUSE_HALF_WIDTH, PARTY_WALL, WELL_BACK_U, HOUSE_REAR, GROUND_WELL_EDGE } from './building-site.ts'
 
 /**
  * The house as the apartment viewer and the walkthrough read it: one `Apartment` per floor, built from the house plan so the plan stays the
@@ -163,7 +163,7 @@ const room = (id: string, name: string, polygon: Point2D[], color: string): Room
 
 const firstHallV: [number, number] = [SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK]
 const sleepingMain: [number, number] = [FRONT_ROOMS.main.v[0], MAIN_ROOM_DRYWALL[2]]
-const LAUNDRY_U_ROOM: [number, number] = [4, 4 + LAUNDRY.length]
+const LAUNDRY_U_ROOM: [number, number] = [AZOTEA_REAR, AZOTEA_REAR + LAUNDRY.length]
 const firstRooms: Room[] = [
   room('secondary-room', 'Secondary room', rect(FRONT_ROOMS.secondary.u, FRONT_ROOMS.secondary.v), '#d8cdb8'),
   room('main-room', 'Main room', rect(FRONT_ROOMS.main.u, sleepingMain), '#dfc7bf'),
@@ -172,7 +172,7 @@ const firstRooms: Room[] = [
   room('hall', 'Hall', rect([FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS], firstHallV), '#ded6c3'),
   room('stair-corridor', 'Stair corridor', rect([STAIRWELL_HOLE[0], STAIRWELL_HOLE[1]], [firstHallV[0], STAIRWELL_HOLE[2]]), '#d3ccb8'),
   room('laundry', 'Laundry', rect(LAUNDRY_U_ROOM, [HOUSE_HALF_WIDTH - PARTY_WALL - LAUNDRY.width, HOUSE_HALF_WIDTH - PARTY_WALL]), '#d8d4c6'),
-  room('terrace', 'Terrace', rect([4, TERRACE_REAR], [houseSouthWestEdge((4 + TERRACE_REAR) / 2) + TERRACE_WALL_THICKNESS, TERRACE_INNER - TERRACE_WALL_THICKNESS]), '#d6d2c2'),
+  room('terrace', 'Terrace', rect([AZOTEA_REAR, TERRACE_REAR], [houseSouthWestEdge((AZOTEA_REAR + TERRACE_REAR) / 2) + TERRACE_WALL_THICKNESS, TERRACE_INNER - TERRACE_WALL_THICKNESS]), '#d6d2c2'),
   room('balcony', 'Balcony', rect([-5 - BALCONY.depth, -5], [-BALCONY.width / 2, BALCONY.width / 2]), '#c2c2b9'),
   room('kitchen-living', 'Kitchen and living', rect(KITCHEN_LIVING.u, KITCHEN_LIVING.v), '#e3d5bd'),
 ]
@@ -188,7 +188,7 @@ const groundRooms: Room[] = [
 
 const FIRST_NE = HOUSE_HALF_WIDTH - PARTY_WALL
 const LAUNDRY_V0 = FIRST_NE - LAUNDRY.width
-const LAUNDRY_U: [number, number] = [4, 4 + LAUNDRY.length]
+const LAUNDRY_U: [number, number] = [AZOTEA_REAR, AZOTEA_REAR + LAUNDRY.length]
 const LAUNDRY_BACK = LAUNDRY_U[1] + LAUNDRY.wallThickness
 const BALCONY_V = BALCONY.width / 2
 const BALCONY_FRONT = -5 - BALCONY.depth
@@ -202,11 +202,11 @@ const TERRACE_SW = (u: number) => houseSouthWestEdge(u) + TERRACE_WALL_THICKNESS
  */
 function firstFloorPerimeter(withTerrace = true, withHole = true): Point2D[] {
   const hole = STAIRWELL_HOLE
-  const terrace = withTerrace ? [local(4, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
+  const terrace = withTerrace ? [local(AZOTEA_REAR, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
   return [
     local(-5, FIRST_OUTLINE[0][1]), local(-5, -BALCONY_V), local(BALCONY_FRONT, -BALCONY_V), local(BALCONY_FRONT, BALCONY_V), local(-5, BALCONY_V),
     local(-5, HOUSE_HALF_WIDTH), ...(withHole ? [local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH)] : []),
-    local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(4, LAUNDRY_V0 - LAUNDRY.wallThickness), ...terrace, local(4, FIRST_OUTLINE[0][1]),
+    local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness), ...terrace, local(AZOTEA_REAR, FIRST_OUTLINE[0][1]),
   ]
 }
 
@@ -232,8 +232,8 @@ function firstFloorAnnex() {
     return result
   }
   // The laundry: the party wall, the glazed wall on the light well and the back wall, past which the stair's landing lies.
-  wall('first-laundry-party', [4, HOUSE_HALF_WIDTH - PARTY_WALL / 2], [LAUNDRY_BACK, HOUSE_HALF_WIDTH - PARTY_WALL / 2], PARTY_WALL)
-  const glazed = wall('first-laundry-glass', [4, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], [LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], LAUNDRY.wallThickness)
+  wall('first-laundry-party', [AZOTEA_REAR, HOUSE_HALF_WIDTH - PARTY_WALL / 2], [LAUNDRY_BACK, HOUSE_HALF_WIDTH - PARTY_WALL / 2], PARTY_WALL)
+  const glazed = wall('first-laundry-glass', [AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], [LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness / 2], LAUNDRY.wallThickness)
   windows.push({ id: 'first-laundry-glazing', wallId: glazed.id, offset: .1, width: LAUNDRY.length - .1, height: 2.7, sillHeight: .1, estimated: true, kind: 'casement', locationConfidence: 'observed' })
   // The back wall: full height beside the first flight, whose door leads out to the landing; only 0.8 m under the second flight (it stands on it), which is how
   // the visitor gets from the landing back over the laundry's north-east half.
@@ -251,9 +251,9 @@ function firstFloorAnnex() {
   wall('first-balcony-rail-north-east', [BALCONY_FRONT, BALCONY_V - RAIL / 2], [-5, BALCONY_V - RAIL / 2], RAIL, 1)
   // The terrace behind the kitchen, over the rear ground-floor band: the party wall on the south-west (it leans with the lot), the wall at the
   // back, and the railing on the light well's side.
-  wall('first-terrace-party', [4, TERRACE_SW(4)], [TERRACE_REAR, TERRACE_SW(TERRACE_REAR)], TERRACE_WALL_THICKNESS, TERRACE_PARTY_WALL)
+  wall('first-terrace-party', [AZOTEA_REAR, TERRACE_SW(AZOTEA_REAR)], [TERRACE_REAR, TERRACE_SW(TERRACE_REAR)], TERRACE_WALL_THICKNESS, TERRACE_PARTY_WALL)
   wall('first-terrace-rear', [TERRACE_REAR - TERRACE_REAR_WALL / 2, houseSouthWestEdge(TERRACE_REAR) + TERRACE_WALL_THICKNESS], [TERRACE_REAR - TERRACE_REAR_WALL / 2, TERRACE_INNER - TERRACE_WALL_THICKNESS], TERRACE_REAR_WALL, TERRACE_PARTY_WALL)
-  wall('first-terrace-rail', [4, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], [TERRACE_REAR, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], TERRACE_WALL_THICKNESS, TERRACE_RAILING)
+  wall('first-terrace-rail', [AZOTEA_REAR, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], [TERRACE_REAR, TERRACE_INNER - TERRACE_WALL_THICKNESS / 2], TERRACE_WALL_THICKNESS, TERRACE_RAILING)
   return { walls, windows, doors }
 }
 
@@ -263,15 +263,15 @@ export function walkOutline(floor: Floor): Point2D[] {
 }
 
 /**
- * The roof the walkthrough draws and walks on: the 9 m block with the 1 m cantilever in front, and the laundry's sheet roof over its glazed half. The laundry's
+ * The roof the walkthrough draws and walks on: the 9.46 m block with the 1 m cantilever in front, and the laundry's sheet roof over its glazed half. The laundry's
  * north-east half is the stair's second flight, open to the sky, and the stairwell is not a hole in the roof.
  */
 export function ceilingPolygon(floor: Floor): Point2D[] {
   if (floor !== 'first') return HOUSE_FLOORS[floor].perimeter
   const sw = FIRST_OUTLINE[0][1], wall = LAUNDRY.wallThickness
   return [
-    local(-6, sw), local(4, sw), local(4, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, FIRST_NE - LAUNDRY.flight.width - wall),
-    local(4, FIRST_NE - LAUNDRY.flight.width - wall), local(4, HOUSE_HALF_WIDTH), local(-6, HOUSE_HALF_WIDTH),
+    local(-6, sw), local(AZOTEA_REAR, sw), local(AZOTEA_REAR, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, FIRST_NE - LAUNDRY.flight.width - wall),
+    local(AZOTEA_REAR, FIRST_NE - LAUNDRY.flight.width - wall), local(AZOTEA_REAR, HOUSE_HALF_WIDTH), local(-6, HOUSE_HALF_WIDTH),
   ]
 }
 

@@ -1,4 +1,4 @@
-import { FLOOR_HEIGHT, HOUSE_HALF_WIDTH, PARTY_WALL } from './building-site.ts'
+import { AZOTEA_REAR, FLOOR_HEIGHT, HOUSE_HALF_WIDTH, PARTY_WALL } from './building-site.ts'
 import { LAUNDRY } from './laundry.ts'
 
 /**
@@ -12,7 +12,7 @@ export type WashingMachineBox = { id: string; u: [number, number]; v: [number, n
 export const WASHING_MACHINE = { width: .6, depth: .6, height: .85, fromRearWall: .05 }
 const { width, depth, height, fromRearWall } = WASHING_MACHINE
 const wall = HOUSE_HALF_WIDTH - PARTY_WALL
-const rearFace = 4
+const rearFace = AZOTEA_REAR
 export const WASHING_MACHINE_U: [number, number] = [rearFace + fromRearWall, rearFace + fromRearWall + width]
 export const WASHING_MACHINE_V: [number, number] = [wall - depth, wall]
 const front = WASHING_MACHINE_V[0]

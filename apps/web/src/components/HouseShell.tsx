@@ -145,16 +145,22 @@ function slabPicture(pattern: TilePattern) {
  * One piece of a slab: the part of the slab's pattern that falls on [u, v], so that pieces of the same top (the strips around the sink's opening) line up. `origin`
  * is where the top begins; a piece is drawn from there.
  */
-function SlabPiece({ u, v, y, color, pattern, origin, id }: { u: [number, number]; v: [number, number]; y: [number, number]; color: string; pattern: TilePattern; origin: [number, number]; id: string }) {
+function SlabPiece({ u, v, y, color, pattern, origin, id, wall }: { u: [number, number]; v: [number, number]; y: [number, number]; color: string; pattern: TilePattern; origin: [number, number]; id: string; wall?: boolean }) {
   // The dependencies are plain numbers: the arrays are new on every render, and a new texture each time shows as a flash of white while it loads.
   const [u0, u1, v0, v1, originU, originV] = [u[0], u[1], v[0], v[1], origin[0], origin[1]]
   const map = useMemo(() => {
     const texture = pattern.image ? slabPicture(pattern) : patternTexture(color, pattern)
     const across = pattern.width * pattern.rows
+    if (wall) {
+      // A slab standing on a wall: its length runs along u and its width up the wall, from the slab's lower edge.
+      texture.repeat.set((u1 - u0) / pattern.length, (y[1] - y[0]) / across)
+      texture.offset.set((u0 - originU) / pattern.length, 0)
+      return texture
+    }
     texture.repeat.set((u1 - u0) / pattern.length, (v1 - v0) / across)
     texture.offset.set((u0 - originU) / pattern.length, (v0 - originV) / across)
     return texture
-  }, [pattern, color, u0, u1, v0, v1, originU, originV])
+  }, [pattern, color, u0, u1, v0, v1, originU, originV, wall, y[0], y[1]])
   useEffect(() => () => map.dispose(), [map])
   const size = [u[1] - u[0], y[1] - y[0], v[1] - v[0]] as [number, number, number]
   return <mesh position={[(u[0] + u[1]) / 2, (y[0] + y[1]) / 2, -(v[0] + v[1]) / 2]} castShadow receiveShadow name={id}>
@@ -178,7 +184,7 @@ export function KitchenPiece({ box }: { box: KitchenBox }) {
       {piece('right', [su[1], box.u[1]], sv)}
     </>
   }
-  if (pattern) return <SlabPiece id={box.id} u={box.u} v={box.v} y={box.y} color={box.color} pattern={pattern} origin={[box.u[0], box.v[0]]} />
+  if (pattern) return <SlabPiece id={box.id} u={box.u} v={box.v} y={box.y} color={box.color} pattern={pattern} origin={[box.u[0], box.v[0]]} wall={box.wall} />
   const size = [box.u[1] - box.u[0], box.y[1] - box.y[0], box.v[1] - box.v[0]] as [number, number, number]
   const position: [number, number, number] = [(box.u[0] + box.u[1]) / 2, (box.y[0] + box.y[1]) / 2, -(box.v[0] + box.v[1]) / 2]
   const material = <meshStandardMaterial color={box.color} roughness={box.id === 'fridge' ? .4 : .6} metalness={box.id === 'fridge' ? .3 : 0} />

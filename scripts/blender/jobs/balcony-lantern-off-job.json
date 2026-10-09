@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "lantern",
+  "id": "balcony-lantern-off",
+  "label": "Balcony wall lantern (off)",
+  "units": "meters",
+  "dimensions": [
+    0.2,
+    0.28,
+    0.15
+  ],
+  "material": {
+    "baseColor": "#1b1c1e",
+    "roughness": 0.5
+  },
+  "source": {
+    "description": "Black wall lantern with frosted glass, 200 mm wide, 280 mm tall and 150 mm deep (assumed from the owner's picture, not CAD).",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {
+    "lit": false
+  }
+}

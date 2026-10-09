@@ -1,4 +1,4 @@
-import { FLOOR_HEIGHT, HOUSE_HALF_WIDTH, PARTY_WALL, ROOF_LEVEL, SITE_BUILDINGS, houseSouthWestEdge } from './building-site.ts'
+import { AZOTEA_REAR, FLOOR_HEIGHT, HOUSE_HALF_WIDTH, PARTY_WALL, ROOF_LEVEL, SITE_BUILDINGS, houseSouthWestEdge } from './building-site.ts'
 import { siteToHouse } from './frame.ts'
 import { LAUNDRY } from './laundry.ts'
 import { buildPanels } from './solar-array.ts'
@@ -14,7 +14,7 @@ export type Obstacle = { id: string; polygon: Point2[]; bottom: number; top: num
 const local = ([x, z]: Point2): Point2 => { const [u, v] = siteToHouse([x, z]); return [u, -v] }
 const NE_INNER = HOUSE_HALF_WIDTH - PARTY_WALL
 const LAUNDRY_V0 = NE_INNER - LAUNDRY.width
-const LAUNDRY_BACK = 4 + LAUNDRY.length + LAUNDRY.wallThickness
+const LAUNDRY_BACK = AZOTEA_REAR + LAUNDRY.length + LAUNDRY.wallThickness
 const LANDING_END = LAUNDRY_BACK + LAUNDRY.landing.depth
 export const LANDING_LEVEL = FLOOR_HEIGHT + LAUNDRY.landing.rise
 export const AZOTEA_LEVEL = ROOF_LEVEL
@@ -25,13 +25,13 @@ const flat = (u: number, v: number): Point2 => [u, -v]
  * flight over the laundry's north-east half. A U in the plan.
  */
 export const LANDING_OUTLINE: Point2[] = [
-  flat(4, LAUNDRY_V0), flat(LANDING_END, LAUNDRY_V0), flat(LANDING_END, NE_INNER), flat(4, NE_INNER), flat(4, NE_INNER - LAUNDRY.flight.width),
-  flat(LAUNDRY_BACK, NE_INNER - LAUNDRY.flight.width), flat(LAUNDRY_BACK, LAUNDRY_V0 + LAUNDRY.flight.width), flat(4, LAUNDRY_V0 + LAUNDRY.flight.width),
+  flat(AZOTEA_REAR, LAUNDRY_V0), flat(LANDING_END, LAUNDRY_V0), flat(LANDING_END, NE_INNER), flat(AZOTEA_REAR, NE_INNER), flat(AZOTEA_REAR, NE_INNER - LAUNDRY.flight.width),
+  flat(LAUNDRY_BACK, NE_INNER - LAUNDRY.flight.width), flat(LAUNDRY_BACK, LAUNDRY_V0 + LAUNDRY.flight.width), flat(AZOTEA_REAR, LAUNDRY_V0 + LAUNDRY.flight.width),
 ]
 
-/** The roof: the 9 m block with the 1 m cantilever in front, and the second flight's foot over the laundry's north-east half. */
+/** The roof: the 9.46 m block with the 1 m cantilever in front, and the second flight's foot over the laundry's north-east half. */
 export const AZOTEA_OUTLINE: Point2[] = [
-  flat(-6, houseSouthWestEdge(-1)), flat(4, houseSouthWestEdge(4)), flat(4, NE_INNER - LAUNDRY.flight.width), flat(LAUNDRY_BACK, NE_INNER - LAUNDRY.flight.width),
+  flat(-6, houseSouthWestEdge(-1)), flat(AZOTEA_REAR, houseSouthWestEdge(AZOTEA_REAR)), flat(AZOTEA_REAR, NE_INNER - LAUNDRY.flight.width), flat(LAUNDRY_BACK, NE_INNER - LAUNDRY.flight.width),
   flat(LAUNDRY_BACK, HOUSE_HALF_WIDTH), flat(-6, HOUSE_HALF_WIDTH),
 ]
 

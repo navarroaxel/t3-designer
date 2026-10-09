@@ -102,7 +102,8 @@ const SOUTH_WEST_LEAN = (HALF_WIDTH - 4.225) / 13.7;
 /** The v of the lot's south-west boundary at depth u. */
 export const houseSouthWestEdge = (u: number) => -HALF_WIDTH + (u + 5) * SOUTH_WEST_LEAN;
 const southWest = (u: number): PlanPoint => [u, houseSouthWestEdge(u)];
-const AZOTEA_REAR = 4; // upper block: 9 m deep, u in [-5, 4]
+/** The upper block's rear wall (owner): its outer face is level with the ground floor's rear wall, the living's and the office's, at 4.46 m. The kitchen-living inside is 3.11 m wide between it and the bathroom's wall. */
+export const AZOTEA_REAR = 4.46;
 /** Front edge of the roof slab: a 1 m cantilever past the street line, level with the balcony. */
 export const ROOF_FRONT = -6;
 // The rear boundary is slightly inclined: 13.50 m deep on the north-east side, 13.70 m on the other.
@@ -114,11 +115,10 @@ export const GROUND_WELL_EDGE = 1.8;
 export const FIRST_WELL_EDGE = 1.9;
 const LEFT_ARM_INNER = GROUND_WELL_EDGE;
 /**
- * The ground floor's front block reaches 0.46 m past the upper floor's rear wall (owner's depths): the wall that closes the light well, and the
- * living's and the office's, stands at u = 4.28 to 4.46, so the well starts at 4.46. Between the contrafrente's back face (1.11 m) and the rear wall's
+ * The wall that closes the light well, and the living's and the office's, stands at u = 4.28 to 4.46, so the well starts at 4.46, level with the upper floor's rear wall. Between the contrafrente's back face (1.11 m) and the rear wall's
  * inner face (8.35 m) fit the living (3.17 m), a wall of 0.18 m and the office (3.89 m).
  */
-export const WELL_BACK_U = 4.46;
+export const WELL_BACK_U = AZOTEA_REAR;
 export const WELL_BACK_WALL = .18;
 export const TERRACE_INNER = -1;
 export const TERRACE_PARTY_WALL = 1.6; // wall on the corner's party wall
@@ -255,8 +255,6 @@ export const SITE_BUILDINGS: BuildingFootprint[] = [
   building('HOUSE-ENTRY', 'Casa · planta alta sobre la entrada', rect(-5, -5 + ENTRY_SETBACK, ENTRY_INNER, ENTRY_OUTER), 2 * FLOOR_HEIGHT, 1, false, FLOOR_HEIGHT - .2),
   // The roof slab's 1 m cantilever in front of the facade, 0.5 m thick, level with the balcony below.
   building('HOUSE-CANTILEVER', 'Casa · voladizo de la azotea', poly([southWest(ROOF_FRONT), southWest(-5), [-5, HALF_WIDTH], [ROOF_FRONT, HALF_WIDTH]]), 2 * FLOOR_HEIGHT, 0, false, 2 * FLOOR_HEIGHT - .5),
-  // The strip of the ground floor between the upper floor's rear wall and the wall that closes the light well.
-  building('HOUSE-WELL-BACK', 'Casa · planta baja hasta el fondo del pulmón', rect(AZOTEA_REAR, WELL_BACK_U, TERRACE_INNER, LEFT_ARM_INNER), FLOOR_HEIGHT, 1),
   building('HOUSE-ARM', 'Casa · planta baja izquierda', rect(AZOTEA_REAR, REAR_NE, LEFT_ARM_INNER, HALF_WIDTH), FLOOR_HEIGHT, 1),
   // The laundry on the left arm and the stair to the azotea (owner's photos), at first-floor level.
   ...laundryVolumes(FLOOR_HEIGHT, HALF_WIDTH - PARTY_WALL, PARTY_WALL, AZOTEA_REAR, ROOF_LEVEL, FIRST_WELL_EDGE).map(item => {

@@ -7,6 +7,7 @@ import { FLOOR_HEIGHT, SITE_BUILDINGS, SITE_LOTS, SITE_PARCEL, SITE_ROADS, type 
 import { REAR_LOT_WALL_COLOR } from '../data/neighbor-fronts'
 import { polygonShape } from '../lib/polygon-shape'
 import { ShadowOnly } from './ShadowOnly'
+import { Streetscape } from './Streetscape'
 import { HouseFacade } from './HouseFacade'
 import { HouseShell, HouseShellPhysical } from './HouseShell'
 import type { Floor } from '../data/house-plan'
@@ -196,7 +197,8 @@ export function SiteGround() {
       <planeGeometry args={[1000, 1000]} /><meshStandardMaterial color="#dce1d5" roughness={1} />
     </mesh>
     <mesh geometry={parcel} rotation={[-Math.PI / 2, 0, 0]} position={[0, .022, 0]} receiveShadow><meshStandardMaterial color="#c6d0b6" roughness={1} /></mesh>
-    <Boxes boxes={roads} color="#c4c7bf" castShadow={false} />
+    <Boxes boxes={roads} color="#b3b5af" castShadow={false} />
+    <Streetscape />
     {/* Outlines of the other lots of the block; the surveyed ones are drawn a little firmer. */}
     {SITE_LOTS.filter(lot => lot.footprint !== SITE_PARCEL.footprint && lot.number !== 8).map(lot =>
       <Line key={lot.number} points={[...lot.footprint, lot.footprint[0]].map(([x, z]) => [x, .07, z])}

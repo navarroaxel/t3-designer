@@ -29,3 +29,24 @@ export function outletBoxes(name: string, wallV: number, centreU: number, floorY
     ...sockets,
   ]
 }
+
+/**
+ * A network socket, an RJ45 jack, on the same matte black plate as the power outlets but single: 72 by 72 mm, with the jack's grey frame and its dark opening, which has
+ * the key notch of the plug's latch at the bottom. Same frame and orientation as `outletBoxes`: the plate stands out of a wall at v = `wallV`, facing +v.
+ */
+export const DATA_SOCKET = { size: .072, frame: [.026, .024] as const, opening: [.0145, .0125] as const, notch: [.006, .0035] as const }
+
+export function dataSocketBoxes(name: string, wallV: number, centreU: number, floorY: number, centreHeight = OUTLET.centreHeight): OutletBox[] {
+  const { size, frame, opening, notch } = DATA_SOCKET
+  const { thickness } = OUTLET
+  const y0 = floorY + centreHeight
+  const face = (depth: number): [number, number] => [wallV + thickness + depth, wallV + thickness + depth + .0008]
+  const centred = (id: string, width: number, height: number, up: number, depth: number, color: string): OutletBox =>
+    ({ id: `${name}-${id}`, u: [centreU - width / 2, centreU + width / 2], v: face(depth), y: [y0 + up - height / 2, y0 + up + height / 2], color })
+  return [
+    { id: `${name}-plate`, u: [centreU - size / 2, centreU + size / 2], v: [wallV, wallV + thickness], y: [y0 - size / 2, y0 + size / 2], color: PLATE },
+    centred('frame', frame[0], frame[1], 0, 0, '#8a8e92'),
+    centred('opening', opening[0], opening[1], 0, .0008, SLOT),
+    centred('notch', notch[0], notch[1], -opening[1] / 2 - notch[1] / 2 + .0005, .0008, SLOT),
+  ]
+}

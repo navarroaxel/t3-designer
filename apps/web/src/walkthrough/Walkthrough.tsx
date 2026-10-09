@@ -16,7 +16,7 @@ import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
 import { saveScreenshot } from './screenshot'
 import { AmbientOcclusion } from '../components/AmbientOcclusion'
-import { armKey, isArmExtended, isTvMounted, tvMountKey } from '../data/house-furnishings'
+import { armKey, isArmExtended, isInPlace, isRemovable, isTvMounted, LIVING_SET_ID, REMOVABLE, tvMountKey } from '../data/house-furnishings'
 import './walkthrough.css'
 
 const emptyInput = (): WalkInput => ({ forward: 0, right: 0, turn: 0, lookX: 0, lookY: 0, fast: false, crouch: false, jump: false, interact: false, detach: false, extend: false })
@@ -130,6 +130,11 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const interact = useCallback((currentPose: WalkPose, action: 'use' | 'detach' | 'extend' = 'use') => {
     const target = findWalkDoorTarget(world, doorStates, currentPose)
     if (!target) return
+    if (isRemovable(target.id)) {
+      // X takes the table with the PS5 and the controller, the fridge or the microwave away, or puts it back. E works on the fridge's doors while it is in place, and on nothing else here.
+      if (action === 'detach') { setVisitDoors({ snapshot, values: { ...doorStates, [REMOVABLE[target.id].key]: isInPlace(doorStates, target.id) ? 0 : 1 } }); setPose(currentPose); return }
+      if (action !== 'use' || target.id !== 'kitchen-fridge' || !isInPlace(doorStates, target.id)) return
+    }
     const tv = /^tv-(main|living)$/.exec(target.id)
     if (tv) {
       // X takes the TV off its wall mount, or hangs it back; E needs it on the wall.
@@ -218,8 +223,10 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         {message && <p className="walk-message" role="status">{message}</p>}
         {active && <div className={`walk-crosshair${interaction ? ' walk-crosshair-target' : ''}`} aria-hidden="true" />}
         {interaction && <div className="walk-interaction">
-          <button type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
-            onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.open ? c.closeDoor : c.openDoor}</button>
+          {(!isRemovable(interaction.id) || (interaction.id === 'kitchen-fridge' && isInPlace(doorStates, interaction.id))) && <button type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
+            onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.id === 'kitchen-column' ? (interaction.open ? c.nookClose : c.nookOpen) : interaction.id.endsWith('island-switch-plate') ? (interaction.open ? c.islandLightsOff : c.islandLightsOn) : interaction.id === 'bathroom-switch-plate' ? (interaction.open ? c.bathroomLightsOff : c.bathroomLightsOn) : interaction.id === 'kitchen-switch-plate' ? (interaction.open ? c.kitchenLightsOff : c.kitchenLightsOn) : interaction.id === 'balcony-switch-plate' ? (interaction.open ? c.balconyLightsOff : c.balconyLightsOn) : interaction.open ? c.closeDoor : c.openDoor}</button>}
+          {isRemovable(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
+            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isInPlace(doorStates, interaction.id) ? (interaction.id === LIVING_SET_ID ? c.setRemove : interaction.id === 'kitchen-fridge' ? c.fridgeRemove : c.microwaveRemove) : (interaction.id === LIVING_SET_ID ? c.setRestore : interaction.id === 'kitchen-fridge' ? c.fridgeRestore : c.microwaveRestore)}</button>}
           {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
             onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isTvMounted(doorStates, interaction.id) ? c.tvRemove : c.tvMount}</button>}
           {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-extend" data-tv-id={interaction.id}

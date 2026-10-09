@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "dog",
+  "id": "dog",
+  "label": "The dog, lying down",
+  "units": "meters",
+  "dimensions": [
+    0.42,
+    0.42,
+    0.92
+  ],
+  "material": {
+    "baseColor": "#161719",
+    "roughness": 0.95
+  },
+  "source": {
+    "description": "The owner's dog lying down: shaggy black coat, white chest, beard and paws, long ears; about 420 mm wide, 420 mm tall with the head up and 920 mm long (estimated from the owner's photo).",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

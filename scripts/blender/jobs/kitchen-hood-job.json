@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "kind": "hood",
+  "id": "kitchen-hood",
+  "label": "Chimney hood",
+  "units": "meters",
+  "dimensions": [0.54, 1.6, 0.5],
+  "material": { "baseColor": "#c3c7cb", "roughness": 0.38 },
+  "source": {
+    "description": "Stainless steel wall chimney hood, 540 mm wide and 500 mm deep, with its duct up to the ceiling (1.60 m from the canopy's lower edge, level with the cabinets'); the shape is drawn from the owner's pictures, not CAD.",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

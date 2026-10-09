@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
+import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, bathroomLightsOn, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -93,4 +94,42 @@ test('the open bathroom door leaf and its swing clear every fixture', () => {
     const distance = Math.hypot(Math.max(uLow - hingeU, 0), Math.max(hingeV - vHigh, 0))
     assert.ok(distance >= radius, `${item.id} stays out of the door's swing`)
   }
+})
+
+test('the mirror is backlit: a bright strip all around its glass, a halo on the wall and two touch buttons at the lower right', () => {
+  const glass = box('mirror'), light = (id: string) => MIRROR_LIGHT_BOXES.find(item => item.id === id)!
+  for (const id of ['top', 'bottom', 'left', 'right']) {
+    const strip = light(`mirror-led-${id}`)
+    assert.ok(strip.glow && strip.v[0] >= glass.v[0] && strip.v[1] <= glass.v[1] && strip.y[0] >= glass.y[0], `${id} strip within the glass`)
+    assert.ok(strip.u[1] <= glass.u[1] - .03 + 1e-9 && strip.u[0] < strip.u[1], `${id} strip stands in front of the glass`)
+  }
+  assert.ok(light('mirror-led-top').y[1] < light('mirror-halo').y[1] && light('mirror-led-top').y[1] > light('mirror-led-bottom').y[1] && MIRROR.top === 1.9)
+  const halo = light('mirror-halo')
+  assert.ok(halo.opacity! < .3 && halo.v[0] < glass.v[0] && halo.v[1] > glass.v[1], 'the halo spills past the glass')
+  // The right hand, facing the wall, is the lower v: the buttons are at the lower end, near the bottom strip.
+  for (const id of ['mirror-button-1', 'mirror-button-2']) assert.ok(light(id).v[1] < (glass.v[0] + glass.v[1]) / 2 && light(id).y[1] < glass.y[0] + .15, id)
+})
+
+test('the bathroom has a drywall light box under the ceiling on the wall facing the mirror, with three lit recessed downlights in a row', () => {
+  const box = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-box')!, lights = BATHROOM_LIGHT_BOXES.filter(item => item.id.startsWith('ceiling-light-'))
+  // On the front wall, the one opposite the mirror's (the mirror is on the back wall, at the bathroom's higher u), and the width of the room.
+  near(box.u[0], FIRST_FLOOR_BATHROOM.u[0]); assert.ok(Math.abs(box.v[0] - FIRST_FLOOR_BATHROOM.v[0]) < 1e-9 && Math.abs(box.v[1] - FIRST_FLOOR_BATHROOM.v[1]) < 1e-9)
+  assert.ok(box.u[1] - box.u[0] <= .35 && box.u[1] < FIRST_FLOOR_BATHROOM.u[1] - 1, 'a slim box, far from the mirror')
+  assert.ok(Math.abs(box.y[1] - FLOOR_HEIGHT - (FLOOR_HEIGHT - SLAB_THICKNESS)) < 1e-9, 'up to the ceiling')
+  assert.equal(lights.length, 3); assert.equal(BATHROOM_LIGHT_POSITIONS.length, 3)
+  for (const light of lights) assert.ok(light.glow && light.round && light.u[0] >= box.u[0] && light.u[1] <= box.u[1] && light.v[0] >= box.v[0] && light.v[1] <= box.v[1] && light.y[0] < box.y[0] + 1e-9, light.id)
+  const steps = BATHROOM_LIGHT_POSITIONS.map(at => at.v).sort((a, b) => a - b)
+  near(steps[1] - steps[0], steps[2] - steps[1])
+  assert.ok(new Set(BATHROOM_LIGHT_POSITIONS.map(at => at.u)).size === 1, 'in a row')
+})
+
+test('the bathroom has a light switch inside, beside the door, between its edge and the vanity, that starts on and is a device', () => {
+  const pieces = furnishingsOn('first'), plate = pieces.find(piece => piece.id === BATHROOM_SWITCH_ID)!
+  // On the door's wall, past its edge on the vanity's side, clear of the vanity's end, flat on the wall and facing the bathroom (lower v).
+  assert.ok(plate.u[0] > BATHROOM_DOOR.u[1] && plate.u[1] < FIRST_FLOOR_BATHROOM.u[1] - BATHROOM_SIZES.vanityDepth, 'between the door and the vanity')
+  near(plate.v[1], FIRST_FLOOR_BATHROOM.v[1]); assert.ok(plate.v[0] < plate.v[1])
+  near((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + 1.1)
+  const device = furnishingDevices('first', 3.2).find(item => item.id === BATHROOM_SWITCH_ID) as { initialOpenness?: number } | undefined
+  assert.ok(device && device.initialOpenness === 1)
+  assert.ok(bathroomLightsOn({}) && !bathroomLightsOn({ [BATHROOM_SWITCH_ID]: 0 }))
 })
