@@ -18,7 +18,7 @@ const cut = FLOOR_HEIGHT + CUT_HEIGHT
 
 export const KITCHEN_SIZES = {
   baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .675, fridgeDepth: .668, fridgeHeight: 1.785, fridgeFreezerFrom: 0, fridgeDoor: .03,
-  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, topOverhang: .02, stool: .36, stoolHeight: .65,
+  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, topOverhang: .02, plinthHeight: .1, plinthRecess: .05, stool: .36, stoolHeight: .65,
 }
 /**
  * The freezer's height from its capacity (owner: 89 L net, 101 L gross). The gross volume is the liner: inner width times inner depth times
@@ -44,16 +44,18 @@ export const COUNTER_V: [number, number] = [baseV[0] - S.aisle - S.counterDepth,
 const counterU: [number, number] = [frontU, frontU + S.counterLength]
 // The tap is in the middle of the island (owner). The sink is used while cooking, so the basin is at the edge on the oven's side, and the tap stands on its long side away from the oven, in line with the island's middle.
 const islandMiddleU = counterU[0] + S.counterLength / 2
-// The dishwasher stands against the wall (1 cm off it, 45 cm wide); the sink is as near to the wall as it can be without being over it, 6 cm past the dishwasher, and the tap is centred on the sink (owner), on its long side away from the oven.
-const dishwasherEnd = counterU[0] + .01 + .45
+// The dishwasher stands near the wall, 2 cm off it for the cabinet's side (at least 1 cm, owner), 45 cm wide; the sink is as near to the wall as it can be without being over it, 6 cm past the dishwasher, and the tap is centred on the sink (owner), on its long side away from the oven.
+const dishwasherEnd = counterU[0] + .02 + .45
 const sinkU: [number, number] = [dishwasherEnd + .06, islandMiddleU + .03]
 const sinkMiddleU = (sinkU[0] + sinkU[1]) / 2
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
-const OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
+const PLINTH = '#2f3033', OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
 
 export const KITCHEN_BOXES: KitchenBox[] = [
-  { id: 'column', u: columnU, v: [wallV - S.columnDepth, wallV], y: [floor, cut], color: OAK },
+  // The tall column stands on the same plinth, set back on its front (owner: the cabinets rest on it).
+  { id: 'column', u: columnU, v: [wallV - S.columnDepth, wallV], y: [floor + S.plinthHeight, cut], color: OAK },
+  { id: 'column-plinth', u: columnU, v: [wallV - S.columnDepth + S.plinthRecess, wallV], y: [floor, floor + S.plinthHeight], color: PLINTH },
   // The fridge is the owner's Samsung RT29K577JS8, a top-freezer of 299 L with a water dispenser: 0.675 m wide, 0.668 m deep (handle
   // included) and 1.785 m high (the owner's measurements), silver stainless steel at the front and grey sides (not black: owner). Its doors face the aisle, toward lower v.
   // It is drawn up to the 1.5 m cut like the other tall pieces. The body, then the two doors, the black handle slot over the lower
@@ -64,13 +66,17 @@ export const KITCHEN_BOXES: KitchenBox[] = [
   { id: 'fridge-handle', u: [fridgeU[0] + .06, fridgeU[1] - .06], v: [wallV - S.fridgeDepth - .004, wallV - S.fridgeDepth], y: [floor + S.fridgeFreezerFrom - .09, floor + S.fridgeFreezerFrom - .015], color: '#16171a' },
   { id: 'fridge-dispenser', u: [(fridgeU[0] + fridgeU[1]) / 2 - .085, (fridgeU[0] + fridgeU[1]) / 2 + .085], v: [wallV - S.fridgeDepth - .004, wallV - S.fridgeDepth], y: [floor + .61, floor + .89], color: '#1b1d20' },
   // The cabinets are set back 2 cm under the Toscana Vena (owner): the tops stand out of the fronts and the open end of the island, never flush with them.
-  { id: 'base', u: baseU, v: baseV, y: [floor, floor + S.baseHeight], color: OAK },
+  // The base cabinets stand on a plinth, the "banquina" (owner: the cabinets rest on it, at least 2 cm back): 10 cm tall and set 5 cm back from the fronts, so that a visitor's toes go under the cabinet.
+  { id: 'base', u: baseU, v: baseV, y: [floor + S.plinthHeight, floor + S.baseHeight], color: OAK },
+  { id: 'base-plinth', u: baseU, v: [baseV[0] + S.plinthRecess, baseV[1]], y: [floor, floor + S.plinthHeight], color: PLINTH },
   { id: 'worktop', u: baseU, v: [baseV[0] - S.topOverhang, baseV[1]], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The oven is built into the base, with its front on the aisle side, and the cooktop sits on the worktop above it: both start
   // 45 cm from the wall behind the bathroom (owner), which the hall shares.
   { id: 'oven', u: [frontU + S.stoveFromHall, frontU + S.stoveFromHall + S.ovenWidth], v: [baseV[0] - .015, baseV[0]], y: [floor + .25, floor + .8], color: '#2b2c2e' },
   { id: 'cooktop', u: [frontU + S.stoveFromHall, frontU + S.stoveFromHall + S.cooktopWidth], v: [baseV[0] + .05, baseV[0] + .55], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .01], color: '#111213' },
-  { id: 'counter', u: counterU, v: COUNTER_V, y: [floor, floor + S.baseHeight], color: WHITE },
+  { id: 'counter', u: counterU, v: COUNTER_V, y: [floor + S.plinthHeight, floor + S.baseHeight], color: WHITE },
+  // The island's plinth is set back on the three sides that are free: the front, the aisle side and the open end; the fourth is the wall.
+  { id: 'counter-plinth', u: [counterU[0], counterU[1] - S.plinthRecess], v: [COUNTER_V[0] + S.plinthRecess, COUNTER_V[1] - S.plinthRecess], y: [floor, floor + S.plinthHeight], color: PLINTH },
   { id: 'counter-top', u: [counterU[0], counterU[1] + S.topOverhang], v: [COUNTER_V[0] - S.overhang, COUNTER_V[1] + S.topOverhang], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The sink is in the second counter (owner), a ceramic basin flush with the top, with a brass tap at its back edge.
   { id: 'sink', u: sinkU, v: [COUNTER_V[1] - .08 - .4, COUNTER_V[1] - .08], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
@@ -207,13 +213,13 @@ function cupBoxes(): IslandPiece[] {
   return cups
 }
 export const KITCHEN_NOOK_BOXES: IslandPiece[] = [
-  { id: 'nook-side-low', u: [columnU[0], columnU[0] + NOOK.panel], v: nookV, y: [floor, nookTopY], color: OAK },
-  { id: 'nook-side-high', u: [columnU[1] - NOOK.panel, columnU[1]], v: nookV, y: [floor, nookTopY], color: OAK },
+  { id: 'nook-side-low', u: [columnU[0], columnU[0] + NOOK.panel], v: nookV, y: [floor + S.plinthHeight, nookTopY], color: OAK },
+  { id: 'nook-side-high', u: [columnU[1] - NOOK.panel, columnU[1]], v: nookV, y: [floor + S.plinthHeight, nookTopY], color: OAK },
   { id: 'nook-top', u: nookInnerU, v: nookV, y: [nookTopY - NOOK.panel, nookTopY], color: OAK },
-  { id: 'nook-plinth', u: nookInnerU, v: nookV, y: [floor, floor + .08], color: OAK },
+  { id: 'nook-plinth', u: nookInnerU, v: nookV, y: [floor + S.plinthHeight, floor + S.plinthHeight + NOOK.panel], color: OAK },
   ...NOOK.shelfHeights.map((height, index): KitchenBox => ({ id: `nook-shelf-${index + 1}`, u: nookInnerU, v: [nookV[0] + NOOK.panel, nookV[1]], y: [floor + height - NOOK.shelf, floor + height], color: OAK })),
   // The door, with its handle: both swing about the hinge, which is on the rear wall's side (the higher u edge).
-  { id: 'nook-door', u: columnU, v: [nookV[0], nookV[0] + NOOK.panel], y: [floor + .005, nookTopY - .005], color: OAK },
+  { id: 'nook-door', u: columnU, v: [nookV[0], nookV[0] + NOOK.panel], y: [floor + S.plinthHeight + .005, nookTopY - .005], color: OAK },
   { id: 'nook-handle', u: [columnU[0] + .03, columnU[0] + .045], v: [nookV[0] - .025, nookV[0]], y: [floor + 1.0, floor + 1.4], color: '#c9cdd1' },
   // The coffee and tea cups, on the shelf over the machine (owner): two rows of three, white, a little narrower at the foot, each with its handle.
   ...cupBoxes(),
@@ -333,10 +339,10 @@ export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (st
 
 /**
  * The dishwasher (owner): a Whirlpool slimline of 45 cm, stainless steel, 0.85 m tall and 0.59 m deep, in the island between the sink and the wall behind it (the hall wall), close to
- * the wall (owner), with its door on the aisle side like the sink's, flush with the top's edge (2 cm proud of the cabinets, which are set back under the top). It is a Blender model
+ * the wall but not touching it (owner: at least 1 cm, for the carcass of the cabinet it stands in), with its door on the aisle side like the sink's, flush with the top's edge (2 cm proud of the cabinets, which are set back under the top). It is a Blender model
  * (scripts/blender/jobs/dishwasher-job.json) standing inside the island's cabinet, of which only its door shows.
  */
-export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .01, model: '/models/house/dishwasher.glb' }
+export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .02, model: '/models/house/dishwasher.glb' }
 export const DISHWASHER_BOX = {
   u: [counterU[0] + DISHWASHER.fromWall, counterU[0] + DISHWASHER.fromWall + DISHWASHER.width] as [number, number],
   v: [COUNTER_V[1] + S.topOverhang - DISHWASHER.depth, COUNTER_V[1] + S.topOverhang] as [number, number],

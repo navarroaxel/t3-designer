@@ -121,7 +121,7 @@ test('the freezer is as tall as its 101 L gross capacity needs: about 0.31 m of 
 test('the upper cabinets run from the tall column to the hall wall, up to the conduit box, with the microwave beside the fridge and its outlet behind at 1.5 m', () => {
   const cabinet = (id: string) => KITCHEN_UPPER_BOXES.find(item => item.id === id)!
   const microwave = cabinet('microwave'), fridge = box('fridge'), bay = cabinet('upper-bay-bottom'), bridge = cabinet('upper-bridge-bottom')
-  const floor = box('base').y[0], carcass = KITCHEN_UPPER_BOXES.filter(item => item.id.startsWith('upper-'))
+  const floor = FLOOR_HEIGHT, carcass = KITCHEN_UPPER_BOXES.filter(item => item.id.startsWith('upper-'))
   // From the column to the hall wall, and as high as the underside of the conduit box that carries on over them along the party wall.
   assert.ok(Math.abs(Math.max(...carcass.map(item => item.u[1])) - box('column').u[0]) < 1e-9 && Math.abs(Math.min(...carcass.map(item => item.u[0])) - KITCHEN_LIVING.u[0]) < 1e-9)
   const rear = KITCHEN_CONDUIT_BOXES.find(item => item.id === 'conduit-box-rear')!
@@ -334,7 +334,7 @@ test('the dishwasher (45 by 85 by 59 cm) is in the island between the sink and t
   assert.ok(dishwasher.model === DISHWASHER.model && Math.abs(dishwasher.turn! - Math.PI) < 1e-9, 'a Blender model with its door toward higher v')
   assert.ok(Math.abs(dishwasher.u[1] - dishwasher.u[0] - .45) < 1e-9 && Math.abs(dishwasher.y[1] - dishwasher.y[0] - .85) < 1e-9 && Math.abs(dishwasher.v[1] - dishwasher.v[0] - .59) < 1e-9, '45 by 85 by 59 cm')
   assert.ok(dishwasher.u[1] <= sink.u[0] - .05, 'on the wall\'s side of the sink, with the sink not over it')
-  assert.ok(dishwasher.u[0] >= counter.u[0] && dishwasher.u[0] - counter.u[0] <= .02, 'close to the wall behind the island')
+  assert.ok(dishwasher.u[0] - counter.u[0] >= .01 && dishwasher.u[0] - counter.u[0] <= .03, 'close to the wall behind the island, but at least 1 cm off it for the cabinet\'s side')
   assert.ok(Math.abs(dishwasher.v[1] - top.v[1]) < 1e-9 && dishwasher.v[1] > counter.v[1], 'its door flush with the top\'s edge, proud of the cabinet set back under it')
   assert.ok(dishwasher.v[0] > counter.v[0] && dishwasher.y[1] <= top.y[0] + 1e-9, 'inside the island, under the top')
 })
@@ -393,4 +393,26 @@ test('the sink is as near the wall as it can be without being over the dishwashe
   assert.ok(sink.u[0] < (counter.u[0] + counter.u[1]) / 2 - .5, 'nearer the wall than the middle of the island')
   assert.ok(Math.abs((tap.u[0] + tap.u[1]) / 2 - (sink.u[0] + sink.u[1]) / 2) < 1e-9, 'the tap is centred on the sink')
   assert.ok(tap.v[1] <= sink.v[0], 'on its long side')
+})
+
+test('the cabinets rest on a plinth, the banquina: the run, the island and the tall column, 10 cm tall and set 5 cm back from the fronts, at least 2 cm', () => {
+  for (const [body, plinth, frontSides] of [['base', 'base-plinth', [['v', 0]]], ['column', 'column-plinth', [['v', 0]]], ['counter', 'counter-plinth', [['v', 0], ['v', 1], ['u', 1]]]] as const) {
+    const cabinet = box(body), foot = box(plinth)
+    assert.ok(Math.abs(foot.y[0] - FLOOR_HEIGHT) < 1e-9 && Math.abs(foot.y[1] - cabinet.y[0]) < 1e-9, `${plinth} under ${body}, from the floor`)
+    assert.ok(foot.y[1] - foot.y[0] >= .02 && Math.abs(foot.y[1] - foot.y[0] - .1) < 1e-9, '10 cm tall')
+    for (const [axis, side] of frontSides) {
+      const recess = axis === 'v' ? (side === 0 ? foot.v[0] - cabinet.v[0] : cabinet.v[1] - foot.v[1]) : cabinet.u[1] - foot.u[1]
+      assert.ok(recess >= .02 && Math.abs(recess - .05) < 1e-9, `${plinth} is set back at least 2 cm (${recess})`)
+    }
+  }
+  // Against the wall the plinth is flush with the cabinet: the island's, at the wall, and the run's, at the wall behind it.
+  assert.ok(Math.abs(box('counter-plinth').u[0] - box('counter').u[0]) < 1e-9 && Math.abs(box('base-plinth').v[1] - box('base').v[1]) < 1e-9)
+  // Nothing in the cabinets starts below the plinth's top but the plinth, and the oven is not in it.
+  assert.ok(box('oven').y[0] >= box('base').y[0])
+})
+
+test('the breakfast nook rests on the plinth too: its sides, bottom and door start at the plinth\'s top', () => {
+  const pieces = furnishingsOn('first'), top = FLOOR_HEIGHT + .1
+  for (const id of ['kitchen-nook-side-low', 'kitchen-nook-side-high', 'kitchen-nook-plinth']) assert.ok(Math.abs(pieces.find(piece => piece.id === id)!.y[0] - top) < 1e-9, id)
+  assert.ok(pieces.find(piece => piece.id === 'kitchen-nook-door')!.y[0] > top && pieces.find(piece => piece.id === 'kitchen-nook-door')!.y[0] < top + .01)
 })
