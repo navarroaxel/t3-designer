@@ -5,7 +5,7 @@ import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
-import { ISLAND_CANOPY, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
+import { ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
@@ -122,6 +122,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
     {/* The island's three downlights light the worktop: a warm point light under each, 10 cm below the wood. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_LIGHT_POSITIONS.map((at, index) =>
       <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - .1, -at.v]} color="#ffd9a8" intensity={1.8} distance={2.8} decay={2} />)}
+    {/* The light line: a faint warm light over the middle of each LED strip, 5 cm above it, washing the white box and the ceiling. */}
+    {floor === 'first' && cut === undefined && lightsOn && ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).map(strip =>
+      <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color="#ffcf8a" intensity={.5} distance={2.2} decay={2} />)}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
     </Suspense></ModelBoundary>}
