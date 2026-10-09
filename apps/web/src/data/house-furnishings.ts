@@ -20,7 +20,7 @@ import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
 import { ISLAND_CANOPY_BOXES, ISLAND_PANEL_BOXES, ISLAND_WOOD_BOXES, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, ISLAND_SWITCH_BOXES, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_RUN_FRONTS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
 import {
-  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
+  CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, FRONT_ROOMS, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
   GROUND_GARAGE, OPENINGS, WALL_THICKNESS,
 } from './house-plan.ts'
@@ -72,6 +72,8 @@ const KITCHEN_WORKTOP_OUTLET_HEIGHT = NOOK.outletHeight
 const KITCHEN_REAR_WALL = WALL_THICKNESS
 /** The in-wall media box's centre above the floor: its lower edge is just over 5 cm above the network socket's plate (centred 0.30 m up, 72 mm tall), so it stands at 0.525 m. */
 const MEDIA_BOX_CENTRE_HEIGHT = .525
+/** The secondary room's outlets stand this far each side of its network socket, on the wall it shares with the main room's TV. */
+const SECONDARY_PLATE_OFFSET = .3
 const cut = F + CUT_HEIGHT
 const centre = ([a, b]: [number, number]) => (a + b) / 2
 
@@ -126,6 +128,12 @@ function firstFloor(): Furnishing[] {
   for (const part of mediaBoxBoxes('main-wallbox', mainWall, mainU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false, hung: true })
   for (const part of passThroughBoxes('main-cable-hole', mainWall, mainU - TV_MOUNT.width / 2 - .2, mainTvY)) add({ ...part, roughness: .5, solid: false, hung: true })
   for (const part of wallOutlet('main-outlet-tv', '+v', mainWall, mainU + TV_MOUNT.width / 2 + .13, F, mainTvY - F)) add({ ...part, roughness: .6, solid: false, hung: true })
+  // The other side of that wall, in the secondary room (owner): outlet, network socket, outlet in a row, centred on the same line as the main room's, at the height of the plates there.
+  const secondaryWall = FRONT_ROOMS.secondary.v[1]
+  for (const part of wallDataSocket('secondary-data', '-v', secondaryWall, mainU, F)) add({ ...part, roughness: .6, solid: false, hung: true })
+  for (const [side, offset] of [['left', -SECONDARY_PLATE_OFFSET], ['right', SECONDARY_PLATE_OFFSET]] as const) {
+    for (const part of wallOutlet(`secondary-outlet-${side}`, '-v', secondaryWall, mainU + offset, F)) add({ ...part, roughness: .6, solid: false, hung: true })
+  }
   // Its DualSense lies on the table beside it, the triggers toward the wall: 160 by 106 mm, 66 mm tall (a Blender model).
   const padU = tvU + .22, padV = tableV[0] + .24
   add({ id: 'ps5-controller', u: [padU - .08, padU + .08], v: [padV - .053, padV + .053], y: [base, base + .066], color: '#f4f5f8', roughness: .4, solid: false, model: '/models/house/dualsense.glb' })

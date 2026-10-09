@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { CUT_HEIGHT } from '../src/data/house-plan.ts'
+import { CUT_HEIGHT, FRONT_ROOMS } from '../src/data/house-plan.ts'
 import { furnishingsOn } from '../src/data/house-furnishings.ts'
 import { outletBoxes, wallOutlet } from '../src/data/outlets.ts'
 
@@ -28,4 +28,13 @@ test('the cutaway draws wall fittings whole, and saws everything else that cross
   assert.ok(crossing.some(p => p.hung), 'a TV or a plate crosses the cut')
   for (const piece of crossing.filter(p => !p.hung)) assert.ok(!/outlet|tv-|wallbox|cable-hole/.test(piece.id), `${piece.id} hangs on a wall`)
   assert.ok(crossing.some(p => !p.hung && !p.solid), 'a tall piece that is not solid, a wardrobe leaf, is sawn off too')
+})
+
+test('the secondary room has outlet, network socket, outlet on the other side of the main room\'s TV wall, mirrored about the same line', () => {
+  const pieces = furnishingsOn('first'), at = (id: string) => pieces.find(p => p.id === id)!
+  const data = at('secondary-data-plate'), left = at('secondary-outlet-left-plate'), right = at('secondary-outlet-right-plate')
+  assert.ok(data && left && right, 'all three plates exist')
+  const middle = (p: { u: [number, number] }) => (p.u[0] + p.u[1]) / 2
+  near(middle(left) + middle(right), 2 * middle(data))
+  for (const plate of [data, left, right]) assert.ok(plate.v[1] <= FRONT_ROOMS.secondary.v[1] + 1e-9 && plate.v[1] > FRONT_ROOMS.secondary.v[1] - .05, 'the plate sits on the wall face and sticks out into the secondary room')
 })
