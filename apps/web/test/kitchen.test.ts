@@ -316,3 +316,14 @@ test('the conduit box turns the corner and carries on along the party wall, over
   // The hood's duct goes on inside it, which is deep enough to hold it (26 cm).
   assert.ok(rear.v[1] - rear.v[0] >= .26 + 1e-9)
 })
+
+test('the breakfast nook is as tall as the upper cabinets: it ends under the conduit box, and its shelves stay inside', () => {
+  const column = furnishingsOn('first').find(piece => piece.id === 'kitchen-column')!, rear = KITCHEN_CONDUIT_BOXES.find(item => item.id === 'conduit-box-rear')!
+  const cabinet = Math.max(...KITCHEN_UPPER_BOXES.filter(item => item.id.startsWith('upper-')).map(item => item.y[1]))
+  assert.ok(Math.abs(column.y[1] - rear.y[0]) < 1e-9 && Math.abs(column.y[1] - cabinet) < 1e-9, 'the column ends where the box begins, like the cabinets')
+  const nook = furnishingsOn('first').filter(piece => piece.id.startsWith('kitchen-nook-'))
+  assert.ok(nook.every(piece => piece.y[1] <= column.y[1] + 1e-9), 'nothing of the nook goes past the column')
+  const shelves = nook.filter(piece => piece.id.startsWith('kitchen-nook-shelf-')), door = nook.find(piece => piece.id === 'kitchen-nook-door')!
+  assert.ok(Math.max(...shelves.map(piece => piece.y[1])) < door.y[1], 'a shelf near the top')
+  assert.ok(door.y[1] > column.y[1] - .01 && door.y[1] < column.y[1], 'the door goes all the way up')
+})

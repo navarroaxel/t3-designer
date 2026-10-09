@@ -139,11 +139,11 @@ export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
 ]
 
 /**
- * The tall column at the rear (owner: not a broom closet but a breakfast nook, "rincón desayunador"): it opens with a single door on the aisle side, hinged on the rear wall's side, and holds
+ * The tall column at the rear (owner: not a broom closet but a breakfast nook, "rincón desayunador"), as tall as the cabinets, up to the underside of the conduit box: it opens with a single door on the aisle side, hinged on the rear wall's side, and holds
  * a Nespresso Vertuo Next on the shelf at the worktops' height and, behind it, an outlet at the same height as the one on the resting worktop (1.10 m); several more shelves above and below.
  * The closed column is the plain box in KITCHEN_BOXES; these are what it shows when its door is open. Heights above the ground-floor level.
  */
-export const NOOK = { panel: .02, shelf: .025, shelfHeights: [.45, S.baseHeight + S.worktop, 1.5, 1.85, 2.15], top: 2.4, outletHeight: 1.1, doorSwing: Math.PI / 2, machine: { width: .142, height: .314, depth: .426, fromFront: .07 } }
+export const NOOK = { panel: .02, shelf: .025, shelfHeights: [.45, S.baseHeight + S.worktop, 1.5, 1.85, 2.15, 2.45], top: UPPER_CABINET.ceiling - KITCHEN_CONDUIT_BOX.height, outletHeight: 1.1, doorSwing: Math.PI / 2, machine: { width: .142, height: .314, depth: .426, fromFront: .07 } }
 const nookV: [number, number] = [wallV - S.columnDepth, wallV]
 const nookInnerU: [number, number] = [columnU[0] + NOOK.panel, columnU[1] - NOOK.panel]
 const nookTopY = floor + NOOK.top
