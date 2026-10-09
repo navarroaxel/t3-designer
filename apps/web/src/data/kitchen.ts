@@ -1,5 +1,5 @@
 import { FLOOR_HEIGHT } from './building-site.ts'
-import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, TOSCANA_VENA_COLOR, TOSCANA_VENA_SLAB, type TilePattern } from './house-plan.ts'
+import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, TOSCANA_VENA_COLOR, TOSCANA_VENA_SLAB, type TilePattern } from './house-plan.ts'
 
 /**
  * The kitchen of the living (owner's render; the worktops are Purastone Toscana Vena): a parallel kitchen, with a run of
@@ -235,7 +235,7 @@ export const KITCHEN_NOOK_BOXES: IslandPiece[] = [
 /**
  * The island's canopy: a lowered ceiling over the island, the "techito", all drywall now (owner: the wood, first a fluted oak and then a walnut-like board, is out): a white slab 12 cm thick whose
  * underside is at 2.40 m, 1.47 m over the worktop, and above it, set in 3 cm all round, the drywall box, the "cajón", up to the real ceiling at 3.00 m. The 3 cm of the slab left bare round the box carry the
- * light line, a warm LED strip with its wash up the box's faces. Three recessed downlights in the slab's underside, in a row along the island's middle, light the worktop. The island's two outlets and
+ * light line, a warm LED strip (no painted wash up the box's faces: owner). Three recessed downlights in the slab's underside, in a row along the island's middle, light the worktop. The island's two outlets and
  * its switch are on the wall, which is plain again. Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
  */
 export const ISLAND_CANOPY = { soffit: 2.4, slab: .12, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, light: { diameter: .09, count: 3, from: .4, to: 1.8 } }
@@ -256,21 +256,17 @@ const slabTop = canopySoffit + ISLAND_CANOPY.slab
 const ledY: [number, number] = [slabTop, slabTop + .008]
 const LED = '#ffcf8a'
 function ledSides(): IslandPiece[] {
-  const strip = .012, gap = .006, wash = .002, reach = .26
+  const strip = .012, gap = .006
   return [
     { id: 'canopy-led-front', u: drywallU, v: [drywallV[0] - gap - strip, drywallV[0] - gap], y: ledY, color: LED, glow: true },
     { id: 'canopy-led-aisle', u: drywallU, v: [drywallV[1] + gap, drywallV[1] + gap + strip], y: ledY, color: LED, glow: true },
     { id: 'canopy-led-end', u: [drywallU[1] + gap, drywallU[1] + gap + strip], v: [drywallV[0] - gap - strip, drywallV[1] + gap + strip], y: ledY, color: LED, glow: true },
-    // The wash: a warm, see-through skin over each of the three white faces, from the strip up.
-    { id: 'canopy-wash-front', u: drywallU, v: [drywallV[0] - wash, drywallV[0]], y: [ledY[1], ledY[1] + reach], color: LED, glow: true, opacity: .22 },
-    { id: 'canopy-wash-aisle', u: drywallU, v: [drywallV[1], drywallV[1] + wash], y: [ledY[1], ledY[1] + reach], color: LED, glow: true, opacity: .22 },
-    { id: 'canopy-wash-end', u: [drywallU[1], drywallU[1] + wash], v: drywallV, y: [ledY[1], ledY[1] + reach], color: LED, glow: true, opacity: .22 },
   ]
 }
 export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
   // The slab of the lowered ceiling, white drywall, the whole of the island's top, and over it the box, set in 3 cm all round.
-  { id: 'canopy-slab', u: canopyU, v: canopyV, y: [canopySoffit, slabTop], color: '#f1efe9' },
-  { id: 'canopy-drywall', u: drywallU, v: drywallV, y: [slabTop, canopyTop], color: '#f1efe9' },
+  { id: 'canopy-slab', u: canopyU, v: canopyV, y: [canopySoffit, slabTop], color: WALL_PAINT.partition },
+  { id: 'canopy-drywall', u: drywallU, v: drywallV, y: [slabTop, canopyTop], color: WALL_PAINT.partition },
   // The light line: a warm LED strip on the 3 cm of the slab left bare round the drywall box, against its foot on the three open sides, and a faint wash of light up the white faces.
   ...ledSides(),
   // The downlights, recessed in the slab's underside and lit.
@@ -311,9 +307,9 @@ export const CONDUIT_LIGHT_POSITIONS: { u: number; v: number }[] = (() => {
   return found
 })()
 export const KITCHEN_CONDUIT_BOXES: IslandPiece[] = [
-  { id: 'conduit-box', u: conduitU, v: conduitV, y: conduitY, color: '#f1efe9' },
+  { id: 'conduit-box', u: conduitU, v: conduitV, y: conduitY, color: WALL_PAINT.partition },
   // It turns the corner and carries on over the cabinets, the fridge and the column, along the party wall to the rear wall, as deep as the cabinets: they end where it begins, and the hood's duct goes up inside it.
-  { id: 'conduit-box-rear', u: [frontU, rearU], v: [wallV - UPPER_CABINET.depth, wallV], y: conduitY, color: '#f1efe9' },
+  { id: 'conduit-box-rear', u: [frontU, rearU], v: [wallV - UPPER_CABINET.depth, wallV], y: conduitY, color: WALL_PAINT.exterior },
   ...CONDUIT_LIGHT_POSITIONS.map((at, index): IslandPiece => ({ id: `conduit-light-${index + 1}`, u: [at.u - CONDUIT_LIGHT.diameter / 2, at.u + CONDUIT_LIGHT.diameter / 2], v: [at.v - CONDUIT_LIGHT.diameter / 2, at.v + CONDUIT_LIGHT.diameter / 2], y: [conduitY[0] - .004, conduitY[0] + .002], color: '#fff2d9', glow: true, round: true })),
 ]
 

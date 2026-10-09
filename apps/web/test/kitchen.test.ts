@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
+import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
 import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
@@ -261,11 +261,10 @@ test('the island has a light switch on the wall and a light line round the drywa
   const device = furnishingDevices('first', 3.2).find(item => item.id === ISLAND_SWITCH_ID) as { initialOpenness?: number } | undefined
   assert.ok(device && device.initialOpenness === 1, 'a device that starts on')
   assert.ok(islandLightsOn({}) && !islandLightsOn({ [ISLAND_SWITCH_ID]: 0 }))
-  // The light line: three warm strips on the bare slab round the box, with a wash of light up its white faces.
-  const led = ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')), wash = ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-wash-')), drywall = ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-drywall')!
-  assert.equal(led.length, 3); assert.equal(wash.length, 3)
+  // The light line: three warm strips on the bare slab round the box, and no wash up its white faces.
+  const led = ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')), drywall = ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-drywall')!
+  assert.equal(led.length, 3); assert.ok(!ISLAND_CANOPY_BOXES.some(piece => piece.id.startsWith('canopy-wash-')), 'no painted wash up the box: only the strip')
   for (const strip of led) assert.ok(strip.glow && Math.abs(strip.y[0] - drywall.y[0]) < 1e-9, `${strip.id} on the slab's ledge, at the box's foot`)
-  for (const skin of wash) assert.ok(skin.glow && skin.opacity! < .4 && Math.abs(skin.y[0] - led[0].y[1]) < 1e-9 && skin.y[1] <= drywall.y[1], skin.id)
 })
 
 test('the conduit box runs the whole length of the wall facing the window, under the ceiling, and the island\'s box crosses it', () => {
@@ -492,4 +491,10 @@ test('the island\'s outlets and switch are symmetric about the axis of its 1 m t
   assert.ok(Math.abs(Math.abs(middle(one) - axis) - .25) < 1e-9 && Math.abs(Math.abs(middle(two) - axis) - .25) < 1e-9, 'a quarter of the metre either side')
   assert.ok(Math.abs(middle(plate) - axis) < 1e-9, 'the switch on the axis, between them')
   assert.ok(ISLAND_LIGHT_POSITIONS.every(at => Math.abs(at.v - axis) < 1e-9), 'the lights on the axis')
+})
+
+test('the drywall boxes are painted as the wall they run along: the island\'s and the hall wall\'s in the partitions\' white, the one over the party wall in the exterior walls\' beige', () => {
+  const colour = (id: string) => (ISLAND_CANOPY_BOXES.find(piece => piece.id === id) ?? KITCHEN_CONDUIT_BOXES.find(piece => piece.id === id))!.color
+  for (const id of ['canopy-slab', 'canopy-drywall', 'conduit-box']) assert.equal(colour(id), WALL_PAINT.partition, id)
+  assert.equal(colour('conduit-box-rear'), WALL_PAINT.exterior, 'the one over the party wall')
 })

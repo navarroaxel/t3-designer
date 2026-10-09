@@ -763,3 +763,6 @@ export const GROUND_FLOOR_TILING: FloorTiling[] = [
   { id: 'ground-office', color: FLOOR_TILING.find(zone => zone.id === 'bedrooms')!.color, pattern: SAING_PLANKS, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_OFFICE.u[0], GROUND_OFFICE.u[1], GROUND_OFFICE.v[0], GROUND_OFFICE.v[1]]] },
   { id: 'ground-living', color: FLOOR_TILING.find(zone => zone.id === 'living')!.color, pattern: SAING_PLANKS, level: GROUND_FLOOR_LEVEL, rects: [[GROUND_LIVING.u[0], GROUND_LIVING.u[1], GROUND_LIVING.v[0], GROUND_LIVING.v[1]]] },
 ]
+
+/** The paint of the walls: the exterior walls' beige, which the party walls and the rear wall have inside, and the interior partitions' white. The drywall boxes under the ceiling are painted as the wall they run along. */
+export const WALL_PAINT = { exterior: '#d9cdb2', partition: '#f3f1ec' } as const
