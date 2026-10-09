@@ -202,7 +202,7 @@ const TERRACE_SW = (u: number) => houseSouthWestEdge(u) + TERRACE_WALL_THICKNESS
  */
 function firstFloorPerimeter(withTerrace = true, withHole = true): Point2D[] {
   const hole = STAIRWELL_HOLE
-  const terrace = withTerrace ? [local(4, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
+  const terrace = withTerrace ? [local(AZOTEA_REAR, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
   return [
     local(-5, FIRST_OUTLINE[0][1]), local(-5, -BALCONY_V), local(BALCONY_FRONT, -BALCONY_V), local(BALCONY_FRONT, BALCONY_V), local(-5, BALCONY_V),
     local(-5, HOUSE_HALF_WIDTH), ...(withHole ? [local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH)] : []),
@@ -263,15 +263,15 @@ export function walkOutline(floor: Floor): Point2D[] {
 }
 
 /**
- * The roof the walkthrough draws and walks on: the 9 m block with the 1 m cantilever in front, and the laundry's sheet roof over its glazed half. The laundry's
+ * The roof the walkthrough draws and walks on: the 9.46 m block with the 1 m cantilever in front, and the laundry's sheet roof over its glazed half. The laundry's
  * north-east half is the stair's second flight, open to the sky, and the stairwell is not a hole in the roof.
  */
 export function ceilingPolygon(floor: Floor): Point2D[] {
   if (floor !== 'first') return HOUSE_FLOORS[floor].perimeter
   const sw = FIRST_OUTLINE[0][1], wall = LAUNDRY.wallThickness
   return [
-    local(-6, sw), local(4, sw), local(4, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, FIRST_NE - LAUNDRY.flight.width - wall),
-    local(4, FIRST_NE - LAUNDRY.flight.width - wall), local(4, HOUSE_HALF_WIDTH), local(-6, HOUSE_HALF_WIDTH),
+    local(-6, sw), local(AZOTEA_REAR, sw), local(AZOTEA_REAR, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, LAUNDRY_V0 - wall), local(LAUNDRY_BACK, FIRST_NE - LAUNDRY.flight.width - wall),
+    local(AZOTEA_REAR, FIRST_NE - LAUNDRY.flight.width - wall), local(AZOTEA_REAR, HOUSE_HALF_WIDTH), local(-6, HOUSE_HALF_WIDTH),
   ]
 }
 
