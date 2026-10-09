@@ -88,34 +88,53 @@ export const KITCHEN_TAP = { u: (tapBox.u[0] + tapBox.u[1]) / 2, v: (tapBox.v[0]
 /**
  * The upper cabinets on the party wall (owner), one run of oak from the tall column to the hall wall and from 1.40 m up to the ceiling: over the base run
  * they hang 47 cm over the worktop, and over the fridge they start above it, at 1.90 m. The carcass is 0.42 m deep. The microwave (the 0.48 by 0.29
- * by 0.38 m replica of the workspace's catalogue) is in an open bay next to the fridge, with a door over it; the rest of the base run has doors up to the
- * ceiling. The microwave stands 4 cm off the wall, leaving room for the plug of the outlet behind it, whose centre is 1.5 m above the floor (owner).
+ * by 0.38 m replica of the workspace's catalogue) is in an open bay next to the fridge, with a door over it; over the cooktop there is no cabinet but the
+ * extractor hood (owner's picture: a stainless steel chimney hood, a pyramid canopy under a square duct to the ceiling), centred on it. The microwave stands
+ * 4 cm off the wall, leaving room for the plug of the outlet behind it, whose centre is 1.5 m above the floor (owner).
  * Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
  */
 export const UPPER_CABINET = { depth: .42, bottom: 1.4, overFridge: 1.9, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, panel: .02, microwave: { width: .48, height: .29, depth: .38, gapToWall: .04 }, outletHeight: 1.5 }
+/** The chimney hood: 54 cm wide (the most that fits between the hall side's cabinet and the microwave over the cooktop), 50 cm deep, its canopy from 1.55 m. */
+export const HOOD = { width: .54, depth: .5, canopyBottom: 1.55, canopyHeight: .2, duct: .3, ductDepth: .26 }
 const upperU: [number, number] = [frontU, columnU[0]]
 const upperV: [number, number] = [wallV - UPPER_CABINET.depth, wallV]
 const lowY = floor + UPPER_CABINET.bottom, overFridgeY = floor + UPPER_CABINET.overFridge, topY = floor + UPPER_CABINET.ceiling
 const P = UPPER_CABINET.panel
-const microwaveU: [number, number] = [fridgeU[0] - P - .01 - UPPER_CABINET.microwave.width, fridgeU[0] - P - .01]
+const microwaveU: [number, number] = [fridgeU[0] - .01 - UPPER_CABINET.microwave.width, fridgeU[0] - .01]
 const microwaveY: [number, number] = [lowY + P + .01, lowY + P + .01 + UPPER_CABINET.microwave.height]
 const microwaveV: [number, number] = [wallV - UPPER_CABINET.microwave.gapToWall - UPPER_CABINET.microwave.depth, wallV - UPPER_CABINET.microwave.gapToWall]
 const shelfY = microwaveY[1] + .04
 const front: [number, number] = [upperV[0], upperV[0] + P]
+const hoodCentre = frontU + S.stoveFromHall + S.cooktopWidth / 2
+const hoodU: [number, number] = [hoodCentre - HOOD.width / 2, hoodCentre + HOOD.width / 2]
+const bayU: [number, number] = [hoodU[1], fridgeU[0]]
+const INOX = '#b9bdc2', DOOR = '#e2cba5'
 export const MICROWAVE_CENTRE_U = (microwaveU[0] + microwaveU[1]) / 2
+const hoodStep = (id: string, width: number, depth: number, y: [number, number], color = INOX): KitchenBox => ({ id: `hood-${id}`, u: [hoodCentre - width / 2, hoodCentre + width / 2], v: [wallV - depth, wallV], y, color })
+const canopyY = floor + HOOD.canopyBottom
 export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
-  { id: 'upper-bottom', u: [upperU[0], fridgeU[0]], v: upperV, y: [lowY, lowY + P], color: OAK },
+  // The hall side's cabinet, up to the hood.
+  { id: 'upper-bottom', u: [upperU[0], hoodU[0]], v: upperV, y: [lowY, lowY + P], color: OAK },
+  { id: 'upper-top', u: [upperU[0], hoodU[0]], v: upperV, y: [topY - P, topY], color: OAK },
+  { id: 'upper-door', u: [upperU[0] + .005, hoodU[0] - .005], v: front, y: [lowY + .005, topY - .005], color: DOOR },
+  // The microwave's bay, between the hood and the fridge, with the shelf and the door over it.
+  { id: 'upper-bay-bottom', u: bayU, v: upperV, y: [lowY, lowY + P], color: OAK },
+  { id: 'upper-shelf', u: bayU, v: upperV, y: [shelfY, shelfY + P], color: OAK },
+  { id: 'upper-door-over-microwave', u: [bayU[0] + .005, bayU[1] - .005], v: front, y: [shelfY + P + .005, topY - .005], color: DOOR },
+  { id: 'upper-bay-top', u: bayU, v: upperV, y: [topY - P, topY], color: OAK },
+  // Over the fridge, starting above it.
   { id: 'upper-bridge-bottom', u: [fridgeU[0], upperU[1]], v: upperV, y: [overFridgeY, overFridgeY + P], color: OAK },
-  { id: 'upper-top', u: upperU, v: upperV, y: [topY - P, topY], color: OAK },
-  // The panel that closes the microwave's bay on the hall side, and the shelf over it.
-  { id: 'upper-divider', u: [microwaveU[0] - .01 - P, microwaveU[0] - .01], v: upperV, y: [lowY + P, topY - P], color: OAK },
-  { id: 'upper-shelf', u: [microwaveU[0] - .01, fridgeU[0]], v: upperV, y: [shelfY, shelfY + P], color: OAK },
-  // The doors: the closed bays up to the ceiling, the one over the microwave, and the one over the fridge.
-  { id: 'upper-door', u: [upperU[0] + .005, microwaveU[0] - .01 - P - .005], v: front, y: [lowY + .005, topY - .005], color: '#e2cba5' },
-  { id: 'upper-door-over-microwave', u: [microwaveU[0] - .01 + .005, fridgeU[0] - .005], v: front, y: [shelfY + P + .005, topY - .005], color: '#e2cba5' },
-  { id: 'upper-door-over-fridge', u: [fridgeU[0] + .005, upperU[1] - .005], v: front, y: [overFridgeY + P + .005, topY - .005], color: '#e2cba5' },
+  { id: 'upper-bridge-top', u: [fridgeU[0], upperU[1]], v: upperV, y: [topY - P, topY], color: OAK },
+  { id: 'upper-door-over-fridge', u: [fridgeU[0] + .005, upperU[1] - .005], v: front, y: [overFridgeY + P + .005, topY - .005], color: DOOR },
   { id: 'microwave', u: microwaveU, v: microwaveV, y: microwaveY, color: SILVER },
   // Its window and its control strip, on the front.
   { id: 'microwave-window', u: [microwaveU[0] + .03, microwaveU[1] - .13], v: [microwaveV[0] - .003, microwaveV[0]], y: [microwaveY[0] + .035, microwaveY[1] - .035], color: '#15171a' },
   { id: 'microwave-controls', u: [microwaveU[1] - .1, microwaveU[1] - .02], v: [microwaveV[0] - .003, microwaveV[0]], y: [microwaveY[0] + .035, microwaveY[1] - .035], color: '#2b2c2e' },
+  // The hood: the canopy as three steps narrowing to the duct (a pyramid), the filter and the five knobs under its front lip, and the duct up to the ceiling.
+  hoodStep('canopy-base', HOOD.width, HOOD.depth, [canopyY, canopyY + .05]),
+  hoodStep('canopy-middle', HOOD.width * .75, HOOD.depth * .75, [canopyY + .05, canopyY + .12]),
+  hoodStep('canopy-top', HOOD.width * .55, HOOD.depth * .55, [canopyY + .12, canopyY + HOOD.canopyHeight]),
+  { id: 'hood-filter', u: [hoodCentre - HOOD.width / 2 + .03, hoodCentre + HOOD.width / 2 - .03], v: [wallV - HOOD.depth + .03, wallV - .03], y: [canopyY - .004, canopyY], color: '#6b6f74' },
+  { id: 'hood-controls', u: [hoodCentre - .13, hoodCentre + .13], v: [wallV - HOOD.depth - .003, wallV - HOOD.depth], y: [canopyY + .012, canopyY + .04], color: '#2b2c2e' },
+  { id: 'hood-duct', u: [hoodCentre - HOOD.duct / 2, hoodCentre + HOOD.duct / 2], v: [wallV - HOOD.ductDepth, wallV], y: [canopyY + HOOD.canopyHeight, topY], color: '#c4c8cc' },
 ]

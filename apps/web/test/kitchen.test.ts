@@ -118,22 +118,34 @@ test('the freezer is as tall as its 101 L gross capacity needs: about 0.31 m of 
 
 test('the upper cabinets run from the tall column to the hall wall, up to the ceiling, with the microwave beside the fridge and its outlet behind at 1.5 m', () => {
   const cabinet = (id: string) => KITCHEN_UPPER_BOXES.find(item => item.id === id)!
-  const microwave = cabinet('microwave'), fridge = box('fridge'), bottom = cabinet('upper-bottom'), top = cabinet('upper-top'), bridge = cabinet('upper-bridge-bottom')
-  const floor = box('base').y[0]
+  const microwave = cabinet('microwave'), fridge = box('fridge'), bay = cabinet('upper-bay-bottom'), bridge = cabinet('upper-bridge-bottom')
+  const floor = box('base').y[0], carcass = KITCHEN_UPPER_BOXES.filter(item => item.id.startsWith('upper-'))
   // From the column to the hall wall, and as high as the ceiling.
-  assert.ok(Math.abs(top.u[1] - box('column').u[0]) < 1e-9 && Math.abs(top.u[0] - KITCHEN_LIVING.u[0]) < 1e-9)
-  assert.ok(Math.abs(top.y[1] - floor - (FLOOR_HEIGHT - SLAB_THICKNESS)) < 1e-9, 'up to the ceiling')
+  assert.ok(Math.abs(Math.max(...carcass.map(item => item.u[1])) - box('column').u[0]) < 1e-9 && Math.abs(Math.min(...carcass.map(item => item.u[0])) - KITCHEN_LIVING.u[0]) < 1e-9)
+  assert.ok(Math.abs(Math.max(...carcass.map(item => item.y[1])) - floor - (FLOOR_HEIGHT - SLAB_THICKNESS)) < 1e-9, 'up to the ceiling')
   // Over the worktop with clearance; over the fridge it starts above the fridge's top.
-  assert.ok(bottom.y[0] - box('worktop').y[1] >= .4)
+  assert.ok(bay.y[0] - box('worktop').y[1] >= .4)
   assert.ok(bridge.y[0] > fridge.y[1] && bridge.u[0] >= fridge.u[0] - 1e-9 && bridge.u[1] <= box('column').u[0] + 1e-9)
-  // The microwave is next to the fridge, inside the carcass, under the shelf.
+  // The microwave is next to the fridge, inside its bay, under the shelf.
   assert.ok(microwave.u[1] <= fridge.u[0] && fridge.u[0] - microwave.u[1] < .05)
-  assert.ok(microwave.u[0] >= bottom.u[0] && microwave.y[0] >= bottom.y[1] && microwave.y[1] <= cabinet('upper-shelf').y[0], 'the microwave is inside the carcass')
+  assert.ok(microwave.u[0] >= bay.u[0] && microwave.y[0] >= bay.y[1] && microwave.y[1] <= cabinet('upper-shelf').y[0], 'the microwave is inside the carcass')
   assert.ok(microwave.v[1] <= box('base').v[1] - .03, 'off the wall, for the plug')
   const pieces = furnishingsOn('first'), plate = pieces.find(piece => piece.id === 'outlet-microwave-plate')!
   assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (floor + 1.5)) < 1e-9, 'the outlet is centred 1.5 m above the floor')
   assert.ok(plate.u[0] >= microwave.u[0] && plate.u[1] <= microwave.u[1] && plate.y[0] >= microwave.y[0] && plate.y[1] <= microwave.y[1], 'the outlet is hidden behind the microwave')
   assert.ok(plate.v[1] <= box('base').v[1] + 1e-9 && plate.v[0] < box('base').v[1], 'flat on the wall')
+})
+
+test('the chimney hood is centred over the cooktop, clear of the cabinets and the microwave, with its duct to the ceiling', () => {
+  const hood = (id: string) => KITCHEN_UPPER_BOXES.find(item => item.id === `hood-${id}`)!
+  const cooktop = box('cooktop'), canopy = hood('canopy-base'), duct = hood('duct'), microwave = KITCHEN_UPPER_BOXES.find(item => item.id === 'microwave')!
+  const centre = (item: { u: [number, number] }) => (item.u[0] + item.u[1]) / 2
+  assert.ok(Math.abs(centre(canopy) - centre(cooktop)) < 1e-9 && Math.abs(centre(duct) - centre(cooktop)) < 1e-9)
+  assert.ok(canopy.y[0] - cooktop.y[1] >= .5, 'room to cook under it')
+  assert.ok(canopy.u[1] <= microwave.u[0] && canopy.u[0] >= KITCHEN_LIVING.u[0] + KITCHEN_SIZES.stoveFromHall - 1e-9)
+  assert.ok(Math.abs(duct.y[1] - KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-top')!.y[1]) < 1e-9, 'the duct reaches the ceiling')
+  const door = KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-door')!
+  assert.ok(door.u[1] <= canopy.u[0], 'no cabinet over the cooktop')
 })
 
 test('the resting worktop is 45 cm wide on each side of the cooktop', () => {
