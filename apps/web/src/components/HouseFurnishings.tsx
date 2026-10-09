@@ -5,6 +5,9 @@ import { CanvasTexture, SRGBColorSpace, type Mesh, type MeshStandardMaterial, ty
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
+import { mergedModel } from '../lib/merge-model'
+import type { LightSource } from '../lib/light-pool'
+import { LightPool } from './LightPool'
 import { kelvinColour, DEFAULT_KITCHEN_KELVIN, type KitchenLightKelvin } from '../data/light-colour'
 import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
 import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
@@ -111,10 +114,11 @@ function walnutTexture() {
 function PlacedModel({ url, position, turn = Math.PI, glow }: { url: string; position: [number, number, number]; turn?: number; glow?: string }) {
   const { scene } = useGLTF(url)
   const model = useMemo(() => {
-    const copy = scene.clone(true)
+    // The meshes of a model that share a material are one, so that a stool or a lamp costs a few draw calls and not a few dozen; the geometry and the materials are shared with the other placings.
+    const copy = mergedModel(scene).clone(true)
     copy.traverse((node: Object3D) => {
       node.castShadow = true; node.receiveShadow = true
-      // A lamp that can change its colour: what glows in it (an emissive material) takes `glow`, on a copy of the material, since the scene's are shared by every lamp of the same model.
+      // A lamp that can change its colour: what glows in it (an emissive material) takes `glow`, on a copy of the material, since the model's are shared by every lamp of the same file.
       const mesh = node as Mesh
       if (glow && mesh.isMesh) {
         const material = (mesh.material as MeshStandardMaterial).clone()
@@ -165,27 +169,28 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
   const fridgeModel = !!fridge && !fridgeOpen && !fridgeAway && (cut === undefined || cut >= fridge.y[1])
+  // What can light the kitchen, the bathroom and the balcony, as point lights, once the tour runs on the first floor: a warm light in each pendant lamp (10 cm over its rim), neutral white under each bathroom
+  // downlight, a light under every second conduit-box spot (to keep their number down), a lantern's light 8 cm out of its glass and a faint warm one over the middle of each LED strip.
+  const lightSources = useMemo((): LightSource[] => {
+    if (floor !== 'first' || cut !== undefined) return []
+    const sources: LightSource[] = []
+    if (lightsOn) {
+      ISLAND_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `island-${index}`, position: [at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v], color: kelvinColour(kitchenKelvin.pendants), intensity: 1.8 * lightGain, distance: 2.8 }))
+      ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).forEach(strip => sources.push({ id: strip.id, position: [(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2], color: kelvinColour(kitchenKelvin.line), intensity: .5 * lightGain, distance: 2.2 }))
+    }
+    if (bathroomOn) BATHROOM_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `bathroom-${index}`, position: [at.u, FLOOR_HEIGHT + 2.6, -at.v], color: '#fff1dc', intensity: 1.4 * lightGain, distance: 2.6 }))
+    if (conduitOn) CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).forEach((at, index) => sources.push({ id: `conduit-${index}`, position: [at.u, FLOOR_HEIGHT + 2.65, -at.v], color: kelvinColour(kitchenKelvin.conduit), intensity: 1.2 * lightGain, distance: 3 }))
+    if (balconyOn) BALCONY_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `balcony-${index}`, position: [at.u - .08, BALCONY_LANTERN_Y, -at.v], color: '#ffe3bd', intensity: 1.2 * lightGain, distance: 3 }))
+    return sources
+  }, [floor, cut, lightsOn, bathroomOn, conduitOn, balconyOn, kitchenKelvin, lightGain])
   return <group name="house-furnishings" position={[0, absolute ? 0 : -FLOOR_ELEVATION[floor], 0]}>
     {floor === 'first' && (cut === undefined || cut > KITCHEN_TAP.base + .46) && <ModelBoundary fallback={null}><Suspense fallback={null}>
       {/* The sink's basin, under the opening in the top (its lip is under the slab), and the brass tap on the top at the basin's long side away from the oven, turned half a turn so its arch reaches over the basin (the model's arch points toward -v, and the basin is now toward +v from the tap). */}
       <PlacedModel url="/models/house/kitchen-sink.glb" turn={0} position={[(KITCHEN_SINK.u[0] + KITCHEN_SINK.u[1]) / 2, KITCHEN_SINK.top - .03 - KITCHEN_SINK.depth, -(KITCHEN_SINK.v[0] + KITCHEN_SINK.v[1]) / 2]} />
       <PlacedModel url="/models/house/kitchen-tap.glb" turn={Math.PI} position={[KITCHEN_TAP.u - .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v - .0716]} />
     </Suspense></ModelBoundary>}
-    {/* The island's three pendant lamps light the worktop: a warm point light in each shade, 10 cm over its rim. */}
-    {floor === 'first' && cut === undefined && lightsOn && ISLAND_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v]} color={kelvinColour(kitchenKelvin.pendants)} intensity={1.8 * lightGain} distance={2.8} decay={2} />)}
-    {/* The bathroom's three downlights: a neutral white light 10 cm under each. */}
-    {floor === 'first' && cut === undefined && bathroomOn && BATHROOM_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`bathroom-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.6, -at.v]} color="#fff1dc" intensity={1.4 * lightGain} distance={2.6} decay={2} />)}
-    {/* The conduit box's downlights: a warm light under every second one, 10 cm below the box, to keep the scene's light count down. */}
-    {floor === 'first' && cut === undefined && conduitOn && CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).map((at, index) =>
-      <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color={kelvinColour(kitchenKelvin.conduit)} intensity={1.2 * lightGain} distance={3} decay={2} />)}
-    {/* The balcony's three lanterns: a warm light 8 cm out of each. */}
-    {floor === 'first' && cut === undefined && balconyOn && BALCONY_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`balcony-light-${index}`} position={[at.u - .08, BALCONY_LANTERN_Y, -at.v]} color="#ffe3bd" intensity={1.2 * lightGain} distance={3} decay={2} />)}
-    {/* The light line: a faint warm light over the middle of each LED strip, 5 cm above it, washing the white box and the ceiling. */}
-    {floor === 'first' && cut === undefined && lightsOn && ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).map(strip =>
-      <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color={kelvinColour(kitchenKelvin.line)} intensity={.5 * lightGain} distance={2.2} decay={2} />)}
+    {/* The lights of the lamps, a few at a time: the pool puts its point lights at the sources nearest to the camera. */}
+    {lightSources.length > 0 && <LightPool sources={lightSources} />}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
     </Suspense></ModelBoundary>}

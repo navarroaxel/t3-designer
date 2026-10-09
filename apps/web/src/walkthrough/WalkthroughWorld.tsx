@@ -13,6 +13,7 @@ import { floorOfApartment } from '../data/house-interior'
 import { Wall } from '../components/Wall'
 import type { SolarPosition } from '../lib/solar'
 import { kelvinColor, lumensToCandela } from '../lib/design-lighting'
+import { mergedModel } from '../lib/merge-model'
 import { roomFinish } from '../materials/surfaces'
 import { projectModelUrl, siteDirectionInProject } from '../private/project-scene'
 import { resolveWalkDoorOpenness, type WalkDoorStates } from './navigation'
@@ -82,7 +83,8 @@ function Model({ url }: { url: string }) {
   const { scene } = useGLTF(url)
   const { gl, invalidate } = useThree()
   const model = useMemo(() => {
-    const clone = scene.clone(true)
+    // The meshes of a model that share a material are joined into one: a few draw calls for a model that was a few hundred.
+    const clone = mergedModel(scene).clone(true)
     clone.traverse(node => { if (node instanceof Mesh) { node.castShadow = true; node.receiveShadow = true } })
     return clone
   }, [scene])
