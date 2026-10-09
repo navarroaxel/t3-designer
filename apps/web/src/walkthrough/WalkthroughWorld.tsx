@@ -45,9 +45,11 @@ function Volume({ polygon, base, height, color }: { polygon: Point2D[]; base: nu
     result.closePath()
     return result
   }, [polygon])
+  // One arguments array per shape and height: a fresh one at each render would have the geometry rebuilt every time, and the surface would flicker.
+  const args = useMemo(() => [shape, { depth: height, bevelEnabled: false }] as const, [shape, height])
   if (height <= 0 || polygon.length < 3) return null
   return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, base, 0]} castShadow receiveShadow>
-    <extrudeGeometry args={[shape, { depth: height, bevelEnabled: false }]} />
+    <extrudeGeometry args={args} />
     {/* The bottom face points down after rotation, so the ceiling is visible inside. */}
     <meshStandardMaterial color={color} roughness={.94} side={DoubleSide} />
   </mesh>
