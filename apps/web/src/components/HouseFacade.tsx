@@ -64,7 +64,8 @@ function RoofRailing() {
   const { u, top, bottom } = ROOF_RAILING
   return <Railing from={[u, -HOUSE_HALF_WIDTH + PARAPET_THICKNESS]} to={[u, HOUSE_HALF_WIDTH - PARAPET_THICKNESS]} bottom={bottom} top={top} />
 }
-function BalconyRailing() {
+/** The balcony's railing, at the plan's absolute heights (from the ground floor's level): the walkthrough draws it in place of the plan's solid rail walls, which only stop the visitor. */
+export function BalconyRailing() {
   const { top, bottom } = BALCONY_RAILING, back = FRONT - BALCONY.depth, half = BALCONY.width / 2
   return <>
     <Railing from={[back, -half]} to={[back, half]} bottom={bottom} top={top} />
