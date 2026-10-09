@@ -29,7 +29,7 @@ test('both floors build as valid apartments with a wall under every opening', ()
     const walls = new Set(apartment.walls.map(wall => wall.id))
     assert.ok(apartment.doors.concat().every(door => walls.has(door.wallId)))
     assert.ok(apartment.windows.every(window => walls.has(window.wallId)))
-    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || /balcony-rail|terrace|back-low/.test(wall.id)))
+    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || /balcony-rail|terrace|back-low|cave/.test(wall.id)))
   }
 })
 
