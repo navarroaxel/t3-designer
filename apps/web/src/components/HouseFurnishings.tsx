@@ -76,6 +76,36 @@ class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode
 }
 
 /** A Blender model standing on the floor at the middle of the piece's box, its front (+z in the file) toward the room (-z here, the wall's normal) unless `turn` says otherwise. */
+/**
+ * A dark, figured wood like the owner's slab (a walnut-like board with the grain running along the length, darker streaks and a swirl): a deterministic scatter of wavy strands over a warm
+ * brown, drawn on a canvas. One board, so it is not repeated.
+ */
+function walnutTexture() {
+  const width = 512, height = 256, canvas = document.createElement('canvas')
+  canvas.width = width; canvas.height = height
+  const context = canvas.getContext('2d')!
+  const gradient = context.createLinearGradient(0, 0, 0, height)
+  for (const [at, color] of [[0, '#7c4f2c'], [.3, '#5b3a21'], [.55, '#6d4527'], [.8, '#4f321c'], [1, '#845631']] as const) gradient.addColorStop(at, color)
+  context.fillStyle = gradient
+  context.fillRect(0, 0, width, height)
+  let seed = 11
+  const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+  for (let index = 0; index < 150; index++) {
+    const y = random() * height, amplitude = 2 + random() * 9, frequency = .004 + random() * .01, phase = random() * 6.28, dark = random() < .55
+    context.strokeStyle = dark ? `rgba(32,18,9,${.14 + random() * .3})` : `rgba(196,138,86,${.08 + random() * .2})`
+    context.lineWidth = .5 + random() * 2.2
+    context.beginPath()
+    for (let x = 0; x <= width; x += 8) context.lineTo(x, y + Math.sin(x * frequency + phase) * amplitude)
+    context.stroke()
+  }
+  // The swirl of the grain: nested flat rings, a little off the middle.
+  context.strokeStyle = 'rgba(28,15,7,.34)'
+  for (let ring = 0; ring < 7; ring++) { context.lineWidth = 1.2; context.beginPath(); context.ellipse(width * .62, height * .5, 36 + ring * 15, 5 + ring * 3, 0, 0, 6.283); context.stroke() }
+  const texture = new CanvasTexture(canvas)
+  texture.colorSpace = SRGBColorSpace
+  return texture
+}
+
 function PlacedModel({ url, position, turn = Math.PI }: { url: string; position: [number, number, number]; turn?: number }) {
   const { scene } = useGLTF(url)
   const model = useMemo(() => {
@@ -104,6 +134,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   cut?: number
 }) {
   const texture = useMemo(() => plexTexture(), [])
+  const walnut = useMemo(() => walnutTexture(), [])
   const pieces = furnishingsOn(floor)
   // What moves with the arm: the TV, its picture, and the mount's head and rails.
   const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
@@ -184,7 +215,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
         </ModelBoundary> : (() => {
           const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
-          const material = <meshStandardMaterial color={piece.color} roughness={piece.roughness ?? .6} metalness={piece.metalness ?? 0}
+          const material = <meshStandardMaterial color={piece.grain ? '#ffffff' : piece.color} map={piece.grain ? walnut : null} roughness={piece.grain ? .45 : piece.roughness ?? .6} metalness={piece.metalness ?? 0}
             transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined}
             {...(lit ? { emissive: piece.color, emissiveIntensity: 1.6, toneMapped: false } : {})} />
           // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.

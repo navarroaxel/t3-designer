@@ -49,7 +49,7 @@ const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (ind
 const OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
 
 export const KITCHEN_BOXES: KitchenBox[] = [
-  { id: 'column', u: columnU, v: [wallV - S.columnDepth, wallV], y: [floor, cut], color: '#4b4d50' },
+  { id: 'column', u: columnU, v: [wallV - S.columnDepth, wallV], y: [floor, cut], color: OAK },
   // The fridge is the owner's Samsung RT29K577JS8, a top-freezer of 299 L with a water dispenser: 0.675 m wide, 0.668 m deep (handle
   // included) and 1.785 m high (the owner's measurements), silver stainless steel at the front and grey sides (not black: owner). Its doors face the aisle, toward lower v.
   // It is drawn up to the 1.5 m cut like the other tall pieces. The body, then the two doors, the black handle slot over the lower
@@ -141,7 +141,7 @@ export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
 /**
  * The tall column at the rear (owner: not a broom closet but a breakfast nook, "rincón desayunador"), as tall as the cabinets, up to the underside of the conduit box: it opens with a single door on the aisle side, hinged on the rear wall's side, and holds
  * a Nespresso Vertuo Next on the shelf at the worktops' height and, behind it, an outlet at the same height as the one on the resting worktop (1.10 m); several more shelves above and below.
- * The closed column is the plain box in KITCHEN_BOXES; these are what it shows when its door is open. Heights above the ground-floor level.
+ * The whole nook is oak, like the cabinets (owner). The closed column is the plain box in KITCHEN_BOXES; these are what it shows when its door is open. Heights above the ground-floor level.
  */
 export const NOOK = { panel: .02, shelf: .025, shelfHeights: [.45, S.baseHeight + S.worktop, 1.5, 1.85, 2.15, 2.45], top: UPPER_CABINET.ceiling - KITCHEN_CONDUIT_BOX.height, outletHeight: 1.1, doorSwing: Math.PI / 2, machine: { width: .142, height: .314, depth: .426, fromFront: .07 } }
 const nookV: [number, number] = [wallV - S.columnDepth, wallV]
@@ -149,15 +149,29 @@ const nookInnerU: [number, number] = [columnU[0] + NOOK.panel, columnU[1] - NOOK
 const nookTopY = floor + NOOK.top
 export const NOOK_CENTRE_U = (columnU[0] + columnU[1]) / 2
 const nookCounterTop = floor + NOOK.shelfHeights[1]
-export const KITCHEN_NOOK_BOXES: KitchenBox[] = [
-  { id: 'nook-side-low', u: [columnU[0], columnU[0] + NOOK.panel], v: nookV, y: [floor, nookTopY], color: '#4b4d50' },
-  { id: 'nook-side-high', u: [columnU[1] - NOOK.panel, columnU[1]], v: nookV, y: [floor, nookTopY], color: '#4b4d50' },
-  { id: 'nook-top', u: nookInnerU, v: nookV, y: [nookTopY - NOOK.panel, nookTopY], color: '#4b4d50' },
-  { id: 'nook-plinth', u: nookInnerU, v: nookV, y: [floor, floor + .08], color: '#4b4d50' },
-  ...NOOK.shelfHeights.map((height, index): KitchenBox => ({ id: `nook-shelf-${index + 1}`, u: nookInnerU, v: [nookV[0] + NOOK.panel, nookV[1]], y: [floor + height - NOOK.shelf, floor + height], color: index === 1 ? '#a98456' : '#6a6d71' })),
+export const CUP = { diameter: .085, height: .08, handle: .02, pitchU: .12, rows: [.16, .32] as const, taper: .75 }
+function cupBoxes(): IslandPiece[] {
+  const shelfTop = floor + NOOK.shelfHeights[2], cups: IslandPiece[] = []
+  for (const [row, offset] of CUP.rows.entries()) {
+    for (const [column, across] of [-1, 0, 1].entries()) {
+      const u = NOOK_CENTRE_U + across * CUP.pitchU, v = nookV[0] + NOOK.panel + offset, color = (row + column) % 3 === 2 ? '#c7d3d6' : '#f3f1ec'
+      cups.push({ id: `nook-cup-${row * 3 + column + 1}`, u: [u - CUP.diameter / 2, u + CUP.diameter / 2], v: [v - CUP.diameter / 2, v + CUP.diameter / 2], y: [shelfTop, shelfTop + CUP.height], color, round: true })
+      cups.push({ id: `nook-cup-handle-${row * 3 + column + 1}`, u: [u + CUP.diameter / 2 - .004, u + CUP.diameter / 2 + CUP.handle], v: [v - .004, v + .004], y: [shelfTop + CUP.height * .3, shelfTop + CUP.height * .8], color })
+    }
+  }
+  return cups
+}
+export const KITCHEN_NOOK_BOXES: IslandPiece[] = [
+  { id: 'nook-side-low', u: [columnU[0], columnU[0] + NOOK.panel], v: nookV, y: [floor, nookTopY], color: OAK },
+  { id: 'nook-side-high', u: [columnU[1] - NOOK.panel, columnU[1]], v: nookV, y: [floor, nookTopY], color: OAK },
+  { id: 'nook-top', u: nookInnerU, v: nookV, y: [nookTopY - NOOK.panel, nookTopY], color: OAK },
+  { id: 'nook-plinth', u: nookInnerU, v: nookV, y: [floor, floor + .08], color: OAK },
+  ...NOOK.shelfHeights.map((height, index): KitchenBox => ({ id: `nook-shelf-${index + 1}`, u: nookInnerU, v: [nookV[0] + NOOK.panel, nookV[1]], y: [floor + height - NOOK.shelf, floor + height], color: OAK })),
   // The door, with its handle: both swing about the hinge, which is on the rear wall's side (the higher u edge).
-  { id: 'nook-door', u: columnU, v: [nookV[0], nookV[0] + NOOK.panel], y: [floor + .005, nookTopY - .005], color: '#4b4d50' },
+  { id: 'nook-door', u: columnU, v: [nookV[0], nookV[0] + NOOK.panel], y: [floor + .005, nookTopY - .005], color: OAK },
   { id: 'nook-handle', u: [columnU[0] + .03, columnU[0] + .045], v: [nookV[0] - .025, nookV[0]], y: [floor + 1.0, floor + 1.4], color: '#c9cdd1' },
+  // The coffee and tea cups, on the shelf over the machine (owner): two rows of three, white, a little narrower at the foot, each with its handle.
+  ...cupBoxes(),
   // The machine, on the worktops' shelf, in the middle, 7 cm from the door; the Blender model of scripts/blender/jobs/nespresso-job.json.
   { id: 'nook-machine', u: [NOOK_CENTRE_U - NOOK.machine.width / 2, NOOK_CENTRE_U + NOOK.machine.width / 2], v: [nookV[0] + NOOK.machine.fromFront, nookV[0] + NOOK.machine.fromFront + NOOK.machine.depth], y: [nookCounterTop, nookCounterTop + NOOK.machine.height], color: '#18191b' },
 ]
@@ -170,7 +184,7 @@ export const KITCHEN_NOOK_BOXES: KitchenBox[] = [
  */
 export const ISLAND_CANOPY = { soffit: 2.4, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, slat: .024, pitch: .03, slatDepth: .018, backing: .012, light: { diameter: .09, count: 3, from: .4, to: 1.8 } }
 export const ISLAND_CANOPY_WALL = ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing
-export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean; opacity?: number }
+export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean; opacity?: number; grain?: 'walnut' }
 const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!
 const canopyU: [number, number] = islandTop.u, canopyV: [number, number] = islandTop.v
 const canopySoffit = floor + ISLAND_CANOPY.soffit, canopyTop = floor + ISLAND_CANOPY.ceiling
@@ -199,13 +213,14 @@ function ledSides(): IslandPiece[] {
 }
 export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
   // The backing boards: on the wall, from the worktop up to the lowered ceiling; and over the island, above the slats.
-  { id: 'canopy-wall-backing', u: [canopyU[0], canopyU[0] + ISLAND_CANOPY.backing], v: canopyV, y: [floor + S.baseHeight + S.worktop, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#2e2620' },
+  // The wall: a smooth board of dark figured wood (owner's picture of a walnut-like slab), with the grain running along the wall, from the worktop up to the lowered ceiling. It wipes clean, which
+  // the fluted slats did not; the slats stay on the ceiling, where nothing splashes.
+  { id: 'canopy-wall-panel', u: [canopyU[0], wallFaceU], v: canopyV, y: [floor + S.baseHeight + S.worktop, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#6b4527', grain: 'walnut' },
   { id: 'canopy-soffit-backing', u: canopyU, v: canopyV, y: [canopySoffit + ISLAND_CANOPY.slatDepth, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#2e2620' },
   ...Array.from({ length: slatCount }, (_, index): IslandPiece[] => {
     const v: [number, number] = [slatStart + index * ISLAND_CANOPY.pitch, slatStart + index * ISLAND_CANOPY.pitch + ISLAND_CANOPY.slat], color = OAKS[index % OAKS.length]
     return [
-      // On the wall the slats run up, from the worktop to the soffit's underside; under the canopy they run out from the wall to the island's far end.
-      { id: `canopy-wall-slat-${index + 1}`, u: [canopyU[0] + ISLAND_CANOPY.backing, wallFaceU], v, y: [floor + S.baseHeight + S.worktop, canopySoffit + ISLAND_CANOPY.slatDepth], color },
+      // Under the canopy the slats run out from the wall to the island's far end.
       { id: `canopy-soffit-slat-${index + 1}`, u: [wallFaceU, canopyU[1]], v, y: [canopySoffit, canopySoffit + ISLAND_CANOPY.slatDepth], color },
     ]
   }).flat(),
@@ -270,3 +285,16 @@ export const KITCHEN_SWITCH_BOXES: IslandPiece[] = [
 ]
 /** The conduit box's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
 export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (states[KITCHEN_SWITCH_ID] ?? 1) >= .5
+
+/**
+ * The dishwasher (owner): a Whirlpool slimline of 45 cm, stainless steel, 0.85 m tall and 0.59 m deep, in the island between the sink and the wall behind it (the hall wall), next to the
+ * sink, with its door on the aisle side like the sink's, flush with the top's edge (2 cm proud of the cabinets, which are set back under the top). It is a Blender model
+ * (scripts/blender/jobs/dishwasher-job.json) standing inside the island's cabinet, of which only its door shows.
+ */
+export const DISHWASHER = { width: .45, height: .85, depth: .59, gapToSink: .02, model: '/models/house/dishwasher.glb' }
+const sinkEdge = KITCHEN_SINK.u[0]
+export const DISHWASHER_BOX = {
+  u: [sinkEdge - DISHWASHER.gapToSink - DISHWASHER.width, sinkEdge - DISHWASHER.gapToSink] as [number, number],
+  v: [COUNTER_V[1] + S.topOverhang - DISHWASHER.depth, COUNTER_V[1] + S.topOverhang] as [number, number],
+  y: [floor, floor + DISHWASHER.height] as [number, number],
+}
