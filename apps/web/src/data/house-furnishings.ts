@@ -157,8 +157,8 @@ function firstFloor(): Furnishing[] {
     }
   }
   // The island's canopy: the fluted oak up the wall and over the island, the drywall box above it and the three downlights; drawn only in the walkthrough (it hangs above the cut).
-  // The balcony's three downlights, and the switch in the main room.
-  for (const box of BALCONY_BOXES) add({ id: box.id, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
+  // The balcony's three wall lanterns, and the switch in the main room.
+  for (const box of BALCONY_BOXES) add({ id: box.id, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.model ? { model: box.model, turn: box.turn } : {}) })
   // An outlet under the balcony's middle light (owner), on the house's front wall, 0.30 m up like the other low ones: the plate faces the balcony, toward lower u, on the wall's outer face at u = -5.
   const balconyMiddle = BALCONY_LIGHT_POSITIONS[Math.floor(BALCONY_LIGHT_POSITIONS.length / 2)].v
   for (const part of outletBoxes('outlet-balcony', 0, 0, F)) {

@@ -5,7 +5,7 @@ import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
-import { BALCONY_CEILING, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
+import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
 import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
 import { CONDUIT_LIGHT_POSITIONS, conduitLightsOn, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
@@ -130,9 +130,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
     {/* The conduit box's downlights: a warm light under every second one, 10 cm below the box, to keep the scene's light count down. */}
     {floor === 'first' && cut === undefined && conduitOn && CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).map((at, index) =>
       <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
-    {/* The balcony's three downlights, under the roof: a warm light 10 cm under each. */}
+    {/* The balcony's three lanterns: a warm light 8 cm out of each. */}
     {floor === 'first' && cut === undefined && balconyOn && BALCONY_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`balcony-light-${index}`} position={[at.u, BALCONY_CEILING - .1, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
+      <pointLight key={`balcony-light-${index}`} position={[at.u - .08, BALCONY_LANTERN_Y, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
     {/* The light line: a faint warm light over the middle of each LED strip, 5 cm above it, washing the white box and the ceiling. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).map(strip =>
       <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color="#ffcf8a" intensity={.5} distance={2.2} decay={2} />)}
@@ -180,7 +180,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (tv && !isTvMounted(devices, piece.id)) return null
       return <group key={piece.id} position={[0, 0, -pieceReach(piece.id)]}>
         {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
-          <Suspense fallback={null}><PlacedModel url={piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
+          <Suspense fallback={null}><PlacedModel url={piece.id.startsWith('balcony-lantern-') && !balconyOn ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
         </ModelBoundary> : (() => {
           const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
