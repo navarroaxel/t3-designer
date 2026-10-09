@@ -355,3 +355,32 @@ export const DISHWASHER_BOX = {
   v: [COUNTER_V[1] + DISHWASHER.proud - DISHWASHER.depth, COUNTER_V[1] + DISHWASHER.proud] as [number, number],
   y: [floor, floor + DISHWASHER.height] as [number, number],
 }
+
+/**
+ * The fronts of the island's cabinets on the aisle side (owner), the dishwasher's side: from the wall, the dishwasher, a filler, the door under the sink, for the drain's access (one leaf, the sink's
+ * width), and, to the left of the sink seen from the aisle (the open end's side), two large drawers one over the other, for the pans, the width of what is left. Each front is a 5 mm skin on
+ * the cabinet's face, with a 3 mm joint round it; the doors and drawers have oak fronts like the run's and steel handles. House frame [u, v], absolute heights.
+ */
+export const ISLAND_FRONT = { skin: .005, joint: .003, handle: .012 }
+const frontFace = COUNTER_V[1]
+const frontBottom = floor + S.plinthHeight, frontTop = floor + S.baseHeight
+const frontSpan = { dishwasherEnd, sinkDoor: [sinkU[0] - .005, sinkU[1] + .005] as [number, number] }
+function islandFrontBoxes(): IslandPiece[] {
+  const J = ISLAND_FRONT.joint, skin: [number, number] = [frontFace, frontFace + ISLAND_FRONT.skin], grip: [number, number] = [frontFace + ISLAND_FRONT.skin, frontFace + ISLAND_FRONT.skin + ISLAND_FRONT.handle]
+  const drawersU: [number, number] = [frontSpan.sinkDoor[1] + J, cabinetU[1] - J]
+  const middle = (frontBottom + frontTop) / 2
+  const handle = (id: string, u: [number, number], y: number): IslandPiece => ({ id, u, v: grip, y: [y - .005, y + .005], color: '#c9cdd1' })
+  const drawerMid = (drawersU[0] + drawersU[1]) / 2, sinkMid = (frontSpan.sinkDoor[0] + frontSpan.sinkDoor[1]) / 2
+  return [
+    // The filler between the dishwasher and the sink's door, and the door under the sink with its handle near the top.
+    { id: 'island-filler', u: [frontSpan.dishwasherEnd + J, frontSpan.sinkDoor[0] - J], v: skin, y: [frontBottom + J, frontTop - J], color: OAK },
+    { id: 'island-door-sink', u: frontSpan.sinkDoor, v: skin, y: [frontBottom + J, frontTop - J], color: OAK },
+    handle('island-door-sink-handle', [sinkMid - .075, sinkMid + .075], frontTop - .06),
+    // The two large drawers, one over the other, each with a long handle along its top edge.
+    { id: 'island-drawer-1', u: drawersU, v: skin, y: [middle + J / 2, frontTop - J], color: OAK },
+    { id: 'island-drawer-2', u: drawersU, v: skin, y: [frontBottom + J, middle - J / 2], color: OAK },
+    handle('island-drawer-1-handle', [drawerMid - .2, drawerMid + .2], frontTop - .05),
+    handle('island-drawer-2-handle', [drawerMid - .2, drawerMid + .2], middle - .05),
+  ]
+}
+export const KITCHEN_ISLAND_FRONTS: IslandPiece[] = islandFrontBoxes()

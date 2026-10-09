@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn, isStool, STOOLS_ID } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -435,4 +435,21 @@ test('the island has a Toscana Vena cover on its open end, 1 m wide, and the cov
   assert.ok(group && stools.every(piece => piece.u[0] >= group.center[0] - group.halfWidth - 1e-9 && piece.u[1] <= group.center[0] + group.halfWidth + 1e-9 && -piece.v[1] >= group.center[1] - group.halfDepth - 1e-9 && -piece.v[0] <= group.center[1] + group.halfDepth + 1e-9), 'the device holds the three')
   assert.ok(stools.every(piece => isPieceAway({ 'away-stools': 0 }, piece.id)) && !isPieceAway({ 'away-stools': 0 }, 'kitchen-island-cheek'), 'together, and nothing else')
   assert.ok(isPieceAway({ 'away-island-cheek': 0 }, 'kitchen-island-cheek') && !isPieceAway({}, 'kitchen-stool-2'))
+})
+
+test('the island\'s cabinets, on the aisle side, have the door under the sink and, to its left seen from the aisle (the open end\'s side), two large drawers for the pans', () => {
+  const fronts = KITCHEN_ISLAND_FRONTS, find = (id: string) => fronts.find(item => item.id === id)!, sink = box('sink'), counter = box('counter')
+  const door = find('island-door-sink'), one = find('island-drawer-1'), two = find('island-drawer-2')
+  // The door is under the sink, one leaf as wide as the sink (a few mm more), up the cabinet's height from the plinth to the top.
+  assert.ok(door.u[0] <= sink.u[0] && door.u[1] >= sink.u[1] && door.u[1] - door.u[0] - (sink.u[1] - sink.u[0]) < .02, 'the door is the sink\'s width, under it')
+  assert.ok(Math.abs(door.y[0] - counter.y[0]) < .01 && Math.abs(door.y[1] - counter.y[1]) < .01, 'from the plinth to the top')
+  // The drawers: to the left of the sink seen from the aisle, which is the higher u, up to the cabinet's end; two, one over the other, big (a metre wide, 39 cm tall), joined by a joint.
+  assert.ok(one.u[0] >= door.u[1] && Math.abs(one.u[1] - counter.u[1]) < .01 && one.u[0] === two.u[0] && one.u[1] === two.u[1], 'beyond the sink, to the cabinet\'s end, one over the other')
+  assert.ok(one.u[1] - one.u[0] > .9 && one.y[1] - one.y[0] > .35 && two.y[1] < one.y[0] && one.y[0] - two.y[1] < .01, 'large drawers with a joint between them')
+  // On the aisle side, between the dishwasher and the sink: the filler; the fronts are skins on the cabinet's face and their handles stand out of them.
+  const dishwasher = furnishingsOn('first').find(piece => piece.id === 'kitchen-dishwasher')!, filler = find('island-filler')
+  assert.ok(filler.u[0] >= dishwasher.u[1] && filler.u[1] <= door.u[0], 'the filler is between the dishwasher and the door')
+  for (const front of [door, one, two, filler]) assert.ok(Math.abs(front.v[0] - counter.v[1]) < 1e-9 && front.v[1] - front.v[0] < .01, `${front.id} is a skin on the cabinet's face`)
+  for (const id of ['island-door-sink-handle', 'island-drawer-1-handle', 'island-drawer-2-handle']) assert.ok(find(id).v[1] - find(id).v[0] >= .01 && find(id).v[0] >= door.v[1] - 1e-9, `${id} stands out`)
+  assert.ok(sink.u[0] > dishwasher.u[1] && one.u[0] > sink.u[1], 'from the wall: the dishwasher, the sink, the drawers')
 })
