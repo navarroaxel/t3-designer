@@ -9,7 +9,7 @@ import { houseToSite, type SitePoint } from './frame.ts'
  */
 export const SIDEWALK = { width: 3.2, height: .12, curb: .2, grass: .6, tile: .4, gutter: .5, roadTop: .05 }
 export const SIDEWALK_TOP = SIDEWALK.roadTop + SIDEWALK.height
-export const STREET_TREE = { pitch: 9, trunk: .13, height: 4.2, crown: 2 }
+export const STREET_TREE = { pitch: 9, trunk: .13, height: 4.2, crown: 1.5 }
 export const STREET_POLE = { pitch: 27, height: 7 }
 
 export type StreetRect = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; tiles?: boolean }
