@@ -31,7 +31,7 @@ export const STREET_WIDTHS = { front: 17.32, southWest: 17.32, northEast: 17.32,
 /** Length of the block's street fronts and sides, from the block plan. */
 export const BLOCK_DIMENSIONS = { frontLength: 86.62, backLength: 86.4, northEastSide: 48.2, southWestSide: 51.46 } as const
 
-const STREET_LINE = -5
+export const STREET_LINE = -5
 /** The front street line ends at the south-west corner and at the north-east corner. */
 export const CORNER_SW = -15.175
 export const CORNER_NE = CORNER_SW + BLOCK_DIMENSIONS.frontLength
