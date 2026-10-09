@@ -166,6 +166,8 @@ function glassCabinetBoxes(): IslandPiece[] {
   ]
 }
 export const KITCHEN_UPPER_BOXES: IslandPiece[] = [
+  // The island's cover, a "tapa" of Toscana Vena on its open end (owner, to compare: X takes it away and puts it back): a 2 cm slab from the plinth's top to the top, flush with the top's end, like a waterfall edge.
+  { id: 'island-cheek', u: [counterU[1], counterU[1] + S.topOverhang], v: COUNTER_V, y: [floor + S.plinthHeight, floor + S.baseHeight], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB, wall: true },
   // The backsplash (owner): a slab of Toscana Vena on the wall, from the worktop to the underside of the cabinets and the hood, along the whole base run, 2 cm thick. Its pattern runs across its face.
   { id: 'backsplash', u: baseU, v: [wallV - .02, wallV], y: [floor + S.baseHeight + S.worktop, lowY], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB, wall: true },
   // The hall side's cabinet, up to the hood: the glass-door one, for the glasses.

@@ -5,7 +5,7 @@ import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, LIVING_TV_PLAC
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
 import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
-import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn } from '../src/data/house-furnishings.ts'
+import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn, isStool, STOOLS_ID } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
 
@@ -417,4 +417,20 @@ test('the breakfast nook rests on the plinth too: its sides, bottom and door sta
   const pieces = furnishingsOn('first'), top = FLOOR_HEIGHT + .1
   for (const id of ['kitchen-nook-side-low', 'kitchen-nook-side-high', 'kitchen-nook-plinth']) assert.ok(Math.abs(pieces.find(piece => piece.id === id)!.y[0] - top) < 1e-9, id)
   assert.ok(pieces.find(piece => piece.id === 'kitchen-nook-door')!.y[0] > top && pieces.find(piece => piece.id === 'kitchen-nook-door')!.y[0] < top + .01)
+})
+
+test('the island has a Toscana Vena cover on its open end, 1 m wide, and the cover and the three stools (together) can be taken away with X', () => {
+  const cheek = KITCHEN_UPPER_BOXES.find(item => item.id === 'island-cheek')!, counter = box('counter'), top = box('counter-top')
+  // A slab of Toscana Vena on the end, the whole width of the island (1 m), from the plinth to the top, flush with the top's end.
+  assert.equal(cheek.pattern, TOSCANA_VENA_SLAB); assert.ok(cheek.wall)
+  assert.ok(Math.abs((cheek.v[1] - cheek.v[0]) - 1) < 1e-9 && Math.abs(cheek.v[0] - counter.v[0]) < 1e-9 && Math.abs(cheek.v[1] - counter.v[1]) < 1e-9, 'the whole width, 1 m')
+  assert.ok(Math.abs(cheek.u[0] - counter.u[1]) < 1e-9 && Math.abs(cheek.u[1] - top.u[1]) < 1e-9, 'on the open end, flush with the top')
+  assert.ok(Math.abs(cheek.y[0] - counter.y[0]) < 1e-9 && Math.abs(cheek.y[1] - counter.y[1]) < 1e-9, 'from the plinth to the top')
+  // Removable with X, and so are the three stools, together, as one device whose aim volume holds all of them; once away they no longer stop anyone.
+  const all = furnishingDevices('first', 3.2), stools = furnishingsOn('first').filter(piece => isStool(piece.id)), group = all.find(device => device.id === STOOLS_ID)!
+  assert.ok(all.some(device => device.id === 'kitchen-island-cheek') && isRemovable('kitchen-island-cheek') && isRemovable(STOOLS_ID))
+  assert.equal(stools.length, 3)
+  assert.ok(group && stools.every(piece => piece.u[0] >= group.center[0] - group.halfWidth - 1e-9 && piece.u[1] <= group.center[0] + group.halfWidth + 1e-9 && -piece.v[1] >= group.center[1] - group.halfDepth - 1e-9 && -piece.v[0] <= group.center[1] + group.halfDepth + 1e-9), 'the device holds the three')
+  assert.ok(stools.every(piece => isPieceAway({ 'away-stools': 0 }, piece.id)) && !isPieceAway({ 'away-stools': 0 }, 'kitchen-island-cheek'), 'together, and nothing else')
+  assert.ok(isPieceAway({ 'away-island-cheek': 0 }, 'kitchen-island-cheek') && !isPieceAway({}, 'kitchen-stool-2'))
 })

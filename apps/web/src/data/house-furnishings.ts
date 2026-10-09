@@ -195,7 +195,7 @@ function firstFloor(): Furnishing[] {
   for (const box of KITCHEN_BOXES) {
     const tall = box.y[1] === cut
     const top = !tall ? box.y[1] : box.id === 'column' ? F + NOOK.top : box.id.startsWith('fridge') ? F + .04 + KITCHEN_SIZES.fridgeHeight : box.y[1]
-    add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, ...(box.id.startsWith('stool-') ? { model: '/models/house/stool.glb' } : { kitchen: { ...box, y: [box.y[0], top] } }), roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge') })
+    add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, ...(box.id.startsWith('stool-') ? { model: '/models/house/stool.glb' } : { kitchen: { ...box, y: [box.y[0], top] } }), roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge') && !box.id.startsWith('stool-') })
   }
   // The upper cabinet with the microwave, over the run next to the fridge; hung high, so it is not stopped on.
   for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.round ? { shape: 'ellipse' as const, taper: GLASS_CABINET.glass.taper } : {}), ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) })
@@ -251,17 +251,17 @@ export function furnishingBlockers(floor: Floor, level: number) {
 }
 
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open; and with `X`, what can be taken away (REMOVABLE): the fridge and the microwave too. */
-export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID, KITCHEN_SWITCH_ID, BALCONY_SWITCH_ID, GLASS_DOOR_ID] as const
+export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-island-cheek', 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID, KITCHEN_SWITCH_ID, BALCONY_SWITCH_ID, GLASS_DOOR_ID] as const
 export function furnishingDevices(floor: Floor, level: number) {
   const pieces = furnishingsOn(floor)
-  // The living's table with the PS5 and its controller is one device, as tall as the console: X takes the three away, or sets them back.
-  const set = pieces.filter(piece => isLivingSetPiece(piece.id))
-  const setDevices = set.length ? [{
-    id: LIVING_SET_ID,
-    center: [(Math.min(...set.map(piece => piece.u[0])) + Math.max(...set.map(piece => piece.u[1]))) / 2, -(Math.min(...set.map(piece => piece.v[0])) + Math.max(...set.map(piece => piece.v[1]))) / 2] as [number, number],
-    halfWidth: (Math.max(...set.map(piece => piece.u[1])) - Math.min(...set.map(piece => piece.u[0]))) / 2, halfDepth: (Math.max(...set.map(piece => piece.v[1])) - Math.min(...set.map(piece => piece.v[0]))) / 2, cos: 1, sin: 0,
-    bottom: Math.min(...set.map(piece => piece.y[0])) - level, top: Math.max(...set.map(piece => piece.y[1])) - level,
+  // A group is one device whose aim volume holds all of its pieces: the living's table with the PS5 and its controller, as tall as the console, and the three stools at the island (X takes the group away, or sets it back).
+  const group = (id: string, members: Furnishing[]) => members.length ? [{
+    id,
+    center: [(Math.min(...members.map(piece => piece.u[0])) + Math.max(...members.map(piece => piece.u[1]))) / 2, -(Math.min(...members.map(piece => piece.v[0])) + Math.max(...members.map(piece => piece.v[1]))) / 2] as [number, number],
+    halfWidth: (Math.max(...members.map(piece => piece.u[1])) - Math.min(...members.map(piece => piece.u[0]))) / 2, halfDepth: (Math.max(...members.map(piece => piece.v[1])) - Math.min(...members.map(piece => piece.v[0]))) / 2, cos: 1, sin: 0,
+    bottom: Math.min(...members.map(piece => piece.y[0])) - level, top: Math.max(...members.map(piece => piece.y[1])) - level,
   }] : []
+  const setDevices = [...group(LIVING_SET_ID, pieces.filter(piece => isLivingSetPiece(piece.id))), ...group(STOOLS_ID, pieces.filter(piece => isStool(piece.id)))]
   return [...setDevices, ...pieces.filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => {
     // The aim volume of a TV reaches as far as its mount's arm does, so a TV brought out into the room can still be looked at.
     const reach = piece.id.startsWith('tv-') ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
@@ -278,6 +278,8 @@ export function furnishingDevices(floor: Floor, level: number) {
 
 /** The living's table, the PS5 and its controller come and go together (X): `set-living`, 1 in place and 0 taken away. */
 export const LIVING_SET_ID = 'living-table'
+export const STOOLS_ID = 'kitchen-stools'
+export const isStool = (id: string) => id.startsWith('kitchen-stool-')
 export const livingSetKey = 'set-living'
 export const isLivingSetPiece = (id: string) => id.startsWith('living-table-') || id === 'ps5' || id === 'ps5-controller'
 export const isLivingSetPresent = (states: Readonly<Record<string, number>>) => (states[livingSetKey] ?? 1) >= .5
@@ -290,6 +292,9 @@ export const REMOVABLE: Record<string, { key: string; owns: (pieceId: string) =>
   [LIVING_SET_ID]: { key: livingSetKey, owns: isLivingSetPiece },
   'kitchen-fridge': { key: 'away-fridge', owns: id => id.startsWith('kitchen-fridge') },
   'kitchen-microwave': { key: 'away-microwave', owns: id => id === 'kitchen-microwave' },
+  'kitchen-island-cheek': { key: 'away-island-cheek', owns: id => id === 'kitchen-island-cheek' },
+  // The three stools at the island come out together, so that the island can be seen with them or without.
+  [STOOLS_ID]: { key: 'away-stools', owns: isStool },
 }
 export const isRemovable = (deviceId: string) => deviceId in REMOVABLE
 export const isInPlace = (states: Readonly<Record<string, number>>, deviceId: string) => (states[REMOVABLE[deviceId].key] ?? 1) >= .5

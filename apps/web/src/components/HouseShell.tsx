@@ -152,9 +152,10 @@ function SlabPiece({ u, v, y, color, pattern, origin, id, wall }: { u: [number, 
     const texture = pattern.image ? slabPicture(pattern) : patternTexture(color, pattern)
     const across = pattern.width * pattern.rows
     if (wall) {
-      // A slab standing on a wall: its length runs along u and its width up the wall, from the slab's lower edge.
-      texture.repeat.set((u1 - u0) / pattern.length, (y[1] - y[0]) / across)
-      texture.offset.set((u0 - originU) / pattern.length, 0)
+      // A slab standing on a wall: its length runs along the wall, along u or along v, and its width up the wall, from the slab's lower edge.
+      const alongU = u1 - u0 >= v1 - v0, along = alongU ? u1 - u0 : v1 - v0
+      texture.repeat.set(along / pattern.length, (y[1] - y[0]) / across)
+      texture.offset.set((alongU ? u0 - originU : v0 - originV) / pattern.length, 0)
       return texture
     }
     texture.repeat.set((u1 - u0) / pattern.length, (v1 - v0) / across)

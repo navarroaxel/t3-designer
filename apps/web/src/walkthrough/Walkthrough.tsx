@@ -79,6 +79,12 @@ function HoldButton({ label, children, field, value, input }: { label: string; c
 }
 
 /** A disposable visit of the supplied active version; never calls project persistence. */
+/** What X does to what a visitor aims at, in words: take it away while it is in place, put it back when it is not. */
+function removeLabel(id: string, inPlace: boolean, c: Record<string, string>) {
+  const names = id === LIVING_SET_ID ? 'set' : id === 'kitchen-fridge' ? 'fridge' : id === 'kitchen-island-cheek' ? 'cheek' : id === 'kitchen-stools' ? 'stool' : 'microwave'
+  return c[`${names}${inPlace ? 'Remove' : 'Restore'}`]
+}
+
 export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference = false, startAt }: {
   snapshot: ProjectSnapshot
   /** A second floor above, joined to the first by its stair: the visitor can walk from one to the other. */
@@ -226,7 +232,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
           {(!isRemovable(interaction.id) || (interaction.id === 'kitchen-fridge' && isInPlace(doorStates, interaction.id))) && <button type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
             onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.id === 'kitchen-column' ? (interaction.open ? c.nookClose : c.nookOpen) : interaction.id.endsWith('island-switch-plate') ? (interaction.open ? c.islandLightsOff : c.islandLightsOn) : interaction.id === 'bathroom-switch-plate' ? (interaction.open ? c.bathroomLightsOff : c.bathroomLightsOn) : interaction.id === 'kitchen-switch-plate' ? (interaction.open ? c.kitchenLightsOff : c.kitchenLightsOn) : interaction.id === 'kitchen-upper-glass-pane' ? (interaction.open ? c.glassDoorClose : c.glassDoorOpen) : interaction.id === 'balcony-switch-plate' ? (interaction.open ? c.balconyLightsOff : c.balconyLightsOn) : interaction.open ? c.closeDoor : c.openDoor}</button>}
           {isRemovable(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
-            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isInPlace(doorStates, interaction.id) ? (interaction.id === LIVING_SET_ID ? c.setRemove : interaction.id === 'kitchen-fridge' ? c.fridgeRemove : c.microwaveRemove) : (interaction.id === LIVING_SET_ID ? c.setRestore : interaction.id === 'kitchen-fridge' ? c.fridgeRestore : c.microwaveRestore)}</button>}
+            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {removeLabel(interaction.id, isInPlace(doorStates, interaction.id), c)}</button>}
           {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
             onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isTvMounted(doorStates, interaction.id) ? c.tvRemove : c.tvMount}</button>}
           {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-extend" data-tv-id={interaction.id}
