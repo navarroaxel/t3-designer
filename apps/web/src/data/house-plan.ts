@@ -465,7 +465,7 @@ export const TV_MOUNT = {
   model: 'Articulated full-motion VESA wall mount', maxKg: 50, width: .44, railHeight: .42, plateHeight: .135, depthFolded: .067, depthExtended: .355,
   tiltDegrees: [-15, 3] as const, swivelDegrees: 60, levelDegrees: 3, vesaWidthRange: [.1, .4] as const,
 }
-export const MAIN_TV = { model: 'Samsung OLED S90', inches: 55, aspect: [16, 9] as const, thickness: .03, standoff: TV_MOUNT.depthFolded, centreHeight: 1.1, vesa: [.2, .2] as const }
+export const MAIN_TV = { model: 'Samsung OLED S90', inches: 55, aspect: [16, 9] as const, thickness: .03, standoff: TV_MOUNT.depthFolded, centreHeight: 1.55, vesa: [.2, .2] as const }
 const TV_DIAGONAL = MAIN_TV.inches * .0254
 const TV_HYPOT = Math.hypot(MAIN_TV.aspect[0], MAIN_TV.aspect[1])
 export const TV_SIZE = { width: TV_DIAGONAL * MAIN_TV.aspect[0] / TV_HYPOT, height: TV_DIAGONAL * MAIN_TV.aspect[1] / TV_HYPOT }

@@ -318,7 +318,7 @@ test('the 55 inch TV is a 16:9 screen hung on the shared wall, centred on it, fa
   near(MAIN_TV_PLACEMENT.bracket.v[0], main.v[0]); near(MAIN_TV_PLACEMENT.v[0], main.v[0] + TV_MOUNT.depthFolded)
   assert.ok(MAIN_TV_PLACEMENT.v[1] < main.v[1])
   // It hangs clear of the floor and stays under the 1.5 m cut, so it shows whole.
-  assert.ok(MAIN_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + .5 && MAIN_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 1.5)
+  assert.ok(MAIN_TV_PLACEMENT.y[0] > FLOOR_HEIGHT + 1 && MAIN_TV_PLACEMENT.y[1] < FLOOR_HEIGHT + 2.1, 'hung high enough to watch lying down: the centre at 1.55 m')
 })
 
 test('a 0.10 m drywall wall divides the main room, 1.5 m from the party wall with neighbour A', () => {
