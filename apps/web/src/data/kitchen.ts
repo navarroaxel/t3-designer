@@ -342,10 +342,11 @@ export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (st
  * the wall but not touching it (owner: at least 1 cm, for the carcass of the cabinet it stands in), with its door on the aisle side like the sink's, flush with the cabinets' fronts, and on the same plinth as they are (owner): its own 10 cm plinth is set 5 cm back, as theirs. It is a Blender model
  * (scripts/blender/jobs/dishwasher-job.json) standing inside the island's cabinet, of which only its door shows.
  */
-export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .02, proud: .005, model: '/models/house/dishwasher.glb' }
+export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .02, proud: .017, model: '/models/house/dishwasher.glb' }
 export const DISHWASHER_BOX = {
   u: [counterU[0] + DISHWASHER.fromWall, counterU[0] + DISHWASHER.fromWall + DISHWASHER.width] as [number, number],
-  // Its door stands 5 mm proud of the cabinets' fronts, so that the two do not draw on the same plane and flicker.
+  // The model's front is the lip of its handle tray, 12 mm out of the door: its door stands 5 mm proud of the cabinets' fronts (owner: it showed no more than the tray when the door was flush),
+  // so that the two do not draw on the same plane and flicker.
   v: [COUNTER_V[1] + DISHWASHER.proud - DISHWASHER.depth, COUNTER_V[1] + DISHWASHER.proud] as [number, number],
   y: [floor, floor + DISHWASHER.height] as [number, number],
 }
