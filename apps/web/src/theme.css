@@ -10,6 +10,13 @@
   --settings-accent-soft: #e8efde;
   --settings-shadow: 0 24px 90px #25321c2e;
   --settings-overlay: #25321c66;
+  /* The workspace's tabs (Interior, House and sun, Walkthrough) and the inspector's: the bar, an idle tab's text, the tab that is on and its text, a tab's small tag. Each text is 4.5:1 over what it sits on, in both themes. */
+  --tab-bar: #edf0e8;
+  --tab-text: #566849;
+  --tab-hover: #e1e7da;
+  --tab-on: #fffefa;
+  --tab-on-text: #405634;
+  --tab-tag: #7d6a3a;
 }
 
 /* UI only: canvas materials, solar lighting, maps and evidence images keep
@@ -29,6 +36,12 @@
     --settings-shadow: 0 24px 90px #0009;
     --settings-overlay: #0a110bc4;
     --ui-hover: #35422f;
+    --tab-bar: #2b362b;
+    --tab-text: #b9c8b0;
+    --tab-hover: #35422f;
+    --tab-on: #4a6140;
+    --tab-on-text: #f1f6ec;
+    --tab-tag: #e0c88f;
     --ui-warm: #d3ba83;
     --ui-warm-surface: #393324;
     --gen-grid: #3a463a; --gen-axis: #a9b8a0; --gen-area: #3c5232; --gen-typical: #b1cf95; --gen-clear: #d3ba83; --gen-overcast: #9fd0ee;
