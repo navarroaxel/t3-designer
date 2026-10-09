@@ -10,6 +10,8 @@ import type { Floor } from '../data/house-plan'
 import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
 import { KITCHEN_SINK, KITCHEN_TAP } from '../data/kitchen'
 import { FloorPatch, KitchenPiece } from './HouseShell'
+import { AZOTEA_REAR } from '../data/building-site'
+import { LAUNDRY } from '../data/laundry'
 
 /**
  * The cutaway's furniture and equipment, standing at full height in the viewer's frame: x = u, z = -v, y up from the floor. The plan's
@@ -165,7 +167,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
 /** Raises the tiles a hair over the room floors the viewers draw, so the two never fight for the same pixels. */
 const TILE_LIFT = .012
 /** The laundry's tile runs on under the stair's landing in the plan; the visitor's floor ends at the laundry's back wall. */
-const LAUNDRY_END = 7
+const LAUNDRY_END = AZOTEA_REAR + LAUNDRY.length
 
 /**
  * The floors' own finishes, from the plan: Saing planks in the bedrooms, hall and living, Navona tiles in the bathrooms and the laundry, each at its
