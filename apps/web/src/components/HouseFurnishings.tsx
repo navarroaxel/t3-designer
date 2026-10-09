@@ -5,6 +5,7 @@ import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
+import { BALCONY_CEILING, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
 import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
 import { CONDUIT_LIGHT_POSITIONS, conduitLightsOn, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
@@ -109,7 +110,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
   // The breakfast nook, the tall column: closed it is a plain box; open, its door swings about the hinge on the rear wall's side and the shelves and the coffee machine show.
   const nookOpen = (devices['kitchen-column'] ?? 0) >= .5
-  const lightsOn = islandLightsOn(devices), bathroomOn = bathroomLightsOn(devices), conduitOn = conduitLightsOn(devices)
+  const lightsOn = islandLightsOn(devices), bathroomOn = bathroomLightsOn(devices), conduitOn = conduitLightsOn(devices), balconyOn = balconyLightsOn(devices)
   const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
@@ -129,6 +130,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
     {/* The conduit box's downlights: a warm light under every second one, 10 cm below the box, to keep the scene's light count down. */}
     {floor === 'first' && cut === undefined && conduitOn && CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).map((at, index) =>
       <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
+    {/* The balcony's three downlights, under the roof: a warm light 10 cm under each. */}
+    {floor === 'first' && cut === undefined && balconyOn && BALCONY_LIGHT_POSITIONS.map((at, index) =>
+      <pointLight key={`balcony-light-${index}`} position={[at.u, BALCONY_CEILING - .1, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
     {/* The light line: a faint warm light over the middle of each LED strip, 5 cm above it, washing the white box and the ceiling. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).map(strip =>
       <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color="#ffcf8a" intensity={.5} distance={2.2} decay={2} />)}
@@ -150,10 +154,10 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (isPieceAway(devices, piece.id)) return null
       if (piece.id === 'kitchen-column' && nookOpen) return null
       // The island's canopy hangs above the cut: the cutaway does not draw it.
-      if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id.startsWith('kitchen-conduit-') || piece.id.startsWith('kitchen-switch-'))) return null
+      if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id.startsWith('kitchen-conduit-') || piece.id.startsWith('kitchen-switch-') || piece.id.startsWith('balcony-'))) return null
       // Switched off, the lights and the light line go dark and the wash of light is gone.
       if (!lightsOn && piece.id.startsWith('island-canopy-wash-')) return null
-      const lit = !!piece.glow && (/^kitchen-(conduit-light|switch-dot)/.test(piece.id) ? conduitOn : /^bathroom-/.test(piece.id) ? bathroomOn || !/^bathroom-(ceiling-light|switch-dot)/.test(piece.id) : lightsOn || !/^island-(canopy-(light|led)|switch-dot)/.test(piece.id))
+      const lit = !!piece.glow && (/^kitchen-(conduit-light|switch-dot)/.test(piece.id) ? conduitOn : /^balcony-(light|switch-dot)/.test(piece.id) ? balconyOn : /^bathroom-/.test(piece.id) ? bathroomOn || !/^bathroom-(ceiling-light|switch-dot)/.test(piece.id) : lightsOn || !/^island-(canopy-(light|led)|switch-dot)/.test(piece.id))
       if (piece.id.startsWith('kitchen-nook-') && !nookOpen) return null
       if (piece.id === 'kitchen-nook-door' || piece.id === 'kitchen-nook-handle') {
         // The door and its handle, turned about the hinge (the higher u edge of the door, on its front face).

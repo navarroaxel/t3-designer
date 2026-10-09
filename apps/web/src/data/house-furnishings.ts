@@ -1,3 +1,4 @@
+import { BALCONY_BOXES, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID } from './balcony-lights.ts'
 import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, BATHROOM_SWITCH_ID, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
@@ -156,6 +157,13 @@ function firstFloor(): Furnishing[] {
     }
   }
   // The island's canopy: the fluted oak up the wall and over the island, the drywall box above it and the three downlights; drawn only in the walkthrough (it hangs above the cut).
+  // The balcony's three downlights, and the switch in the main room.
+  for (const box of BALCONY_BOXES) add({ id: box.id, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
+  // An outlet under the balcony's middle light (owner), on the house's front wall, 0.30 m up like the other low ones: the plate faces the balcony, toward lower u, on the wall's outer face at u = -5.
+  const balconyMiddle = BALCONY_LIGHT_POSITIONS[Math.floor(BALCONY_LIGHT_POSITIONS.length / 2)].v
+  for (const part of outletBoxes('outlet-balcony', 0, 0, F)) {
+    add({ ...part, u: [-5 - part.v[1], -5 - part.v[0]], v: [balconyMiddle + part.u[0], balconyMiddle + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
+  }
   // The conduit box along the wall behind the island, which the island's box crosses.
   for (const box of [...KITCHEN_CONDUIT_BOXES, ...KITCHEN_SWITCH_BOXES]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
   for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}) })
@@ -236,7 +244,7 @@ export function furnishingBlockers(floor: Floor, level: number) {
 }
 
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open; and with `X`, what can be taken away (REMOVABLE): the fridge and the microwave too. */
-export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID, KITCHEN_SWITCH_ID] as const
+export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID, KITCHEN_SWITCH_ID, BALCONY_SWITCH_ID] as const
 export function furnishingDevices(floor: Floor, level: number) {
   const pieces = furnishingsOn(floor)
   // The living's table with the PS5 and its controller is one device, as tall as the console: X takes the three away, or sets them back.
@@ -253,7 +261,7 @@ export function furnishingDevices(floor: Floor, level: number) {
     return {
       id: piece.id,
       // The lights start on: a switch's openness is 1 until a visitor flips it.
-      ...(piece.id === ISLAND_SWITCH_ID || piece.id === BATHROOM_SWITCH_ID || piece.id === KITCHEN_SWITCH_ID ? { initialOpenness: 1 } : {}),
+      ...(piece.id === ISLAND_SWITCH_ID || piece.id === BATHROOM_SWITCH_ID || piece.id === KITCHEN_SWITCH_ID || piece.id === BALCONY_SWITCH_ID ? { initialOpenness: 1 } : {}),
       center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1] + reach) / 2] as [number, number],
       halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
       bottom: piece.y[0] - level, top: piece.y[1] - level,
