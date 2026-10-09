@@ -14,6 +14,10 @@ import { walkCopy } from './copy'
 import { buildWalkWorld, canSetWalkDoorOpenness, WALK_STEP, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, isWalkPositionFree, withWalkDoorStates, type WalkDoorStates, type WalkSpawn, type WalkWorld } from './navigation'
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
+import { PerfProbe } from './PerfProbe'
+import { QUALITY_FPS, QUALITY_LEVELS, stepQuality } from './quality'
+import { PerformanceMonitor } from '@react-three/drei'
+import { perfRequested } from './perf'
 import { clockLabel, DEFAULT_KITCHEN_KELVIN, lightGain, KELVIN, TEST_TIMES, KITCHEN_LIGHT_GROUPS, kelvinColour, type KitchenLightGroup, type KitchenLightKelvin } from '../data/light-colour'
 import { saveScreenshot } from './screenshot'
 import { AmbientOcclusion } from '../components/AmbientOcclusion'
@@ -119,6 +123,8 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const [artificialLights, setArtificialLights] = useState(() => snapshot.customization?.lighting.artificialEnabled !== false), [torch, setTorch] = useState(false)
   const [screenControls, setScreenControls] = useState(() => window.matchMedia('(pointer: coarse)').matches)
   // Soft shadows where surfaces meet cost a little; a touch screen, usually a phone, starts without them.
+  // How much the graphics card is asked: the performance monitor steps it down if the tour cannot keep up and back up when it can.
+  const [quality, setQuality] = useState(0), level = QUALITY_LEVELS[quality]
   const [ambientOcclusion, setAmbientOcclusion] = useState(() => !window.matchMedia('(pointer: coarse)').matches)
   const [fullscreen, setFullscreen] = useState(false), [message, setMessage] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -213,13 +219,15 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
     <div className="walk-layout">
       <div className="walk-stage" data-testid="walk-stage">
         <WebGLGuard fallback={fallback}>
-          <Canvas shadows={{ type: PCFShadowMap }} gl={{ preserveDrawingBuffer: true }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
+          <Canvas shadows={{ type: PCFShadowMap }} gl={{ preserveDrawingBuffer: true }} dpr={level.dpr} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
             onCreated={({ gl }) => { canvas.current = gl.domElement; gl.domElement.tabIndex = 0; setReady(true) }}>
             <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} kitchenKelvin={kitchenKelvin} lightGain={lightGain(solar.sun.altitude)} />
             <WalkController world={initialWorld} collisionWorld={world} spawn={spawn} resetKey={reset} active={active} input={input} eyeHeight={eyeHeight} sensitivity={sensitivity} onPose={setPose} onPause={pause} onInteract={interact} />
             <CameraSettings fov={fov} torch={torch} />
-            <AmbientOcclusion enabled={ambientOcclusion} />
+            <PerformanceMonitor bounds={() => QUALITY_FPS} flipflops={3} onDecline={() => setQuality(current => stepQuality(current, 'decline'))} onIncline={() => setQuality(current => stepQuality(current, 'incline'))} />
+            <AmbientOcclusion enabled={ambientOcclusion && level.ao !== null} quality={level.ao ?? 'medium'} />
             <ScreenshotBridge capture={capture} />
+            {perfRequested() && <PerfProbe />}
           </Canvas>
         </WebGLGuard>
         <div className="walk-status"><span className={active ? 'walk-live' : ''} />{active ? c.live : c.paused}{currentRoom && <> · {roomName(currentRoom)}</>}</div>

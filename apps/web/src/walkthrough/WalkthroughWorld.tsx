@@ -8,11 +8,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
 import { HouseFloorTiles, HouseFurnishings } from '../components/HouseFurnishings'
+import { StaticBake } from '../components/StaticBake'
 import type { KitchenLightKelvin } from '../data/light-colour'
 import { floorOfApartment } from '../data/house-interior'
 import { Wall } from '../components/Wall'
 import type { SolarPosition } from '../lib/solar'
 import { kelvinColor, lumensToCandela } from '../lib/design-lighting'
+import { mergedModel } from '../lib/merge-model'
 import { roomFinish } from '../materials/surfaces'
 import { projectModelUrl, siteDirectionInProject } from '../private/project-scene'
 import { resolveWalkDoorOpenness, type WalkDoorStates } from './navigation'
@@ -82,7 +84,8 @@ function Model({ url }: { url: string }) {
   const { scene } = useGLTF(url)
   const { gl, invalidate } = useThree()
   const model = useMemo(() => {
-    const clone = scene.clone(true)
+    // The meshes of a model that share a material are joined into one: a few draw calls for a model that was a few hundred.
+    const clone = mergedModel(scene).clone(true)
     clone.traverse(node => { if (node instanceof Mesh) { node.castShadow = true; node.receiveShadow = true } })
     return clone
   }, [scene])
@@ -268,7 +271,8 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, upper
     <NaturalLighting snapshot={snapshot} upper={upper} sun={sun} />
     <ArtificialLighting snapshot={snapshot} enabled={artificialLights} />
     {upper && <ArtificialLighting snapshot={upper} enabled={artificialLights} />}
-    <SiteContext snapshot={snapshot} />
+    {/* The site, the neighbours and the street, stands still: baked into a few meshes (a few hundred before). */}
+    <StaticBake deps={[snapshot]}><SiteContext snapshot={snapshot} /></StaticBake>
     <FloorContent snapshot={snapshot} doorStates={doorStates} withRoof={!upper} kitchenKelvin={kitchenKelvin} lightGain={lightGain} />
     {upper && <FloorContent snapshot={upper} doorStates={doorStates} withRoof kitchenKelvin={kitchenKelvin} lightGain={lightGain} />}
   </>

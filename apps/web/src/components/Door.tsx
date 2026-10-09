@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { StaticBake } from './StaticBake'
 import { CanvasTexture, Path, RepeatWrapping, SRGBColorSpace, Shape } from 'three'
 import type { DesignCustomization, Door as DoorData, Wall as WallData } from '@t3-designer/scene-schema'
 
@@ -40,7 +41,7 @@ function PaneledLeaf({ width, fullHeight, visibleHeight, color, damaged, glazed 
   const panelHeight = (fullHeight - rail * 5) / 4
   const leafHeight = Math.min(fullHeight, visibleHeight)
   return (
-    <group>
+    <StaticBake deps={[width, fullHeight, visibleHeight, color, damaged, glazed]}><group>
       {[rail / 2, width - rail / 2].map((x) => (
         <mesh key={x} position={[x, leafHeight / 2, 0]} castShadow receiveShadow>
           <boxGeometry args={[rail, leafHeight, 0.035]} />
@@ -105,7 +106,7 @@ function PaneledLeaf({ width, fullHeight, visibleHeight, color, damaged, glazed 
           </mesh>
         </group>
       ))}
-    </group>
+    </group></StaticBake>
   )
 }
 
@@ -138,7 +139,7 @@ function FlushLeaf({ width, fullHeight, visibleHeight, color }: { width: number;
   const leafHeight = Math.min(fullHeight, visibleHeight)
   const grain = useMemo(() => grainTexture(color), [color])
   useEffect(() => () => grain.dispose(), [grain])
-  return <group>
+  return <StaticBake deps={[width, fullHeight, visibleHeight, color, grain]}><group>
     <mesh position={[width / 2, leafHeight / 2, 0]} castShadow receiveShadow>
       <boxGeometry args={[width, leafHeight, .04]} />
       <meshStandardMaterial color="#ffffff" map={grain} roughness={.55} />
@@ -150,13 +151,13 @@ function FlushLeaf({ width, fullHeight, visibleHeight, color }: { width: number;
       <mesh position={[0, -.06, face * .0025]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.013, .013, .005, 20]} /><meshStandardMaterial color="#a9aeb1" metalness={.9} roughness={.3} /></mesh>
       <mesh position={[0, -.06, face * .006]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.004, .004, .004, 10]} /><meshStandardMaterial color="#17181a" roughness={.6} /></mesh>
     </group>)}
-  </group>
+  </group></StaticBake>
 }
 
 /** A glazed leaf in a white aluminium frame: stiles, a bottom rail and a translucent pane, like the plan's living door. */
 function AluminiumLeaf({ width, height, color }: { width: number; height: number; color: string }) {
   const profile = .05, rail = .12
-  return <group>
+  return <StaticBake deps={[width, height, color]}><group>
     {[0, width - profile].map(x => <mesh key={x} position={[x + profile / 2, height / 2, 0]} castShadow receiveShadow>
       <boxGeometry args={[profile, height, .045]} /><meshStandardMaterial color={color} roughness={.45} metalness={.25} />
     </mesh>)}
@@ -166,7 +167,7 @@ function AluminiumLeaf({ width, height, color }: { width: number; height: number
     <mesh position={[width / 2, (rail + height - profile) / 2, 0]}>
       <boxGeometry args={[width - profile * 2, height - rail - profile, .008]} /><meshPhysicalMaterial color="#bcd6df" transparent opacity={.35} roughness={.05} depthWrite={false} />
     </mesh>
-  </group>
+  </group></StaticBake>
 }
 
 /**
@@ -212,6 +213,8 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
 
   return (
     <group position={[0, sill, 0]}>
+      {/* The frame never moves: its parts are baked into a few meshes. */}
+      <StaticBake deps={[door.offset, door.width, door.height, height, sill, wall.thickness, visibleWallHeight, frameColor, passage]}>
       {[door.offset + 0.014, door.offset + door.width - 0.014].map((x) => (
         <mesh key={x} position={[x, height / 2, 0]} castShadow receiveShadow>
           <boxGeometry args={[0.028, height, wall.thickness + 0.008]} />
@@ -256,6 +259,7 @@ export function Door({ door, wall, visibleWallHeight, customization }: DoorProps
         <boxGeometry args={[door.width - 0.028, 0.012, 0.085]} />
         <meshStandardMaterial color={passage ? '#997649' : '#979d97'} metalness={passage ? 0 : 0.65} roughness={0.48} />
       </mesh>
+      </StaticBake>
       {fixedLeaf > 0 && <group position={[hingeAtStart ? door.offset + door.width - fixedLeaf : door.offset, 0.025, 0]}><AluminiumLeaf width={fixedLeaf} height={Math.max(0, door.height - 0.05)} color={door.color ?? '#f3f2ee'} /></group>}
       {sliding && <SlidingPanels x={door.offset} width={door.width} height={Math.min(height, door.height) - .03} openness={slidingOpenness} color={door.color ?? '#f3f2ee'} />}
       {!passage && !sliding && [{ x: hingeX, dir: leafDirection }].map(({ x, dir }) => (

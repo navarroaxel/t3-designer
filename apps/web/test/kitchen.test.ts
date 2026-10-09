@@ -5,7 +5,7 @@ import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, LI
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
 import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_PANEL_BOXES, ISLAND_WOOD, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
-import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn, isStool, STOOLS_ID } from '../src/data/house-furnishings.ts'
+import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, isStaticFurnishing, islandLightsOn, isStool, REMOVABLE, STOOLS_ID } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
 
@@ -533,4 +533,18 @@ test('the island\'s wood (a walnut-like board on the wall, a fluted oak under th
 test('the stool side\'s fluted panel is the same oak as the cabinets', () => {
   const slats = ISLAND_PANEL_BOXES.filter(item => item.id.startsWith('panel-slat-'))
   assert.ok(slats.length > 70 && slats.every(slat => slat.color.toLowerCase() === box('base').color.toLowerCase()), 'every slat is the cabinets\' oak')
+})
+
+test('the pieces that are baked are the ones no visit can change: not the TVs, the fridge, the nook, the stools, the glass door, the island\'s wood or lamps, nor what is taken away', () => {
+  const pieces = furnishingsOn('first'), fixed = pieces.filter(isStaticFurnishing), dynamic = pieces.filter(piece => !isStaticFurnishing(piece))
+  assert.ok(fixed.length > pieces.length / 2, `most of the first floor is fixed (${fixed.length} of ${pieces.length})`)
+  for (const id of ['tv-main', 'tv-living-mount-head', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', 'kitchen-nook-shelf-1', 'kitchen-stool-1', 'kitchen-upper-glass-pane', 'kitchen-upper-glass-frame-top', 'kitchen-island-cheek', 'island-canopy-wall-panel', 'island-canopy-slab', 'island-switch-plate', 'outlet-island-1-plate', 'ps5', 'living-table-top', 'kitchen-conduit-box', 'kitchen-switch-plate', 'balcony-lantern-1', 'bathroom-ceiling-box'])
+    assert.ok(dynamic.some(piece => piece.id === id), `${id} is not baked`)
+  // Whatever can be taken away with X, glows, is see-through or is a model is never baked.
+  assert.ok(pieces.filter(piece => Object.values(REMOVABLE).some(removable => removable.owns(piece.id))).every(piece => !isStaticFurnishing(piece)))
+  assert.ok(pieces.filter(piece => piece.glow || piece.opacity !== undefined || piece.model).every(piece => !isStaticFurnishing(piece)))
+  // What is baked stands still under every state: not away, whatever was taken away.
+  const everything = Object.fromEntries(Object.values(REMOVABLE).map(removable => [removable.key, 0]))
+  assert.ok(fixed.every(piece => !isPieceAway(everything, piece.id)), 'nothing baked goes with X')
+  for (const id of ['kitchen-base', 'kitchen-upper-bottom', 'kitchen-worktop', 'outlet-kitchen-rest-plate', 'wardrobe-closet', 'bed-main', 'outlet-left-plate']) assert.ok(fixed.some(piece => piece.id === id), `${id} is baked`)
 })
