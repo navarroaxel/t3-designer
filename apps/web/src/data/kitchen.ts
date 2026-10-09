@@ -226,3 +226,13 @@ export const ISLAND_SWITCH_BOXES: IslandPiece[] = [
   { id: 'switch-rocker', u: [switchFace + .008, switchFace + .011], v: [switchV - .014, switchV + .014], y: [switchY - .024, switchY + .024], color: '#e8e8e4' },
   { id: 'switch-dot', u: [switchFace + .008, switchFace + .0085], v: [switchV + .024, switchV + .029], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
 ]
+
+/**
+ * The kitchen's conduit box (owner): the electrical conduits travel in a drywall "cajón" that runs the whole length of the wall facing the window, the one behind the bathroom, under the ceiling, from
+ * the TV wall to the upper cabinets. It is 25 cm deep and 25 cm tall, white, and it crosses the island's box, which comes out of it at right angles. Heights above the ground-floor level. It hangs
+ * above the 1.5 m cut, so it is not in KITCHEN_BOXES.
+ */
+export const KITCHEN_CONDUIT_BOX = { depth: .25, height: .25 }
+export const KITCHEN_CONDUIT_BOXES: IslandPiece[] = [
+  { id: 'conduit-box', u: [frontU, frontU + KITCHEN_CONDUIT_BOX.depth], v: [KITCHEN_LIVING.v[0], upperV[0]], y: [floor + ISLAND_CANOPY.ceiling - KITCHEN_CONDUIT_BOX.height, floor + ISLAND_CANOPY.ceiling], color: '#f1efe9' },
+]

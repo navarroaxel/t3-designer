@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -267,4 +267,17 @@ test('the island has a light switch on the oak and a light line round the drywal
   assert.equal(led.length, 3); assert.equal(wash.length, 3)
   for (const strip of led) assert.ok(strip.glow && Math.abs(strip.y[0] - drywall.y[0]) < 1e-9, `${strip.id} on the wood's ledge, at the box's foot`)
   for (const skin of wash) assert.ok(skin.glow && skin.opacity! < .4 && Math.abs(skin.y[0] - led[0].y[1]) < 1e-9 && skin.y[1] <= drywall.y[1], skin.id)
+})
+
+test('the conduit box runs the whole length of the wall facing the window, under the ceiling, and the island\'s box crosses it', () => {
+  const conduit = KITCHEN_CONDUIT_BOXES[0], drywall = ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-drywall')!
+  // On the wall behind the bathroom (the one facing the rear wall's window), from the TV wall to the upper cabinets, up to the ceiling.
+  assert.ok(Math.abs(conduit.u[0] - KITCHEN_LIVING.u[0]) < 1e-9 && conduit.u[1] - conduit.u[0] === KITCHEN_CONDUIT_BOX.depth)
+  assert.ok(Math.abs(conduit.v[0] - KITCHEN_LIVING.v[0]) < 1e-9, 'from the TV wall')
+  assert.ok(Math.abs(conduit.v[1] - KITCHEN_UPPER_BOXES.find(piece => piece.id === 'upper-bottom')!.v[0]) < 1e-9, 'to the upper cabinets')
+  assert.ok(Math.abs(conduit.y[1] - drywall.y[1]) < 1e-9, 'up to the ceiling')
+  // The island's box comes out of it at right angles and meets it: they overlap in u, v and height.
+  const meets = (a: [number, number], b: [number, number]) => overlap(a, b) > 0
+  assert.ok(meets(conduit.u, drywall.u) && meets(conduit.v, drywall.v) && meets(conduit.y, drywall.y), 'the island\'s box crosses it')
+  assert.ok(conduit.y[0] > ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-soffit-backing')!.y[1], 'over the wood, not into it')
 })

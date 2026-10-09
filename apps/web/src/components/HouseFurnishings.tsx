@@ -147,7 +147,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (isPieceAway(devices, piece.id)) return null
       if (piece.id === 'kitchen-column' && nookOpen) return null
       // The island's canopy hangs above the cut: the cutaway does not draw it.
-      if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-'))) return null
+      if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id === 'kitchen-conduit-box')) return null
       // Switched off, the lights and the light line go dark and the wash of light is gone.
       if (!lightsOn && piece.id.startsWith('island-canopy-wash-')) return null
       const lit = !!piece.glow && (/^bathroom-/.test(piece.id) ? bathroomOn || !/^bathroom-(ceiling-light|switch-dot)/.test(piece.id) : lightsOn || !/^island-(canopy-(light|led)|switch-dot)/.test(piece.id))
