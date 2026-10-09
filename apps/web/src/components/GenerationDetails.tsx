@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
 import { clock, cumulativeKwh, dayStats, METRIC_UNIT, monthValue, yearCsv, type YearMetric } from '../lib/pv/stats'
@@ -18,15 +18,14 @@ function Stat({ label, value, unit, note }: { label: string; value: string; unit
 }
 
 /**
- * The wide view of the generation: the day's curve and figures, and the year's months. It floats over the
- * 3D scene, which stays visible and follows the same date and time, and closes with Escape.
+ * The generation in full: the day's curve and figures, the year's months, the panels, the bill and the investment. It is the page of the Generation tab, with no 3D scene; the date and time
+ * it follows are the study's own, set in the side column.
  */
-export function GenerationDetails({ solar, generation, panels, onClose }: { solar: SolarStudy; generation: Generation; panels: InstalledPanels; onClose: () => void }) {
+export function GenerationDetails({ solar, generation, panels }: { solar: SolarStudy; generation: Generation; panels: InstalledPanels }) {
   const { t } = useTranslation('workspace')
   const { formatNumber, formatDate } = useLocale()
   const [tab, setTab] = useState<Tab>('today')
   const [metric, setMetric] = useState<YearMetric>('perDay')
-  const closeButton = useRef<HTMLButtonElement>(null)
   const { day, year } = generation
   const { moment } = solar
   const month = Number(moment.date.slice(5, 7)) - 1
@@ -37,12 +36,6 @@ export function GenerationDetails({ solar, generation, panels, onClose }: { sola
   const range = (window: [number, number] | null) => window ? `${clock(window[0])} – ${clock(window[1])}` : '—'
   const soFar = cumulative[Math.min(cumulative.length - 1, Math.round(moment.minutes / 10))]
 
-  useEffect(() => { closeButton.current?.focus() }, [])
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
 
   function downloadCsv() {
     if (!year) return
@@ -58,7 +51,7 @@ export function GenerationDetails({ solar, generation, panels, onClose }: { sola
   const best = year ? year.months.reduce((a, b) => b.acKwhPerDay > a.acKwhPerDay ? b : a) : null
   const worst = year ? year.months.reduce((a, b) => b.acKwhPerDay < a.acKwhPerDay ? b : a) : null
 
-  return <section className="gen-details" role="dialog" aria-modal="false" aria-label={t('building.genDetailsTitle')}>
+  return <section className="gen-details" aria-label={t('building.genDetailsTitle')}>
     <header>
       <div>
         <span className="eyebrow">{t('building.genTitle')}</span>
@@ -68,7 +61,6 @@ export function GenerationDetails({ solar, generation, panels, onClose }: { sola
         {(['today', 'year', 'panels', 'bill', 'invest'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
           onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : option === 'panels' ? 'building.genTabPanels' : option === 'bill' ? 'building.genTabBill' : 'building.genTabInvest')}</button>)}
       </div>
-      <button ref={closeButton} type="button" className="gen-close" aria-label={t('building.genClose')} title={t('building.genClose')} onClick={onClose}>×</button>
     </header>
 
     {tab === 'today' && <div role="tabpanel" id="gen-panel-today" aria-labelledby="gen-tab-today" className="gen-tab-body">

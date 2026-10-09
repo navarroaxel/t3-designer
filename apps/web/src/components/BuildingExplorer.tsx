@@ -1,14 +1,13 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { BuildingScene } from './BuildingScene'
 import { SolarControls, SolarMomentTag } from './SolarControls'
 import { BUILDING_SITE, SITE_BUILDINGS, SITE_PARCEL } from '../data/building-site'
 import type { FloorView } from './BuildingContext'
 import { GenerationPanel } from './GenerationPanel'
-import { GenerationDetails } from './GenerationDetails'
+import { ArraySummary } from './ArraySummary'
 import { useGeneration } from '../lib/useGeneration'
 import { usePvFactor } from '../lib/usePvFactor'
 import { useInstalledPanels } from '../lib/useInstalledPanels'
-import { PANELS, PANEL_SPEC, ROWS, TILT_DEGREES } from '../data/solar-array'
 import type { SolarStudy } from '../lib/useSolarStudy'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '../i18n/useLocale'
@@ -16,7 +15,7 @@ import '../building.css'
 
 const targetBuilding = SITE_BUILDINGS.find(building => building.isTarget)
 
-export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
+export function BuildingExplorer({ solar, onOpenGeneration }: { solar: SolarStudy; onOpenGeneration: () => void }) {
   const { t } = useTranslation('workspace')
   const { formatNumber, formatDate } = useLocale()
   const { sun, instant } = solar
@@ -27,8 +26,6 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
   const [showSunPath, setShowSunPath] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
   const [showPanels, setShowPanels] = useState(true)
-  const [showDetails, setShowDetails] = useState(false)
-  const closeDetails = useCallback(() => setShowDetails(false), [])
   const [floor, setFloor] = useState<FloorView>('exterior')
   const [view, setView] = useState<{ mode: '3d' | 'top'; revision: number }>({ mode: '3d', revision: 0 })
   function resetView(mode: '3d' | 'top') {
@@ -48,7 +45,6 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
           </div>
         </div>
         <SolarMomentTag solar={solar} />
-        {showDetails && <GenerationDetails solar={solar} generation={generation} panels={panels} onClose={closeDetails} />}
         <div className="viewport-bottom building-viewport-bottom">
           <div className="scene-guide"><span><i className="target-key" /> {t('building.buildingPart')} <i className="neighbor-key" /> {t('building.contextKey')}</span><small>{t('building.navigationHelp')}</small></div>
           <fieldset className="display-options building-layers">
@@ -70,13 +66,8 @@ export function BuildingExplorer({ solar }: { solar: SolarStudy }) {
           </div>
           {floor !== 'exterior' && <p className="floor-note">{t('building.floorNote')}</p>}
         </section>
-        <section className="array-summary" aria-label={t('building.arrayTitle')}>
-          <span className="eyebrow">{t('building.arrayTitle')}</span>
-          <strong>{t('building.arraySummary', { panels: formatNumber(panels.count), watts: formatNumber(PANEL_SPEC.watts), kwp: formatNumber(generation.day.kwp, 2) })}</strong>
-          {!panels.isFull && <p className="array-note">{t('building.arrayPartial', { count: panels.count, total: panels.total })}</p>}
-          <p className="array-note">{t('building.arrayLayout', { rows: ROWS.map(row => PANELS.filter(panel => panel.row === row && panels.isIn(panel.id)).length).filter(count => count > 0).join(' + '), tilt: formatNumber(TILT_DEGREES) })}</p>
-        </section>
-        <GenerationPanel solar={solar} generation={generation} factor={pvFactor} expanded={showDetails} onExpand={() => setShowDetails(open => !open)} />
+        <ArraySummary generation={generation} panels={panels} />
+        <GenerationPanel solar={solar} generation={generation} factor={pvFactor} onExpand={onOpenGeneration} />
         <div className="solar-heading"><span className="eyebrow">{t('building.solarStudy')}</span><h2>{t('building.annualLightLine1')}<br /> {t('building.annualLightLine2')}</h2><p>{t('building.sharedMoment')}</p></div>
 
         <SolarControls solar={solar} />

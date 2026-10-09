@@ -13,3 +13,7 @@ test('the apartment and its walkthrough have their own links', () => {
   assert.equal(workspaceFromHash('#apartment'), 'apartment')
   assert.equal(workspaceFromHash('#walkthrough'), 'walkthrough')
 })
+
+test('the generation figures have their own link, apart from the 3D view', () => {
+  assert.equal(workspaceFromHash('#generation'), 'generation')
+})

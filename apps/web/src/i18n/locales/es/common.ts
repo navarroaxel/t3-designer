@@ -9,6 +9,7 @@ export default {
     walkthrough: { title: 'Recorrido en primera persona', badge: 'A escala humana', nav: 'Recorrido' },
     apartment: { title: 'Interior de la casa', badge: 'Plantas, con medidas', nav: 'Interior' },
     building: { title: 'Casa y entorno', nav: 'Casa y sol' },
+    generation: { title: 'Generación e inversión solar', nav: 'Generación' },
   },
   settings: {
     title: 'Ajustes',
