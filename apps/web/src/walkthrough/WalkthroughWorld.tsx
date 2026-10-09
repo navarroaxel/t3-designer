@@ -9,7 +9,7 @@ import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
 import { HouseFloorTiles, HouseFurnishings } from '../components/HouseFurnishings'
 import { BalconyRailing } from '../components/HouseFacade'
-import { FLOOR_ELEVATION, groundRoofPolygon, isBalconyRail } from '../data/house-interior'
+import { FLOOR_ELEVATION, firstFloorSlabPolygon, isBalconyRail } from '../data/house-interior'
 import { StaticBake } from '../components/StaticBake'
 import type { KitchenLightKelvin } from '../data/light-colour'
 import { floorOfApartment } from '../data/house-interior'
@@ -38,6 +38,9 @@ type WalkthroughWorldProps = {
   lightGain?: number
 }
 
+/** The colour of a floor's slab: what the ground floor sees as its ceiling. */
+const UPPER_SLAB_COLOR = '#c5c6b9'
+
 function Volume({ polygon, base, height, color }: { polygon: Point2D[]; base: number; height: number; color: string }) {
   const shape = useMemo(() => {
     const result = new Shape()
@@ -45,9 +48,11 @@ function Volume({ polygon, base, height, color }: { polygon: Point2D[]; base: nu
     result.closePath()
     return result
   }, [polygon])
+  // One arguments array per shape and height: a fresh one at each render would have the geometry rebuilt every time, and the surface would flicker.
+  const args = useMemo(() => [shape, { depth: height, bevelEnabled: false }] as const, [shape, height])
   if (height <= 0 || polygon.length < 3) return null
   return <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, base, 0]} castShadow receiveShadow>
-    <extrudeGeometry args={[shape, { depth: height, bevelEnabled: false }]} />
+    <extrudeGeometry args={args} />
     {/* The bottom face points down after rotation, so the ceiling is visible inside. */}
     <meshStandardMaterial color={color} roughness={.94} side={DoubleSide} />
   </mesh>
@@ -245,7 +250,7 @@ function FloorContent({ snapshot, doorStates, withRoof, kitchenKelvin, lightGain
   }), [apartment.doors, customization, doorStates])
   const houseFloor = floorOfApartment(apartment)
   return <group position={[0, snapshot.placement.floorElevation, 0]}>
-    <Floor polygon={geometry.floor.polygon} color="#c5c6b9" elevation={geometry.floor.elevation} thickness={geometry.floor.thickness} />
+    <Floor polygon={houseFloor === 'first' ? firstFloorSlabPolygon() : geometry.floor.polygon} color={UPPER_SLAB_COLOR} elevation={geometry.floor.elevation} thickness={geometry.floor.thickness} />
     {apartment.rooms.map(room => {
       const finish = customization?.floors[room.id]
       return <Floor key={room.id} polygon={room.polygon} color={room.color} elevation={geometry.floor.elevation + .006}
@@ -258,8 +263,6 @@ function FloorContent({ snapshot, doorStates, withRoof, kitchenKelvin, lightGain
     {apartment.walls.filter(wall => !isBalconyRail(wall.id)).map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     {/* Under a floor above, the ceiling is that floor's slab; only the top floor has a roof. */}
-    {/* The office's arm has nothing above it: it gets its own ceiling. */}
-    {houseFloor === 'ground' && !withRoof && <Volume polygon={groundRoofPolygon()} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />}
     {withRoof && <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />}
     {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} devices={doorStates} kitchenKelvin={kitchenKelvin} lightGain={lightGain} /></>}
     {snapshot.fixtures.map(fixture => {

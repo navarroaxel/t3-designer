@@ -199,15 +199,18 @@ export function KitchenPiece({ box }: { box: KitchenBox }) {
       </mesh>
 }
 
-/** One rectangle of a floor zone, with its pattern repeated at real scale. */
-export function FloorPatch({ zone, rect }: { zone: FloorTiling; rect: [number, number, number, number] }) {
+/** One rectangle of a floor zone, with its pattern repeated at real scale. `origin` is where the pattern starts, for a patch that goes on from another (the default is its own corner). */
+export function FloorPatch({ zone, rect, origin }: { zone: FloorTiling; rect: [number, number, number, number]; origin?: [number, number] }) {
   const [u0, u1, v0, v1] = rect
   const { pattern } = zone
+  const [originU, originV] = origin ?? [u0, v0]
   const map = useMemo(() => {
     const texture = patternTexture(zone.color, pattern)
     texture.repeat.set((u1 - u0) / pattern.length, (v1 - v0) / (pattern.width * pattern.rows))
+    // The pattern starts at the patch's corner, or at `origin` when this patch goes on from another one: the tiles line up across the two.
+    texture.offset.set((u0 - originU) / pattern.length, (v0 - originV) / (pattern.width * pattern.rows))
     return texture
-  }, [pattern, zone.color, u0, u1, v0, v1])
+  }, [pattern, zone.color, u0, u1, v0, v1, originU, originV])
   useEffect(() => () => map.dispose(), [map])
   return <mesh position={[(u0 + u1) / 2, (zone.level ?? FLOOR_HEIGHT) + TILE_THICKNESS / 2, -(v0 + v1) / 2]} receiveShadow>
     <boxGeometry args={[u1 - u0, TILE_THICKNESS, v1 - v0]} />

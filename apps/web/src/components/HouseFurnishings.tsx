@@ -19,7 +19,7 @@ import { CONDUIT_LIGHT_POSITIONS, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIG
 import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
-import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
+import { FLOOR_TILING, GROUND_FLOOR_TILING, STAIR_CAVE } from '../data/house-plan'
 import { KITCHEN_SINK, KITCHEN_TAP } from '../data/kitchen'
 import { FloorPatch, KitchenPiece } from './HouseShell'
 import { AZOTEA_REAR } from '../data/building-site'
@@ -285,11 +285,13 @@ const LAUNDRY_END = AZOTEA_REAR + LAUNDRY.length
  * real scale. The same patches the floor cutaway lays, here under the walkthrough and the interior view.
  */
 export function HouseFloorTiles({ floor }: { floor: Floor }) {
-  const zones = floor === 'ground' ? GROUND_FLOOR_TILING : FLOOR_TILING
+  const zones = floor === 'ground' ? GROUND_FLOOR_TILING : FLOOR_TILING, cave = FLOOR_TILING.find(zone => zone.id === 'laundry')
   return <group name="house-floor-tiles" position={[0, -FLOOR_ELEVATION[floor] + TILE_LIFT, 0]}>
     {zones.flatMap(zone => zone.rects.map((rect, index) => {
       const clipped: [number, number, number, number] = zone.id === 'laundry' ? [rect[0], Math.min(rect[1], LAUNDRY_END), rect[2], rect[3]] : rect
       return <FloorPatch key={`${zone.id}-${index}`} zone={zone} rect={clipped} />
     }))}
+    {/* The cave under the stair's landing is part of the laundry: its floor goes on in the same tile. */}
+    {floor === 'first' && cave && <FloorPatch zone={cave} rect={[STAIR_CAVE.u[0], STAIR_CAVE.u[1], STAIR_CAVE.v[0], STAIR_CAVE.v[1]]} origin={[cave.rects[0][0], cave.rects[0][2]]} />}
   </group>
 }

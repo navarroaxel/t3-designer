@@ -54,7 +54,6 @@ export function laundryVolumes(floor: number, neInner: number, partyWall: number
     { id: 'HOUSE-LAUNDRY-BACK-JAMB-A', label: 'Casa · lavadero · fijo del fondo', u: [doorU, doorU + wallThickness], v: [wellEdge, v0 + door.frame], base: floor + landing.rise, height: floor + roofSpec.eaveHeight },
     { id: 'HOUSE-LAUNDRY-DOOR', label: 'Casa · lavadero · puerta al descanso', u: [doorU, doorU + wallThickness], v: [v0 + door.frame, v0 + door.frame + door.width], base: floor + landing.rise, height: floor + landing.rise + door.height },
     { id: 'HOUSE-LAUNDRY-BACK-TRANSOM', label: 'Casa · lavadero · paño sobre la puerta', u: [doorU, doorU + wallThickness], v: [v0 + door.frame, v0 + door.frame + door.width], base: floor + landing.rise + door.height, height: floor + roofSpec.eaveHeight },
-    { id: 'HOUSE-LAUNDRY-BACK-NE', label: 'Casa · lavadero · pared del fondo bajo la escalera', u: [doorU, doorU + wallThickness], v: [v0 + flight.width, neInner], base: floor, height: floor + landing.rise - .2 },
     { id: 'HOUSE-LAUNDRY-PARTY', label: 'Casa · lavadero · medianera con A', u: [rearU, doorU + wallThickness + landing.depth + wallThickness], v: [neInner, neInner + partyWall], base: floor, height: partyWallTop },
     { id: 'HOUSE-LAUNDRY-ROOF', label: 'Casa · lavadero · techo de chapa', u: [rearU, doorU + wallThickness], v: [wellEdge, neInner - flight.width - wallThickness], base: floor + roofSpec.eaveHeight, height: floor + roofSpec.eaveHeight + roofSpec.thickness, rise: roofSpec.rise, toward: 'north-east' },
   )

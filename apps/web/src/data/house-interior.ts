@@ -6,7 +6,7 @@ import {
   FRONT_ROOMS, GARAGE_DOOR, GROUND_BATHROOM, GROUND_DOOR_SWINGS, GROUND_GARAGE, GROUND_HALL, GROUND_BATHROOM_DOOR, GROUND_LIVING, GROUND_OFFICE,
   GROUND_OUTLINE, GROUND_PANTRY, GROUND_PARTITIONS, HALL_ARCH, KITCHEN_LIVING, LIVING_DOOR, LIVING_KITCHEN_DOOR, MAIN_DOOR, MAIN_ROOM_CLOSET,
   MAIN_ROOM_DRYWALL, MAIN_ROOM_SETBACK, OFFICE_DOOR, OPENINGS, PANTRY_DOOR, PARTITION_THICKNESS, SECONDARY_DOOR, SECONDARY_WARDROBE, SIDE_OPENINGS,
-  SLAB_THICKNESS, STAIRWELL_HOLE, BALCONY, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
+  SLAB_THICKNESS, STAIRWELL_HOLE, STAIR_CAVE, BALCONY, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
 } from './house-plan.ts'
 import { LAUNDRY } from './laundry.ts'
 import { TERRACE_INNER, TERRACE_PARTY_WALL, TERRACE_RAILING, TERRACE_REAR_WALL, TERRACE_WALL_THICKNESS, houseSouthWestEdge } from './building-site.ts'
@@ -164,6 +164,7 @@ const room = (id: string, name: string, polygon: Point2D[], color: string): Room
 const firstHallV: [number, number] = [SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK]
 const sleepingMain: [number, number] = [FRONT_ROOMS.main.v[0], MAIN_ROOM_DRYWALL[2]]
 const LAUNDRY_U_ROOM: [number, number] = [AZOTEA_REAR, AZOTEA_REAR + LAUNDRY.length]
+const NE_ROOM_V0 = HOUSE_HALF_WIDTH - PARTY_WALL - LAUNDRY.width
 const firstRooms: Room[] = [
   room('secondary-room', 'Secondary room', rect(FRONT_ROOMS.secondary.u, FRONT_ROOMS.secondary.v), '#d8cdb8'),
   room('main-room', 'Main room', rect(FRONT_ROOMS.main.u, sleepingMain), '#dfc7bf'),
@@ -171,7 +172,11 @@ const firstRooms: Room[] = [
   room('bathroom', 'Bathroom', rect(FIRST_FLOOR_BATHROOM.u, FIRST_FLOOR_BATHROOM.v), '#c1d3d2'),
   room('hall', 'Hall', rect([FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS], firstHallV), '#ded6c3'),
   room('stair-corridor', 'Stair corridor', rect([STAIRWELL_HOLE[0], STAIRWELL_HOLE[1]], [firstHallV[0], STAIRWELL_HOLE[2]]), '#d3ccb8'),
-  room('laundry', 'Laundry', rect(LAUNDRY_U_ROOM, [HOUSE_HALF_WIDTH - PARTY_WALL - LAUNDRY.width, HOUSE_HALF_WIDTH - PARTY_WALL]), '#d8d4c6'),
+  // The laundry and, in one piece with it, the cave under the stair's landing, which is entered from it.
+  room('laundry', 'Laundry', [
+    local(LAUNDRY_U_ROOM[0], NE_ROOM_V0), local(LAUNDRY_U_ROOM[1], NE_ROOM_V0), local(LAUNDRY_U_ROOM[1], STAIR_CAVE.v[0]), local(STAIR_CAVE.u[1], STAIR_CAVE.v[0]),
+    local(STAIR_CAVE.u[1], STAIR_CAVE.v[1]), local(LAUNDRY_U_ROOM[0], STAIR_CAVE.v[1]),
+  ], '#d8d4c6'),
   room('terrace', 'Terrace', rect([AZOTEA_REAR, TERRACE_REAR], [houseSouthWestEdge((AZOTEA_REAR + TERRACE_REAR) / 2) + TERRACE_WALL_THICKNESS, TERRACE_INNER - TERRACE_WALL_THICKNESS]), '#d6d2c2'),
   room('balcony', 'Balcony', rect([-5 - BALCONY.depth, -5], [-BALCONY.width / 2, BALCONY.width / 2]), '#c2c2b9'),
   room('kitchen-living', 'Kitchen and living', rect(KITCHEN_LIVING.u, KITCHEN_LIVING.v), '#e3d5bd'),
@@ -202,15 +207,20 @@ const TERRACE_SW = (u: number) => houseSouthWestEdge(u) + TERRACE_WALL_THICKNESS
  * (its north-east half, the other being the stair's first flight) and the stairwell, a notch in the floor along the north-east party wall.
  * The perimeter is what the walkthrough treats as floor, so it follows all three.
  */
-function firstFloorPerimeter(withTerrace = true, withHole = true): Point2D[] {
+function firstFloorPerimeter(withTerrace = true, withHole = true, withOfficeRoof = false): Point2D[] {
   const hole = STAIRWELL_HOLE
   const terrace = withTerrace ? [local(AZOTEA_REAR, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
   return [
     local(-5, FIRST_OUTLINE[0][1]), local(-5, -BALCONY_V), local(BALCONY_FRONT, -BALCONY_V), local(BALCONY_FRONT, BALCONY_V), local(-5, BALCONY_V),
     local(-5, HOUSE_HALF_WIDTH), ...(withHole ? [local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH)] : []),
-    local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness), ...terrace, local(AZOTEA_REAR, FIRST_OUTLINE[0][1]),
+    ...(withOfficeRoof
+      // Past the laundry, the slab goes on over the office's arm, to its back wall, and comes back along the light well's edge to the azotea's wall.
+      ? [local(HOUSE_REAR.northEast, HOUSE_HALF_WIDTH), local(HOUSE_REAR.northEast, GROUND_WELL_EDGE), local(AZOTEA_REAR, GROUND_WELL_EDGE)]
+      : [local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness)]), ...terrace, local(AZOTEA_REAR, FIRST_OUTLINE[0][1]),
   ]
 }
+
+const FIRST_FLOOR_SLAB: Point2D[] = firstFloorPerimeter(true, true, true)
 
 /** The ground floor's outline with the light well filled in: the well is a patio the visitor can step out onto, bounded at the back by the lot behind. */
 function groundPerimeter(): Point2D[] {
@@ -228,8 +238,8 @@ function groundAnnex() {
 
 function firstFloorAnnex() {
   const walls: Wall[] = [], windows: Window[] = [], doors: Door[] = []
-  const wall = (id: string, from: [number, number], to: [number, number], thickness: number, height = WALL_HEIGHT): Wall => {
-    const result: Wall = { id, from: local(...from), to: local(...to), thickness, height, kind: 'exterior', estimated: true }
+  const wall = (id: string, from: [number, number], to: [number, number], thickness: number, height = WALL_HEIGHT, kind: Wall['kind'] = 'exterior'): Wall => {
+    const result: Wall = { id, from: local(...from), to: local(...to), thickness, height, kind, estimated: true }
     walls.push(result)
     return result
   }
@@ -241,7 +251,13 @@ function firstFloorAnnex() {
   // the visitor gets from the landing back over the laundry's north-east half.
   const backU = LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, flightEnd = LAUNDRY_V0 + LAUNDRY.flight.width
   const back = wall('first-laundry-back', [backU, LAUNDRY_V0 - LAUNDRY.wallThickness], [backU, flightEnd], LAUNDRY.wallThickness)
-  wall('first-laundry-back-low', [backU, flightEnd], [backU, HOUSE_HALF_WIDTH - PARTY_WALL], LAUNDRY.wallThickness, .8)
+  // Under the landing there is a cave (owner), part of the laundry and open to it: no wall at the laundry's back under the second flight. It is closed on its other two sides by walls up to the
+  // landing's slab, which have a skirting on both faces.
+  const caveRear = STAIR_CAVE.u[1] + LAUNDRY.wallThickness / 2, caveSide = STAIR_CAVE.v[0] - LAUNDRY.wallThickness / 2
+  wall('first-laundry-cave-rear', [caveRear, caveSide - LAUNDRY.wallThickness / 2], [caveRear, STAIR_CAVE.v[1]], LAUNDRY.wallThickness, STAIR_CAVE.height, 'interior')
+  wall('first-laundry-cave-side', [STAIR_CAVE.u[0], caveSide], [STAIR_CAVE.u[1], caveSide], LAUNDRY.wallThickness, STAIR_CAVE.height, 'interior')
+  // The party wall goes on along the cave, as the laundry's does, with the same grey skirting.
+  wall('first-laundry-cave-party', [LAUNDRY_BACK, HOUSE_HALF_WIDTH - PARTY_WALL / 2], [STAIR_CAVE.u[1] + LAUNDRY.wallThickness, HOUSE_HALF_WIDTH - PARTY_WALL / 2], PARTY_WALL, STAIR_CAVE.height)
   // The door at the top of the first flight, onto the landing 1 m up (owner): white aluminium with glass, opening inward, into the laundry, hinged on the light-well side.
   doors.push({
     id: 'first-laundry-back-door', wallId: back.id, offset: LAUNDRY.wallThickness + LAUNDRY.door.frame, width: LAUNDRY.door.width, height: LAUNDRY.door.height, sill: LAUNDRY.landing.rise,
@@ -278,12 +294,10 @@ export function ceilingPolygon(floor: Floor): Point2D[] {
 }
 
 /**
- * What the first floor's slab does not cover on the ground floor: the office's arm, behind the light well, which has no floor above it (the first floor ends at the azotea's back wall).
- * The walkthrough draws its own ceiling there, at the ground floor's ceiling height; the rest of the ground floor has the first floor's slab for a ceiling.
+ * The first floor's slab as the walkthrough draws it: the floor's outline, and over the office's arm, behind the light well, the same slab, which is the office's ceiling. The slab is
+ * not floor to walk on there (`walkOutline` leaves it out), and the perimeter the plan checks against keeps to the rooms.
  */
-export function groundRoofPolygon(): Point2D[] {
-  return [local(WELL_BACK_U, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, HOUSE_HALF_WIDTH), local(WELL_BACK_U, HOUSE_HALF_WIDTH)]
-}
+export const firstFloorSlabPolygon = (): Point2D[] => FIRST_FLOOR_SLAB
 
 function buildFloor(floor: Floor): Apartment {
   const outline = floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE

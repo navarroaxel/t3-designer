@@ -29,7 +29,7 @@ test('both floors build as valid apartments with a wall under every opening', ()
     const walls = new Set(apartment.walls.map(wall => wall.id))
     assert.ok(apartment.doors.concat().every(door => walls.has(door.wallId)))
     assert.ok(apartment.windows.every(window => walls.has(window.wallId)))
-    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || /balcony-rail|terrace|back-low/.test(wall.id)))
+    assert.ok(apartment.walls.every(wall => wall.height === WALL_HEIGHT || /balcony-rail|terrace|back-low|cave/.test(wall.id)))
   }
 })
 
@@ -575,10 +575,47 @@ test('the island\'s switch is aimed at, not the wood behind it: E reaches the sw
   assert.equal(target(FLOOR_HEIGHT + 2)?.id, 'island-canopy-wall-panel', 'aimed over it, the wood')
 })
 
-test('the office, whose arm has no floor above, gets a ceiling of its own', async () => {
-  const { groundRoofPolygon } = await import('../src/data/house-interior.ts')
+test('the first floor\'s slab covers the whole office, and leaves the light well open', async () => {
+  const { firstFloorSlabPolygon, HOUSE_FLOORS, walkOutline } = await import('../src/data/house-interior.ts')
   const { GROUND_OFFICE } = await import('../src/data/house-plan.ts')
-  const polygon = groundRoofPolygon(), us = polygon.map(p => p[0]), zs = polygon.map(p => -p[1])
-  assert.ok(Math.min(...us) <= GROUND_OFFICE.u[0] && Math.max(...us) >= GROUND_OFFICE.u[1], 'covers the office along u')
-  assert.ok(Math.min(...zs) <= GROUND_OFFICE.v[0] && Math.max(...zs) >= GROUND_OFFICE.v[1], 'covers the office along v')
+  const { GROUND_WELL_EDGE, WELL_BACK_U, HOUSE_REAR } = await import('../src/data/building-site.ts')
+  const inside = (point: [number, number], polygon: readonly (readonly number[])[]) => {
+    let result = false
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const [xi, zi] = polygon[i], [xj, zj] = polygon[j]
+      if ((zi > point[1]) !== (zj > point[1]) && point[0] < (xj - xi) * (point[1] - zi) / (zj - zi) + xi) result = !result
+    }
+    return result
+  }
+  const slab = firstFloorSlabPolygon()
+  for (let u = GROUND_OFFICE.u[0] + .05; u < GROUND_OFFICE.u[1]; u += .1) {
+    for (let v = GROUND_OFFICE.v[0] + .05; v < GROUND_OFFICE.v[1]; v += .1) assert.ok(inside([u, -v], slab), `(${u.toFixed(2)}, ${v.toFixed(2)}) is under the slab`)
+  }
+  for (const v of [-.5, 0, .5, 1.5]) assert.ok(!inside([(WELL_BACK_U + HOUSE_REAR.northEast) / 2, -v], slab), `the light well at v = ${v} stays open`)
+  // The slab over the office is a ceiling, not a floor: the plan's perimeter and the walkable outline keep to the rooms.
+  assert.ok(!inside([HOUSE_REAR.northEast - .2, -(GROUND_WELL_EDGE + .5)], HOUSE_FLOORS.first.perimeter))
+  assert.ok(!inside([HOUSE_REAR.northEast - .2, -(GROUND_WELL_EDGE + .5)], walkOutline('first')))
+})
+
+test('the cave under the stair\'s landing is part of the laundry: its floor, and a skirting on both faces of the walls round it', async () => {
+  const { STAIR_CAVE } = await import('../src/data/house-plan.ts')
+  const { HOUSE_FLOORS } = await import('../src/data/house-interior.ts')
+  const laundry = HOUSE_FLOORS.first.rooms.find(item => item.id === 'laundry')!
+  const inside = (point: [number, number]) => {
+    let result = false
+    for (let i = 0, j = laundry.polygon.length - 1; i < laundry.polygon.length; j = i++) {
+      const [xi, zi] = laundry.polygon[i], [xj, zj] = laundry.polygon[j]
+      if ((zi > point[1]) !== (zj > point[1]) && point[0] < (xj - xi) * (point[1] - zi) / (zj - zi) + xi) result = !result
+    }
+    return result
+  }
+  const middle = [(STAIR_CAVE.u[0] + STAIR_CAVE.u[1]) / 2, -(STAIR_CAVE.v[0] + STAIR_CAVE.v[1]) / 2] as [number, number]
+  assert.ok(inside(middle), 'the laundry\'s floor covers the cave')
+  assert.ok(!inside([STAIR_CAVE.u[1] + .3, middle[1]]), 'and stops at the cave\'s rear wall')
+  const walls = HOUSE_FLOORS.first.walls.filter(wall => wall.id.startsWith('first-laundry-cave'))
+  assert.equal(walls.length, 3, 'rear, side and the party wall\'s own stretch')
+  assert.ok(walls.every(wall => wall.height === STAIR_CAVE.height), 'they reach the landing\'s slab')
+  assert.ok(walls.filter(wall => !wall.id.endsWith('party')).every(wall => wall.kind === 'interior'), 'the two walls round the cave get a skirting on both faces')
+  assert.ok(walls.some(wall => wall.id === 'first-laundry-cave-party'), 'the party wall has its skirting along the cave, as along the laundry')
+  assert.ok(!HOUSE_FLOORS.first.walls.some(wall => wall.id === 'first-laundry-back-low'), 'the cave is open to the laundry')
 })
