@@ -529,3 +529,8 @@ test('the island\'s wood (a walnut-like board on the wall, a fluted oak under th
   assert.ok(pieces.filter(piece => piece.id.startsWith('island-panel-')).length > 70 && pieces.filter(piece => piece.id.startsWith('island-panel-')).every(piece => !isPieceAway({ 'away-island-wood': 0 }, piece.id)), 'the stool side\'s panel is fixed: X leaves it')
   assert.ok(!isPieceAway({ 'away-island-wood': 0 }, 'island-canopy-pendant-1') && !isPieceAway({ 'away-island-wood': 0 }, 'island-canopy-slab'), 'the slab and the lamps stay')
 })
+
+test('the stool side\'s fluted panel is the same oak as the cabinets', () => {
+  const slats = ISLAND_PANEL_BOXES.filter(item => item.id.startsWith('panel-slat-'))
+  assert.ok(slats.length > 70 && slats.every(slat => slat.color.toLowerCase() === box('base').color.toLowerCase()), 'every slat is the cabinets\' oak')
+})

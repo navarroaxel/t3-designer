@@ -420,7 +420,7 @@ export const ISLAND_WOOD_BOXES: IslandPiece[] = [
 
 /**
  * The fluted oak panel on the island's stool side (owner: copied from the ceiling's, and fixed: it is not part of what X takes off): the same slats, 24 mm on a 30 mm pitch, 18 mm thick over a dark
- * backing board that shows in the grooves, upright.
+ * backing board that shows in the grooves, upright, in the same oak as the cabinets (owner).
  */
 export const ISLAND_PANEL_BOXES: IslandPiece[] = [
   // Upright slats over a backing board on the cabinets' face, from the plinth to the top, the whole length of the cabinets.
@@ -428,6 +428,6 @@ export const ISLAND_PANEL_BOXES: IslandPiece[] = [
   ...Array.from({ length: Math.floor((cabinetU[1] - cabinetU[0]) / ISLAND_WOOD.pitch) }, (_, index): IslandPiece => {
     const count = Math.floor((cabinetU[1] - cabinetU[0]) / ISLAND_WOOD.pitch), start = cabinetU[0] + ((cabinetU[1] - cabinetU[0]) - count * ISLAND_WOOD.pitch) / 2 + (ISLAND_WOOD.pitch - ISLAND_WOOD.slat) / 2
     const u: [number, number] = [start + index * ISLAND_WOOD.pitch, start + index * ISLAND_WOOD.pitch + ISLAND_WOOD.slat]
-    return { id: `panel-slat-${index + 1}`, u, v: [COUNTER_V[0] - ISLAND_WOOD.backing - ISLAND_WOOD.slatDepth, COUNTER_V[0] - ISLAND_WOOD.backing], y: [floor + S.plinthHeight, floor + S.baseHeight], color: OAKS[index % OAKS.length] }
+    return { id: `panel-slat-${index + 1}`, u, v: [COUNTER_V[0] - ISLAND_WOOD.backing - ISLAND_WOOD.slatDepth, COUNTER_V[0] - ISLAND_WOOD.backing], y: [floor + S.plinthHeight, floor + S.baseHeight], color: OAK }
   }),
 ]
