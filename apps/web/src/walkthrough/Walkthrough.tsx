@@ -14,6 +14,7 @@ import { walkCopy } from './copy'
 import { buildWalkWorld, canSetWalkDoorOpenness, WALK_STEP, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, isWalkPositionFree, withWalkDoorStates, type WalkDoorStates, type WalkSpawn, type WalkWorld } from './navigation'
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
+import { clockLabel, DEFAULT_KITCHEN_KELVIN, lightGain, KELVIN, TEST_TIMES, KITCHEN_LIGHT_GROUPS, kelvinColour, type KitchenLightGroup, type KitchenLightKelvin } from '../data/light-colour'
 import { saveScreenshot } from './screenshot'
 import { AmbientOcclusion } from '../components/AmbientOcclusion'
 import { armKey, isArmExtended, isInPlace, isRemovable, isTvMounted, LIVING_SET_ID, REMOVABLE, tvMountKey } from '../data/house-furnishings'
@@ -79,6 +80,12 @@ function HoldButton({ label, children, field, value, input }: { label: string; c
 }
 
 /** A disposable visit of the supplied active version; never calls project persistence. */
+/** What X does to what a visitor aims at, in words: take it away while it is in place, put it back when it is not. */
+function removeLabel(id: string, inPlace: boolean, c: Record<string, string>) {
+  const names = id === LIVING_SET_ID ? 'set' : id === 'kitchen-fridge' ? 'fridge' : id === 'kitchen-island-cheek' ? 'cheek' : id === 'island-canopy-wall-panel' ? 'wood' : id === 'kitchen-stools' ? 'stool' : 'microwave'
+  return c[`${names}${inPlace ? 'Remove' : 'Restore'}`]
+}
+
 export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference = false, startAt }: {
   snapshot: ProjectSnapshot
   /** A second floor above, joined to the first by its stair: the visitor can walk from one to the other. */
@@ -107,6 +114,8 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const spawn = useMemo(() => !roomId && startAt && isWalkPositionFree(initialWorld, startAt.position, spawnHeight, startAt.elevation ?? 0) ? startAt : findWalkSpawn(initialWorld, roomId || undefined, spawnHeight), [initialWorld, roomId, spawnHeight, startAt])
   const [reset, setReset] = useState(0), [active, setActive] = useState(false), [entered, setEntered] = useState(false)
   const [ready, setReady] = useState(false), [pose, setPose] = useState<WalkPose | null>(null)
+  const [kitchenKelvin, setKitchenKelvin] = useState<KitchenLightKelvin>(DEFAULT_KITCHEN_KELVIN)
+  const setGroupKelvin = (group: KitchenLightGroup | 'all', value: number) => setKitchenKelvin(previous => group === 'all' ? { pendants: value, line: value, conduit: value } : { ...previous, [group]: value })
   const [artificialLights, setArtificialLights] = useState(() => snapshot.customization?.lighting.artificialEnabled !== false), [torch, setTorch] = useState(false)
   const [screenControls, setScreenControls] = useState(() => window.matchMedia('(pointer: coarse)').matches)
   // Soft shadows where surfaces meet cost a little; a touch screen, usually a phone, starts without them.
@@ -206,7 +215,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         <WebGLGuard fallback={fallback}>
           <Canvas shadows={{ type: PCFShadowMap }} gl={{ preserveDrawingBuffer: true }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
             onCreated={({ gl }) => { canvas.current = gl.domElement; gl.domElement.tabIndex = 0; setReady(true) }}>
-            <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} />
+            <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} kitchenKelvin={kitchenKelvin} lightGain={lightGain(solar.sun.altitude)} />
             <WalkController world={initialWorld} collisionWorld={world} spawn={spawn} resetKey={reset} active={active} input={input} eyeHeight={eyeHeight} sensitivity={sensitivity} onPose={setPose} onPause={pause} onInteract={interact} />
             <CameraSettings fov={fov} torch={torch} />
             <AmbientOcclusion enabled={ambientOcclusion} />
@@ -224,9 +233,9 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         {active && <div className={`walk-crosshair${interaction ? ' walk-crosshair-target' : ''}`} aria-hidden="true" />}
         {interaction && <div className="walk-interaction">
           {(!isRemovable(interaction.id) || (interaction.id === 'kitchen-fridge' && isInPlace(doorStates, interaction.id))) && <button type="button" className="walk-button" data-testid="walk-interact" data-door-id={interaction.id} data-door-open={interaction.open}
-            onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.id === 'kitchen-column' ? (interaction.open ? c.nookClose : c.nookOpen) : interaction.id.endsWith('island-switch-plate') ? (interaction.open ? c.islandLightsOff : c.islandLightsOn) : interaction.id === 'bathroom-switch-plate' ? (interaction.open ? c.bathroomLightsOff : c.bathroomLightsOn) : interaction.id === 'kitchen-switch-plate' ? (interaction.open ? c.kitchenLightsOff : c.kitchenLightsOn) : interaction.id === 'balcony-switch-plate' ? (interaction.open ? c.balconyLightsOff : c.balconyLightsOn) : interaction.open ? c.closeDoor : c.openDoor}</button>}
+            onClick={() => { input.current.interact = true }}><kbd>E</kbd> {interaction.id.startsWith('tv-') ? (interaction.open ? c.tvOff : c.tvOn) : interaction.id === 'kitchen-fridge' ? (interaction.open ? c.fridgeClose : c.fridgeOpen) : interaction.id === 'kitchen-column' ? (interaction.open ? c.nookClose : c.nookOpen) : interaction.id.endsWith('island-switch-plate') ? (interaction.open ? c.islandLightsOff : c.islandLightsOn) : interaction.id === 'bathroom-switch-plate' ? (interaction.open ? c.bathroomLightsOff : c.bathroomLightsOn) : interaction.id === 'kitchen-switch-plate' ? (interaction.open ? c.kitchenLightsOff : c.kitchenLightsOn) : interaction.id === 'kitchen-upper-glass-pane' ? (interaction.open ? c.glassDoorClose : c.glassDoorOpen) : interaction.id === 'balcony-switch-plate' ? (interaction.open ? c.balconyLightsOff : c.balconyLightsOn) : interaction.open ? c.closeDoor : c.openDoor}</button>}
           {isRemovable(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
-            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isInPlace(doorStates, interaction.id) ? (interaction.id === LIVING_SET_ID ? c.setRemove : interaction.id === 'kitchen-fridge' ? c.fridgeRemove : c.microwaveRemove) : (interaction.id === LIVING_SET_ID ? c.setRestore : interaction.id === 'kitchen-fridge' ? c.fridgeRestore : c.microwaveRestore)}</button>}
+            onClick={() => { input.current.detach = true }}><kbd>X</kbd> {removeLabel(interaction.id, isInPlace(doorStates, interaction.id), c)}</button>}
           {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-detach" data-tv-id={interaction.id}
             onClick={() => { input.current.detach = true }}><kbd>X</kbd> {isTvMounted(doorStates, interaction.id) ? c.tvRemove : c.tvMount}</button>}
           {/^tv-(main|living)$/.test(interaction.id) && <button type="button" className="walk-button" data-testid="walk-extend" data-tv-id={interaction.id}
@@ -265,6 +274,24 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
           <label>{c.fov} <output>{fov}°</output><input type="range" min="50" max="95" step="1" value={fov} onChange={event => setFov(Number(event.target.value))} /></label>
           <label>{c.sensitivity} <output>{sensitivity.toFixed(1)}×</output><input type="range" min=".3" max="2" step=".1" value={sensitivity} onChange={event => setSensitivity(Number(event.target.value))} /></label>
           <label className="walk-check"><input type="checkbox" checked={screenControls} onChange={event => setScreenControls(event.target.checked)} />{c.controls}</label>
+        </fieldset>
+        <fieldset className="walk-light-panel" data-testid="walk-light-panel">
+          <legend>{c.kitchenLights}</legend>
+          {/* The sun at hand, to see the lights at their best: it is the tour's own time of day, here and not only in the settings above, which are locked while the tour runs. */}
+          <label>{c.timeOfDay} <output data-testid="walk-light-time">{clockLabel(moment.minutes)}</output>
+            <input type="range" data-testid="walk-light-clock" min="0" max="1425" step="15" value={Math.min(1425, Math.round(moment.minutes / 15) * 15)} onChange={event => setMoment(previous => ({ ...previous, minutes: Number(event.target.value) }))} /></label>
+          <div className="walk-light-presets" role="group" aria-label={c.timeOfDay}>
+            {([['day', c.timeDay], ['dusk', c.timeDusk], ['night', c.timeNight]] as const).map(([name, label]) =>
+              <button key={name} type="button" className="walk-text-button" data-testid={`walk-time-${name}`} onClick={() => setMoment(previous => ({ ...previous, minutes: TEST_TIMES[name] }))}>{label} · {clockLabel(TEST_TIMES[name])}</button>)}
+          </div>
+          <div className="walk-light-presets" role="group" aria-label={c.kitchenLights}>
+            {([['warm', c.lightWarm], ['neutral', c.lightNeutral], ['cool', c.lightCool]] as const).map(([name, label]) =>
+              <button key={name} type="button" className="walk-text-button" data-testid={`walk-light-${name}`} onClick={() => setGroupKelvin('all', KELVIN[name])}><span className="walk-swatch" style={{ background: kelvinColour(KELVIN[name]) }} aria-hidden="true" /> {label}</button>)}
+          </div>
+          {KITCHEN_LIGHT_GROUPS.map(group => <label key={group}>{c[`light_${group}` as 'light_pendants']} <output>{kitchenKelvin[group]} K</output>
+            <input type="range" data-testid={`walk-light-${group}`} min={KELVIN.min} max={KELVIN.max} step={KELVIN.step} value={kitchenKelvin[group]} onChange={event => setGroupKelvin(group, Number(event.target.value))}
+              style={{ accentColor: kelvinColour(kitchenKelvin[group]) }} /></label>)}
+          <small>{c.lightHint}</small>
         </fieldset>
         </div>
         </ViewerPanel>}

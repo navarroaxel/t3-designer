@@ -17,7 +17,7 @@ import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
-import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, KITCHEN_SWITCH_ID, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, KITCHEN_BOXES, KITCHEN_NOOK_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
+import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_PANEL_BOXES, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, KITCHEN_SWITCH_ID, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, GLASS_DOOR_ID, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_RUN_FRONTS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
@@ -53,6 +53,8 @@ export type Furnishing = {
   roll?: number
   /** `roll` turns about the u axis instead of the v axis: for a plate on a wall that faces along u. */
   rollAboutU?: boolean
+  /** A board of figured wood: the grain texture drawn on it, running along v. */
+  grain?: 'walnut'
   /** A piece that lights itself, like the LED strip around the bathroom's mirror. */
   glow?: boolean
   /** Whether a visitor bumps into it. Hung and thin things (mirrors, TVs, pillows) do not. */
@@ -139,7 +141,11 @@ function firstFloor(): Furnishing[] {
     add({ ...part, u: [KITCHEN_LIVING.u[0] + part.v[0], KITCHEN_LIVING.u[0] + part.v[1]], v: [restV - part.u[1], restV - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
   }
   // The breakfast nook inside the tall column: its carcass, shelves, door and the Nespresso, drawn only while the door is open, and the outlet behind the machine, at the same height as the one beside the oven.
-  for (const box of KITCHEN_NOOK_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .6, solid: false, ...(box.id === 'nook-machine' ? { model: '/models/house/nespresso.glb', turn: 0, roughness: .35 } : {}) })
+  for (const box of KITCHEN_NOOK_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.startsWith('nook-cup') ? .3 : .6, solid: false, ...(box.round ? { shape: 'ellipse' as const, taper: CUP.taper } : {}), ...(box.id === 'nook-machine' ? { model: '/models/house/nespresso.glb', turn: 0, roughness: .35 } : {}) })
+  // The fronts of the island's cabinets on the aisle side: the door under the sink and the two large drawers for the pans.
+  for (const box of [...KITCHEN_ISLAND_FRONTS, ...KITCHEN_RUN_FRONTS]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.includes('handle') ? .3 : .6, solid: false })
+  // The dishwasher in the island, between the sink and the wall behind it, its door toward the aisle (higher v): the model's front is +Z, so it turns half a turn.
+  add({ id: 'kitchen-dishwasher', u: DISHWASHER_BOX.u, v: DISHWASHER_BOX.v, y: DISHWASHER_BOX.y, color: '#b9bcc0', roughness: .4, model: DISHWASHER.model, turn: Math.PI, solid: false })
   for (const part of outletBoxes('outlet-nook', KITCHEN_LIVING.v[1], NOOK_CENTRE_U - .13, F, NOOK.outletHeight)) {
     add({ ...part, u: [2 * (NOOK_CENTRE_U - .13) - part.u[1], 2 * (NOOK_CENTRE_U - .13) - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })
   }
@@ -149,15 +155,15 @@ function firstFloor(): Furnishing[] {
   for (const part of outletBoxes('outlet-fridge', wallFace, fridgeMiddleU, F, KITCHEN_SIZES.baseHeight + KITCHEN_SIZES.worktop - .05)) {
     add({ ...part, u: [2 * fridgeMiddleU - part.u[1], 2 * fridgeMiddleU - part.u[0]], v: [2 * wallFace - part.v[1], 2 * wallFace - part.v[0]], roughness: .6, solid: false })
   }
-  // Two outlets on the wall behind the island, at the same height as the one beside the oven (owner): a quarter and three quarters across its width, facing the kitchen, toward higher u.
-  const islandV = KITCHEN_BOXES.find(box => box.id === 'counter')!.v
+  // Two outlets on the wall behind the island, at the same height as the one beside the oven (owner), symmetric about the axis of its 1 m top: a quarter and three quarters across it, facing the kitchen, toward higher u.
+  const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!.v
   for (const [index, at] of [.25, .75].entries()) {
     for (const part of outletBoxes(`outlet-island-${index + 1}`, 0, 0, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) {
-      const v = islandV[0] + (islandV[1] - islandV[0]) * at
+      const v = islandTop[0] + (islandTop[1] - islandTop[0]) * at
       add({ ...part, u: [KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL + part.v[0], KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL + part.v[1]], v: [v - part.u[1], v - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
     }
   }
-  // The island's canopy: the fluted oak up the wall and over the island, the drywall box above it and the three downlights; drawn only in the walkthrough (it hangs above the cut).
+  // The island's canopy: the drywall slab and box over it, the light line and the three downlights; drawn only in the walkthrough (it hangs above the cut).
   // The dog, lying on the balcony in front of the secondary room's window; it blocks the way like a piece of furniture, a quarter of the balcony's depth.
   add({ id: 'dog', u: DOG_BOX.u, v: DOG_BOX.v, y: DOG_BOX.y, color: '#161719', roughness: .95, model: DOG.model, turn: 0 })
   // The balcony's three wall lanterns, and the switch in the main room.
@@ -169,7 +175,7 @@ function firstFloor(): Furnishing[] {
   }
   // The conduit box along the wall behind the island, which the island's box crosses.
   for (const box of [...KITCHEN_CONDUIT_BOXES, ...KITCHEN_SWITCH_BOXES]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
-  for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}) })
+  for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_WOOD_BOXES, ...ISLAND_PANEL_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.grain ? { grain: box.grain } : {}), ...(box.model ? { model: box.model, turn: 0 } : {}) })
   // On the kitchen's rear wall, between the light well's window and the terrace's balcony door, an outlet 0.30 m up (owner), centred between them: the plate faces the kitchen, toward lower u.
   const rearOpenings = OPENINGS.first.filter(opening => Math.abs(opening.u - (KITCHEN_LIVING.u[1] + KITCHEN_REAR_WALL)) < 1e-9).sort((a, b) => a.v[0] - b.v[0])
   const [balconyDoor, wellWindow] = [rearOpenings[0], rearOpenings[1]]
@@ -190,11 +196,11 @@ function firstFloor(): Furnishing[] {
   }
   for (const box of KITCHEN_BOXES) {
     const tall = box.y[1] === cut
-    const top = !tall ? box.y[1] : box.id === 'column' ? F + 2.4 : box.id.startsWith('fridge') ? F + .04 + KITCHEN_SIZES.fridgeHeight : box.y[1]
-    add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, kitchen: { ...box, y: [box.y[0], top] }, roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge') })
+    const top = !tall ? box.y[1] : box.id === 'column' ? F + NOOK.top : box.id.startsWith('fridge') ? F + .04 + KITCHEN_SIZES.fridgeHeight : box.y[1]
+    add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, ...(box.id.startsWith('stool-') ? { model: '/models/house/stool.glb' } : { kitchen: { ...box, y: [box.y[0], top] } }), roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge') && !box.id.startsWith('stool-') })
   }
   // The upper cabinet with the microwave, over the run next to the fridge; hung high, so it is not stopped on.
-  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) })
+  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.round ? { shape: 'ellipse' as const, taper: GLASS_CABINET.glass.taper } : {}), ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) })
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
   for (const part of outletBoxes('outlet-microwave', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) {
     add({ ...part, u: [2 * MICROWAVE_CENTRE_U - part.u[1], 2 * MICROWAVE_CENTRE_U - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })
@@ -247,17 +253,17 @@ export function furnishingBlockers(floor: Floor, level: number) {
 }
 
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open; and with `X`, what can be taken away (REMOVABLE): the fridge and the microwave too. */
-export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID, KITCHEN_SWITCH_ID, BALCONY_SWITCH_ID] as const
+export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-island-cheek', ISLAND_WOOD_ID, 'kitchen-column', ISLAND_SWITCH_ID, BATHROOM_SWITCH_ID, KITCHEN_SWITCH_ID, BALCONY_SWITCH_ID, GLASS_DOOR_ID] as const
 export function furnishingDevices(floor: Floor, level: number) {
   const pieces = furnishingsOn(floor)
-  // The living's table with the PS5 and its controller is one device, as tall as the console: X takes the three away, or sets them back.
-  const set = pieces.filter(piece => isLivingSetPiece(piece.id))
-  const setDevices = set.length ? [{
-    id: LIVING_SET_ID,
-    center: [(Math.min(...set.map(piece => piece.u[0])) + Math.max(...set.map(piece => piece.u[1]))) / 2, -(Math.min(...set.map(piece => piece.v[0])) + Math.max(...set.map(piece => piece.v[1]))) / 2] as [number, number],
-    halfWidth: (Math.max(...set.map(piece => piece.u[1])) - Math.min(...set.map(piece => piece.u[0]))) / 2, halfDepth: (Math.max(...set.map(piece => piece.v[1])) - Math.min(...set.map(piece => piece.v[0]))) / 2, cos: 1, sin: 0,
-    bottom: Math.min(...set.map(piece => piece.y[0])) - level, top: Math.max(...set.map(piece => piece.y[1])) - level,
+  // A group is one device whose aim volume holds all of its pieces: the living's table with the PS5 and its controller, as tall as the console, and the three stools at the island (X takes the group away, or sets it back).
+  const group = (id: string, members: Furnishing[]) => members.length ? [{
+    id,
+    center: [(Math.min(...members.map(piece => piece.u[0])) + Math.max(...members.map(piece => piece.u[1]))) / 2, -(Math.min(...members.map(piece => piece.v[0])) + Math.max(...members.map(piece => piece.v[1]))) / 2] as [number, number],
+    halfWidth: (Math.max(...members.map(piece => piece.u[1])) - Math.min(...members.map(piece => piece.u[0]))) / 2, halfDepth: (Math.max(...members.map(piece => piece.v[1])) - Math.min(...members.map(piece => piece.v[0]))) / 2, cos: 1, sin: 0,
+    bottom: Math.min(...members.map(piece => piece.y[0])) - level, top: Math.max(...members.map(piece => piece.y[1])) - level,
   }] : []
+  const setDevices = [...group(LIVING_SET_ID, pieces.filter(piece => isLivingSetPiece(piece.id))), ...group(STOOLS_ID, pieces.filter(piece => isStool(piece.id)))]
   return [...setDevices, ...pieces.filter(piece => (TV_IDS as readonly string[]).includes(piece.id)).map(piece => {
     // The aim volume of a TV reaches as far as its mount's arm does, so a TV brought out into the room can still be looked at.
     const reach = piece.id.startsWith('tv-') ? TV_MOUNT.depthExtended - TV_MOUNT.depthFolded : 0
@@ -267,13 +273,16 @@ export function furnishingDevices(floor: Floor, level: number) {
       ...(piece.id === ISLAND_SWITCH_ID || piece.id === BATHROOM_SWITCH_ID || piece.id === KITCHEN_SWITCH_ID || piece.id === BALCONY_SWITCH_ID ? { initialOpenness: 1 } : {}),
       center: [(piece.u[0] + piece.u[1]) / 2, -(piece.v[0] + piece.v[1] + reach) / 2] as [number, number],
       halfWidth: (piece.u[1] - piece.u[0]) / 2, halfDepth: (piece.v[1] - piece.v[0] + reach) / 2, cos: 1, sin: 0,
-      bottom: piece.y[0] - level, top: piece.y[1] - level,
+      // The island's wood is aimed at above the switch and the outlets: its board's volume, from the worktop up, would swallow the switch (a thin plate inside it), and E would never reach it.
+      bottom: (piece.id === ISLAND_WOOD_ID ? Math.max(piece.y[0], FLOOR_HEIGHT + 1.45) : piece.y[0]) - level, top: piece.y[1] - level,
     }
   })]
 }
 
 /** The living's table, the PS5 and its controller come and go together (X): `set-living`, 1 in place and 0 taken away. */
 export const LIVING_SET_ID = 'living-table'
+export const STOOLS_ID = 'kitchen-stools'
+export const isStool = (id: string) => id.startsWith('kitchen-stool-')
 export const livingSetKey = 'set-living'
 export const isLivingSetPiece = (id: string) => id.startsWith('living-table-') || id === 'ps5' || id === 'ps5-controller'
 export const isLivingSetPresent = (states: Readonly<Record<string, number>>) => (states[livingSetKey] ?? 1) >= .5
@@ -282,13 +291,18 @@ export const isLivingSetPresent = (states: Readonly<Record<string, number>>) => 
  * What X takes away and puts back, by the id of the device a visitor aims at: the living's table with the PS5 and its controller, the fridge (to reach the outlet behind it) and the microwave
  * (for its outlet). `key` is where the state lives, with the doors', 1 in place and 0 taken away; `owns` says which pieces of the furnishings go with it.
  */
-export const REMOVABLE: Record<string, { key: string; owns: (pieceId: string) => boolean }> = {
+export const REMOVABLE: Record<string, { key: string; owns: (pieceId: string) => boolean; startsAway?: boolean }> = {
   [LIVING_SET_ID]: { key: livingSetKey, owns: isLivingSetPiece },
   'kitchen-fridge': { key: 'away-fridge', owns: id => id.startsWith('kitchen-fridge') },
   'kitchen-microwave': { key: 'away-microwave', owns: id => id === 'kitchen-microwave' },
+  'kitchen-island-cheek': { key: 'away-island-cheek', owns: id => id === 'kitchen-island-cheek' },
+  // The island's wood, to compare with and without (owner): the wall's board and the ceiling's slats (the stool side's panel is fixed); it starts off (owner), X puts it on.
+  [ISLAND_WOOD_ID]: { key: 'away-island-wood', owns: id => /^island-canopy-(wall-panel|soffit-)/.test(id), startsAway: true },
+  // The three stools at the island come out together, so that the island can be seen with them or without.
+  [STOOLS_ID]: { key: 'away-stools', owns: isStool },
 }
 export const isRemovable = (deviceId: string) => deviceId in REMOVABLE
-export const isInPlace = (states: Readonly<Record<string, number>>, deviceId: string) => (states[REMOVABLE[deviceId].key] ?? 1) >= .5
+export const isInPlace = (states: Readonly<Record<string, number>>, deviceId: string) => (states[REMOVABLE[deviceId].key] ?? (REMOVABLE[deviceId].startsAway ? 0 : 1)) >= .5
 /** Whether a piece of the furnishings has been taken away with the device that owns it. */
 export const isPieceAway = (states: Readonly<Record<string, number>>, pieceId: string) =>
   Object.entries(REMOVABLE).some(([deviceId, removable]) => removable.owns(pieceId) && !isInPlace(states, deviceId))

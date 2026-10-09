@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { polygonCentroid } from '@t3-designer/geometry'
 import { pointInEditorPolygon } from '@t3-designer/scene-schema'
-import { KITCHEN_LIVING, MAIN_TV_PLACEMENT } from '../src/data/house-plan.ts'
+import { KITCHEN_LIVING, MAIN_BED, MAIN_TV_PLACEMENT, QUEEN_BED } from '../src/data/house-plan.ts'
 import { currentFixtures } from '../src/data/current-state.ts'
 import { HOUSE_FLOORS, HOUSE_FLOOR_ORDER, WALL_HEIGHT, floorOfRoom, shellWallBoxes } from '../src/data/house-interior.ts'
 import { AZOTEA_REAR, FLOOR_HEIGHT } from '../src/data/building-site.ts'
@@ -166,7 +166,7 @@ test('the main room\'s TV can be aimed at and switched on with E, and nothing el
   assert.ok(world.doors.some(door => door.id === 'tv-main') && world.doors.some(door => door.id === 'tv-living'))
   const u = (MAIN_TV_PLACEMENT.u[0] + MAIN_TV_PLACEMENT.u[1]) / 2, v = MAIN_TV_PLACEMENT.v[1]
   // Standing 1.5 m from the screen, in the main room (higher v), facing it (toward -v is +z; yaw pi), looking down at its centre.
-  const pose = { x: u, z: -(v + 1.5), yaw: Math.PI, pitch: Math.atan2(1.1 - 1.65, 1.5), eyeHeight: 1.65, feetOffset: 0 }
+  const pose = { x: u, z: -(v + 1.5), yaw: Math.PI, pitch: Math.atan2(1.55 - 1.65, 1.5), eyeHeight: 1.65, feetOffset: 0 }
   const target = findWalkDoorTarget(world, {}, pose)
   assert.deepEqual(target, { id: 'tv-main', open: false })
   assert.ok(canSetWalkDoorOpenness(world, {}, 'tv-main', 1, pose))
@@ -547,4 +547,29 @@ test('the main room\'s TV wall has the same scheme: a network socket, an outlet 
   const hole = find('main-cable-hole-plate'), plug = find('main-outlet-tv-plate'), mount = find('tv-main-mount-wall-plate')
   assert.ok(hole.disc && (hole.u[1] < mount.u[0] || hole.u[0] > mount.u[1]) && (plug.u[1] < mount.u[0] || plug.u[0] > mount.u[1]))
   close((plug.y[0] + plug.y[1]) / 2, (tv.y[0] + tv.y[1]) / 2, 1e-9)
+})
+
+test('the main room\'s TV hangs high enough to be watched lying in bed: its centre is 10 to 18 degrees over the eyes of someone on the pillow', () => {
+  // On the pillow, the eyes are about 25 cm over the mattress (0.5 m), 30 cm from the head of the bed, 3 m or so from the TV.
+  const eyes = { height: QUEEN_BED.height + .25, v: MAIN_BED.v[1] - .3 }
+  const tv = furnishingsOn('first').find(piece => piece.id === 'tv-main')!
+  const centre = (tv.y[0] + tv.y[1]) / 2 - FLOOR_HEIGHT, distance = eyes.v - tv.v[1]
+  const degrees = Math.atan2(centre - eyes.height, distance) * 180 / Math.PI
+  assert.ok(degrees >= 10 && degrees <= 18, `${degrees.toFixed(1)} degrees`)
+  assert.ok(Math.abs(centre - 1.55) < 1e-9 && tv.y[1] - FLOOR_HEIGHT < 2.1, 'the centre at 1.55 m, the top under 2.1 m')
+  // The cable fittings stay under it: the media box (0.525 m) and the plug and the pass-through at its height.
+  const pieces = furnishingsOn('first'), box = pieces.find(piece => piece.id === 'main-wallbox-trim-top')!
+  assert.ok(box.y[1] < tv.y[0], 'the media box is under the TV')
+})
+
+test('the island\'s switch is aimed at, not the wood behind it: E reaches the switch, and the wood is aimed at above it', () => {
+  const world = buildWalkWorld(publicScene('first', []))
+  const switchPlate = furnishingsOn('first').find(piece => piece.id === 'island-switch-plate')!
+  const target = (y: number) => {
+    // At the island's open end, 1.9 m from the wall, facing it (toward lower u: yaw pi/2), looking at the point at height `y` on the wall.
+    const eye = { x: switchPlate.u[0] + 1.9, z: -(switchPlate.v[0] + switchPlate.v[1]) / 2, eyeHeight: 1.65 }
+    return findWalkDoorTarget(world, {}, { x: eye.x, z: eye.z, yaw: Math.PI / 2, pitch: Math.atan2(y - FLOOR_HEIGHT - eye.eyeHeight, 1.9), eyeHeight: eye.eyeHeight, feetOffset: 0 })
+  }
+  assert.equal(target((switchPlate.y[0] + switchPlate.y[1]) / 2)?.id, 'island-switch-plate', 'aimed at the switch, E works on it')
+  assert.equal(target(FLOOR_HEIGHT + 2)?.id, 'island-canopy-wall-panel', 'aimed over it, the wood')
 })

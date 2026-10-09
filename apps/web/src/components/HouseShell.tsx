@@ -3,7 +3,7 @@ import { Line, RoundedBox } from '@react-three/drei'
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, SRGBColorSpace, TextureLoader } from 'three'
 import { FLOOR_HEIGHT, HOUSE_CENTER, HOUSE_YAW } from '../data/building-site'
 import {
-  CUT_HEIGHT, ENTRY_RECESS_OUTLINE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, FIRST_FLOOR_DOOR_SWINGS, FIRST_OUTLINE, GROUND_OUTLINE, SLAB_THICKNESS, STAIRWELL_HOLE,
+  WALL_PAINT, CUT_HEIGHT, ENTRY_RECESS_OUTLINE, GROUND_DOOR_SWINGS, GROUND_FLOOR_LEVEL, GROUND_FLOOR_TILING, FLOOR_TILING, LIVING_DOOR, LIVING_DOOR_FRAME, LIVING_DOOR_LEAVES, TILE_THICKNESS, FIRST_FLOOR_DOOR_SWINGS, FIRST_OUTLINE, GROUND_OUTLINE, SLAB_THICKNESS, STAIRWELL_HOLE,
   type DoorSwing, type Floor, type FloorTiling, type PlanPoint, type TilePattern,
 } from '../data/house-plan'
 import { STAIR_BLOCKS, STAIR_CEILING } from '../data/stair'
@@ -16,9 +16,9 @@ import { polygonShape } from '../lib/polygon-shape'
 /** The stairwell opening in the first-floor slab, as a ring. Defined once so the slab's geometry is not rebuilt on every render. */
 const STAIRWELL_RINGS: PlanPoint[][] = [[[STAIRWELL_HOLE[0], STAIRWELL_HOLE[2]], [STAIRWELL_HOLE[1], STAIRWELL_HOLE[2]], [STAIRWELL_HOLE[1], STAIRWELL_HOLE[3]], [STAIRWELL_HOLE[0], STAIRWELL_HOLE[3]]]]
 
-const WALL_COLOR = '#d9cdb2'
+const WALL_COLOR = WALL_PAINT.exterior
 /** The interior partitions are painted white. */
-const PARTITION_COLOR = '#f3f1ec'
+const PARTITION_COLOR = WALL_PAINT.partition
 const SLAB_COLOR = '#b9b3a5'
 
 /** A floor slab from a plan outline. Local z is -v, so the shape takes [u, -v]. */
@@ -152,9 +152,10 @@ function SlabPiece({ u, v, y, color, pattern, origin, id, wall }: { u: [number, 
     const texture = pattern.image ? slabPicture(pattern) : patternTexture(color, pattern)
     const across = pattern.width * pattern.rows
     if (wall) {
-      // A slab standing on a wall: its length runs along u and its width up the wall, from the slab's lower edge.
-      texture.repeat.set((u1 - u0) / pattern.length, (y[1] - y[0]) / across)
-      texture.offset.set((u0 - originU) / pattern.length, 0)
+      // A slab standing on a wall: its length runs along the wall, along u or along v, and its width up the wall, from the slab's lower edge.
+      const alongU = u1 - u0 >= v1 - v0, along = alongU ? u1 - u0 : v1 - v0
+      texture.repeat.set(along / pattern.length, (y[1] - y[0]) / across)
+      texture.offset.set((alongU ? u0 - originU : v0 - originV) / pattern.length, 0)
       return texture
     }
     texture.repeat.set((u1 - u0) / pattern.length, (v1 - v0) / across)

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "stool",
+  "id": "stool",
+  "label": "Black steel bar stool with a low back",
+  "units": "meters",
+  "dimensions": [
+    0.4,
+    0.85,
+    0.4
+  ],
+  "material": {
+    "baseColor": "#0d0e10",
+    "roughness": 0.22
+  },
+  "source": {
+    "description": "Tolix-style bar stool in gloss black pressed steel with a low back: about 400 mm wide and deep and 850 mm tall, the seat at 650 mm (estimated from the owner's pictures).",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {}
+}

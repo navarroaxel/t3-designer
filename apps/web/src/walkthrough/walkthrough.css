@@ -76,3 +76,9 @@
 @media (prefers-reduced-motion: reduce) { .walkthrough * { scroll-behavior: auto; } }
 
 .walkthrough-floors { position: static; margin: 0 22px 12px; width: fit-content; }
+
+/* The kitchen's light panel: three presets and a slider of colour temperature for each group of lights. */
+.walk-light-presets { display: flex; gap: 8px; flex-wrap: wrap; }
+.walk-light-presets .walk-text-button { display: inline-flex; align-items: center; gap: 6px; }
+.walk-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--settings-border); }
+.walk-light-panel small { font-size: 10.5px; color: var(--settings-muted); line-height: 1.5; }

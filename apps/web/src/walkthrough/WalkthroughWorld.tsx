@@ -8,6 +8,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
 import { HouseFloorTiles, HouseFurnishings } from '../components/HouseFurnishings'
+import type { KitchenLightKelvin } from '../data/light-colour'
 import { floorOfApartment } from '../data/house-interior'
 import { Wall } from '../components/Wall'
 import type { SolarPosition } from '../lib/solar'
@@ -27,6 +28,10 @@ type WalkthroughWorldProps = {
   artificialLights: boolean
   /** Transient opening fractions, shared with the tour's collision world. */
   doorStates: Record<string, number>
+  /** The colour temperature of the kitchen's lights, in kelvin, edited in the panel. */
+  kitchenKelvin?: KitchenLightKelvin
+  /** How much brighter the lights shine than by day, from the sun's elevation: 1 by day, up to 4 at night. */
+  lightGain?: number
 }
 
 function Volume({ polygon, base, height, color }: { polygon: Point2D[]; base: number; height: number; color: string }) {
@@ -219,7 +224,7 @@ function useStaticShadows({ snapshot, sun, artificialLights, doorStates }: Walkt
 // Pose/minimap updates occur ten times per second in the parent. Stable scene
 // inputs should not rebuild the entire apartment's React mesh tree each time.
 /** One floor's architecture, finishes, furniture and models; the world draws one for each floor of the house. */
-function FloorContent({ snapshot, doorStates, withRoof }: { snapshot: ProjectSnapshot; doorStates: WalkDoorStates; withRoof: boolean }) {
+function FloorContent({ snapshot, doorStates, withRoof, kitchenKelvin, lightGain }: { snapshot: ProjectSnapshot; doorStates: WalkDoorStates; withRoof: boolean; kitchenKelvin?: KitchenLightKelvin; lightGain?: number }) {
   const { apartment, geometry, customization } = snapshot
   const assetMap = useMemo(() => new Map(snapshot.assets.map(asset => [asset.id, asset])), [snapshot.assets])
   const touringCustomization = useMemo<DesignCustomization>(() => ({
@@ -247,7 +252,7 @@ function FloorContent({ snapshot, doorStates, withRoof }: { snapshot: ProjectSna
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     {/* Under a floor above, the ceiling is that floor's slab; only the top floor has a roof. */}
     {withRoof && <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />}
-    {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} devices={doorStates} /></>}
+    {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} devices={doorStates} kitchenKelvin={kitchenKelvin} lightGain={lightGain} /></>}
     {snapshot.fixtures.map(fixture => {
       const asset = assetMap.get(fixture.assetId)
       return asset ? <PlacedObject key={fixture.id} fixture={fixture} asset={asset} projectId={snapshot.project.id} /> : null
@@ -255,7 +260,7 @@ function FloorContent({ snapshot, doorStates, withRoof }: { snapshot: ProjectSna
   </group>
 }
 
-export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, upper, sun, artificialLights, doorStates }: WalkthroughWorldProps) {
+export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, upper, sun, artificialLights, doorStates, kitchenKelvin, lightGain }: WalkthroughWorldProps) {
   useStaticShadows({ snapshot, sun, artificialLights, doorStates })
   return <>
     <color attach="background" args={[sun.isDaylight ? '#dbe7eb' : '#101a2b']} />
@@ -264,7 +269,7 @@ export const WalkthroughWorld = memo(function WalkthroughWorld({ snapshot, upper
     <ArtificialLighting snapshot={snapshot} enabled={artificialLights} />
     {upper && <ArtificialLighting snapshot={upper} enabled={artificialLights} />}
     <SiteContext snapshot={snapshot} />
-    <FloorContent snapshot={snapshot} doorStates={doorStates} withRoof={!upper} />
-    {upper && <FloorContent snapshot={upper} doorStates={doorStates} withRoof />}
+    <FloorContent snapshot={snapshot} doorStates={doorStates} withRoof={!upper} kitchenKelvin={kitchenKelvin} lightGain={lightGain} />
+    {upper && <FloorContent snapshot={upper} doorStates={doorStates} withRoof kitchenKelvin={kitchenKelvin} lightGain={lightGain} />}
   </>
 })
