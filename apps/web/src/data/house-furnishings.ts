@@ -295,8 +295,8 @@ export const REMOVABLE: Record<string, { key: string; owns: (pieceId: string) =>
   'kitchen-fridge': { key: 'away-fridge', owns: id => id.startsWith('kitchen-fridge') },
   'kitchen-microwave': { key: 'away-microwave', owns: id => id === 'kitchen-microwave' },
   'kitchen-island-cheek': { key: 'away-island-cheek', owns: id => id === 'kitchen-island-cheek' },
-  // The island's wood, to compare with and without (owner): it starts off; X puts it on.
-  [ISLAND_WOOD_ID]: { key: 'away-island-wood', owns: id => /^island-canopy-(wall-panel|soffit-|panel-)/.test(id), startsAway: true },
+  // The island's wood, to compare with and without (owner): the wall's board, the ceiling's slats and the stool side's panel; it starts on, X takes it off.
+  [ISLAND_WOOD_ID]: { key: 'away-island-wood', owns: id => /^island-canopy-(wall-panel|soffit-|panel-)/.test(id), },
   // The three stools at the island come out together, so that the island can be seen with them or without.
   [STOOLS_ID]: { key: 'away-stools', owns: isStool },
 }

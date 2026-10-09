@@ -399,9 +399,9 @@ export const KITCHEN_RUN_FRONTS: IslandPiece[] = [
 ]
 
 /**
- * The island's wood (owner: to compare, X puts it on and takes it off; the island starts without it): a smooth board of dark figured wood, a walnut-like one, up the wall behind the island from the
+ * The island's wood (owner: to compare, X takes it off and puts it on; the island starts with it): a smooth board of dark figured wood, a walnut-like one, up the wall behind the island from the
  * worktop to the lowered ceiling, and under the ceiling's slab a fluted oak, the "techito": slats 24 mm wide on a 30 mm pitch and 18 mm thick over a dark backing board that shows in the grooves,
- * running out from the wall so that each line is the board's. The wood is 3 cm thick, so what is on the wall (the outlets and the switch) stands 3 cm out of it, and the pendant lamps hang from the wood's underside as from the slab's. It is a device of its own: the wall's board is what a visitor aims at.
+ * running out from the wall so that each line is the board's; and the same fluted oak on the cabinets' stool side, as a panel, upright. The wood is 3 cm thick, so what is on the wall (the outlets and the switch) stands 3 cm out of it, and the pendant lamps hang from the wood's underside as from the slab's. It is a device of its own: the wall's board is what a visitor aims at.
  */
 export const ISLAND_WOOD = { thickness: .03, slat: .024, pitch: .03, slatDepth: .018, backing: .012 }
 export const ISLAND_WOOD_ID = 'island-canopy-wall-panel'
