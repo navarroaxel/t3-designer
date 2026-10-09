@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "pendant",
+  "id": "island-pendant-off",
+  "label": "Island pendant lamp (off)",
+  "units": "meters",
+  "dimensions": [
+    0.3,
+    0.95,
+    0.3
+  ],
+  "material": {
+    "baseColor": "#141517",
+    "roughness": 0.6
+  },
+  "source": {
+    "description": "Dome pendant lamp in matte black on a thin cord: 300 mm across the shade and 950 mm from its rim to the ceiling (assumed).",
+    "dimensionalStatus": "estimated",
+    "url": null
+  },
+  "parameters": {
+    "lit": false
+  }
+}

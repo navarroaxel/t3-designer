@@ -157,9 +157,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       <PlacedModel url="/models/house/kitchen-sink.glb" turn={0} position={[(KITCHEN_SINK.u[0] + KITCHEN_SINK.u[1]) / 2, KITCHEN_SINK.top - .03 - KITCHEN_SINK.depth, -(KITCHEN_SINK.v[0] + KITCHEN_SINK.v[1]) / 2]} />
       <PlacedModel url="/models/house/kitchen-tap.glb" turn={Math.PI} position={[KITCHEN_TAP.u - .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v - .0716]} />
     </Suspense></ModelBoundary>}
-    {/* The island's three downlights light the worktop: a warm point light under each, 10 cm below the wood. */}
+    {/* The island's three pendant lamps light the worktop: a warm point light in each shade, 10 cm over its rim. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - .1, -at.v]} color="#ffd9a8" intensity={1.8} distance={2.8} decay={2} />)}
+      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v]} color="#ffd9a8" intensity={1.8} distance={2.8} decay={2} />)}
     {/* The bathroom's three downlights: a neutral white light 10 cm under each. */}
     {floor === 'first' && cut === undefined && bathroomOn && BATHROOM_LIGHT_POSITIONS.map((at, index) =>
       <pointLight key={`bathroom-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.6, -at.v]} color="#fff1dc" intensity={1.4} distance={2.6} decay={2} />)}
@@ -189,7 +189,6 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
       if (isPieceAway(devices, piece.id)) return null
       if (piece.id === 'kitchen-column' && nookOpen) return null
-      if (woodOn && /^island-canopy-light-\d/.test(piece.id)) return null
       // The island's canopy hangs above the cut: the cutaway does not draw it.
       if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id.startsWith('kitchen-conduit-') || piece.id.startsWith('kitchen-switch-') || piece.id.startsWith('balcony-'))) return null
       // Switched off, the lights and the light line go dark and the wash of light is gone.
@@ -219,7 +218,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       const hinged = glassOpen && /^kitchen-upper-glass-(frame|pane|handle)/.test(piece.id)
       return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [woodOn && /^(outlet-island-|island-switch-)/.test(piece.id) ? ISLAND_WOOD.thickness : 0, 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : [0, 0, 0]}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
         {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
-          <Suspense fallback={null}><PlacedModel url={piece.id.startsWith('balcony-lantern-') && !balconyOn ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
+          <Suspense fallback={null}><PlacedModel url={(piece.id.startsWith('balcony-lantern-') && !balconyOn) || (piece.id.startsWith('island-canopy-pendant-') && !lightsOn) ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
         </ModelBoundary> : (() => {
           const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]

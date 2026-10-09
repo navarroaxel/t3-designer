@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_WOOD, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_WOOD, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn, isStool, STOOLS_ID } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -245,11 +245,18 @@ test('the island\'s canopy is a drywall slab and box over the island, with no wo
   assert.ok(Math.abs(drywall.y[0] - slab.y[1]) < 1e-9 && Math.abs(drywall.y[1] - (top.y[1] - .93 + ISLAND_CANOPY.ceiling)) < 1e-9, 'the box up to the ceiling')
   assert.ok(drywall.u[0] >= top.u[0] && drywall.u[1] <= top.u[1] - .029 && drywall.v[0] >= top.v[0] + .029 && drywall.v[1] <= top.v[1] - .029, 'set in 3 cm')
   // Three downlights in a row along the island's middle, recessed in the slab's underside, lit.
-  const lights = pieces.filter(piece => piece.id.startsWith('canopy-light-'))
+  const lights = pieces.filter(piece => piece.id.startsWith('canopy-pendant-'))
   assert.equal(lights.length, 3); assert.equal(ISLAND_LIGHT_POSITIONS.length, 3)
-  for (const light of lights) assert.ok(light.glow && light.round && light.u[0] >= top.u[0] && light.u[1] <= top.u[1] && light.v[0] >= top.v[0] && light.v[1] <= top.v[1], light.id)
+  // Three pendant lamps (owner: instead of recessed downlights): Blender models hung from the slab's underside on a cord, 0.95 m from the dome's rim up to it, in a row along the island's middle.
+  for (const lamp of lights) {
+    assert.ok(lamp.model === '/models/house/island-pendant.glb' && Math.abs(lamp.y[1] - slab.y[0]) < 1e-9 && Math.abs(lamp.y[1] - lamp.y[0] - ISLAND_CANOPY.light.drop) < 1e-9, `${lamp.id} hangs from the slab`)
+    assert.ok(lamp.u[0] >= top.u[0] && lamp.u[1] <= top.u[1] && lamp.v[0] >= top.v[0] && lamp.v[1] <= top.v[1], `${lamp.id} is over the island`)
+    assert.ok(lamp.y[0] - top.y[1] >= .75, `${lamp.id}'s rim is at least 75 cm over the worktop`)
+  }
+  assert.ok(!pieces.some(piece => piece.id.startsWith('canopy-light-')), 'no recessed downlights')
   assert.ok(new Set(ISLAND_LIGHT_POSITIONS.map(at => at.v)).size === 1, 'in a row')
-  assert.equal(ISLAND_CANOPY_WALL, 0, "nothing stands out of the wall: the wood is out")
+  const gaps = ISLAND_LIGHT_POSITIONS.map(at => at.u).sort((a, b) => a - b)
+  assert.ok(Math.abs(gaps[1] - gaps[0] - (gaps[2] - gaps[1])) < 1e-9, 'evenly spaced')
 })
 
 test('the island has a light switch on the wall and a light line round the drywall box; the lights start on and the switch is a device', () => {
@@ -503,16 +510,21 @@ test('the drywall boxes are painted as the wall they run along: the island\'s an
 
 test('the island\'s wood (a walnut-like board on the wall and a fluted oak under the ceiling) comes on and off with X, and starts off', () => {
   const wood = ISLAND_WOOD_BOXES, find = (id: string) => wood.find(item => item.id === id)!, top = box('counter-top'), slab = ISLAND_CANOPY_BOXES.find(item => item.id === 'canopy-slab')!
-  const panel = find('canopy-wall-panel'), slats = wood.filter(item => item.id.startsWith('canopy-soffit-slat-')), light = wood.filter(item => item.id.startsWith('canopy-light-wood-'))
+  const panel = find('canopy-wall-panel'), slats = wood.filter(item => item.id.startsWith('canopy-soffit-slat-')), panelSlats = wood.filter(item => item.id.startsWith('canopy-panel-slat-')), panelBacking = wood.find(item => item.id === 'canopy-panel-backing')!
   assert.ok(panel.grain === 'walnut' && Math.abs(panel.y[0] - top.y[1]) < 1e-9 && Math.abs(panel.y[1] - slab.y[0]) < 1e-9, 'the board goes from the worktop up to the slab')
   assert.ok(Math.abs(panel.u[1] - panel.u[0] - ISLAND_WOOD.thickness) < 1e-9, '3 cm thick')
-  // The slats run out from the wall's board, 24 mm wide on a 30 mm pitch, hanging under the slab; the lights are lowered with them.
+  // The slats run out from the wall's board, 24 mm wide on a 30 mm pitch, hanging under the slab; the same slats fluted over the stool side's panel, upright.
   assert.ok(slats.length >= 30 && Math.abs(slats[1].v[0] - slats[0].v[0] - ISLAND_WOOD.pitch) < 1e-9 && Math.abs(slats[0].v[1] - slats[0].v[0] - ISLAND_WOOD.slat) < 1e-9)
-  assert.ok(slats.every(slat => slat.y[1] <= slab.y[0] + 1e-9) && light.length === 3 && light.every(item => item.y[1] <= slab.y[0] - .02), 'under the slab')
+  assert.ok(slats.every(slat => slat.y[1] <= slab.y[0] + 1e-9), 'under the slab')
+  // The same fluted oak on the island's stool side (owner): slats 24 mm on a 30 mm pitch, upright, over a backing board, from the plinth to the top, along the whole length of the cabinets.
+  const counter = box('counter')
+  assert.ok(panelSlats.length >= 70 && Math.abs(panelSlats[1].u[0] - panelSlats[0].u[0] - ISLAND_WOOD.pitch) < 1e-9 && Math.abs(panelSlats[0].u[1] - panelSlats[0].u[0] - ISLAND_WOOD.slat) < 1e-9, 'a slat every 30 mm along the cabinets')
+  assert.ok(Math.abs(panelBacking.u[0] - counter.u[0]) < 1e-9 && Math.abs(panelBacking.u[1] - counter.u[1]) < 1e-9 && Math.abs(panelBacking.v[1] - counter.v[0]) < 1e-9, 'the backing board on the cabinets\' stool-side face')
+  assert.ok(panelSlats.every(slat => Math.abs(slat.y[0] - counter.y[0]) < 1e-9 && Math.abs(slat.y[1] - counter.y[1]) < 1e-9 && slat.v[1] <= panelBacking.v[0] + 1e-9), 'from the plinth to the top, in front of the backing')
   // A device that starts off, on and off with X; the wood's pieces go with it, and the slab's own lights do not.
   const pieces = furnishingsOn('first')
   assert.ok(isRemovable(ISLAND_WOOD_ID) && !isInPlace({}, ISLAND_WOOD_ID) && isInPlace({ 'away-island-wood': 1 }, ISLAND_WOOD_ID))
   assert.ok(furnishingDevices('first', 3.2).some(device => device.id === ISLAND_WOOD_ID))
-  assert.ok(pieces.filter(piece => /^island-canopy-(wall-panel|soffit-|light-wood-)/.test(piece.id)).every(piece => isPieceAway({}, piece.id) && !isPieceAway({ 'away-island-wood': 1 }, piece.id)), 'the wood is away until it is put on')
+  assert.ok(pieces.filter(piece => /^island-canopy-(wall-panel|soffit-|panel-)/.test(piece.id)).every(piece => isPieceAway({}, piece.id) && !isPieceAway({ 'away-island-wood': 1 }, piece.id)), 'the wood is away until it is put on')
   assert.ok(!isPieceAway({}, 'island-canopy-light-1') && !isPieceAway({}, 'island-canopy-slab'), 'the slab and its lights stay')
 })
