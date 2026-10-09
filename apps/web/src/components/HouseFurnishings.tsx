@@ -131,12 +131,12 @@ function PlacedModel({ url, position, turn = Math.PI, glow }: { url: string; pos
 }
 
 /**
- * Sawn off at `cut` like the cutaway's walls: a solid piece taller than the cut is cut to it, and anything that starts at or above it is not drawn. What hangs on a wall
- * (a TV, an outlet) is drawn whole, as long as it begins below the cut.
+ * Sawn off at `cut` like the cutaway's walls: a piece taller than the cut is cut to it, and anything that starts at or above it is not drawn. What hangs on a wall
+ * (`hung`: a TV, an outlet) is drawn whole, as long as it begins below the cut.
  */
 function clipToCut(piece: Furnishing, cut: number): Furnishing | null {
   if (piece.y[0] >= cut) return null
-  if (!piece.solid || piece.y[1] <= cut) return piece
+  if (piece.hung || piece.y[1] <= cut) return piece
   return { ...piece, y: [piece.y[0], cut], ...(piece.kitchen ? { kitchen: { ...piece.kitchen, y: [piece.kitchen.y[0], cut] as [number, number] } } : {}) }
 }
 

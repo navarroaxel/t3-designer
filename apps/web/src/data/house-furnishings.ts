@@ -12,7 +12,7 @@ import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOX } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
-import { dataSocketBoxes, outletBoxes } from './outlets.ts'
+import { wallDataSocket, wallOutlet } from './outlets.ts'
 import { mediaBoxBoxes, passThroughBoxes } from './wall-fittings.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
@@ -60,6 +60,8 @@ export type Furnishing = {
   glow?: boolean
   /** Whether a visitor bumps into it. Hung and thin things (mirrors, TVs, pillows) do not. */
   solid: boolean
+  /** Hangs on a wall (a TV, a plate, a light): the cutaway draws it whole when it straddles the cut, where anything else is sawn off at it. */
+  hung?: true
 }
 
 const BED = '#d9d2c4', HEADBOARD = '#8b6b4a', PILLOW = '#f4f1ea', WARDROBE_COLOR = '#b58b5a', LEAF_COLORS = ['#c39a64', '#b58b5a']
@@ -88,9 +90,9 @@ function firstFloor(): Furnishing[] {
   add({ id: 'bed-secondary-headboard', u: SECONDARY_BED.u, v: [SECONDARY_BED.v[0], SECONDARY_BED.v[0] + .06], y: [F, F + .9], color: HEADBOARD, roughness: .8, solid: false })
   add({ id: 'bed-secondary-pillow', u: [centre(SECONDARY_BED.u) - .3, centre(SECONDARY_BED.u) + .3], v: [SECONDARY_BED.v[0] + .15, SECONDARY_BED.v[0] + .55], y: [F + SINGLE_BED.height, F + SINGLE_BED.height + .12], color: PILLOW, roughness: .95, solid: false })
   for (const [name, tv] of [['main', MAIN_TV_PLACEMENT], ['living', LIVING_TV_PLACEMENT]] as const) {
-    add({ id: `tv-${name}`, u: tv.u, v: tv.v, y: tv.y, color: '#0d0e10', roughness: .15, metalness: .4, solid: false })
+    add({ id: `tv-${name}`, u: tv.u, v: tv.v, y: tv.y, color: '#0d0e10', roughness: .15, metalness: .4, solid: false, hung: true })
     // The mount: an articulated VESA bracket, folded; the TV's back stands where its rails end.
-    for (const part of tvMountBoxes(name, tv.bracket.v[0], centre(tv.u), centre(tv.y), name === 'main' ? MAIN_TV.vesa : LIVING_TV.vesa)) add({ ...part, roughness: .5, solid: false })
+    for (const part of tvMountBoxes(name, tv.bracket.v[0], centre(tv.u), centre(tv.y), name === 'main' ? MAIN_TV.vesa : LIVING_TV.vesa)) add({ ...part, roughness: .5, solid: false, hung: true })
   }
   // Under the living's TV: a low table against the party wall, with a PlayStation 5 standing on it and its controller beside.
   const tvU = centre(LIVING_TV_PLACEMENT.u), wall = KITCHEN_LIVING.v[0]
@@ -105,64 +107,52 @@ function firstFloor(): Furnishing[] {
   add({ id: 'ps5', u: [ps5U - .052, ps5U + .052], v: ps5V, y: [base, base + .39], color: '#f4f5f8', roughness: .35, solid: false, model: '/models/house/ps5.glb' })
   // Two double outlets on the wall, one each side of the table, 25 cm clear of it: the Argentine plug, shaped like the Australian one.
   for (const [side, offset] of [['left', -(table.width / 2 + .25)], ['right', table.width / 2 + .25]] as const) {
-    for (const part of outletBoxes(`outlet-${side}`, wall, tvU + offset, F)) add({ ...part, roughness: .6, solid: false })
+    for (const part of wallOutlet(`outlet-${side}`, '+v', wall, tvU + offset, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   }
   // Behind the PS5's table, a network socket (RJ45) for its cable, centred on the wall, at the height of the power outlets on this wall.
-  for (const part of dataSocketBoxes('data-ps5', wall, tvU, F)) add({ ...part, roughness: .6, solid: false })
+  for (const part of wallDataSocket('data-ps5', '+v', wall, tvU, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The TV wall's fittings: the in-wall media box, raised to sit over the network socket, for the console's cables; and, beside the mount, the pass-through for the TV's cable and a plug at the TV's height.
-  for (const part of mediaBoxBoxes('wallbox', wall, tvU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false })
+  for (const part of mediaBoxBoxes('wallbox', wall, tvU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false, hung: true })
   const tvCentreY = centre(LIVING_TV_PLACEMENT.y), mountHalf = TV_MOUNT.width / 2
-  for (const part of passThroughBoxes('cable-hole', wall, tvU - mountHalf - .2, tvCentreY)) add({ ...part, roughness: .5, solid: false })
-  for (const part of outletBoxes('outlet-tv', wall, tvU + mountHalf + .13, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
+  for (const part of passThroughBoxes('cable-hole', wall, tvU - mountHalf - .2, tvCentreY)) add({ ...part, roughness: .5, solid: false, hung: true })
+  for (const part of wallOutlet('outlet-tv', '+v', wall, tvU + mountHalf + .13, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The main room's TV wall has the same scheme (owner): the network socket centred on the wall at the height of the outlets, an outlet each side of the bed, 25 cm clear of it, the in-wall media box
   // over the socket, and, beside the mount, the pass-through for the TV's cable and a plug at the TV's height. The bed hides the socket and the box, as the table hides the living's.
   const mainWall = MAIN_TV_PLACEMENT.bracket.v[0], mainU = centre(MAIN_TV_PLACEMENT.u), mainTvY = centre(MAIN_TV_PLACEMENT.y)
-  for (const part of dataSocketBoxes('main-data', mainWall, mainU, F)) add({ ...part, roughness: .6, solid: false })
+  for (const part of wallDataSocket('main-data', '+v', mainWall, mainU, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   for (const [side, offset] of [['left', -(QUEEN_BED.width / 2 + .25)], ['right', QUEEN_BED.width / 2 + .25]] as const) {
-    for (const part of outletBoxes(`main-outlet-${side}`, mainWall, mainU + offset, F)) add({ ...part, roughness: .6, solid: false })
+    for (const part of wallOutlet(`main-outlet-${side}`, '+v', mainWall, mainU + offset, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   }
-  for (const part of mediaBoxBoxes('main-wallbox', mainWall, mainU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false })
-  for (const part of passThroughBoxes('main-cable-hole', mainWall, mainU - TV_MOUNT.width / 2 - .2, mainTvY)) add({ ...part, roughness: .5, solid: false })
-  for (const part of outletBoxes('main-outlet-tv', mainWall, mainU + TV_MOUNT.width / 2 + .13, F, mainTvY - F)) add({ ...part, roughness: .6, solid: false })
+  for (const part of mediaBoxBoxes('main-wallbox', mainWall, mainU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false, hung: true })
+  for (const part of passThroughBoxes('main-cable-hole', mainWall, mainU - TV_MOUNT.width / 2 - .2, mainTvY)) add({ ...part, roughness: .5, solid: false, hung: true })
+  for (const part of wallOutlet('main-outlet-tv', '+v', mainWall, mainU + TV_MOUNT.width / 2 + .13, F, mainTvY - F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // Its DualSense lies on the table beside it, the triggers toward the wall: 160 by 106 mm, 66 mm tall (a Blender model).
   const padU = tvU + .22, padV = tableV[0] + .24
   add({ id: 'ps5-controller', u: [padU - .08, padU + .08], v: [padV - .053, padV + .053], y: [base, base + .066], color: '#f4f5f8', roughness: .4, solid: false, model: '/models/house/dualsense.glb' })
   // The bathroom's outlet between the toilet and the vanity, on the wall shared with the living: the plate faces the bathroom, toward lower u (the outlet is drawn facing +v, turned a quarter).
-  for (const part of outletBoxes('outlet-bathroom', 0, 0, F, BATHROOM_OUTLET.height)) {
-    add({ ...part, u: [BATHROOM_OUTLET.u - part.v[1], BATHROOM_OUTLET.u - part.v[0]], v: [BATHROOM_OUTLET.v + part.u[0], BATHROOM_OUTLET.v + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
-  }
+  for (const part of wallOutlet('outlet-bathroom', '-u', BATHROOM_OUTLET.u, BATHROOM_OUTLET.v, F, BATHROOM_OUTLET.height)) add({ ...part, roughness: .6, solid: false, hung: true })
   // And on the other side of that wall, in the kitchen-living, an outlet 0.30 m up, at the same place along the wall (owner): the plate faces the kitchen, toward higher u.
-  for (const part of outletBoxes('outlet-kitchen-hall', 0, 0, F)) {
-    add({ ...part, u: [KITCHEN_LIVING.u[0] + part.v[0], KITCHEN_LIVING.u[0] + part.v[1]], v: [BATHROOM_OUTLET.v - part.u[1], BATHROOM_OUTLET.v - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
-  }
+  for (const part of wallOutlet('outlet-kitchen-hall', '+u', KITCHEN_LIVING.u[0], BATHROOM_OUTLET.v, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // Beside the oven, on the 45 cm resting worktop: an outlet on the side wall at the hall end of the run (owner), not on the backsplash, 1.10 m up (assumed: over the worktop, under the cabinets).
   // The plate faces the kitchen, toward higher u, in the middle of the worktop's depth.
   const restV = (KITCHEN_BOXES.find(box => box.id === 'base')!.v[0] + KITCHEN_BOXES.find(box => box.id === 'base')!.v[1]) / 2
-  for (const part of outletBoxes('outlet-kitchen-rest', 0, 0, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) {
-    add({ ...part, u: [KITCHEN_LIVING.u[0] + part.v[0], KITCHEN_LIVING.u[0] + part.v[1]], v: [restV - part.u[1], restV - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
-  }
+  for (const part of wallOutlet('outlet-kitchen-rest', '+u', KITCHEN_LIVING.u[0], restV, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The breakfast nook inside the tall column: its carcass, shelves, door and the Nespresso, drawn only while the door is open, and the outlet behind the machine, at the same height as the one beside the oven.
   for (const box of KITCHEN_NOOK_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.startsWith('nook-cup') ? .3 : .6, solid: false, ...(box.round ? { shape: 'ellipse' as const, taper: CUP.taper } : {}), ...(box.id === 'nook-machine' ? { model: '/models/house/nespresso.glb', turn: 0, roughness: .35 } : {}) })
   // The fronts of the island's cabinets on the aisle side: the door under the sink and the two large drawers for the pans.
   for (const box of [...KITCHEN_ISLAND_FRONTS, ...KITCHEN_RUN_FRONTS]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id.includes('handle') ? .3 : .6, solid: false })
   // The dishwasher in the island, between the sink and the wall behind it, its door toward the aisle (higher v): the model's front is +Z, so it turns half a turn.
   add({ id: 'kitchen-dishwasher', u: DISHWASHER_BOX.u, v: DISHWASHER_BOX.v, y: DISHWASHER_BOX.y, color: '#b9bcc0', roughness: .4, model: DISHWASHER.model, turn: Math.PI, solid: false })
-  for (const part of outletBoxes('outlet-nook', KITCHEN_LIVING.v[1], NOOK_CENTRE_U - .13, F, NOOK.outletHeight)) {
-    add({ ...part, u: [2 * (NOOK_CENTRE_U - .13) - part.u[1], 2 * (NOOK_CENTRE_U - .13) - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })
-  }
+  for (const part of wallOutlet('outlet-nook', '-v', KITCHEN_LIVING.v[1], NOOK_CENTRE_U - .13, F, NOOK.outletHeight)) add({ ...part, roughness: .6, solid: false, hung: true })
   // An outlet behind the fridge, on the party wall, high enough to be easy to unplug when it is pulled out (owner): its centre is 5 cm under the line of the worktop. The plate faces the
   // kitchen, toward lower v, so it is drawn turned half a turn about the vertical, like the microwave's.
   const fridgeBox = KITCHEN_BOXES.find(box => box.id === 'fridge')!, fridgeMiddleU = (fridgeBox.u[0] + fridgeBox.u[1]) / 2, wallFace = KITCHEN_LIVING.v[1]
-  for (const part of outletBoxes('outlet-fridge', wallFace, fridgeMiddleU, F, KITCHEN_SIZES.baseHeight + KITCHEN_SIZES.worktop - .05)) {
-    add({ ...part, u: [2 * fridgeMiddleU - part.u[1], 2 * fridgeMiddleU - part.u[0]], v: [2 * wallFace - part.v[1], 2 * wallFace - part.v[0]], roughness: .6, solid: false })
-  }
+  for (const part of wallOutlet('outlet-fridge', '-v', wallFace, fridgeMiddleU, F, KITCHEN_SIZES.baseHeight + KITCHEN_SIZES.worktop - .05)) add({ ...part, roughness: .6, solid: false, hung: true })
   // Two outlets on the wall behind the island, at the same height as the one beside the oven (owner), symmetric about the axis of its 1 m top: a quarter and three quarters across it, facing the kitchen, toward higher u.
   const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!.v
   for (const [index, at] of [.25, .75].entries()) {
-    for (const part of outletBoxes(`outlet-island-${index + 1}`, 0, 0, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) {
-      const v = islandTop[0] + (islandTop[1] - islandTop[0]) * at
-      add({ ...part, u: [KITCHEN_LIVING.u[0] + part.v[0], KITCHEN_LIVING.u[0] + part.v[1]], v: [v - part.u[1], v - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
-    }
+    const v = islandTop[0] + (islandTop[1] - islandTop[0]) * at
+    for (const part of wallOutlet(`outlet-island-${index + 1}`, '+u', KITCHEN_LIVING.u[0], v, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) add({ ...part, roughness: .6, solid: false, hung: true })
   }
   // The island's canopy: the drywall slab and box over it, the light line and the three downlights; drawn only in the walkthrough (it hangs above the cut).
   // The dog, lying on the balcony in front of the secondary room's window; it blocks the way like a piece of furniture, a quarter of the balcony's depth.
@@ -171,21 +161,17 @@ function firstFloor(): Furnishing[] {
   for (const box of BALCONY_BOXES) add({ id: box.id, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.model ? { model: box.model, turn: box.turn } : {}) })
   // An outlet under the balcony's middle light (owner), on the house's front wall, 0.30 m up like the other low ones: the plate faces the balcony, toward lower u, on the wall's outer face at u = -5.
   const balconyMiddle = BALCONY_LIGHT_POSITIONS[Math.floor(BALCONY_LIGHT_POSITIONS.length / 2)].v
-  for (const part of outletBoxes('outlet-balcony', 0, 0, F)) {
-    add({ ...part, u: [-5 - part.v[1], -5 - part.v[0]], v: [balconyMiddle + part.u[0], balconyMiddle + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
-  }
+  for (const part of wallOutlet('outlet-balcony', '-u', -5, balconyMiddle, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The conduit box along the wall behind the island, which the island's box crosses.
-  for (const box of [...KITCHEN_CONDUIT_BOXES, ...KITCHEN_SWITCH_BOXES]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
+  for (const box of [...KITCHEN_CONDUIT_BOXES, ...KITCHEN_SWITCH_BOXES]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, hung: true, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
   for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_WOOD_BOXES, ...ISLAND_PANEL_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.grain ? { grain: box.grain } : {}), ...(box.model ? { model: box.model, turn: 0 } : {}) })
   // On the kitchen's rear wall, between the light well's window and the terrace's balcony door, an outlet 0.30 m up (owner), centred between them: the plate faces the kitchen, toward lower u.
   const rearOpenings = OPENINGS.first.filter(opening => Math.abs(opening.u - (KITCHEN_LIVING.u[1] + KITCHEN_REAR_WALL)) < 1e-9).sort((a, b) => a.v[0] - b.v[0])
   const [balconyDoor, wellWindow] = [rearOpenings[0], rearOpenings[1]]
   const rearOutletV = (balconyDoor.v[1] + wellWindow.v[0]) / 2
-  for (const part of outletBoxes('outlet-kitchen-rear', 0, 0, F)) {
-    add({ ...part, u: [KITCHEN_LIVING.u[1] - part.v[1], KITCHEN_LIVING.u[1] - part.v[0]], v: [rearOutletV + part.u[0], rearOutletV + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
-  }
+  for (const part of wallOutlet('outlet-kitchen-rear', '-u', KITCHEN_LIVING.u[1], rearOutletV, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The bathroom's light box on the wall facing the mirror, with its three recessed LED downlights; drawn only in the walkthrough (it hangs above the cut).
-  for (const box of [...BATHROOM_LIGHT_BOXES, ...BATHROOM_SWITCH_BOXES]) add({ id: `bathroom-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
+  for (const box of [...BATHROOM_LIGHT_BOXES, ...BATHROOM_SWITCH_BOXES]) add({ id: `bathroom-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, hung: true, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
   for (const box of MIRROR_LIGHT_BOXES) add({ ...box, roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
@@ -203,9 +189,7 @@ function firstFloor(): Furnishing[] {
   // The upper cabinet with the microwave, over the run next to the fridge; hung high, so it is not stopped on.
   for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.round ? { shape: 'ellipse' as const, taper: GLASS_CABINET.glass.taper } : {}), ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) })
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
-  for (const part of outletBoxes('outlet-microwave', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) {
-    add({ ...part, u: [2 * MICROWAVE_CENTRE_U - part.u[1], 2 * MICROWAVE_CENTRE_U - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })
-  }
+  for (const part of wallOutlet('outlet-microwave', '-v', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The laundry: the washing machine and the spin dryer against the party wall, and the stair's first flight on the light-well side.
   for (const box of WASHING_MACHINE_BOXES) add({ ...box, roughness: .35, solid: box.y[0] - F < 1 })
   for (const part of SPIN_DRYER_PARTS) add({ id: `dryer-${part.id}`, u: part.u, v: part.v, y: part.y, color: part.color, metalness: part.metalness, roughness: .3, shape: part.shape === 'cylinder' ? 'ellipse' : undefined, solid: true })

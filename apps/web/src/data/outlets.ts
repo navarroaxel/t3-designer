@@ -50,3 +50,26 @@ export function dataSocketBoxes(name: string, wallV: number, centreU: number, fl
     centred('notch', notch[0], notch[1], -opening[1] / 2 - notch[1] / 2 + .0005, .0008, SLOT),
   ]
 }
+
+/**
+ * Where a wall fitting stands, and which way it faces. The fittings above are built on a wall at v = 0 that faces +v, centred on u = 0 (`outletBoxes`, `dataSocketBoxes`). A plate on another wall is the
+ * same turned about the vertical: `face` is the way the wall looks (into the room), `plane` the wall's coordinate (v for a wall that faces along v, u for one that faces along u) and `along` the
+ * fitting's centre along the wall. A fitting on a wall that faces along u turns its slots about u, not v (`rollAboutU`), and on a +u wall the slant of the slots is mirrored.
+ */
+export type WallFace = '+u' | '-u' | '+v' | '-v'
+export type PlacedBox = OutletBox & { rollAboutU?: true }
+export function placeOnWall(parts: readonly OutletBox[], face: WallFace, plane: number, along: number): PlacedBox[] {
+  return parts.map((part): PlacedBox => {
+    const [a0, a1] = part.u, [d0, d1] = part.v
+    switch (face) {
+      case '+v': return { ...part, u: [along + a0, along + a1], v: [plane + d0, plane + d1] }
+      case '-v': return { ...part, u: [along - a1, along - a0], v: [plane - d1, plane - d0] }
+      case '-u': return { ...part, u: [plane - d1, plane - d0], v: [along + a0, along + a1], rollAboutU: true }
+      case '+u': return { ...part, u: [plane + d0, plane + d1], v: [along - a1, along - a0], roll: part.roll ? -part.roll : undefined, rollAboutU: true }
+    }
+  })
+}
+/** A double outlet on a wall (see `placeOnWall`), its centre `height` over `floorY`. */
+export const wallOutlet = (name: string, face: WallFace, plane: number, along: number, floorY: number, height?: number) => placeOnWall(outletBoxes(name, 0, 0, floorY, height), face, plane, along)
+/** A network socket on a wall (see `placeOnWall`), at the height of the power outlets unless it is told otherwise. */
+export const wallDataSocket = (name: string, face: WallFace, plane: number, along: number, floorY: number, height?: number) => placeOnWall(dataSocketBoxes(name, 0, 0, floorY, height), face, plane, along)
