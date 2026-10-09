@@ -7,7 +7,7 @@ import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
 import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
 import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
-import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE } from '../data/kitchen'
+import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, ISLAND_WOOD, ISLAND_WOOD_ID } from '../data/kitchen'
 import { CONDUIT_LIGHT_POSITIONS, conduitLightsOn, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
@@ -144,6 +144,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   const nookOpen = (devices['kitchen-column'] ?? 0) >= .5
   // The glass door of the cabinet for the glasses lifts about the rail when a visitor opens it.
   const glassOpen = (devices[GLASS_DOOR_ID] ?? 0) >= .5
+  // The island's wood, when it is on (X): the lights are lowered with the ceiling's underside, and what is on the wall behind the island stands out of the wood.
+  const woodOn = isInPlace(devices, ISLAND_WOOD_ID)
   const lightsOn = islandLightsOn(devices), bathroomOn = bathroomLightsOn(devices), conduitOn = conduitLightsOn(devices), balconyOn = balconyLightsOn(devices)
   const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
@@ -187,6 +189,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
       if (isPieceAway(devices, piece.id)) return null
       if (piece.id === 'kitchen-column' && nookOpen) return null
+      if (woodOn && /^island-canopy-light-\d/.test(piece.id)) return null
       // The island's canopy hangs above the cut: the cutaway does not draw it.
       if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id.startsWith('kitchen-conduit-') || piece.id.startsWith('kitchen-switch-') || piece.id.startsWith('balcony-'))) return null
       // Switched off, the lights and the light line go dark and the wash of light is gone.
@@ -214,7 +217,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (tv && !isTvMounted(devices, piece.id)) return null
       // The glass door, its frame, its pane and its handle, turn together about the hinge: up and out.
       const hinged = glassOpen && /^kitchen-upper-glass-(frame|pane|handle)/.test(piece.id)
-      return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [0, 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : [0, 0, 0]}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
+      return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [woodOn && /^(outlet-island-|island-switch-)/.test(piece.id) ? ISLAND_WOOD.thickness : 0, 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : [0, 0, 0]}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
         {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
           <Suspense fallback={null}><PlacedModel url={piece.id.startsWith('balcony-lantern-') && !balconyOn ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
         </ModelBoundary> : (() => {

@@ -81,7 +81,7 @@ function HoldButton({ label, children, field, value, input }: { label: string; c
 /** A disposable visit of the supplied active version; never calls project persistence. */
 /** What X does to what a visitor aims at, in words: take it away while it is in place, put it back when it is not. */
 function removeLabel(id: string, inPlace: boolean, c: Record<string, string>) {
-  const names = id === LIVING_SET_ID ? 'set' : id === 'kitchen-fridge' ? 'fridge' : id === 'kitchen-island-cheek' ? 'cheek' : id === 'kitchen-stools' ? 'stool' : 'microwave'
+  const names = id === LIVING_SET_ID ? 'set' : id === 'kitchen-fridge' ? 'fridge' : id === 'kitchen-island-cheek' ? 'cheek' : id === 'island-canopy-wall-panel' ? 'wood' : id === 'kitchen-stools' ? 'stool' : 'microwave'
   return c[`${names}${inPlace ? 'Remove' : 'Restore'}`]
 }
 
