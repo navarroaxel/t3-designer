@@ -5,7 +5,7 @@ import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENIN
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
 import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
-import { furnishingsOn } from '../src/data/house-furnishings.ts'
+import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
 
@@ -177,4 +177,37 @@ test('the cabinets are set back 1 to 2 cm under the Toscana Vena: the tops stand
   back(base.v[0], worktop.v[0])
   back(top.u[1], counter.u[1])
   back(top.v[1], counter.v[1])
+})
+
+test('the resting worktop beside the oven has an outlet on the side wall, over the worktop and under the cabinets, not on the backsplash', () => {
+  const plate = furnishingsOn('first').find(piece => piece.id === 'outlet-kitchen-rest-plate')!
+  const base = box('base'), worktop = box('worktop'), cabinet = KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-bottom')!
+  // Flat on the wall at the hall end of the run (the kitchen's face of the wall behind the bathroom), facing the kitchen.
+  assert.ok(Math.abs(plate.u[0] - KITCHEN_LIVING.u[0]) < 1e-9 && plate.u[1] > plate.u[0])
+  assert.ok(plate.v[0] > base.v[0] && plate.v[1] < base.v[1], 'over the worktop, away from the backsplash wall')
+  assert.ok(plate.y[0] > worktop.y[1] + .1 && plate.y[1] < cabinet.y[0] - .1, 'between the worktop and the cabinets')
+  assert.ok(plate.v[1] < base.v[1] - .02, 'not on the backsplash')
+})
+
+test('the fridge has an outlet behind it, 5 cm under the worktop\'s line, and the two outlets on the island\'s wall are at the same height as the one beside the oven', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const fridge = box('fridge'), plate = find('outlet-fridge-plate'), worktop = box('worktop')
+  assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (worktop.y[1] - .05)) < 1e-9, 'its centre is 5 cm under the worktop')
+  assert.ok(plate.u[0] >= fridge.u[0] && plate.u[1] <= fridge.u[1], 'behind the fridge')
+  assert.ok(Math.abs(plate.v[1] - KITCHEN_LIVING.v[1]) < 1e-9 && plate.v[0] < plate.v[1], 'flat on the party wall, facing the kitchen')
+  const rest = find('outlet-kitchen-rest-plate'), middleY = (rest.y[0] + rest.y[1]) / 2
+  for (const index of [1, 2]) {
+    const island = find(`outlet-island-${index}-plate`), counter = box('counter')
+    assert.ok(Math.abs((island.y[0] + island.y[1]) / 2 - middleY) < 1e-9, 'the same height as the one beside the oven')
+    assert.ok(Math.abs(island.u[0] - KITCHEN_LIVING.u[0]) < 1e-9 && island.v[0] > counter.v[0] && island.v[1] < counter.v[1], 'on the wall behind the island')
+  }
+})
+
+test('the fridge, the microwave and the living\'s table can be taken away: the pieces go with their device, and the spot stays free to walk through', () => {
+  const states = { 'away-fridge': 0, 'away-microwave': 0, 'set-living': 0 }
+  assert.ok(isPieceAway(states, 'kitchen-fridge') && isPieceAway(states, 'kitchen-fridge-door') && isPieceAway(states, 'kitchen-microwave') && isPieceAway(states, 'ps5'))
+  assert.ok(!isPieceAway(states, 'outlet-fridge-plate') && !isPieceAway(states, 'outlet-microwave-plate') && !isPieceAway(states, 'kitchen-base'), 'what is behind them stays')
+  assert.ok(!isPieceAway({}, 'kitchen-fridge') && isInPlace({}, 'kitchen-microwave'))
+  const devices = furnishingDevices('first', 3.2).map(device => device.id)
+  for (const id of ['kitchen-fridge', 'kitchen-microwave', 'living-table']) assert.ok(devices.includes(id) && isRemovable(id), id)
 })

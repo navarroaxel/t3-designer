@@ -4,7 +4,7 @@ import { edgeRadius } from '../lib/rounding'
 import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
-import { armReach, furnishingsOn, isLivingSetPiece, isLivingSetPresent, isTvMounted } from '../data/house-furnishings'
+import { armReach, furnishingsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
 import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
@@ -104,9 +104,10 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   // What moves with the arm: the TV, its picture, and the mount's head and rails.
   const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
   const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
-  const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge
+  const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
+  const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
-  const fridgeModel = !!fridge && !fridgeOpen && (cut === undefined || cut >= fridge.y[1])
+  const fridgeModel = !!fridge && !fridgeOpen && !fridgeAway && (cut === undefined || cut >= fridge.y[1])
   return <group name="house-furnishings" position={[0, absolute ? 0 : -FLOOR_ELEVATION[floor], 0]}>
     {floor === 'first' && (cut === undefined || cut > KITCHEN_TAP.base + .46) && <ModelBoundary fallback={null}><Suspense fallback={null}>
       {/* The sink's basin, under the opening in the top (its lip is under the slab), and the brass tap on the top at the basin's long side away from the oven, turned half a turn so its arch reaches over the basin (the model's arch points toward -v, and the basin is now toward +v from the tap). */}
@@ -127,6 +128,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       const piece = cut === undefined ? source : clipToCut(source, cut)
       if (!piece) return null
       if ((fridgeOpen || fridgeModel) && piece.id.startsWith('kitchen-fridge')) return null
+      // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
+      if (isPieceAway(devices, piece.id)) return null
       if (piece.id === 'kitchen-sink' || piece.id === 'kitchen-tap') return null
       // The folded links give way to the arm drawn below when the mount reaches out.
       if (/^tv-(main|living)-mount-link-/.test(piece.id) && armReach(devices, `tv-${piece.id.split('-')[1]}`) > 0) return null
@@ -134,8 +137,6 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (piece.kitchen) return <KitchenPiece key={piece.id} box={piece.kitchen} />
       const size: [number, number, number] = [piece.u[1] - piece.u[0], piece.y[1] - piece.y[0], piece.v[1] - piece.v[0]]
       const ellipse = piece.shape === 'ellipse'
-      // X takes the living's table away with the PS5 and its controller: the wall behind them shows.
-      if (isLivingSetPiece(piece.id) && !isLivingSetPresent(devices)) return null
       const tv = piece.id === 'tv-main' || piece.id === 'tv-living'
       // X takes a TV off its mount: the mount stays on the wall, the TV (and its picture) is gone.
       if (tv && !isTvMounted(devices, piece.id)) return null
