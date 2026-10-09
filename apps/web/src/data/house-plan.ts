@@ -125,8 +125,9 @@ export function exteriorThickness(a: PlanPoint, b: PlanPoint): number {
   const sameV = (value: number) => Math.abs(a[1] - value) < 1e-9 && Math.abs(b[1] - value) < 1e-9
   const sameU = (value: number) => Math.abs(a[0] - value) < 1e-9 && Math.abs(b[0] - value) < 1e-9
   const onParty = sameV(SW) || sameV(HALF) || sameU(HOUSE_REAR.southWest) || sameU(HOUSE_REAR.northEast)
-  // The wall that closes the light well is a thin interior-like wall, 0.18 m (from the owner's depths).
-  if (sameU(WELL_BACK_U)) return WELL_BACK_WALL
+  // The wall that closes the light well on the ground floor is a thin interior-like wall, 0.18 m (from the owner's depths). The first floor's rear wall, which
+  // stands level with it along the whole width of the house, is a 0.30 m one (assumed): that is what leaves the kitchen-living 3.11 m wide.
+  if (sameU(WELL_BACK_U)) return Math.abs(a[1] - b[1]) < 3 ? WELL_BACK_WALL : WALL_THICKNESS
   // The wall along the well, on the left arm's side, is what the office's 2.05 m (owner) leaves between the well's edge and the party wall: 0.33 m.
   if (sameV(GROUND_WELL_EDGE)) return HALF - PARTY_WALL - OFFICE_WIDTH - GROUND_WELL_EDGE
   return onParty ? PARTY_WALL : WALL_THICKNESS
