@@ -14,7 +14,7 @@ test('a plate on a +v wall is the plain one moved to the wall and the centre', (
 
 test('a plate on a -v wall is turned half way about the vertical: it sticks out toward -v and its slots mirror', () => {
   const plain = outletBoxes('p', 0, 0, 3.2), placed = wallOutlet('p', '-v', 8, 5, 3.2)
-  placed.forEach((box, i) => { near(box.u[0], 5 - plain[i].u[1]); near(box.v[1], 8 - plain[i].v[0]); assert.ok(box.v[1] > box.v[0]) })
+  placed.forEach((box, i) => { near(box.u[0], 5 - plain[i].u[1]); near(box.v[1], 8 - plain[i].v[0]); assert.ok(box.v[1] > box.v[0]); assert.equal(box.roll, plain[i].roll ? -(plain[i].roll as number) : undefined) })
 })
 
 test('plates on walls that face along u turn about u, and a +u wall mirrors the slant', () => {

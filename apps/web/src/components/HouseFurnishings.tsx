@@ -189,6 +189,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
   const renderPiece = (source: Furnishing) => {
     const piece = cut === undefined ? source : clipToCut(source, cut)
     if (!piece) return null
+    // A model cannot be sawn: one that crosses the cut is drawn as its box, cut like the rest.
+    const sawn = piece !== source
     if ((fridgeOpen || fridgeModel) && piece.id.startsWith('kitchen-fridge')) return null
     // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
     if (isPieceAway(devices, piece.id)) return null
@@ -221,7 +223,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
     // The glass door, its frame, its pane and its handle, turn together about the hinge: up and out.
     const hinged = glassOpen && /^kitchen-upper-glass-(frame|pane|handle)/.test(piece.id)
     return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [woodOn && ISLAND_WALL_PIECES.test(piece.id) ? ISLAND_WOOD.thickness : 0, woodOn && /^island-canopy-pendant-/.test(piece.id) ? -ISLAND_WOOD.thickness : 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : [0, 0, 0]}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
-      {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
+      {piece.model && !sawn ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
         <Suspense fallback={null}><PlacedModel glow={group && !isOffModel(devices, piece.id) ? kelvinColour(kitchenKelvin[group]) : undefined} url={isOffModel(devices, piece.id) ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
       </ModelBoundary> : (() => {
         const radius = piece.disc || ellipse ? 0 : edgeRadius(size)

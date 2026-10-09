@@ -63,7 +63,7 @@ export function placeOnWall(parts: readonly OutletBox[], face: WallFace, plane: 
     const [a0, a1] = part.u, [d0, d1] = part.v
     switch (face) {
       case '+v': return { ...part, u: [along + a0, along + a1], v: [plane + d0, plane + d1] }
-      case '-v': return { ...part, u: [along - a1, along - a0], v: [plane - d1, plane - d0] }
+      case '-v': return { ...part, u: [along - a1, along - a0], v: [plane - d1, plane - d0], roll: part.roll ? -part.roll : undefined }
       case '-u': return { ...part, u: [plane - d1, plane - d0], v: [along + a0, along + a1], rollAboutU: true }
       case '+u': return { ...part, u: [plane + d0, plane + d1], v: [along - a1, along - a0], roll: part.roll ? -part.roll : undefined, rollAboutU: true }
     }
