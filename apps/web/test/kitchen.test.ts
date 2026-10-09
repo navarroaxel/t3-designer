@@ -67,16 +67,14 @@ test('the worktop and the counter top are Purastone Toscana Vena: an ivory slab 
   assert.ok(red > green && green > blue && blue > 170, 'a warm ivory base')
 })
 
-test('the sink is in the second counter, inside its top, with a tap in the middle of the island, beside the basin', () => {
+test('the sink is in the second counter, inside its top, with a tap centred on it, beside the basin', () => {
   const sink = box('sink'), top = box('counter-top'), tap = box('tap')
   assert.ok(sink.u[0] >= top.u[0] && sink.u[1] <= top.u[1] && sink.v[0] >= top.v[0] && sink.v[1] <= top.v[1], 'the sink is within the counter top')
   // On the counter with the stools, not on the run along the wall.
   assert.ok(overlap(sink.v, box('base').v) < 1e-6)
   // Flush with the top.
   assert.ok(Math.abs(sink.y[0] - top.y[1]) < 1e-9)
-  // The tap is in the middle of the island (owner), on the counter, on the basin's long side away from the oven; the basin is at the edge on the oven's side.
-  const middle = (box('counter').u[0] + box('counter').u[1]) / 2
-  assert.ok(Math.abs((tap.u[0] + tap.u[1]) / 2 - middle) < 1e-9, 'the middle of the island')
+  // The tap is centred on the basin (owner), on the counter, on its long side away from the oven; the basin is at the edge on the oven's side.
   assert.ok(tap.u[0] >= sink.u[0] && tap.u[1] <= sink.u[1] && tap.v[1] <= sink.v[0] && tap.v[0] >= top.v[0], 'the tap is on the long side of the basin away from the oven')
   assert.ok(COUNTER_V[1] - sink.v[1] <= .1, 'the basin is at the edge on the oven side')
   assert.ok(overlap(sink.u, box('oven').u) > .15, 'partly across from the oven')
@@ -335,8 +333,8 @@ test('the dishwasher (45 by 85 by 59 cm) is in the island between the sink and t
   const dishwasher = furnishingsOn('first').find(piece => piece.id === 'kitchen-dishwasher')!, sink = box('sink'), counter = box('counter'), top = box('counter-top')
   assert.ok(dishwasher.model === DISHWASHER.model && Math.abs(dishwasher.turn! - Math.PI) < 1e-9, 'a Blender model with its door toward higher v')
   assert.ok(Math.abs(dishwasher.u[1] - dishwasher.u[0] - .45) < 1e-9 && Math.abs(dishwasher.y[1] - dishwasher.y[0] - .85) < 1e-9 && Math.abs(dishwasher.v[1] - dishwasher.v[0] - .59) < 1e-9, '45 by 85 by 59 cm')
-  assert.ok(dishwasher.u[1] <= sink.u[0] && sink.u[0] - dishwasher.u[1] < .05, 'next to the sink')
-  assert.ok(dishwasher.u[0] >= counter.u[0] + .2, 'between the sink and the wall behind the island, not against the wall')
+  assert.ok(dishwasher.u[1] <= sink.u[0] - .05, 'on the wall\'s side of the sink, with the sink not over it')
+  assert.ok(dishwasher.u[0] >= counter.u[0] && dishwasher.u[0] - counter.u[0] <= .02, 'close to the wall behind the island')
   assert.ok(Math.abs(dishwasher.v[1] - top.v[1]) < 1e-9 && dishwasher.v[1] > counter.v[1], 'its door flush with the top\'s edge, proud of the cabinet set back under it')
   assert.ok(dishwasher.v[0] > counter.v[0] && dishwasher.y[1] <= top.y[0] + 1e-9, 'inside the island, under the top')
 })
@@ -387,4 +385,12 @@ test('the glass door of the glasses cabinet is a device that lifts about the rai
   // What turns with it is the frame, the pane and the handle, the glass door's own pieces: all of them hang under the rail.
   const door = KITCHEN_UPPER_BOXES.filter(item => /^upper-glass-(frame|pane|handle)/.test(item.id))
   assert.ok(door.length === 6 && door.every(item => item.y[1] <= GLASS_HINGE.y + 1e-9), 'the six pieces of the door are under the hinge')
+})
+
+test('the sink is as near the wall as it can be without being over the dishwasher, and the tap is centred on it, on its long side', () => {
+  const sink = box('sink'), tap = box('tap'), dishwasher = furnishingsOn('first').find(piece => piece.id === 'kitchen-dishwasher')!, counter = box('counter')
+  assert.ok(sink.u[0] >= dishwasher.u[1] + .05 && sink.u[0] - dishwasher.u[1] < .1, 'just past the dishwasher')
+  assert.ok(sink.u[0] < (counter.u[0] + counter.u[1]) / 2 - .5, 'nearer the wall than the middle of the island')
+  assert.ok(Math.abs((tap.u[0] + tap.u[1]) / 2 - (sink.u[0] + sink.u[1]) / 2) < 1e-9, 'the tap is centred on the sink')
+  assert.ok(tap.v[1] <= sink.v[0], 'on its long side')
 })

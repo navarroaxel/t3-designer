@@ -44,6 +44,10 @@ export const COUNTER_V: [number, number] = [baseV[0] - S.aisle - S.counterDepth,
 const counterU: [number, number] = [frontU, frontU + S.counterLength]
 // The tap is in the middle of the island (owner). The sink is used while cooking, so the basin is at the edge on the oven's side, and the tap stands on its long side away from the oven, in line with the island's middle.
 const islandMiddleU = counterU[0] + S.counterLength / 2
+// The dishwasher stands against the wall (1 cm off it, 45 cm wide); the sink is as near to the wall as it can be without being over it, 6 cm past the dishwasher, and the tap is centred on the sink (owner), on its long side away from the oven.
+const dishwasherEnd = counterU[0] + .01 + .45
+const sinkU: [number, number] = [dishwasherEnd + .06, islandMiddleU + .03]
+const sinkMiddleU = (sinkU[0] + sinkU[1]) / 2
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
 const OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
@@ -69,8 +73,8 @@ export const KITCHEN_BOXES: KitchenBox[] = [
   { id: 'counter', u: counterU, v: COUNTER_V, y: [floor, floor + S.baseHeight], color: WHITE },
   { id: 'counter-top', u: [counterU[0], counterU[1] + S.topOverhang], v: [COUNTER_V[0] - S.overhang, COUNTER_V[1] + S.topOverhang], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The sink is in the second counter (owner), a ceramic basin flush with the top, with a brass tap at its back edge.
-  { id: 'sink', u: [islandMiddleU - .3, islandMiddleU + .3], v: [COUNTER_V[1] - .08 - .4, COUNTER_V[1] - .08], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
-  { id: 'tap', u: [islandMiddleU - .02, islandMiddleU + .02], v: [COUNTER_V[1] - .08 - .4 - .06, COUNTER_V[1] - .08 - .4 - .02], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .28], color: '#a67c3d' },
+  { id: 'sink', u: sinkU, v: [COUNTER_V[1] - .08 - .4, COUNTER_V[1] - .08], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
+  { id: 'tap', u: [sinkMiddleU - .02, sinkMiddleU + .02], v: [COUNTER_V[1] - .08 - .4 - .06, COUNTER_V[1] - .08 - .4 - .02], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .28], color: '#a67c3d' },
   ...stoolCentres.map((centre, index) => ({
     id: `stool-${index + 1}`, u: [centre - S.stool / 2, centre + S.stool / 2] as [number, number],
     v: [COUNTER_V[0] - S.overhang + .05 - S.stool, COUNTER_V[0] - S.overhang + .05] as [number, number],
@@ -328,14 +332,13 @@ export const KITCHEN_SWITCH_BOXES: IslandPiece[] = [
 export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (states[KITCHEN_SWITCH_ID] ?? 1) >= .5
 
 /**
- * The dishwasher (owner): a Whirlpool slimline of 45 cm, stainless steel, 0.85 m tall and 0.59 m deep, in the island between the sink and the wall behind it (the hall wall), next to the
- * sink, with its door on the aisle side like the sink's, flush with the top's edge (2 cm proud of the cabinets, which are set back under the top). It is a Blender model
+ * The dishwasher (owner): a Whirlpool slimline of 45 cm, stainless steel, 0.85 m tall and 0.59 m deep, in the island between the sink and the wall behind it (the hall wall), close to
+ * the wall (owner), with its door on the aisle side like the sink's, flush with the top's edge (2 cm proud of the cabinets, which are set back under the top). It is a Blender model
  * (scripts/blender/jobs/dishwasher-job.json) standing inside the island's cabinet, of which only its door shows.
  */
-export const DISHWASHER = { width: .45, height: .85, depth: .59, gapToSink: .02, model: '/models/house/dishwasher.glb' }
-const sinkEdge = KITCHEN_SINK.u[0]
+export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .01, model: '/models/house/dishwasher.glb' }
 export const DISHWASHER_BOX = {
-  u: [sinkEdge - DISHWASHER.gapToSink - DISHWASHER.width, sinkEdge - DISHWASHER.gapToSink] as [number, number],
+  u: [counterU[0] + DISHWASHER.fromWall, counterU[0] + DISHWASHER.fromWall + DISHWASHER.width] as [number, number],
   v: [COUNTER_V[1] + S.topOverhang - DISHWASHER.depth, COUNTER_V[1] + S.topOverhang] as [number, number],
   y: [floor, floor + DISHWASHER.height] as [number, number],
 }
