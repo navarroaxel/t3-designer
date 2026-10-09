@@ -1,3 +1,4 @@
+import { DOG, DOG_BOX } from './dog.ts'
 import { BALCONY_BOXES, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID } from './balcony-lights.ts'
 import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, BATHROOM_SWITCH_ID, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
@@ -157,6 +158,8 @@ function firstFloor(): Furnishing[] {
     }
   }
   // The island's canopy: the fluted oak up the wall and over the island, the drywall box above it and the three downlights; drawn only in the walkthrough (it hangs above the cut).
+  // The dog, lying on the balcony in front of the secondary room's window; it blocks the way like a piece of furniture, a quarter of the balcony's depth.
+  add({ id: 'dog', u: DOG_BOX.u, v: DOG_BOX.v, y: DOG_BOX.y, color: '#161719', roughness: .95, model: DOG.model, turn: 0 })
   // The balcony's three wall lanterns, and the switch in the main room.
   for (const box of BALCONY_BOXES) add({ id: box.id, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.model ? { model: box.model, turn: box.turn } : {}) })
   // An outlet under the balcony's middle light (owner), on the house's front wall, 0.30 m up like the other low ones: the plate faces the balcony, toward lower u, on the wall's outer face at u = -5.
