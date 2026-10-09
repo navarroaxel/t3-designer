@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -199,7 +199,7 @@ test('the fridge has an outlet behind it, 5 cm under the worktop\'s line, and th
   for (const index of [1, 2]) {
     const island = find(`outlet-island-${index}-plate`), counter = box('counter')
     assert.ok(Math.abs((island.y[0] + island.y[1]) / 2 - middleY) < 1e-9, 'the same height as the one beside the oven')
-    assert.ok(Math.abs(island.u[0] - KITCHEN_LIVING.u[0]) < 1e-9 && island.v[0] > counter.v[0] && island.v[1] < counter.v[1], 'on the wall behind the island')
+    assert.ok(Math.abs(island.u[0] - (KITCHEN_LIVING.u[0] + ISLAND_CANOPY_WALL)) < 1e-9 && island.v[0] > counter.v[0] && island.v[1] < counter.v[1], 'on the wood behind the island')
   }
 })
 
@@ -228,4 +228,25 @@ test('the tall column is a breakfast nook: its door opens (E), with a Nespresso 
   assert.ok(plate.u[0] >= column.u[0] + .02 && plate.u[1] <= column.u[1] - .02 && Math.abs(plate.v[1] - KITCHEN_LIVING.v[1]) < 1e-9 && plate.v[0] < plate.v[1])
   // The models on the party wall face the room (toward lower v), no half turn.
   assert.ok(find('kitchen-microwave').turn === 0 && find('kitchen-hood').turn === 0)
+})
+
+test('the island\'s canopy is a fluted oak in an L: slats up the wall and over the island, a lowered ceiling with a drywall box above and three lit downlights', () => {
+  const top = box('counter-top'), pieces = ISLAND_CANOPY_BOXES, find = (id: string) => pieces.find(piece => piece.id === id)!
+  const wallSlats = pieces.filter(piece => piece.id.startsWith('canopy-wall-slat-')), soffitSlats = pieces.filter(piece => piece.id.startsWith('canopy-soffit-slat-'))
+  assert.ok(wallSlats.length >= 40 && wallSlats.length === soffitSlats.length, 'slats on the wall and under the canopy')
+  // On a 30 mm pitch, 24 mm wide, inside the island's width; the line of each slat goes round the corner (the same v on the wall and on the soffit).
+  const [w0, s0, w1] = [wallSlats[0], soffitSlats[0], wallSlats[1]]
+  assert.ok(Math.abs((w0.v[1] - w0.v[0]) - ISLAND_CANOPY.slat) < 1e-9 && Math.abs(w1.v[0] - w0.v[0] - ISLAND_CANOPY.pitch) < 1e-9 && w0.v[0] === s0.v[0] && w0.v[1] === s0.v[1])
+  assert.ok(Math.min(...wallSlats.map(piece => piece.v[0])) >= top.v[0] && Math.max(...wallSlats.map(piece => piece.v[1])) <= top.v[1])
+  // The wall slats run from the worktop to the soffit; the soffit's underside is lower than the ceiling, 1.47 m over the worktop, and the drywall box fills the rest up to it.
+  assert.ok(Math.abs(w0.y[0] - top.y[1]) < 1e-9, 'from the worktop')
+  const soffit = s0.y[0], drywall = find('canopy-drywall')
+  assert.ok(soffit - top.y[1] >= 1.4 && soffit < drywall.y[1] && Math.abs(drywall.y[1] - (top.y[1] - .93 + ISLAND_CANOPY.ceiling)) < 1e-9, 'a lowered ceiling under the real one')
+  assert.ok(drywall.y[0] >= soffit + ISLAND_CANOPY.slatDepth && drywall.u[0] >= top.u[0] && drywall.u[1] <= top.u[1] && drywall.v[0] >= top.v[0] && drywall.v[1] <= top.v[1], 'the box stands over the wood')
+  // Three downlights in a row along the island's middle, in the wood, lit.
+  const lights = pieces.filter(piece => piece.id.startsWith('canopy-light-'))
+  assert.equal(lights.length, 3); assert.equal(ISLAND_LIGHT_POSITIONS.length, 3)
+  for (const light of lights) assert.ok(light.glow && light.round && light.u[0] >= top.u[0] && light.u[1] <= top.u[1] && light.v[0] >= top.v[0] && light.v[1] <= top.v[1], light.id)
+  assert.ok(new Set(ISLAND_LIGHT_POSITIONS.map(at => at.v)).size === 1, 'in a row')
+  assert.ok(Math.abs(ISLAND_CANOPY_WALL - (ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing)) < 1e-9)
 })

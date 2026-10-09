@@ -159,3 +159,41 @@ export const KITCHEN_NOOK_BOXES: KitchenBox[] = [
   // The machine, on the worktops' shelf, in the middle, 7 cm from the door; the Blender model of scripts/blender/jobs/nespresso-job.json.
   { id: 'nook-machine', u: [NOOK_CENTRE_U - NOOK.machine.width / 2, NOOK_CENTRE_U + NOOK.machine.width / 2], v: [nookV[0] + NOOK.machine.fromFront, nookV[0] + NOOK.machine.fromFront + NOOK.machine.depth], y: [nookCounterTop, nookCounterTop + NOOK.machine.height], color: '#18191b' },
 ]
+
+/**
+ * The island's canopy (owner's idea): a fluted oak, in an L, that climbs the wall behind the island and turns over it as a lowered ceiling, the "techito". The slats are 24 mm wide on a 30 mm pitch and
+ * 18 mm thick, over a dark backing board that shows in the grooves; on the wall they run up and under the canopy they run out from the wall, so the line of each one goes round the corner. The ceiling
+ * over the island drops to 2.40 m, 1.47 m over the worktop, and above it stands a drywall box, the "cajón", white, up to the real ceiling at 3.00 m. Three recessed downlights in the wood, in
+ * a row along the island's middle, light the worktop; the island's two outlets sit on the wood. Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
+ */
+export const ISLAND_CANOPY = { soffit: 2.4, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, slat: .024, pitch: .03, slatDepth: .018, backing: .012, light: { diameter: .09, count: 3, from: .4, to: 1.8 } }
+export const ISLAND_CANOPY_WALL = ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing
+export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean }
+const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!
+const canopyU: [number, number] = islandTop.u, canopyV: [number, number] = islandTop.v
+const canopySoffit = floor + ISLAND_CANOPY.soffit, canopyTop = floor + ISLAND_CANOPY.ceiling
+const slatCount = Math.floor((canopyV[1] - canopyV[0]) / ISLAND_CANOPY.pitch)
+const slatStart = canopyV[0] + ((canopyV[1] - canopyV[0]) - slatCount * ISLAND_CANOPY.pitch) / 2 + (ISLAND_CANOPY.pitch - ISLAND_CANOPY.slat) / 2
+const OAKS = ['#b98a5a', '#c4966a', '#ae7f50']
+const wallFaceU = canopyU[0] + ISLAND_CANOPY_WALL
+export const ISLAND_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({ length: ISLAND_CANOPY.light.count }, (_, index) => ({
+  u: canopyU[0] + ISLAND_CANOPY.light.from + (ISLAND_CANOPY.light.to - ISLAND_CANOPY.light.from) * index / (ISLAND_CANOPY.light.count - 1),
+  v: (COUNTER_V[0] + COUNTER_V[1]) / 2,
+}))
+export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
+  // The backing boards: on the wall, from the worktop up to the lowered ceiling; and over the island, above the slats.
+  { id: 'canopy-wall-backing', u: [canopyU[0], canopyU[0] + ISLAND_CANOPY.backing], v: canopyV, y: [floor + S.baseHeight + S.worktop, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#2e2620' },
+  { id: 'canopy-soffit-backing', u: canopyU, v: canopyV, y: [canopySoffit + ISLAND_CANOPY.slatDepth, canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing], color: '#2e2620' },
+  ...Array.from({ length: slatCount }, (_, index): IslandPiece[] => {
+    const v: [number, number] = [slatStart + index * ISLAND_CANOPY.pitch, slatStart + index * ISLAND_CANOPY.pitch + ISLAND_CANOPY.slat], color = OAKS[index % OAKS.length]
+    return [
+      // On the wall the slats run up, from the worktop to the soffit's underside; under the canopy they run out from the wall to the island's far end.
+      { id: `canopy-wall-slat-${index + 1}`, u: [canopyU[0] + ISLAND_CANOPY.backing, wallFaceU], v, y: [floor + S.baseHeight + S.worktop, canopySoffit + ISLAND_CANOPY.slatDepth], color },
+      { id: `canopy-soffit-slat-${index + 1}`, u: [wallFaceU, canopyU[1]], v, y: [canopySoffit, canopySoffit + ISLAND_CANOPY.slatDepth], color },
+    ]
+  }).flat(),
+  // The drywall box over the wood, painted white, up to the ceiling: set in 3 cm all round so the wood's edge shows.
+  { id: 'canopy-drywall', u: [canopyU[0], canopyU[1] - .03], v: [canopyV[0] + .03, canopyV[1] - .03], y: [canopySoffit + ISLAND_CANOPY.slatDepth + ISLAND_CANOPY.backing, canopyTop], color: '#f1efe9' },
+  // The downlights, recessed in the wood and lit.
+  ...ISLAND_LIGHT_POSITIONS.map((at, index): IslandPiece => ({ id: `canopy-light-${index + 1}`, u: [at.u - ISLAND_CANOPY.light.diameter / 2, at.u + ISLAND_CANOPY.light.diameter / 2], v: [at.v - ISLAND_CANOPY.light.diameter / 2, at.v + ISLAND_CANOPY.light.diameter / 2], y: [canopySoffit - .004, canopySoffit + .002], color: '#fff2d9', glow: true, round: true })),
+]

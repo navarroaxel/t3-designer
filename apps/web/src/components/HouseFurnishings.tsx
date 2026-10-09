@@ -5,7 +5,8 @@ import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
-import { NOOK } from '../data/kitchen'
+import { ISLAND_CANOPY, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
+import { FLOOR_HEIGHT } from '../data/building-site'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
 import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
@@ -117,6 +118,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       <PlacedModel url="/models/house/kitchen-sink.glb" turn={0} position={[(KITCHEN_SINK.u[0] + KITCHEN_SINK.u[1]) / 2, KITCHEN_SINK.top - .03 - KITCHEN_SINK.depth, -(KITCHEN_SINK.v[0] + KITCHEN_SINK.v[1]) / 2]} />
       <PlacedModel url="/models/house/kitchen-tap.glb" turn={Math.PI} position={[KITCHEN_TAP.u - .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v - .0716]} />
     </Suspense></ModelBoundary>}
+    {/* The island's three downlights light the worktop: a warm point light under each, 10 cm below the wood. */}
+    {floor === 'first' && cut === undefined && ISLAND_LIGHT_POSITIONS.map((at, index) =>
+      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - .1, -at.v]} color="#ffd9a8" intensity={1.8} distance={2.8} decay={2} />)}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
     </Suspense></ModelBoundary>}
@@ -134,6 +138,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
       if (isPieceAway(devices, piece.id)) return null
       if (piece.id === 'kitchen-column' && nookOpen) return null
+      // The island's canopy hangs above the cut: the cutaway does not draw it.
+      if (cut !== undefined && piece.id.startsWith('island-canopy-')) return null
       if (piece.id.startsWith('kitchen-nook-') && !nookOpen) return null
       if (piece.id === 'kitchen-nook-door' || piece.id === 'kitchen-nook-handle') {
         // The door and its handle, turned about the hinge (the higher u edge of the door, on its front face).
