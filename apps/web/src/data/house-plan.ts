@@ -524,6 +524,17 @@ export type FloorTiling = { id: string; color: string; rects: [number, number, n
 export const SAING_PLANKS: TilePattern = { length: 1.2, width: .2, rows: 3, stagger: 1 / 3, grout: .003, veins: false }
 /** Navona natural (San Lorenzo Design): beige travertine-look porcelain, 80 cm by 80 cm, satin, rectified, so a fine joint. */
 export const NAVONA_TILES: TilePattern = { length: .8, width: .8, rows: 1, stagger: 0, grout: .0015, veins: true }
+
+/**
+ * The cave under the stair's landing (owner): an open space at the first floor's level, 0.8 m high up to the landing's slab, part of the laundry and entered from it. It lies behind the laundry's back wall,
+ * along the party wall, where the second flight turns back, and is as deep as the landing; the face of the walls round it is where this starts. [u, v], house frame.
+ */
+export const STAIR_CAVE = {
+  u: [AZOTEA_REAR + LAUNDRY.length, AZOTEA_REAR + LAUNDRY.length + LAUNDRY.wallThickness + LAUNDRY.landing.depth] as [number, number],
+  v: [NE_INNER - LAUNDRY.width + LAUNDRY.flight.width + LAUNDRY.wallThickness, NE_INNER] as [number, number],
+  height: LAUNDRY.landing.rise - LAUNDRY.flight.slab,
+}
+
 /** The floor's tile stops where the stairwell starts (the hall's wall on the garage side, the recess's inner end). */
 const GROUND_HALL_V0_FOR_TILES = inner
 export const FLOOR_TILING: FloorTiling[] = [

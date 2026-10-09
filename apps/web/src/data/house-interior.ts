@@ -6,7 +6,7 @@ import {
   FRONT_ROOMS, GARAGE_DOOR, GROUND_BATHROOM, GROUND_DOOR_SWINGS, GROUND_GARAGE, GROUND_HALL, GROUND_BATHROOM_DOOR, GROUND_LIVING, GROUND_OFFICE,
   GROUND_OUTLINE, GROUND_PANTRY, GROUND_PARTITIONS, HALL_ARCH, KITCHEN_LIVING, LIVING_DOOR, LIVING_KITCHEN_DOOR, MAIN_DOOR, MAIN_ROOM_CLOSET,
   MAIN_ROOM_DRYWALL, MAIN_ROOM_SETBACK, OFFICE_DOOR, OPENINGS, PANTRY_DOOR, PARTITION_THICKNESS, SECONDARY_DOOR, SECONDARY_WARDROBE, SIDE_OPENINGS,
-  SLAB_THICKNESS, STAIRWELL_HOLE, BALCONY, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
+  SLAB_THICKNESS, STAIRWELL_HOLE, STAIR_CAVE, BALCONY, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
 } from './house-plan.ts'
 import { LAUNDRY } from './laundry.ts'
 import { TERRACE_INNER, TERRACE_PARTY_WALL, TERRACE_RAILING, TERRACE_REAR_WALL, TERRACE_WALL_THICKNESS, houseSouthWestEdge } from './building-site.ts'
@@ -164,6 +164,7 @@ const room = (id: string, name: string, polygon: Point2D[], color: string): Room
 const firstHallV: [number, number] = [SECONDARY_WARDROBE.v[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.v[0] - PARTITION_THICKNESS + MAIN_ROOM_SETBACK]
 const sleepingMain: [number, number] = [FRONT_ROOMS.main.v[0], MAIN_ROOM_DRYWALL[2]]
 const LAUNDRY_U_ROOM: [number, number] = [AZOTEA_REAR, AZOTEA_REAR + LAUNDRY.length]
+const NE_ROOM_V0 = HOUSE_HALF_WIDTH - PARTY_WALL - LAUNDRY.width
 const firstRooms: Room[] = [
   room('secondary-room', 'Secondary room', rect(FRONT_ROOMS.secondary.u, FRONT_ROOMS.secondary.v), '#d8cdb8'),
   room('main-room', 'Main room', rect(FRONT_ROOMS.main.u, sleepingMain), '#dfc7bf'),
@@ -171,7 +172,11 @@ const firstRooms: Room[] = [
   room('bathroom', 'Bathroom', rect(FIRST_FLOOR_BATHROOM.u, FIRST_FLOOR_BATHROOM.v), '#c1d3d2'),
   room('hall', 'Hall', rect([FRONT_ROOMS.secondary.u[1] + PARTITION_THICKNESS, FRONT_ROOMS.main.u[1] + PARTITION_THICKNESS], firstHallV), '#ded6c3'),
   room('stair-corridor', 'Stair corridor', rect([STAIRWELL_HOLE[0], STAIRWELL_HOLE[1]], [firstHallV[0], STAIRWELL_HOLE[2]]), '#d3ccb8'),
-  room('laundry', 'Laundry', rect(LAUNDRY_U_ROOM, [HOUSE_HALF_WIDTH - PARTY_WALL - LAUNDRY.width, HOUSE_HALF_WIDTH - PARTY_WALL]), '#d8d4c6'),
+  // The laundry and, in one piece with it, the cave under the stair's landing, which is entered from it.
+  room('laundry', 'Laundry', [
+    local(LAUNDRY_U_ROOM[0], NE_ROOM_V0), local(LAUNDRY_U_ROOM[1], NE_ROOM_V0), local(LAUNDRY_U_ROOM[1], STAIR_CAVE.v[0]), local(STAIR_CAVE.u[1], STAIR_CAVE.v[0]),
+    local(STAIR_CAVE.u[1], STAIR_CAVE.v[1]), local(LAUNDRY_U_ROOM[0], STAIR_CAVE.v[1]),
+  ], '#d8d4c6'),
   room('terrace', 'Terrace', rect([AZOTEA_REAR, TERRACE_REAR], [houseSouthWestEdge((AZOTEA_REAR + TERRACE_REAR) / 2) + TERRACE_WALL_THICKNESS, TERRACE_INNER - TERRACE_WALL_THICKNESS]), '#d6d2c2'),
   room('balcony', 'Balcony', rect([-5 - BALCONY.depth, -5], [-BALCONY.width / 2, BALCONY.width / 2]), '#c2c2b9'),
   room('kitchen-living', 'Kitchen and living', rect(KITCHEN_LIVING.u, KITCHEN_LIVING.v), '#e3d5bd'),
@@ -233,8 +238,8 @@ function groundAnnex() {
 
 function firstFloorAnnex() {
   const walls: Wall[] = [], windows: Window[] = [], doors: Door[] = []
-  const wall = (id: string, from: [number, number], to: [number, number], thickness: number, height = WALL_HEIGHT): Wall => {
-    const result: Wall = { id, from: local(...from), to: local(...to), thickness, height, kind: 'exterior', estimated: true }
+  const wall = (id: string, from: [number, number], to: [number, number], thickness: number, height = WALL_HEIGHT, kind: Wall['kind'] = 'exterior'): Wall => {
+    const result: Wall = { id, from: local(...from), to: local(...to), thickness, height, kind, estimated: true }
     walls.push(result)
     return result
   }
@@ -246,10 +251,11 @@ function firstFloorAnnex() {
   // the visitor gets from the landing back over the laundry's north-east half.
   const backU = LAUNDRY_U[1] + LAUNDRY.wallThickness / 2, flightEnd = LAUNDRY_V0 + LAUNDRY.flight.width
   const back = wall('first-laundry-back', [backU, LAUNDRY_V0 - LAUNDRY.wallThickness], [backU, flightEnd], LAUNDRY.wallThickness)
-  // Under the landing there is a cave (owner), open to the laundry: no wall at the laundry's back under the second flight. It is closed on its other sides, 0.8 m high, up to the landing's slab.
-  const caveEnd = backU + LAUNDRY.landing.depth, caveHeight = LAUNDRY.landing.rise - LAUNDRY.flight.slab
-  wall('first-laundry-cave-rear', [caveEnd + LAUNDRY.wallThickness / 2, flightEnd], [caveEnd + LAUNDRY.wallThickness / 2, HOUSE_HALF_WIDTH - PARTY_WALL], LAUNDRY.wallThickness, caveHeight)
-  wall('first-laundry-cave-side', [backU, flightEnd + LAUNDRY.wallThickness / 2], [caveEnd, flightEnd + LAUNDRY.wallThickness / 2], LAUNDRY.wallThickness, caveHeight)
+  // Under the landing there is a cave (owner), part of the laundry and open to it: no wall at the laundry's back under the second flight. It is closed on its other two sides by walls up to the
+  // landing's slab, which have a skirting on both faces.
+  const caveRear = STAIR_CAVE.u[1] + LAUNDRY.wallThickness / 2, caveSide = STAIR_CAVE.v[0] - LAUNDRY.wallThickness / 2
+  wall('first-laundry-cave-rear', [caveRear, caveSide - LAUNDRY.wallThickness / 2], [caveRear, STAIR_CAVE.v[1]], LAUNDRY.wallThickness, STAIR_CAVE.height, 'interior')
+  wall('first-laundry-cave-side', [STAIR_CAVE.u[0], caveSide], [STAIR_CAVE.u[1], caveSide], LAUNDRY.wallThickness, STAIR_CAVE.height, 'interior')
   // The door at the top of the first flight, onto the landing 1 m up (owner): white aluminium with glass, opening inward, into the laundry, hinged on the light-well side.
   doors.push({
     id: 'first-laundry-back-door', wallId: back.id, offset: LAUNDRY.wallThickness + LAUNDRY.door.frame, width: LAUNDRY.door.width, height: LAUNDRY.door.height, sill: LAUNDRY.landing.rise,

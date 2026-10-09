@@ -596,3 +596,24 @@ test('the first floor\'s slab covers the whole office, and leaves the light well
   assert.ok(!inside([HOUSE_REAR.northEast - .2, -(GROUND_WELL_EDGE + .5)], HOUSE_FLOORS.first.perimeter))
   assert.ok(!inside([HOUSE_REAR.northEast - .2, -(GROUND_WELL_EDGE + .5)], walkOutline('first')))
 })
+
+test('the cave under the stair\'s landing is part of the laundry: its floor, and a skirting on both faces of the walls round it', async () => {
+  const { STAIR_CAVE } = await import('../src/data/house-plan.ts')
+  const { HOUSE_FLOORS } = await import('../src/data/house-interior.ts')
+  const laundry = HOUSE_FLOORS.first.rooms.find(item => item.id === 'laundry')!
+  const inside = (point: [number, number]) => {
+    let result = false
+    for (let i = 0, j = laundry.polygon.length - 1; i < laundry.polygon.length; j = i++) {
+      const [xi, zi] = laundry.polygon[i], [xj, zj] = laundry.polygon[j]
+      if ((zi > point[1]) !== (zj > point[1]) && point[0] < (xj - xi) * (point[1] - zi) / (zj - zi) + xi) result = !result
+    }
+    return result
+  }
+  const middle = [(STAIR_CAVE.u[0] + STAIR_CAVE.u[1]) / 2, -(STAIR_CAVE.v[0] + STAIR_CAVE.v[1]) / 2] as [number, number]
+  assert.ok(inside(middle), 'the laundry\'s floor covers the cave')
+  assert.ok(!inside([STAIR_CAVE.u[1] + .3, middle[1]]), 'and stops at the cave\'s rear wall')
+  const walls = HOUSE_FLOORS.first.walls.filter(wall => wall.id.startsWith('first-laundry-cave'))
+  assert.equal(walls.length, 2)
+  assert.ok(walls.every(wall => wall.kind === 'interior' && wall.height === STAIR_CAVE.height), 'both faces get a skirting, and they reach the landing\'s slab')
+  assert.ok(!HOUSE_FLOORS.first.walls.some(wall => wall.id === 'first-laundry-back-low'), 'the cave is open to the laundry')
+})
