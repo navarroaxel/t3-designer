@@ -575,10 +575,22 @@ test('the island\'s switch is aimed at, not the wood behind it: E reaches the sw
   assert.equal(target(FLOOR_HEIGHT + 2)?.id, 'island-canopy-wall-panel', 'aimed over it, the wood')
 })
 
-test('the office, whose arm has no floor above, gets a ceiling of its own', async () => {
-  const { groundRoofPolygon } = await import('../src/data/house-interior.ts')
+test('the office has a ceiling: the first floor\'s slab where it reaches, the roof of its own where it does not, and never both', async () => {
+  const { groundRoofPolygon, HOUSE_FLOORS } = await import('../src/data/house-interior.ts')
   const { GROUND_OFFICE } = await import('../src/data/house-plan.ts')
-  const polygon = groundRoofPolygon(), us = polygon.map(p => p[0]), zs = polygon.map(p => -p[1])
-  assert.ok(Math.min(...us) <= GROUND_OFFICE.u[0] && Math.max(...us) >= GROUND_OFFICE.u[1], 'covers the office along u')
-  assert.ok(Math.min(...zs) <= GROUND_OFFICE.v[0] && Math.max(...zs) >= GROUND_OFFICE.v[1], 'covers the office along v')
+  const inside = (point: [number, number], polygon: readonly (readonly number[])[]) => {
+    let result = false
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const [xi, zi] = polygon[i], [xj, zj] = polygon[j]
+      if ((zi > point[1]) !== (zj > point[1]) && point[0] < (xj - xi) * (point[1] - zi) / (zj - zi) + xi) result = !result
+    }
+    return result
+  }
+  const slab = HOUSE_FLOORS.first.perimeter, roof = groundRoofPolygon()
+  for (let u = GROUND_OFFICE.u[0] + .05; u < GROUND_OFFICE.u[1]; u += .1) {
+    for (let v = GROUND_OFFICE.v[0] + .05; v < GROUND_OFFICE.v[1]; v += .1) {
+      const covered = [inside([u, -v], slab), inside([u, -v], roof)]
+      assert.equal(covered.filter(Boolean).length, 1, `(${u.toFixed(2)}, ${v.toFixed(2)}) has one ceiling: slab ${covered[0]}, roof ${covered[1]}`)
+    }
+  }
 })

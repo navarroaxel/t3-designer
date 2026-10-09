@@ -278,10 +278,14 @@ export function ceilingPolygon(floor: Floor): Point2D[] {
 }
 
 /**
- * What the first floor's slab does not cover on the ground floor: the office's arm, behind the light well, which has no floor above it (the first floor ends at the azotea's back wall).
- * The walkthrough draws its own ceiling there, at the ground floor's ceiling height; the rest of the ground floor has the first floor's slab for a ceiling.
+ * What the first floor's slab does not cover over the office's arm on the ground floor: the first floor reaches the arm only with the laundry's north-east half (to its back wall), so what is
+ * left is the strip along the light well and everything past the laundry's back wall. The walkthrough draws its own ceiling there, at the ground floor's ceiling height; where the first floor's
+ * slab is, that slab is the ceiling, and a second one there would fight it for the same pixels.
  */
-const GROUND_ROOF: Point2D[] = [local(WELL_BACK_U, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, HOUSE_HALF_WIDTH), local(WELL_BACK_U, HOUSE_HALF_WIDTH)]
+const GROUND_ROOF: Point2D[] = [
+  local(WELL_BACK_U, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, HOUSE_HALF_WIDTH),
+  local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness),
+]
 /** The same array at every call, so what draws it does not rebuild its geometry at each render. */
 export const groundRoofPolygon = (): Point2D[] => GROUND_ROOF
 
