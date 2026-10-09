@@ -15,7 +15,7 @@ import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
-import { KITCHEN_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
+import { KITCHEN_BOXES, KITCHEN_NOOK_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
@@ -60,7 +60,7 @@ export type Furnishing = {
 const BED = '#d9d2c4', HEADBOARD = '#8b6b4a', PILLOW = '#f4f1ea', WARDROBE_COLOR = '#b58b5a', LEAF_COLORS = ['#c39a64', '#b58b5a']
 const F = FLOOR_HEIGHT
 /** The kitchen's outlets over the worktops, on the walls at the ends of the run and of the island (owner): 1.10 m up, over the worktop and under the cabinets. */
-const KITCHEN_WORKTOP_OUTLET_HEIGHT = 1.1
+const KITCHEN_WORKTOP_OUTLET_HEIGHT = NOOK.outletHeight
 /** The rear wall's thickness, from the kitchen-living's inner face to the outline at the house's rear. */
 const KITCHEN_REAR_WALL = WALL_THICKNESS
 /** The in-wall media box's centre above the floor: its lower edge is just over 5 cm above the network socket's plate (centred 0.30 m up, 72 mm tall), so it stands at 0.525 m. */
@@ -136,6 +136,11 @@ function firstFloor(): Furnishing[] {
   for (const part of outletBoxes('outlet-kitchen-rest', 0, 0, F, KITCHEN_WORKTOP_OUTLET_HEIGHT)) {
     add({ ...part, u: [KITCHEN_LIVING.u[0] + part.v[0], KITCHEN_LIVING.u[0] + part.v[1]], v: [restV - part.u[1], restV - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
   }
+  // The breakfast nook inside the tall column: its carcass, shelves, door and the Nespresso, drawn only while the door is open, and the outlet behind the machine, at the same height as the one beside the oven.
+  for (const box of KITCHEN_NOOK_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .6, solid: false, ...(box.id === 'nook-machine' ? { model: '/models/house/nespresso.glb', turn: 0, roughness: .35 } : {}) })
+  for (const part of outletBoxes('outlet-nook', KITCHEN_LIVING.v[1], NOOK_CENTRE_U - .13, F, NOOK.outletHeight)) {
+    add({ ...part, u: [2 * (NOOK_CENTRE_U - .13) - part.u[1], 2 * (NOOK_CENTRE_U - .13) - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })
+  }
   // An outlet behind the fridge, on the party wall, high enough to be easy to unplug when it is pulled out (owner): its centre is 5 cm under the line of the worktop. The plate faces the
   // kitchen, toward lower v, so it is drawn turned half a turn about the vertical, like the microwave's.
   const fridgeBox = KITCHEN_BOXES.find(box => box.id === 'fridge')!, fridgeMiddleU = (fridgeBox.u[0] + fridgeBox.u[1]) / 2, wallFace = KITCHEN_LIVING.v[1]
@@ -172,7 +177,7 @@ function firstFloor(): Furnishing[] {
     add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, kitchen: { ...box, y: [box.y[0], top] }, roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge') })
   }
   // The upper cabinet with the microwave, over the run next to the fridge; hung high, so it is not stopped on.
-  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb` } : {}) })
+  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) })
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
   for (const part of outletBoxes('outlet-microwave', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) {
     add({ ...part, u: [2 * MICROWAVE_CENTRE_U - part.u[1], 2 * MICROWAVE_CENTRE_U - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })
@@ -225,7 +230,7 @@ export function furnishingBlockers(floor: Floor, level: number) {
 }
 
 /** What a visitor can work with `E`: the TVs, which switch on, and the fridge, whose doors open; and with `X`, what can be taken away (REMOVABLE): the fridge and the microwave too. */
-export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave'] as const
+export const TV_IDS = ['tv-main', 'tv-living', 'kitchen-fridge', 'kitchen-microwave', 'kitchen-column'] as const
 export function furnishingDevices(floor: Floor, level: number) {
   const pieces = furnishingsOn(floor)
   // The living's table with the PS5 and its controller is one device, as tall as the console: X takes the three away, or sets them back.

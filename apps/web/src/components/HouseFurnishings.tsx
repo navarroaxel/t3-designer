@@ -5,6 +5,7 @@ import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
+import { NOOK } from '../data/kitchen'
 import { tvMountLinks } from '../data/tv-mount'
 import type { Floor } from '../data/house-plan'
 import { FLOOR_TILING, GROUND_FLOOR_TILING } from '../data/house-plan'
@@ -104,6 +105,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   // What moves with the arm: the TV, its picture, and the mount's head and rails.
   const pieceReach = (id: string) => /^tv-(main|living)$|^tv-(main|living)-mount-(head|rail-)/.test(id) ? armReach(devices, `tv-${id.split('-')[1]}`) : 0
   const fridge = pieces.find(piece => piece.id === 'kitchen-fridge')
+  // The breakfast nook, the tall column: closed it is a plain box; open, its door swings about the hinge on the rear wall's side and the shelves and the coffee machine show.
+  const nookOpen = (devices['kitchen-column'] ?? 0) >= .5
   const fridgeAway = !isInPlace(devices, 'kitchen-fridge')
   const fridgeOpen = (devices['kitchen-fridge'] ?? 0) >= .5 && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
@@ -130,6 +133,17 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if ((fridgeOpen || fridgeModel) && piece.id.startsWith('kitchen-fridge')) return null
       // X takes the table, the PS5 and the controller, the fridge or the microwave away: the wall behind them shows.
       if (isPieceAway(devices, piece.id)) return null
+      if (piece.id === 'kitchen-column' && nookOpen) return null
+      if (piece.id.startsWith('kitchen-nook-') && !nookOpen) return null
+      if (piece.id === 'kitchen-nook-door' || piece.id === 'kitchen-nook-handle') {
+        // The door and its handle, turned about the hinge (the higher u edge of the door, on its front face).
+        const door = pieces.find(item => item.id === 'kitchen-nook-door')!, hinge: [number, number] = [door.u[1], (door.v[0] + door.v[1]) / 2]
+        return <group key={piece.id} position={[hinge[0], 0, -hinge[1]]} rotation={[0, NOOK.doorSwing, 0]}>
+          <mesh position={[(piece.u[0] + piece.u[1]) / 2 - hinge[0], (piece.y[0] + piece.y[1]) / 2, -((piece.v[0] + piece.v[1]) / 2 - hinge[1])]} castShadow receiveShadow>
+            <boxGeometry args={[piece.u[1] - piece.u[0], piece.y[1] - piece.y[0], piece.v[1] - piece.v[0]]} /><meshStandardMaterial color={piece.color} roughness={piece.id === 'kitchen-nook-handle' ? .3 : .6} metalness={piece.id === 'kitchen-nook-handle' ? .8 : 0} />
+          </mesh>
+        </group>
+      }
       if (piece.id === 'kitchen-sink' || piece.id === 'kitchen-tap') return null
       // The folded links give way to the arm drawn below when the mount reaches out.
       if (/^tv-(main|living)-mount-link-/.test(piece.id) && armReach(devices, `tv-${piece.id.split('-')[1]}`) > 0) return null

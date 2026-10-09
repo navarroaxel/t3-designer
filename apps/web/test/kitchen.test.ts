@@ -211,3 +211,21 @@ test('the fridge, the microwave and the living\'s table can be taken away: the p
   const devices = furnishingDevices('first', 3.2).map(device => device.id)
   for (const id of ['kitchen-fridge', 'kitchen-microwave', 'living-table']) assert.ok(devices.includes(id) && isRemovable(id), id)
 })
+
+test('the tall column is a breakfast nook: its door opens (E), with a Nespresso on the worktops\' shelf, an outlet behind it at 1.10 m and several shelves', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const column = box('column'), shelves = pieces.filter(piece => piece.id.startsWith('kitchen-nook-shelf-')), machine = find('kitchen-nook-machine'), counterShelf = find('kitchen-nook-shelf-2')
+  assert.ok(furnishingDevices('first', 3.2).some(device => device.id === 'kitchen-column'), 'the door can be aimed at')
+  assert.ok(shelves.length >= 4, 'several shelves')
+  // The shelf at the worktops' height holds the machine, in the column, with 7 cm in front of it.
+  assert.ok(Math.abs(counterShelf.y[1] - box('worktop').y[1]) < 1e-9, 'the shelf is at the worktops\' height')
+  assert.ok(machine.model === '/models/house/nespresso.glb' && machine.turn === 0 && Math.abs(machine.y[0] - counterShelf.y[1]) < 1e-9)
+  assert.ok(machine.u[0] >= column.u[0] && machine.u[1] <= column.u[1] && machine.v[0] >= column.v[0] && machine.v[1] <= column.v[1], 'inside the column')
+  assert.ok(Math.abs((machine.y[1] - machine.y[0]) - .314) < 1e-9 && machine.y[1] < find('kitchen-nook-shelf-3').y[0], 'under the next shelf')
+  // The outlet behind it, on the party wall, at the same height as the one on the resting worktop, to one side of the machine so it can be seen.
+  const plate = find('outlet-nook-plate'), rest = find('outlet-kitchen-rest-plate')
+  assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (rest.y[0] + rest.y[1]) / 2) < 1e-9, 'the same height as the one beside the oven')
+  assert.ok(plate.u[0] >= column.u[0] + .02 && plate.u[1] <= column.u[1] - .02 && Math.abs(plate.v[1] - KITCHEN_LIVING.v[1]) < 1e-9 && plate.v[0] < plate.v[1])
+  // The models on the party wall face the room (toward lower v), no half turn.
+  assert.ok(find('kitchen-microwave').turn === 0 && find('kitchen-hood').turn === 0)
+})

@@ -135,3 +135,27 @@ export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
   // The hood: a Blender model (scripts/blender/jobs/kitchen-hood-job.json) standing in a box that is its size, from the canopy's lower edge, level with the cabinets', to the ceiling.
   { id: 'hood', u: hoodU, v: [wallV - HOOD.depth, wallV], y: [canopyY, topY], color: INOX },
 ]
+
+/**
+ * The tall column at the rear (owner: not a broom closet but a breakfast nook, "rincón desayunador"): it opens with a single door on the aisle side, hinged on the rear wall's side, and holds
+ * a Nespresso Vertuo Next on the shelf at the worktops' height and, behind it, an outlet at the same height as the one on the resting worktop (1.10 m); several more shelves above and below.
+ * The closed column is the plain box in KITCHEN_BOXES; these are what it shows when its door is open. Heights above the ground-floor level.
+ */
+export const NOOK = { panel: .02, shelf: .025, shelfHeights: [.45, S.baseHeight + S.worktop, 1.5, 1.85, 2.15], top: 2.4, outletHeight: 1.1, doorSwing: Math.PI / 2, machine: { width: .142, height: .314, depth: .426, fromFront: .07 } }
+const nookV: [number, number] = [wallV - S.columnDepth, wallV]
+const nookInnerU: [number, number] = [columnU[0] + NOOK.panel, columnU[1] - NOOK.panel]
+const nookTopY = floor + NOOK.top
+export const NOOK_CENTRE_U = (columnU[0] + columnU[1]) / 2
+const nookCounterTop = floor + NOOK.shelfHeights[1]
+export const KITCHEN_NOOK_BOXES: KitchenBox[] = [
+  { id: 'nook-side-low', u: [columnU[0], columnU[0] + NOOK.panel], v: nookV, y: [floor, nookTopY], color: '#4b4d50' },
+  { id: 'nook-side-high', u: [columnU[1] - NOOK.panel, columnU[1]], v: nookV, y: [floor, nookTopY], color: '#4b4d50' },
+  { id: 'nook-top', u: nookInnerU, v: nookV, y: [nookTopY - NOOK.panel, nookTopY], color: '#4b4d50' },
+  { id: 'nook-plinth', u: nookInnerU, v: nookV, y: [floor, floor + .08], color: '#4b4d50' },
+  ...NOOK.shelfHeights.map((height, index): KitchenBox => ({ id: `nook-shelf-${index + 1}`, u: nookInnerU, v: [nookV[0] + NOOK.panel, nookV[1]], y: [floor + height - NOOK.shelf, floor + height], color: index === 1 ? '#a98456' : '#6a6d71' })),
+  // The door, with its handle: both swing about the hinge, which is on the rear wall's side (the higher u edge).
+  { id: 'nook-door', u: columnU, v: [nookV[0], nookV[0] + NOOK.panel], y: [floor + .005, nookTopY - .005], color: '#4b4d50' },
+  { id: 'nook-handle', u: [columnU[0] + .03, columnU[0] + .045], v: [nookV[0] - .025, nookV[0]], y: [floor + 1.0, floor + 1.4], color: '#c9cdd1' },
+  // The machine, on the worktops' shelf, in the middle, 7 cm from the door; the Blender model of scripts/blender/jobs/nespresso-job.json.
+  { id: 'nook-machine', u: [NOOK_CENTRE_U - NOOK.machine.width / 2, NOOK_CENTRE_U + NOOK.machine.width / 2], v: [nookV[0] + NOOK.machine.fromFront, nookV[0] + NOOK.machine.fromFront + NOOK.machine.depth], y: [nookCounterTop, nookCounterTop + NOOK.machine.height], color: '#18191b' },
+]
