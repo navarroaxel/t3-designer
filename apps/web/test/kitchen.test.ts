@@ -75,7 +75,7 @@ test('the sink is in the second counter, inside its top, with a tap in the middl
   // Flush with the top.
   assert.ok(Math.abs(sink.y[0] - top.y[1]) < 1e-9)
   // The tap is in the middle of the island (owner), on the counter, on the basin's long side away from the oven; the basin is at the edge on the oven's side.
-  const middle = (top.u[0] + top.u[1]) / 2
+  const middle = (box('counter').u[0] + box('counter').u[1]) / 2
   assert.ok(Math.abs((tap.u[0] + tap.u[1]) / 2 - middle) < 1e-9, 'the middle of the island')
   assert.ok(tap.u[0] >= sink.u[0] && tap.u[1] <= sink.u[1] && tap.v[1] <= sink.v[0] && tap.v[0] >= top.v[0], 'the tap is on the long side of the basin away from the oven')
   assert.ok(COUNTER_V[1] - sink.v[1] <= .1, 'the basin is at the edge on the oven side')
@@ -169,4 +169,12 @@ test('the backsplash is a slab of Toscana Vena on the wall, from the worktop to 
   assert.ok(Math.abs(splash.v[1] - box('base').v[1]) < 1e-9 && splash.v[1] - splash.v[0] <= .03, 'flat on the wall')
   const piece = furnishingsOn('first').find(item => item.id === 'kitchen-backsplash')!
   assert.ok(piece.kitchen?.pattern === TOSCANA_VENA_SLAB && !piece.solid)
+})
+
+test('the cabinets are set back 1 to 2 cm under the Toscana Vena: the tops stand out of the fronts and the island\'s open end', () => {
+  const [base, worktop, counter, top] = [box('base'), box('worktop'), box('counter'), box('counter-top')]
+  const back = (outer: number, inner: number) => { assert.ok(outer - inner >= .01 - 1e-9 && outer - inner <= .02 + 1e-9, `${outer - inner}`) }
+  back(base.v[0], worktop.v[0])
+  back(top.u[1], counter.u[1])
+  back(top.v[1], counter.v[1])
 })
