@@ -1,10 +1,11 @@
 import { Component, Suspense, useMemo, type ReactNode } from 'react'
 import { RoundedBox, useGLTF } from '@react-three/drei'
 import { edgeRadius } from '../lib/rounding'
-import { CanvasTexture, SRGBColorSpace, type Object3D } from 'three'
+import { CanvasTexture, SRGBColorSpace, type Mesh, type MeshStandardMaterial, type Object3D } from 'three'
 import { FLOOR_ELEVATION } from '../data/house-interior'
 import type { Furnishing } from '../data/house-furnishings'
 import { armReach, furnishingsOn, islandLightsOn, isInPlace, isPieceAway, isTvMounted } from '../data/house-furnishings'
+import { kelvinColour, DEFAULT_KITCHEN_KELVIN, type KitchenLightKelvin } from '../data/light-colour'
 import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, balconyLightsOn } from '../data/balcony-lights'
 import { BATHROOM_LIGHT_POSITIONS, bathroomLightsOn } from '../data/bathroom'
 import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, ISLAND_WOOD, ISLAND_WOOD_ID } from '../data/kitchen'
@@ -107,13 +108,22 @@ function walnutTexture() {
   return texture
 }
 
-function PlacedModel({ url, position, turn = Math.PI }: { url: string; position: [number, number, number]; turn?: number }) {
+function PlacedModel({ url, position, turn = Math.PI, glow }: { url: string; position: [number, number, number]; turn?: number; glow?: string }) {
   const { scene } = useGLTF(url)
   const model = useMemo(() => {
     const copy = scene.clone(true)
-    copy.traverse((node: Object3D) => { node.castShadow = true; node.receiveShadow = true })
+    copy.traverse((node: Object3D) => {
+      node.castShadow = true; node.receiveShadow = true
+      // A lamp that can change its colour: what glows in it (an emissive material) takes `glow`, on a copy of the material, since the scene's are shared by every lamp of the same model.
+      const mesh = node as Mesh
+      if (glow && mesh.isMesh) {
+        const material = (mesh.material as MeshStandardMaterial).clone()
+        if (material.emissive && material.emissiveIntensity > 0 && (material.emissive.r + material.emissive.g + material.emissive.b) > 0) material.emissive.set(glow)
+        mesh.material = material
+      }
+    })
     return copy
-  }, [scene])
+  }, [scene, glow])
   return <primitive object={model} position={position} rotation={[0, turn, 0]} dispose={null} />
 }
 
@@ -127,8 +137,10 @@ function clipToCut(piece: Furnishing, cut: number): Furnishing | null {
   return { ...piece, y: [piece.y[0], cut], ...(piece.kitchen ? { kitchen: { ...piece.kitchen, y: [piece.kitchen.y[0], cut] as [number, number] } } : {}) }
 }
 
-export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }: {
+export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, kitchenKelvin = DEFAULT_KITCHEN_KELVIN }: {
   floor: Floor; devices?: Record<string, number>
+  /** The colour temperature of the kitchen's lights, in kelvin, by group: the island's pendants, its light line and the conduit box's downlights. */
+  kitchenKelvin?: KitchenLightKelvin
   /** The heights are the plan's own, from the ground floor's level: for a parent that already works in that frame (the floor cutaway). */
   absolute?: boolean
   /** Saw the furniture off at this height, as the cutaway does its walls. */
@@ -159,19 +171,19 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
     </Suspense></ModelBoundary>}
     {/* The island's three pendant lamps light the worktop: a warm point light in each shade, 10 cm over its rim. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_LIGHT_POSITIONS.map((at, index) =>
-      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v]} color="#ffd9a8" intensity={1.8} distance={2.8} decay={2} />)}
+      <pointLight key={`island-light-${index}`} position={[at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v]} color={kelvinColour(kitchenKelvin.pendants)} intensity={1.8} distance={2.8} decay={2} />)}
     {/* The bathroom's three downlights: a neutral white light 10 cm under each. */}
     {floor === 'first' && cut === undefined && bathroomOn && BATHROOM_LIGHT_POSITIONS.map((at, index) =>
       <pointLight key={`bathroom-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.6, -at.v]} color="#fff1dc" intensity={1.4} distance={2.6} decay={2} />)}
     {/* The conduit box's downlights: a warm light under every second one, 10 cm below the box, to keep the scene's light count down. */}
     {floor === 'first' && cut === undefined && conduitOn && CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).map((at, index) =>
-      <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
+      <pointLight key={`conduit-light-${index}`} position={[at.u, FLOOR_HEIGHT + 2.65, -at.v]} color={kelvinColour(kitchenKelvin.conduit)} intensity={1.2} distance={3} decay={2} />)}
     {/* The balcony's three lanterns: a warm light 8 cm out of each. */}
     {floor === 'first' && cut === undefined && balconyOn && BALCONY_LIGHT_POSITIONS.map((at, index) =>
       <pointLight key={`balcony-light-${index}`} position={[at.u - .08, BALCONY_LANTERN_Y, -at.v]} color="#ffe3bd" intensity={1.2} distance={3} decay={2} />)}
     {/* The light line: a faint warm light over the middle of each LED strip, 5 cm above it, washing the white box and the ceiling. */}
     {floor === 'first' && cut === undefined && lightsOn && ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).map(strip =>
-      <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color="#ffcf8a" intensity={.5} distance={2.2} decay={2} />)}
+      <pointLight key={strip.id} position={[(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2]} color={kelvinColour(kitchenKelvin.line)} intensity={.5} distance={2.2} decay={2} />)}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />
     </Suspense></ModelBoundary>}
@@ -193,6 +205,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       if (cut !== undefined && (piece.id.startsWith('island-canopy-') || piece.id.startsWith('island-switch-') || piece.id.startsWith('bathroom-ceiling-') || piece.id.startsWith('bathroom-switch-') || piece.id.startsWith('kitchen-conduit-') || piece.id.startsWith('kitchen-switch-') || piece.id.startsWith('balcony-'))) return null
       // Switched off, the lights and the light line go dark and the wash of light is gone.
       if (!lightsOn && piece.id.startsWith('island-canopy-wash-')) return null
+      // The lights the panel edits take its colour: the island's light line and the conduit box's downlights (the pendants are models, tinted when they are placed).
+      const tint = /^island-canopy-led-/.test(piece.id) ? kelvinColour(kitchenKelvin.line) : /^kitchen-conduit-light-/.test(piece.id) ? kelvinColour(kitchenKelvin.conduit) : undefined
       const lit = !!piece.glow && (/^kitchen-(conduit-light|switch-dot)/.test(piece.id) ? conduitOn : /^balcony-(light|switch-dot)/.test(piece.id) ? balconyOn : /^bathroom-/.test(piece.id) ? bathroomOn || !/^bathroom-(ceiling-light|switch-dot)/.test(piece.id) : lightsOn || !/^island-(canopy-(light|led)|switch-dot)/.test(piece.id))
       if (piece.id.startsWith('kitchen-nook-') && !nookOpen) return null
       if (piece.id === 'kitchen-nook-door' || piece.id === 'kitchen-nook-handle') {
@@ -218,13 +232,13 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
       const hinged = glassOpen && /^kitchen-upper-glass-(frame|pane|handle)/.test(piece.id)
       return <group key={piece.id} position={hinged ? [0, GLASS_HINGE.y, -GLASS_HINGE.v] : [woodOn && /^(outlet-island-|island-switch-)/.test(piece.id) ? ISLAND_WOOD.thickness : 0, 0, -pieceReach(piece.id)]} rotation={hinged ? [-GLASS_CABINET.swing, 0, 0] : [0, 0, 0]}><group position={hinged ? [0, -GLASS_HINGE.y, GLASS_HINGE.v] : [0, 0, 0]}>
         {piece.model ? <ModelBoundary fallback={<mesh position={[(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]}><boxGeometry args={size} /><meshStandardMaterial color={piece.color} /></mesh>}>
-          <Suspense fallback={null}><PlacedModel url={(piece.id.startsWith('balcony-lantern-') && !balconyOn) || (piece.id.startsWith('island-canopy-pendant-') && !lightsOn) ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
+          <Suspense fallback={null}><PlacedModel glow={piece.id.startsWith('island-canopy-pendant-') && lightsOn ? kelvinColour(kitchenKelvin.pendants) : undefined} url={(piece.id.startsWith('balcony-lantern-') && !balconyOn) || (piece.id.startsWith('island-canopy-pendant-') && !lightsOn) ? piece.model.replace('.glb', '-off.glb') : piece.model} turn={piece.turn} position={[(piece.u[0] + piece.u[1]) / 2, piece.y[0], -(piece.v[0] + piece.v[1]) / 2]} /></Suspense>
         </ModelBoundary> : (() => {
           const radius = piece.disc || ellipse ? 0 : edgeRadius(size)
           const position: [number, number, number] = [(piece.u[0] + piece.u[1]) / 2, (piece.y[0] + piece.y[1]) / 2, -(piece.v[0] + piece.v[1]) / 2]
-          const material = <meshStandardMaterial color={piece.grain ? '#ffffff' : piece.color} map={piece.grain ? walnut : null} roughness={piece.grain ? .45 : piece.roughness ?? .6} metalness={piece.metalness ?? 0}
+          const material = <meshStandardMaterial color={piece.grain ? '#ffffff' : lit && tint ? tint : piece.color} map={piece.grain ? walnut : null} roughness={piece.grain ? .45 : piece.roughness ?? .6} metalness={piece.metalness ?? 0}
             transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined}
-            {...(lit ? { emissive: piece.color, emissiveIntensity: 1.6, toneMapped: false } : {})} />
+            {...(lit ? { emissive: tint ?? piece.color, emissiveIntensity: 1.6, toneMapped: false } : {})} />
           // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.
           if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? rollRotation(piece) : undefined} castShadow receiveShadow>{material}</RoundedBox>
           return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? rollRotation(piece) : undefined}

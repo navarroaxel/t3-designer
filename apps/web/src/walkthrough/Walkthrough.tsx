@@ -14,6 +14,7 @@ import { walkCopy } from './copy'
 import { buildWalkWorld, canSetWalkDoorOpenness, WALK_STEP, findWalkDoorTarget, findWalkSpawn, initialWalkDoorStates, isWalkPositionFree, withWalkDoorStates, type WalkDoorStates, type WalkSpawn, type WalkWorld } from './navigation'
 import { WalkController, type WalkInput, type WalkPose } from './WalkController'
 import { WalkthroughWorld } from './WalkthroughWorld'
+import { DEFAULT_KITCHEN_KELVIN, KELVIN, KITCHEN_LIGHT_GROUPS, kelvinColour, type KitchenLightGroup, type KitchenLightKelvin } from '../data/light-colour'
 import { saveScreenshot } from './screenshot'
 import { AmbientOcclusion } from '../components/AmbientOcclusion'
 import { armKey, isArmExtended, isInPlace, isRemovable, isTvMounted, LIVING_SET_ID, REMOVABLE, tvMountKey } from '../data/house-furnishings'
@@ -113,6 +114,8 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const spawn = useMemo(() => !roomId && startAt && isWalkPositionFree(initialWorld, startAt.position, spawnHeight, startAt.elevation ?? 0) ? startAt : findWalkSpawn(initialWorld, roomId || undefined, spawnHeight), [initialWorld, roomId, spawnHeight, startAt])
   const [reset, setReset] = useState(0), [active, setActive] = useState(false), [entered, setEntered] = useState(false)
   const [ready, setReady] = useState(false), [pose, setPose] = useState<WalkPose | null>(null)
+  const [kitchenKelvin, setKitchenKelvin] = useState<KitchenLightKelvin>(DEFAULT_KITCHEN_KELVIN)
+  const setGroupKelvin = (group: KitchenLightGroup | 'all', value: number) => setKitchenKelvin(previous => group === 'all' ? { pendants: value, line: value, conduit: value } : { ...previous, [group]: value })
   const [artificialLights, setArtificialLights] = useState(() => snapshot.customization?.lighting.artificialEnabled !== false), [torch, setTorch] = useState(false)
   const [screenControls, setScreenControls] = useState(() => window.matchMedia('(pointer: coarse)').matches)
   // Soft shadows where surfaces meet cost a little; a touch screen, usually a phone, starts without them.
@@ -212,7 +215,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
         <WebGLGuard fallback={fallback}>
           <Canvas shadows={{ type: PCFShadowMap }} gl={{ preserveDrawingBuffer: true }} dpr={[1, 1.5]} camera={{ fov, near: .04, far: 600 }} fallback={fallback} tabIndex={0} aria-label={c.title}
             onCreated={({ gl }) => { canvas.current = gl.domElement; gl.domElement.tabIndex = 0; setReady(true) }}>
-            <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} />
+            <WalkthroughWorld snapshot={snapshot} upper={upper} sun={solar.sun} artificialLights={artificialLights} doorStates={doorStates} kitchenKelvin={kitchenKelvin} />
             <WalkController world={initialWorld} collisionWorld={world} spawn={spawn} resetKey={reset} active={active} input={input} eyeHeight={eyeHeight} sensitivity={sensitivity} onPose={setPose} onPause={pause} onInteract={interact} />
             <CameraSettings fov={fov} torch={torch} />
             <AmbientOcclusion enabled={ambientOcclusion} />
@@ -271,6 +274,17 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
           <label>{c.fov} <output>{fov}°</output><input type="range" min="50" max="95" step="1" value={fov} onChange={event => setFov(Number(event.target.value))} /></label>
           <label>{c.sensitivity} <output>{sensitivity.toFixed(1)}×</output><input type="range" min=".3" max="2" step=".1" value={sensitivity} onChange={event => setSensitivity(Number(event.target.value))} /></label>
           <label className="walk-check"><input type="checkbox" checked={screenControls} onChange={event => setScreenControls(event.target.checked)} />{c.controls}</label>
+        </fieldset>
+        <fieldset className="walk-light-panel" data-testid="walk-light-panel">
+          <legend>{c.kitchenLights}</legend>
+          <div className="walk-light-presets" role="group" aria-label={c.kitchenLights}>
+            {([['warm', c.lightWarm], ['neutral', c.lightNeutral], ['cool', c.lightCool]] as const).map(([name, label]) =>
+              <button key={name} type="button" className="walk-text-button" data-testid={`walk-light-${name}`} onClick={() => setGroupKelvin('all', KELVIN[name])}><span className="walk-swatch" style={{ background: kelvinColour(KELVIN[name]) }} aria-hidden="true" /> {label}</button>)}
+          </div>
+          {KITCHEN_LIGHT_GROUPS.map(group => <label key={group}>{c[`light_${group}` as 'light_pendants']} <output>{kitchenKelvin[group]} K</output>
+            <input type="range" data-testid={`walk-light-${group}`} min={KELVIN.min} max={KELVIN.max} step={KELVIN.step} value={kitchenKelvin[group]} onChange={event => setGroupKelvin(group, Number(event.target.value))}
+              style={{ accentColor: kelvinColour(kitchenKelvin[group]) }} /></label>)}
+          <small>{c.lightHint}</small>
         </fieldset>
         </div>
         </ViewerPanel>}
