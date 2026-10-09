@@ -9,7 +9,7 @@ import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
 import { HouseFloorTiles, HouseFurnishings } from '../components/HouseFurnishings'
 import { BalconyRailing } from '../components/HouseFacade'
-import { FLOOR_ELEVATION, isBalconyRail } from '../data/house-interior'
+import { FLOOR_ELEVATION, groundRoofPolygon, isBalconyRail } from '../data/house-interior'
 import { StaticBake } from '../components/StaticBake'
 import type { KitchenLightKelvin } from '../data/light-colour'
 import { floorOfApartment } from '../data/house-interior'
@@ -258,6 +258,8 @@ function FloorContent({ snapshot, doorStates, withRoof, kitchenKelvin, lightGain
     {apartment.walls.filter(wall => !isBalconyRail(wall.id)).map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     {/* Under a floor above, the ceiling is that floor's slab; only the top floor has a roof. */}
+    {/* The office's arm has nothing above it: it gets its own ceiling. */}
+    {houseFloor === 'ground' && !withRoof && <Volume polygon={groundRoofPolygon()} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />}
     {withRoof && <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />}
     {houseFloor && <><HouseFloorTiles floor={houseFloor} /><HouseFurnishings floor={houseFloor} devices={doorStates} kitchenKelvin={kitchenKelvin} lightGain={lightGain} /></>}
     {snapshot.fixtures.map(fixture => {

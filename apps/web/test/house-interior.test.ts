@@ -574,3 +574,11 @@ test('the island\'s switch is aimed at, not the wood behind it: E reaches the sw
   assert.equal(target((switchPlate.y[0] + switchPlate.y[1]) / 2)?.id, 'island-switch-plate', 'aimed at the switch, E works on it')
   assert.equal(target(FLOOR_HEIGHT + 2)?.id, 'island-canopy-wall-panel', 'aimed over it, the wood')
 })
+
+test('the office, whose arm has no floor above, gets a ceiling of its own', async () => {
+  const { groundRoofPolygon } = await import('../src/data/house-interior.ts')
+  const { GROUND_OFFICE } = await import('../src/data/house-plan.ts')
+  const polygon = groundRoofPolygon(), us = polygon.map(p => p[0]), zs = polygon.map(p => -p[1])
+  assert.ok(Math.min(...us) <= GROUND_OFFICE.u[0] && Math.max(...us) >= GROUND_OFFICE.u[1], 'covers the office along u')
+  assert.ok(Math.min(...zs) <= GROUND_OFFICE.v[0] && Math.max(...zs) >= GROUND_OFFICE.v[1], 'covers the office along v')
+})
