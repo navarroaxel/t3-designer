@@ -8,6 +8,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BuildingContext } from '../components/BuildingContext'
 import { Floor } from '../components/Floor'
 import { HouseFloorTiles, HouseFurnishings } from '../components/HouseFurnishings'
+import { BalconyRailing } from '../components/HouseFacade'
+import { FLOOR_ELEVATION, isBalconyRail } from '../data/house-interior'
 import { StaticBake } from '../components/StaticBake'
 import type { KitchenLightKelvin } from '../data/light-colour'
 import { floorOfApartment } from '../data/house-interior'
@@ -251,7 +253,9 @@ function FloorContent({ snapshot, doorStates, withRoof, kitchenKelvin, lightGain
     })}
     {apartment.balcony && <Floor polygon={apartment.balcony.polygon} color="#c1c3b6" elevation={geometry.floor.elevation}
       thickness={geometry.floor.thickness} finish="balcony" />}
-    {apartment.walls.map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
+    {/* The balcony's railing is bars, as the street sees it: its plan walls stay, to stop the visitor, but are not drawn. */}
+    {houseFloor === 'first' && <group position={[0, -FLOOR_ELEVATION.first, 0]}><BalconyRailing /></group>}
+    {apartment.walls.filter(wall => !isBalconyRail(wall.id)).map(wall => <Wall key={wall.id} wall={wall} doors={apartment.doors.filter(door => door.wallId === wall.id)}
       windows={apartment.windows.filter(window => window.wallId === wall.id)} cutaway={false} customization={touringCustomization} />)}
     {/* Under a floor above, the ceiling is that floor's slab; only the top floor has a roof. */}
     {withRoof && <Volume polygon={geometry.ceiling.polygon} base={geometry.ceiling.elevation} height={geometry.ceiling.thickness} color="#ecebe2" />}

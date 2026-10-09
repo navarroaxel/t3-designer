@@ -193,6 +193,8 @@ const LAUNDRY_BACK = LAUNDRY_U[1] + LAUNDRY.wallThickness
 const BALCONY_V = BALCONY.width / 2
 const BALCONY_FRONT = -5 - BALCONY.depth
 const RAIL = .04
+/** The balcony's railing is three thin walls in the plan, for the visitor to bump into; drawn, it is bars (`BalconyRailing`). */
+export const isBalconyRail = (wallId: string) => wallId.startsWith('first-balcony-rail-')
 const TERRACE_SW = (u: number) => houseSouthWestEdge(u) + TERRACE_WALL_THICKNESS / 2
 
 /**
