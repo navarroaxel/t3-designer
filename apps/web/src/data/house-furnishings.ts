@@ -17,7 +17,7 @@ import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
 import { STAIR_BLOCKS } from './stair.ts'
 import { WASHING_MACHINE_BOXES } from './washing-machine.ts'
 import { HOUSE_REAR, TERRACE_CENTRE_V, TERRACE_GRILL, TERRACE_INNER, TERRACE_REAR_WALL, TERRACE_SHELF, TERRACE_WALL_THICKNESS } from './building-site.ts'
-import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, KITCHEN_SWITCH_ID, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, GLASS_DOOR_ID, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_RUN_FRONTS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
+import { ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_PANEL_BOXES, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_BOXES, KITCHEN_SWITCH_ID, ISLAND_SWITCH_BOXES, ISLAND_SWITCH_ID, CUP, DISHWASHER, DISHWASHER_BOX, GLASS_CABINET, GLASS_DOOR_ID, KITCHEN_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_NOOK_BOXES, KITCHEN_RUN_FRONTS, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, NOOK, NOOK_CENTRE_U, UPPER_CABINET, type KitchenBox } from './kitchen.ts'
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
@@ -175,7 +175,7 @@ function firstFloor(): Furnishing[] {
   }
   // The conduit box along the wall behind the island, which the island's box crosses.
   for (const box of [...KITCHEN_CONDUIT_BOXES, ...KITCHEN_SWITCH_BOXES]) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : .9, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}) })
-  for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_WOOD_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.grain ? { grain: box.grain } : {}), ...(box.model ? { model: box.model, turn: 0 } : {}) })
+  for (const box of [...ISLAND_CANOPY_BOXES, ...ISLAND_WOOD_BOXES, ...ISLAND_PANEL_BOXES, ...ISLAND_SWITCH_BOXES]) add({ id: `island-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.glow ? .4 : box.id === 'canopy-drywall' ? .9 : .55, solid: false, ...(box.glow ? { glow: true } : {}), ...(box.round ? { shape: 'ellipse' as const } : {}), ...(box.opacity !== undefined ? { opacity: box.opacity } : {}), ...(box.grain ? { grain: box.grain } : {}), ...(box.model ? { model: box.model, turn: 0 } : {}) })
   // On the kitchen's rear wall, between the light well's window and the terrace's balcony door, an outlet 0.30 m up (owner), centred between them: the plate faces the kitchen, toward lower u.
   const rearOpenings = OPENINGS.first.filter(opening => Math.abs(opening.u - (KITCHEN_LIVING.u[1] + KITCHEN_REAR_WALL)) < 1e-9).sort((a, b) => a.v[0] - b.v[0])
   const [balconyDoor, wellWindow] = [rearOpenings[0], rearOpenings[1]]
@@ -295,8 +295,8 @@ export const REMOVABLE: Record<string, { key: string; owns: (pieceId: string) =>
   'kitchen-fridge': { key: 'away-fridge', owns: id => id.startsWith('kitchen-fridge') },
   'kitchen-microwave': { key: 'away-microwave', owns: id => id === 'kitchen-microwave' },
   'kitchen-island-cheek': { key: 'away-island-cheek', owns: id => id === 'kitchen-island-cheek' },
-  // The island's wood, to compare with and without (owner): the wall's board, the ceiling's slats and the stool side's panel; it starts on, X takes it off.
-  [ISLAND_WOOD_ID]: { key: 'away-island-wood', owns: id => /^island-canopy-(wall-panel|soffit-|panel-)/.test(id), },
+  // The island's wood, to compare with and without (owner): the wall's board and the ceiling's slats (the stool side's panel is fixed); it starts on, X takes it off.
+  [ISLAND_WOOD_ID]: { key: 'away-island-wood', owns: id => /^island-canopy-(wall-panel|soffit-)/.test(id), },
   // The three stools at the island come out together, so that the island can be seen with them or without.
   [STOOLS_ID]: { key: 'away-stools', owns: isStool },
 }

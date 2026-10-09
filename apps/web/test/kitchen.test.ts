@@ -3,7 +3,7 @@ import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_WOOD, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_AXIS_V, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_PANEL_BOXES, ISLAND_WOOD, ISLAND_WOOD_BOXES, ISLAND_WOOD_ID, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, DISHWASHER, GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_ISLAND_FRONTS, KITCHEN_RUN_FRONTS, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn, isStool, STOOLS_ID } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -510,7 +510,7 @@ test('the drywall boxes are painted as the wall they run along: the island\'s an
 
 test('the island\'s wood (a walnut-like board on the wall, a fluted oak under the ceiling and the same fluted oak on the stool side) comes on and off with X, and starts on', () => {
   const wood = ISLAND_WOOD_BOXES, find = (id: string) => wood.find(item => item.id === id)!, top = box('counter-top'), slab = ISLAND_CANOPY_BOXES.find(item => item.id === 'canopy-slab')!
-  const panel = find('canopy-wall-panel'), slats = wood.filter(item => item.id.startsWith('canopy-soffit-slat-')), panelSlats = wood.filter(item => item.id.startsWith('canopy-panel-slat-')), panelBacking = wood.find(item => item.id === 'canopy-panel-backing')!
+  const panel = find('canopy-wall-panel'), slats = wood.filter(item => item.id.startsWith('canopy-soffit-slat-')), panelSlats = ISLAND_PANEL_BOXES.filter(item => item.id.startsWith('panel-slat-')), panelBacking = ISLAND_PANEL_BOXES.find(item => item.id === 'panel-backing')!
   assert.ok(panel.grain === 'walnut' && Math.abs(panel.y[0] - top.y[1]) < 1e-9 && Math.abs(panel.y[1] - slab.y[0]) < 1e-9, 'the board goes from the worktop up to the slab')
   assert.ok(Math.abs(panel.u[1] - panel.u[0] - ISLAND_WOOD.thickness) < 1e-9, '3 cm thick')
   // The slats run out from the wall's board, 24 mm wide on a 30 mm pitch, hanging under the slab; the same slats fluted over the stool side's panel, upright.
@@ -525,6 +525,7 @@ test('the island\'s wood (a walnut-like board on the wall, a fluted oak under th
   const pieces = furnishingsOn('first')
   assert.ok(isRemovable(ISLAND_WOOD_ID) && isInPlace({}, ISLAND_WOOD_ID) && !isInPlace({ 'away-island-wood': 0 }, ISLAND_WOOD_ID))
   assert.ok(furnishingDevices('first', 3.2).some(device => device.id === ISLAND_WOOD_ID))
-  assert.ok(pieces.filter(piece => /^island-canopy-(wall-panel|soffit-|panel-)/.test(piece.id)).every(piece => !isPieceAway({}, piece.id) && isPieceAway({ 'away-island-wood': 0 }, piece.id)), 'the wood is there until it is taken off')
+  assert.ok(pieces.filter(piece => /^island-canopy-(wall-panel|soffit-)/.test(piece.id)).every(piece => !isPieceAway({}, piece.id) && isPieceAway({ 'away-island-wood': 0 }, piece.id)), 'the wall\'s board and the ceiling\'s slats are there until they are taken off')
+  assert.ok(pieces.filter(piece => piece.id.startsWith('island-panel-')).length > 70 && pieces.filter(piece => piece.id.startsWith('island-panel-')).every(piece => !isPieceAway({ 'away-island-wood': 0 }, piece.id)), 'the stool side\'s panel is fixed: X leaves it')
   assert.ok(!isPieceAway({ 'away-island-wood': 0 }, 'island-canopy-pendant-1') && !isPieceAway({ 'away-island-wood': 0 }, 'island-canopy-slab'), 'the slab and the lamps stay')
 })
