@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
+import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, LIVING_TV_PLACEMENT, OPENINGS } from '../src/data/house-plan.ts'
 import { TOSCANA_VENA_SLAB } from '../src/data/house-plan.ts'
-import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
+import { COUNTER_V, FREEZER, FREEZER_HEIGHT, FREEZER_LINER_HEIGHT, KITCHEN_BOXES, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_CANOPY_WALL, ISLAND_LIGHT_POSITIONS, ISLAND_SWITCH_ID, CONDUIT_LIGHT_POSITIONS, KITCHEN_CONDUIT_BOX, KITCHEN_CONDUIT_BOXES, KITCHEN_SWITCH_ID, conduitLightsOn, KITCHEN_SIZES, KITCHEN_UPPER_BOXES } from '../src/data/kitchen.ts'
 
 import { furnishingDevices, furnishingsOn, isInPlace, isPieceAway, isRemovable, islandLightsOn } from '../src/data/house-furnishings.ts'
 const box = (id: string) => KITCHEN_BOXES.find(item => item.id === id)!
@@ -280,4 +280,23 @@ test('the conduit box runs the whole length of the wall facing the window, under
   const meets = (a: [number, number], b: [number, number]) => overlap(a, b) > 0
   assert.ok(meets(conduit.u, drywall.u) && meets(conduit.v, drywall.v) && meets(conduit.y, drywall.y), 'the island\'s box crosses it')
   assert.ok(conduit.y[0] > ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-soffit-backing')!.y[1], 'over the wood, not into it')
+})
+
+test('the conduit box has recessed lights along its underside, none where the island\'s box crosses it, and a switch beside the hall door on the kitchen side', () => {
+  const pieces = KITCHEN_CONDUIT_BOXES, conduit = pieces[0], lights = pieces.filter(piece => piece.id.startsWith('conduit-light-')), drywall = ISLAND_CANOPY_BOXES.find(piece => piece.id === 'canopy-drywall')!
+  assert.ok(lights.length >= 6 && lights.length === CONDUIT_LIGHT_POSITIONS.length)
+  for (const light of lights) {
+    assert.ok(light.glow && light.round && light.u[0] >= conduit.u[0] && light.u[1] <= conduit.u[1] && light.v[0] >= conduit.v[0] && light.v[1] <= conduit.v[1] && light.y[0] < conduit.y[0] + 1e-9, light.id)
+    assert.ok(overlap(light.v, drywall.v) <= 0, `${light.id} is not inside the island's box`)
+  }
+  // About a metre apart.
+  const spots = CONDUIT_LIGHT_POSITIONS.map(at => at.v).sort((a, b) => a - b), gaps = spots.slice(1).map((v, index) => v - spots[index])
+  assert.ok(gaps.filter(gap => gap < 1.5).every(gap => gap > .7 && gap < 1.3), 'about a metre apart')
+  // The switch: on the kitchen's face of the wall, past the hall door's latch edge (the higher v), 1.10 m up, facing the kitchen (higher u); a device that starts on.
+  const plate = furnishingsOn('first').find(piece => piece.id === KITCHEN_SWITCH_ID)!
+  assert.ok(Math.abs(plate.u[0] - KITCHEN_LIVING.u[0]) < 1e-9 && plate.u[1] > plate.u[0])
+  assert.ok(plate.v[0] > LIVING_DOOR.v[1] && plate.v[0] - LIVING_DOOR.v[1] < .3, 'beside the door, on the latch side')
+  assert.ok(Math.abs((plate.y[0] + plate.y[1]) / 2 - (box('worktop').y[0] - .9 + 1.1)) < 1e-9)
+  const device = furnishingDevices('first', 3.2).find(item => item.id === KITCHEN_SWITCH_ID) as { initialOpenness?: number } | undefined
+  assert.ok(device && device.initialOpenness === 1 && conduitLightsOn({}) && !conduitLightsOn({ [KITCHEN_SWITCH_ID]: 0 }))
 })

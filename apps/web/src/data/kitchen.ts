@@ -1,5 +1,5 @@
 import { FLOOR_HEIGHT } from './building-site.ts'
-import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, TOSCANA_VENA_COLOR, TOSCANA_VENA_SLAB, type TilePattern } from './house-plan.ts'
+import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, TOSCANA_VENA_COLOR, TOSCANA_VENA_SLAB, type TilePattern } from './house-plan.ts'
 
 /**
  * The kitchen of the living (owner's render; the worktops are Purastone Toscana Vena): a parallel kitchen, with a run of
@@ -233,6 +233,37 @@ export const ISLAND_SWITCH_BOXES: IslandPiece[] = [
  * above the 1.5 m cut, so it is not in KITCHEN_BOXES.
  */
 export const KITCHEN_CONDUIT_BOX = { depth: .25, height: .25 }
+const conduitU: [number, number] = [frontU, frontU + KITCHEN_CONDUIT_BOX.depth]
+const conduitV: [number, number] = [KITCHEN_LIVING.v[0], upperV[0]]
+const conduitY: [number, number] = [floor + ISLAND_CANOPY.ceiling - KITCHEN_CONDUIT_BOX.height, floor + ISLAND_CANOPY.ceiling]
+/**
+ * Recessed LED downlights in the underside of the conduit box (owner), one every metre along it, in the middle of its depth. Where the island's box crosses it there is no underside to light, so there
+ * are none there; each side of the crossing is spaced on its own.
+ */
+export const CONDUIT_LIGHT = { diameter: .09, pitch: 1 }
+export const CONDUIT_LIGHT_POSITIONS: { u: number; v: number }[] = (() => {
+  const island: [number, number] = [canopyV[0] - .1, canopyV[1] + .1], found: { u: number; v: number }[] = []
+  for (const [from, to] of [[conduitV[0], island[0]], [island[1], conduitV[1]]] as [number, number][]) {
+    const length = to - from, count = Math.max(1, Math.round(length / CONDUIT_LIGHT.pitch))
+    for (let index = 0; index < count; index++) found.push({ u: (conduitU[0] + conduitU[1]) / 2, v: from + length * (index + .5) / count })
+  }
+  return found
+})()
 export const KITCHEN_CONDUIT_BOXES: IslandPiece[] = [
-  { id: 'conduit-box', u: [frontU, frontU + KITCHEN_CONDUIT_BOX.depth], v: [KITCHEN_LIVING.v[0], upperV[0]], y: [floor + ISLAND_CANOPY.ceiling - KITCHEN_CONDUIT_BOX.height, floor + ISLAND_CANOPY.ceiling], color: '#f1efe9' },
+  { id: 'conduit-box', u: conduitU, v: conduitV, y: conduitY, color: '#f1efe9' },
+  ...CONDUIT_LIGHT_POSITIONS.map((at, index): IslandPiece => ({ id: `conduit-light-${index + 1}`, u: [at.u - CONDUIT_LIGHT.diameter / 2, at.u + CONDUIT_LIGHT.diameter / 2], v: [at.v - CONDUIT_LIGHT.diameter / 2, at.v + CONDUIT_LIGHT.diameter / 2], y: [conduitY[0] - .004, conduitY[0] + .002], color: '#fff2d9', glow: true, round: true })),
 ]
+
+/**
+ * The switch of the conduit box's lights (owner), beside the door that comes into the kitchen from the stair's hall: on the kitchen's side of the wall, a hand's width past the door's edge on the
+ * latch side (away from the hinge), 1.10 m up, facing the kitchen (higher u). Like the island's, it is a device of its own, `kitchen-switch-plate`; the lights start on.
+ */
+export const KITCHEN_SWITCH_ID = 'kitchen-switch-plate'
+const kitchenSwitchV = LIVING_DOOR.v[1] + .14, kitchenSwitchY = floor + 1.1
+export const KITCHEN_SWITCH_BOXES: IslandPiece[] = [
+  { id: 'switch-plate', u: [frontU, frontU + .008], v: [kitchenSwitchV - .036, kitchenSwitchV + .036], y: [kitchenSwitchY - .036, kitchenSwitchY + .036], color: '#f3f2ee' },
+  { id: 'switch-rocker', u: [frontU + .008, frontU + .011], v: [kitchenSwitchV - .014, kitchenSwitchV + .014], y: [kitchenSwitchY - .024, kitchenSwitchY + .024], color: '#d9d8d3' },
+  { id: 'switch-dot', u: [frontU + .008, frontU + .0085], v: [kitchenSwitchV + .024, kitchenSwitchV + .029], y: [kitchenSwitchY + .024, kitchenSwitchY + .029], color: '#ffcf8a', glow: true },
+]
+/** The conduit box's lights are on unless a visit has switched them off: the switch's own openness, 1 on and 0 off. */
+export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (states[KITCHEN_SWITCH_ID] ?? 1) >= .5
