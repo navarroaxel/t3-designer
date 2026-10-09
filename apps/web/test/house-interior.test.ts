@@ -502,7 +502,7 @@ test('the bathroom has an outlet on the wall shared with the living, centred bet
   const toiletEdge = Math.max(toilet.v[0], toilet.v[1]), gap: [number, number] = [toiletEdge, vanity.v[0]]
   assert.ok(plate.v[0] > gap[0] && plate.v[1] < gap[1], 'the plate fits in the wall between the two')
   close((plate.v[0] + plate.v[1]) / 2, (gap[0] + gap[1]) / 2, 1e-9)
-  close((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + 1.1, 1e-9)
+  close((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + .15, 1e-9)  // at floor level, for the smart toilet
   // Flat on the wall the bathroom shares with the living, facing the bathroom (lower u).
   close(plate.u[1], FIRST_FLOOR_BATHROOM.u[1], 1e-9)
   assert.ok(plate.u[0] < plate.u[1] && pieces.filter(piece => piece.id.startsWith('outlet-bathroom-')).every(piece => piece.u[1] <= plate.u[1] + 1e-9 && piece.rollAboutU))

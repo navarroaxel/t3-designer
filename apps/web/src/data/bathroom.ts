@@ -39,10 +39,10 @@ export const BATHROOM_RUN = {
 const vanityV = BATHROOM_RUN.vanity
 const toiletCentre = (BATHROOM_RUN.toilet[0] + BATHROOM_RUN.toilet[1]) / 2
 /**
- * The bathroom's outlet (owner): on the wall shared with the living, in the 16.5 cm of wall between the toilet and the vanity, centred in it, 1.10 m up (assumed:
- * over the vanity's top and clear of the toilet, for a hair dryer or a razor). A double plate is 114 mm wide, so it fits with 2.5 cm to spare on each side.
+ * The bathroom's outlet (owner): on the wall shared with the living, in the 16.5 cm of wall between the toilet and the vanity, centred in it, at floor level (owner: for the smart toilet, a Japanese-style one with a bidet): the plate's
+ * centre is 15 cm up, which leaves its lower edge 11 cm over the tiles. A double plate is 114 mm wide, so it fits with 2.5 cm to spare on each side.
  */
-export const BATHROOM_OUTLET = { u: wall, v: (toiletCentre + S.toiletWidth / 2 + BATHROOM_RUN.vanity[0]) / 2, height: 1.1 }
+export const BATHROOM_OUTLET = { u: wall, v: (toiletCentre + S.toiletWidth / 2 + BATHROOM_RUN.vanity[0]) / 2, height: .15 }
 const showerV = BATHROOM_RUN.shower
 
 const WOOD = '#c9ad8c', WHITE = '#f6f5f1', BLACK = '#222325', CHROME = '#cfd2d6'
