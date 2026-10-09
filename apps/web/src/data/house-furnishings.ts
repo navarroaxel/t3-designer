@@ -1,4 +1,4 @@
-import { BATHROOM_BOXES, BATHROOM_OUTLET } from './bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_OUTLET, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
@@ -19,7 +19,7 @@ import { KITCHEN_BOXES, KITCHEN_SIZES, KITCHEN_UPPER_BOXES, MICROWAVE_CENTRE_U, 
 import {
   CLOSET_SLIDING_PANELS, CLOSET_WARDROBE, CUT_HEIGHT, KITCHEN_LIVING, LIVING_TV, LIVING_TV_PLACEMENT, MAIN_BED, MAIN_ROOM_CLOSET_WARDROBE, MAIN_TV, MAIN_TV_PLACEMENT, QUEEN_BED, TV_MOUNT,
   SECONDARY_BED, SECONDARY_WARDROBE, SINGLE_BED, WARDROBE, WARDROBE_LEAVES, type Floor,
-  GROUND_GARAGE,
+  GROUND_GARAGE, OPENINGS, WALL_THICKNESS,
 } from './house-plan.ts'
 
 /**
@@ -51,12 +51,16 @@ export type Furnishing = {
   roll?: number
   /** `roll` turns about the u axis instead of the v axis: for a plate on a wall that faces along u. */
   rollAboutU?: boolean
+  /** A piece that lights itself, like the LED strip around the bathroom's mirror. */
+  glow?: boolean
   /** Whether a visitor bumps into it. Hung and thin things (mirrors, TVs, pillows) do not. */
   solid: boolean
 }
 
 const BED = '#d9d2c4', HEADBOARD = '#8b6b4a', PILLOW = '#f4f1ea', WARDROBE_COLOR = '#b58b5a', LEAF_COLORS = ['#c39a64', '#b58b5a']
 const F = FLOOR_HEIGHT
+/** The rear wall's thickness, from the kitchen-living's inner face to the outline at the house's rear. */
+const KITCHEN_REAR_WALL = WALL_THICKNESS
 /** The in-wall media box's centre above the floor: its lower edge is just over 5 cm above the network socket's plate (centred 0.30 m up, 72 mm tall), so it stands at 0.525 m. */
 const MEDIA_BOX_CENTRE_HEIGHT = .525
 const cut = F + CUT_HEIGHT
@@ -103,6 +107,16 @@ function firstFloor(): Furnishing[] {
   const tvCentreY = centre(LIVING_TV_PLACEMENT.y), mountHalf = TV_MOUNT.width / 2
   for (const part of passThroughBoxes('cable-hole', wall, tvU - mountHalf - .2, tvCentreY)) add({ ...part, roughness: .5, solid: false })
   for (const part of outletBoxes('outlet-tv', wall, tvU + mountHalf + .13, F, tvCentreY - F)) add({ ...part, roughness: .6, solid: false })
+  // The main room's TV wall has the same scheme (owner): the network socket centred on the wall at the height of the outlets, an outlet each side of the bed, 25 cm clear of it, the in-wall media box
+  // over the socket, and, beside the mount, the pass-through for the TV's cable and a plug at the TV's height. The bed hides the socket and the box, as the table hides the living's.
+  const mainWall = MAIN_TV_PLACEMENT.bracket.v[0], mainU = centre(MAIN_TV_PLACEMENT.u), mainTvY = centre(MAIN_TV_PLACEMENT.y)
+  for (const part of dataSocketBoxes('main-data', mainWall, mainU, F)) add({ ...part, roughness: .6, solid: false })
+  for (const [side, offset] of [['left', -(QUEEN_BED.width / 2 + .25)], ['right', QUEEN_BED.width / 2 + .25]] as const) {
+    for (const part of outletBoxes(`main-outlet-${side}`, mainWall, mainU + offset, F)) add({ ...part, roughness: .6, solid: false })
+  }
+  for (const part of mediaBoxBoxes('main-wallbox', mainWall, mainU, F + MEDIA_BOX_CENTRE_HEIGHT)) add({ ...part, roughness: .5, solid: false })
+  for (const part of passThroughBoxes('main-cable-hole', mainWall, mainU - TV_MOUNT.width / 2 - .2, mainTvY)) add({ ...part, roughness: .5, solid: false })
+  for (const part of outletBoxes('main-outlet-tv', mainWall, mainU + TV_MOUNT.width / 2 + .13, F, mainTvY - F)) add({ ...part, roughness: .6, solid: false })
   // Its DualSense lies on the table beside it, the triggers toward the wall: 160 by 106 mm, 66 mm tall (a Blender model).
   const padU = tvU + .22, padV = tableV[0] + .24
   add({ id: 'ps5-controller', u: [padU - .08, padU + .08], v: [padV - .053, padV + .053], y: [base, base + .066], color: '#f4f5f8', roughness: .4, solid: false, model: '/models/house/dualsense.glb' })
@@ -110,6 +124,18 @@ function firstFloor(): Furnishing[] {
   for (const part of outletBoxes('outlet-bathroom', 0, 0, F, BATHROOM_OUTLET.height)) {
     add({ ...part, u: [BATHROOM_OUTLET.u - part.v[1], BATHROOM_OUTLET.u - part.v[0]], v: [BATHROOM_OUTLET.v + part.u[0], BATHROOM_OUTLET.v + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
   }
+  // And on the other side of that wall, in the kitchen-living, an outlet 0.30 m up, at the same place along the wall (owner): the plate faces the kitchen, toward higher u.
+  for (const part of outletBoxes('outlet-kitchen-hall', 0, 0, F)) {
+    add({ ...part, u: [KITCHEN_LIVING.u[0] + part.v[0], KITCHEN_LIVING.u[0] + part.v[1]], v: [BATHROOM_OUTLET.v - part.u[1], BATHROOM_OUTLET.v - part.u[0]], roll: part.roll ? -part.roll : undefined, roughness: .6, solid: false, rollAboutU: true })
+  }
+  // On the kitchen's rear wall, between the light well's window and the terrace's balcony door, an outlet 0.30 m up (owner), centred between them: the plate faces the kitchen, toward lower u.
+  const rearOpenings = OPENINGS.first.filter(opening => Math.abs(opening.u - (KITCHEN_LIVING.u[1] + KITCHEN_REAR_WALL)) < 1e-9).sort((a, b) => a.v[0] - b.v[0])
+  const [balconyDoor, wellWindow] = [rearOpenings[0], rearOpenings[1]]
+  const rearOutletV = (balconyDoor.v[1] + wellWindow.v[0]) / 2
+  for (const part of outletBoxes('outlet-kitchen-rear', 0, 0, F)) {
+    add({ ...part, u: [KITCHEN_LIVING.u[1] - part.v[1], KITCHEN_LIVING.u[1] - part.v[0]], v: [rearOutletV + part.u[0], rearOutletV + part.u[1]], roughness: .6, solid: false, rollAboutU: true })
+  }
+  for (const box of MIRROR_LIGHT_BOXES) add({ ...box, roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.
     if (box.id === 'toilet-lid' || box.id === 'toilet-panel' || box.id === 'toilet-light') continue
@@ -124,7 +150,7 @@ function firstFloor(): Furnishing[] {
     add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: [box.y[0], top], color: box.color, kitchen: { ...box, y: [box.y[0], top] }, roughness: .6, solid: box.y[0] - F < 1 && !box.id.endsWith('tap') && !box.id.startsWith('fridge-') })
   }
   // The upper cabinet with the microwave, over the run next to the fridge; hung high, so it is not stopped on.
-  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb` } : {}) })
+  for (const box of KITCHEN_UPPER_BOXES) add({ id: `kitchen-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, ...(box.pattern ? { kitchen: box } : {}), roughness: box.id === 'microwave' ? .35 : .6, solid: false, ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb` } : {}) })
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
   for (const part of outletBoxes('outlet-microwave', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) {
     add({ ...part, u: [2 * MICROWAVE_CENTRE_U - part.u[1], 2 * MICROWAVE_CENTRE_U - part.u[0]], v: [2 * KITCHEN_LIVING.v[1] - part.v[1], 2 * KITCHEN_LIVING.v[1] - part.v[0]], roughness: .6, solid: false })

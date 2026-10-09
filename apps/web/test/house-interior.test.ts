@@ -507,3 +507,44 @@ test('the bathroom has an outlet on the wall shared with the living, centred bet
   close(plate.u[1], FIRST_FLOOR_BATHROOM.u[1], 1e-9)
   assert.ok(plate.u[0] < plate.u[1] && pieces.filter(piece => piece.id.startsWith('outlet-bathroom-')).every(piece => piece.u[1] <= plate.u[1] + 1e-9 && piece.rollAboutU))
 })
+
+test('the kitchen has an outlet 0.30 m up on the other side of the wall from the bathroom\'s, at the same place along it', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const kitchen = find('outlet-kitchen-hall-plate'), bathroom = find('outlet-bathroom-plate')
+  close((kitchen.v[0] + kitchen.v[1]) / 2, (bathroom.v[0] + bathroom.v[1]) / 2, 1e-9)
+  close((kitchen.y[0] + kitchen.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9)
+  // Flat on the kitchen's face of the wall, which is the bathroom's wall plus its 12 cm, facing the kitchen (higher u).
+  close(kitchen.u[0], KITCHEN_LIVING.u[0], 1e-9)
+  assert.ok(kitchen.u[0] - bathroom.u[1] > .11 && kitchen.u[1] > kitchen.u[0])
+  assert.ok(pieces.filter(piece => piece.id.startsWith('outlet-kitchen-hall-')).every(piece => piece.u[0] >= KITCHEN_LIVING.u[0] - 1e-9 && piece.rollAboutU))
+})
+
+test('the kitchen\'s rear wall has an outlet 0.30 m up between the light well\'s window and the terrace\'s balcony door', () => {
+  const pieces = furnishingsOn('first'), plate = pieces.find(piece => piece.id === 'outlet-kitchen-rear-plate')!
+  const rear = OPENINGS.first.filter(opening => opening.u === AZOTEA_REAR).sort((a, b) => a.v[0] - b.v[0])
+  const [door, window] = rear
+  assert.ok(plate.v[0] > door.v[1] && plate.v[1] < window.v[0], 'between the balcony door and the window')
+  close((plate.v[0] + plate.v[1]) / 2, (door.v[1] + window.v[0]) / 2, 1e-9)
+  close((plate.y[0] + plate.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9)
+  // Flat on the wall's inner face, facing the kitchen (lower u).
+  close(plate.u[1], KITCHEN_LIVING.u[1], 1e-9)
+  assert.ok(pieces.filter(piece => piece.id.startsWith('outlet-kitchen-rear-')).every(piece => piece.u[1] <= KITCHEN_LIVING.u[1] + 1e-9 && piece.rollAboutU))
+})
+
+test('the main room\'s TV wall has the same scheme: a network socket, an outlet each side of the bed, the media box over the socket and the TV\'s pass-through and plug', () => {
+  const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
+  const tv = find('tv-main'), wallV = MAIN_TV_PLACEMENT.bracket.v[0], tvMiddle = (tv.u[0] + tv.u[1]) / 2
+  const data = find('main-data-plate'), left = find('main-outlet-left-plate'), right = find('main-outlet-right-plate'), top = find('main-wallbox-trim-top'), bottom = find('main-wallbox-trim-bottom')
+  close((data.u[0] + data.u[1]) / 2, tvMiddle, 1e-9); close((data.y[0] + data.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9); close(data.v[0], wallV, 1e-9)
+  // An outlet each side of the bed (1.60 m wide, centred like the TV), 25 cm clear of it, at the same height as the socket.
+  const bed = find('bed-main')
+  const [lower, upper] = [left, right].sort((a, b) => a.u[0] - b.u[0])
+  assert.ok(lower.u[1] <= bed.u[0] - .19 && upper.u[0] >= bed.u[1] + .19, 'one each side of the bed, clear of it')
+  for (const outlet of [left, right]) close((outlet.y[0] + outlet.y[1]) / 2, FLOOR_HEIGHT + .3, 1e-9)
+  close((left.u[0] + left.u[1]) / 2 + (right.u[0] + right.u[1]) / 2, 2 * tvMiddle, 1e-9)
+  assert.ok(bottom.y[0] - data.y[1] >= .05 && top.y[1] < tv.y[0], 'the media box is over the socket and under the TV')
+  close((top.y[0] + bottom.y[1]) / 2, find('living-table-top').y[1] + .105, 1e-9)
+  const hole = find('main-cable-hole-plate'), plug = find('main-outlet-tv-plate'), mount = find('tv-main-mount-wall-plate')
+  assert.ok(hole.disc && (hole.u[1] < mount.u[0] || hole.u[0] > mount.u[1]) && (plug.u[1] < mount.u[0] || plug.u[0] > mount.u[1]))
+  close((plug.y[0] + plug.y[1]) / 2, (tv.y[0] + tv.y[1]) / 2, 1e-9)
+})

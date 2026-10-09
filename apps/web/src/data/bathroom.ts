@@ -45,6 +45,7 @@ const toiletCentre = (BATHROOM_RUN.toilet[0] + BATHROOM_RUN.toilet[1]) / 2
 export const BATHROOM_OUTLET = { u: wall, v: (toiletCentre + S.toiletWidth / 2 + BATHROOM_RUN.vanity[0]) / 2, height: .15 }
 const showerV = BATHROOM_RUN.shower
 
+const MIRROR_GLASS = .03
 const WOOD = '#c9ad8c', WHITE = '#f6f5f1', BLACK = '#222325', CHROME = '#cfd2d6'
 const vanityU: [number, number] = [wall - S.vanityDepth, wall]
 const bodyTop = floor + S.vanityHeight - S.topThickness
@@ -56,7 +57,7 @@ export const BATHROOM_BOXES: BathroomBox[] = [
   { id: 'vanity-drawer', u: [vanityU[0] - .02, vanityU[0]], v: [vanityV[0] + .03, vanityV[1] - .03], y: [floor + .3, floor + .58], color: WHITE },
   { id: 'vanity-top', u: [vanityU[0] - .02, wall], v: [vanityV[0] - .01, vanityV[1] + .01], y: [bodyTop, floor + S.vanityHeight], color: WHITE },
   { id: 'vanity-tap', u: [wall - .1, wall - .07], v: [(vanityV[0] + vanityV[1]) / 2 - .015, (vanityV[0] + vanityV[1]) / 2 + .015], y: [floor + S.vanityHeight, floor + S.vanityHeight + .16], color: CHROME, metalness: .4 },
-  { id: 'mirror', u: [wall - .03, wall], v: [vanityV[0], vanityV[1] - S.shelfPanel], y: [floor + S.mirrorBottom, cut], color: '#d3dde2', metalness: .3 },
+  { id: 'mirror', u: [wall - MIRROR_GLASS, wall], v: [vanityV[0], vanityV[1] - S.shelfPanel], y: [floor + S.mirrorBottom, cut], color: '#9aa4ab', metalness: .55 },
   { id: 'mirror-shelf', u: [wall - .12, wall], v: [vanityV[1] - S.shelfPanel, vanityV[1]], y: [floor + S.mirrorBottom, cut], color: '#d3c3ae' },
   // The toilet, a smart one-piece unit as in the owner's photo: one smooth, egg-shaped body with no cistern, a little narrower at the
   // floor, its lid on top and a dark control panel with a light at the back of the lid. Its back is to the wall; centred on its space.
@@ -70,4 +71,24 @@ export const BATHROOM_BOXES: BathroomBox[] = [
   { id: 'shower-glass-frame-edge', u: [wall - S.glassLength - S.glassFrame, wall - S.glassLength], v: [showerV[1] - .002, showerV[1] + .012], y: [floor, cut], color: BLACK },
   { id: 'shower-glass-frame-foot', u: [wall - S.glassLength, wall], v: [showerV[1] - .002, showerV[1] + .012], y: [floor, floor + S.glassFrame], color: BLACK },
   { id: 'shower-taps', u: [wall - .06, wall], v: [(showerV[0] + showerV[1]) / 2 - .09, (showerV[0] + showerV[1]) / 2 + .09], y: [floor + 1, floor + 1.08], color: CHROME, metalness: .4 },
+]
+
+/**
+ * The mirror's backlight, from the owner's picture of a backlit LED mirror: a dark glass with a bright white strip all around, a little in from its edge, a soft halo on the wall
+ * beyond it and two touch buttons at the lower right (the right hand, facing the wall, is the lower v). The mirror hangs up to 1.9 m, above the 1.5 m cut, so these are not in
+ * BATHROOM_BOXES. `glow` pieces light themselves.
+ */
+export const MIRROR = { top: 1.9, inset: .025, strip: .016, glass: .03 }
+const mirrorV: [number, number] = [vanityV[0], vanityV[1] - S.shelfPanel]
+const mirrorY: [number, number] = [floor + S.mirrorBottom, floor + MIRROR.top]
+const stripU: [number, number] = [wall - MIRROR.glass - .006, wall - MIRROR.glass]
+export const MIRROR_LIGHT_BOXES: (BathroomBox & { glow?: boolean })[] = [
+  { id: 'mirror-halo', u: [wall - .0015, wall - .0005], v: [mirrorV[0] - .07, mirrorV[1] + .07], y: [mirrorY[0] - .07, mirrorY[1] + .07], color: '#f4f8ff', opacity: .16, glow: true },
+  { id: 'mirror-led-top', u: stripU, v: [mirrorV[0] + MIRROR.inset, mirrorV[1] - MIRROR.inset], y: [mirrorY[1] - MIRROR.inset - MIRROR.strip, mirrorY[1] - MIRROR.inset], color: '#f7fbff', glow: true },
+  { id: 'mirror-led-bottom', u: stripU, v: [mirrorV[0] + MIRROR.inset, mirrorV[1] - MIRROR.inset], y: [mirrorY[0] + MIRROR.inset, mirrorY[0] + MIRROR.inset + MIRROR.strip], color: '#f7fbff', glow: true },
+  { id: 'mirror-led-right', u: stripU, v: [mirrorV[0] + MIRROR.inset, mirrorV[0] + MIRROR.inset + MIRROR.strip], y: [mirrorY[0] + MIRROR.inset, mirrorY[1] - MIRROR.inset], color: '#f7fbff', glow: true },
+  { id: 'mirror-led-left', u: stripU, v: [mirrorV[1] - MIRROR.inset - MIRROR.strip, mirrorV[1] - MIRROR.inset], y: [mirrorY[0] + MIRROR.inset, mirrorY[1] - MIRROR.inset], color: '#f7fbff', glow: true },
+  // The two touch buttons: a round-looking square for the light and one for the demister.
+  { id: 'mirror-button-1', u: stripU, v: [mirrorV[0] + .075, mirrorV[0] + .095], y: [mirrorY[0] + .055, mirrorY[0] + .075], color: '#dfe6ee', glow: true },
+  { id: 'mirror-button-2', u: stripU, v: [mirrorV[0] + .045, mirrorV[0] + .065], y: [mirrorY[0] + .055, mirrorY[0] + .075], color: '#dfe6ee', glow: true },
 ]

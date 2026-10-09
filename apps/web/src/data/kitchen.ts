@@ -9,7 +9,7 @@ import { CUT_HEIGHT, KITCHEN_LIVING, SLAB_THICKNESS, TOSCANA_VENA_COLOR, TOSCANA
  * rear wall, a tall dark column, the fridge, then base cabinets with the oven and the cooktop, and the second counter 1.1 m in front. Upper cabinets are left out: they hang above the 1.5 m cut.
  * House frame [u, v], heights above the ground-floor level.
  */
-export type KitchenBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; pattern?: TilePattern }
+export type KitchenBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; pattern?: TilePattern; wall?: true }
 
 const wallV = KITCHEN_LIVING.v[1]
 const rearU = KITCHEN_LIVING.u[1]
@@ -42,6 +42,8 @@ const baseV: [number, number] = [wallV - S.baseDepth, wallV]
 export const COUNTER_V: [number, number] = [baseV[0] - S.aisle - S.counterDepth, baseV[0] - S.aisle]
 // Against the wall behind the bathroom, like the render's second counter against its side wall.
 const counterU: [number, number] = [frontU, frontU + S.counterLength]
+// The sink and its tap are in the middle of the island (owner): the tap is at its middle, and the basin centred on it.
+const islandMiddleU = counterU[0] + S.counterLength / 2
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
 const OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
@@ -66,8 +68,8 @@ export const KITCHEN_BOXES: KitchenBox[] = [
   { id: 'counter', u: counterU, v: COUNTER_V, y: [floor, floor + S.baseHeight], color: WHITE },
   { id: 'counter-top', u: counterU, v: [COUNTER_V[0] - S.overhang, COUNTER_V[1]], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The sink is in the second counter (owner), a ceramic basin flush with the top, with a brass tap at its back edge.
-  { id: 'sink', u: [counterU[0] + .5, counterU[0] + 1.1], v: [(COUNTER_V[0] + COUNTER_V[1]) / 2 - .2, (COUNTER_V[0] + COUNTER_V[1]) / 2 + .2], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
-  { id: 'tap', u: [counterU[0] + .78, counterU[0] + .82], v: [(COUNTER_V[0] + COUNTER_V[1]) / 2 + .22, (COUNTER_V[0] + COUNTER_V[1]) / 2 + .26], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .28], color: '#a67c3d' },
+  { id: 'sink', u: [islandMiddleU - .3, islandMiddleU + .3], v: [(COUNTER_V[0] + COUNTER_V[1]) / 2 - .2, (COUNTER_V[0] + COUNTER_V[1]) / 2 + .2], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
+  { id: 'tap', u: [islandMiddleU - .02, islandMiddleU + .02], v: [(COUNTER_V[0] + COUNTER_V[1]) / 2 + .22, (COUNTER_V[0] + COUNTER_V[1]) / 2 + .26], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .28], color: '#a67c3d' },
   ...stoolCentres.map((centre, index) => ({
     id: `stool-${index + 1}`, u: [centre - S.stool / 2, centre + S.stool / 2] as [number, number],
     v: [COUNTER_V[0] - S.overhang + .05 - S.stool, COUNTER_V[0] - S.overhang + .05] as [number, number],
@@ -110,6 +112,8 @@ const INOX = '#b9bdc2', DOOR = '#e2cba5'
 export const MICROWAVE_CENTRE_U = (microwaveU[0] + microwaveU[1]) / 2
 const canopyY = floor + HOOD.canopyBottom
 export const KITCHEN_UPPER_BOXES: KitchenBox[] = [
+  // The backsplash (owner): a slab of Toscana Vena on the wall, from the worktop to the underside of the cabinets and the hood, along the whole base run, 2 cm thick. Its pattern runs across its face.
+  { id: 'backsplash', u: baseU, v: [wallV - .02, wallV], y: [floor + S.baseHeight + S.worktop, lowY], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB, wall: true },
   // The hall side's cabinet, up to the hood.
   { id: 'upper-bottom', u: [upperU[0], hoodU[0]], v: upperV, y: [lowY, lowY + P], color: OAK },
   { id: 'upper-top', u: [upperU[0], hoodU[0]], v: upperV, y: [topY - P, topY], color: OAK },

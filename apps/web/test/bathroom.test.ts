@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -93,4 +93,18 @@ test('the open bathroom door leaf and its swing clear every fixture', () => {
     const distance = Math.hypot(Math.max(uLow - hingeU, 0), Math.max(hingeV - vHigh, 0))
     assert.ok(distance >= radius, `${item.id} stays out of the door's swing`)
   }
+})
+
+test('the mirror is backlit: a bright strip all around its glass, a halo on the wall and two touch buttons at the lower right', () => {
+  const glass = box('mirror'), light = (id: string) => MIRROR_LIGHT_BOXES.find(item => item.id === id)!
+  for (const id of ['top', 'bottom', 'left', 'right']) {
+    const strip = light(`mirror-led-${id}`)
+    assert.ok(strip.glow && strip.v[0] >= glass.v[0] && strip.v[1] <= glass.v[1] && strip.y[0] >= glass.y[0], `${id} strip within the glass`)
+    assert.ok(strip.u[1] <= glass.u[1] - .03 + 1e-9 && strip.u[0] < strip.u[1], `${id} strip stands in front of the glass`)
+  }
+  assert.ok(light('mirror-led-top').y[1] < light('mirror-halo').y[1] && light('mirror-led-top').y[1] > light('mirror-led-bottom').y[1] && MIRROR.top === 1.9)
+  const halo = light('mirror-halo')
+  assert.ok(halo.opacity! < .3 && halo.v[0] < glass.v[0] && halo.v[1] > glass.v[1], 'the halo spills past the glass')
+  // The right hand, facing the wall, is the lower v: the buttons are at the lower end, near the bottom strip.
+  for (const id of ['mirror-button-1', 'mirror-button-2']) assert.ok(light(id).v[1] < (glass.v[0] + glass.v[1]) / 2 && light(id).y[1] < glass.y[0] + .15, id)
 })

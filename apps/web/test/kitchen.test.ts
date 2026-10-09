@@ -76,6 +76,9 @@ test('the sink is in the second counter, inside its top, with a tap at its back 
   assert.ok(Math.abs(sink.y[0] - top.y[1]) < 1e-9)
   assert.ok(tap.v[0] >= sink.v[1] - 1e-9 && tap.v[1] <= top.v[1], 'the tap is behind the basin, on the counter')
   assert.ok(tap.u[0] >= sink.u[0] && tap.u[1] <= sink.u[1], 'centred on it')
+  // The tap is in the middle of the island (owner), and the sink is centred on it.
+  const middle = (top.u[0] + top.u[1]) / 2
+  assert.ok(Math.abs((tap.u[0] + tap.u[1]) / 2 - middle) < 1e-9 && Math.abs((sink.u[0] + sink.u[1]) / 2 - middle) < 1e-9, 'the middle of the island')
 })
 
 test('the oven and the cooktop start 45 cm from the wall on the hall side, on the run along the party wall', () => {
@@ -154,4 +157,15 @@ test('the resting worktop is 45 cm wide on the hall side of the cooktop, and the
   assert.ok(Math.abs(cooktop.u[0] - base.u[0] - .45) < 1e-9)
   const width = KITCHEN_LIVING.u[1] - KITCHEN_LIVING.u[0]
   assert.ok(width >= 3.1 && width <= 3.15, `${width}`)
+})
+
+test('the backsplash is a slab of Toscana Vena on the wall, from the worktop to the cabinets, along the whole base run', () => {
+  const splash = KITCHEN_UPPER_BOXES.find(item => item.id === 'backsplash')!, worktop = box('worktop'), cabinet = KITCHEN_UPPER_BOXES.find(item => item.id === 'upper-bottom')!
+  assert.equal(splash.pattern, TOSCANA_VENA_SLAB)
+  assert.ok(splash.wall)
+  assert.ok(Math.abs(splash.y[0] - worktop.y[1]) < 1e-9 && Math.abs(splash.y[1] - cabinet.y[0]) < 1e-9, 'between the worktop and the cabinets')
+  assert.ok(Math.abs(splash.u[0] - box('base').u[0]) < 1e-9 && Math.abs(splash.u[1] - box('base').u[1]) < 1e-9, 'along the base run')
+  assert.ok(Math.abs(splash.v[1] - box('base').v[1]) < 1e-9 && splash.v[1] - splash.v[0] <= .03, 'flat on the wall')
+  const piece = furnishingsOn('first').find(item => item.id === 'kitchen-backsplash')!
+  assert.ok(piece.kitchen?.pattern === TOSCANA_VENA_SLAB && !piece.solid)
 })
