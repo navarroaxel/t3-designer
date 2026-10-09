@@ -339,12 +339,12 @@ export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (st
 
 /**
  * The dishwasher (owner): a Whirlpool slimline of 45 cm, stainless steel, 0.85 m tall and 0.59 m deep, in the island between the sink and the wall behind it (the hall wall), close to
- * the wall but not touching it (owner: at least 1 cm, for the carcass of the cabinet it stands in), with its door on the aisle side like the sink's, flush with the top's edge (2 cm proud of the cabinets, which are set back under the top). It is a Blender model
+ * the wall but not touching it (owner: at least 1 cm, for the carcass of the cabinet it stands in), with its door on the aisle side like the sink's, flush with the cabinets' fronts, and on the same plinth as they are (owner): its own 10 cm plinth is set 5 cm back, as theirs. It is a Blender model
  * (scripts/blender/jobs/dishwasher-job.json) standing inside the island's cabinet, of which only its door shows.
  */
 export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .02, model: '/models/house/dishwasher.glb' }
 export const DISHWASHER_BOX = {
   u: [counterU[0] + DISHWASHER.fromWall, counterU[0] + DISHWASHER.fromWall + DISHWASHER.width] as [number, number],
-  v: [COUNTER_V[1] + S.topOverhang - DISHWASHER.depth, COUNTER_V[1] + S.topOverhang] as [number, number],
+  v: [COUNTER_V[1] - DISHWASHER.depth, COUNTER_V[1]] as [number, number],
   y: [floor, floor + DISHWASHER.height] as [number, number],
 }

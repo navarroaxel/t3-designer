@@ -335,7 +335,9 @@ test('the dishwasher (45 by 85 by 59 cm) is in the island between the sink and t
   assert.ok(Math.abs(dishwasher.u[1] - dishwasher.u[0] - .45) < 1e-9 && Math.abs(dishwasher.y[1] - dishwasher.y[0] - .85) < 1e-9 && Math.abs(dishwasher.v[1] - dishwasher.v[0] - .59) < 1e-9, '45 by 85 by 59 cm')
   assert.ok(dishwasher.u[1] <= sink.u[0] - .05, 'on the wall\'s side of the sink, with the sink not over it')
   assert.ok(dishwasher.u[0] - counter.u[0] >= .01 && dishwasher.u[0] - counter.u[0] <= .03, 'close to the wall behind the island, but at least 1 cm off it for the cabinet\'s side')
-  assert.ok(Math.abs(dishwasher.v[1] - top.v[1]) < 1e-9 && dishwasher.v[1] > counter.v[1], 'its door flush with the top\'s edge, proud of the cabinet set back under it')
+  assert.ok(Math.abs(dishwasher.v[1] - counter.v[1]) < 1e-9, 'its door flush with the cabinet\'s front, which the top overhangs')
+  // Its plinth is the island\'s: 10 cm tall and set 5 cm back from the front, so its kick plate lines up with the banquina\'s (the model\'s own is set 5 cm back).
+  assert.ok(Math.abs(box('counter-plinth').v[1] - (dishwasher.v[1] - .05)) < 1e-9 && Math.abs(box('counter').y[0] - FLOOR_HEIGHT - .1) < 1e-9, 'the same banquina')
   assert.ok(dishwasher.v[0] > counter.v[0] && dishwasher.y[1] <= top.y[0] + 1e-9, 'inside the island, under the top')
 })
 

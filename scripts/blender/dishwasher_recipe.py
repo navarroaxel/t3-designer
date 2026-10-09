@@ -34,7 +34,7 @@ def build(request, _default_material):
     steel = paint(bpy, 'Brushed steel', '#b9bcc0', .38, .9)
     black = paint(bpy, 'Control strip', '#0d0e10', .35, .15)
     body_grey = paint(bpy, 'Body', '#3b3d41', .55, .3)
-    plinth = paint(bpy, 'Plinth', '#6e7176', .55, .3)
+    plinth = paint(bpy, 'Plinth', '#2f3033', .55, .2)
     tray = paint(bpy, 'Handle tray', '#2a2c2f', .5, .5)
     key = paint(bpy, 'Key', '#2e3033', .5, .2)
     display = paint(bpy, 'Display', '#f2f6fa', .3, emission=(.85, .92, 1))
@@ -66,12 +66,12 @@ def build(request, _default_material):
 
     half = w / 2
     door = .02
-    # The body behind the door, with its top; the plinth at the foot, set back a little.
-    box('Body', body_grey, (-half + .004, half - .004), (front + door, d / 2), (z(.93), z(.04)), .006)
-    box('Plinth', plinth, (-half + .01, half - .01), (front + .035, d / 2 - .03), (0, z(.93)), .003)
+    # The body behind the door, with its top; the plinth at the foot, 10 cm tall and set 5 cm back like the kitchen's own plinth, the banquina, that it stands on.
+    box('Body', body_grey, (-half + .004, half - .004), (front + door, d / 2), (z(.882), z(.04)), .006)
+    box('Plinth', plinth, (-half + .01, half - .01), (front + .05, d / 2 - .03), (0, z(.882)), .003)
     # The control strip across the top of the front, black, with its keys and the lit display; the steel door under it.
     box('Control strip', black, (-half, half), (front, front + door), (z(.21), z(.045)), .004)
-    box('Door', steel, (-half, half), (front, front + door), (z(.935), z(.21)), .004)
+    box('Door', steel, (-half, half), (front, front + door), (z(.882), z(.21)), .004)
     # The handle tray across the top of the door: a recess, dark, with its lip.
     box('Handle tray', tray, (-half + .025, half - .025), (front - .012, front + .004), (z(.285), z(.235)), .003)
     box('Display', display, (-.028, .028), (front - .0015, front), (z(.16), z(.135)), .0005)
