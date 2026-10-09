@@ -67,18 +67,19 @@ test('the worktop and the counter top are Purastone Toscana Vena: an ivory slab 
   assert.ok(red > green && green > blue && blue > 170, 'a warm ivory base')
 })
 
-test('the sink is in the second counter, inside its top, with a tap at its back edge', () => {
+test('the sink is in the second counter, inside its top, with a tap in the middle of the island, beside the basin', () => {
   const sink = box('sink'), top = box('counter-top'), tap = box('tap')
   assert.ok(sink.u[0] >= top.u[0] && sink.u[1] <= top.u[1] && sink.v[0] >= top.v[0] && sink.v[1] <= top.v[1], 'the sink is within the counter top')
   // On the counter with the stools, not on the run along the wall.
   assert.ok(overlap(sink.v, box('base').v) < 1e-6)
-  // Flush with the top, and the tap stands at the sink's back edge.
+  // Flush with the top.
   assert.ok(Math.abs(sink.y[0] - top.y[1]) < 1e-9)
-  assert.ok(tap.v[0] >= sink.v[1] - 1e-9 && tap.v[1] <= top.v[1], 'the tap is behind the basin, on the counter')
-  assert.ok(tap.u[0] >= sink.u[0] && tap.u[1] <= sink.u[1], 'centred on it')
-  // The tap is in the middle of the island (owner), and the sink is centred on it.
+  // The tap is in the middle of the island (owner), on the counter, on the basin's long side away from the oven; the basin is at the edge on the oven's side.
   const middle = (top.u[0] + top.u[1]) / 2
-  assert.ok(Math.abs((tap.u[0] + tap.u[1]) / 2 - middle) < 1e-9 && Math.abs((sink.u[0] + sink.u[1]) / 2 - middle) < 1e-9, 'the middle of the island')
+  assert.ok(Math.abs((tap.u[0] + tap.u[1]) / 2 - middle) < 1e-9, 'the middle of the island')
+  assert.ok(tap.u[0] >= sink.u[0] && tap.u[1] <= sink.u[1] && tap.v[1] <= sink.v[0] && tap.v[0] >= top.v[0], 'the tap is on the long side of the basin away from the oven')
+  assert.ok(COUNTER_V[1] - sink.v[1] <= .1, 'the basin is at the edge on the oven side')
+  assert.ok(overlap(sink.u, box('oven').u) > .15, 'partly across from the oven')
 })
 
 test('the oven and the cooktop start 45 cm from the wall on the hall side, on the run along the party wall', () => {

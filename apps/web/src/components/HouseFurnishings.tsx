@@ -109,9 +109,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut }:
   const fridgeModel = !!fridge && !fridgeOpen && (cut === undefined || cut >= fridge.y[1])
   return <group name="house-furnishings" position={[0, absolute ? 0 : -FLOOR_ELEVATION[floor], 0]}>
     {floor === 'first' && (cut === undefined || cut > KITCHEN_TAP.base + .46) && <ModelBoundary fallback={null}><Suspense fallback={null}>
-      {/* The sink's basin, under the opening in the top (its lip is under the slab), and the brass tap on the top at the basin's back edge. */}
+      {/* The sink's basin, under the opening in the top (its lip is under the slab), and the brass tap on the top at the basin's long side away from the oven, turned half a turn so its arch reaches over the basin (the model's arch points toward -v, and the basin is now toward +v from the tap). */}
       <PlacedModel url="/models/house/kitchen-sink.glb" turn={0} position={[(KITCHEN_SINK.u[0] + KITCHEN_SINK.u[1]) / 2, KITCHEN_SINK.top - .03 - KITCHEN_SINK.depth, -(KITCHEN_SINK.v[0] + KITCHEN_SINK.v[1]) / 2]} />
-      <PlacedModel url="/models/house/kitchen-tap.glb" turn={0} position={[KITCHEN_TAP.u + .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v + .0716]} />
+      <PlacedModel url="/models/house/kitchen-tap.glb" turn={Math.PI} position={[KITCHEN_TAP.u - .0315, KITCHEN_TAP.base, -KITCHEN_TAP.v - .0716]} />
     </Suspense></ModelBoundary>}
     {fridgeModel && <ModelBoundary fallback={null}><Suspense fallback={null}>
       <PlacedModel url="/models/house/fridge.glb" turn={0} position={[(fridge.u[0] + fridge.u[1]) / 2, fridge.y[0] - .04, -(fridge.v[1] - .334)]} />

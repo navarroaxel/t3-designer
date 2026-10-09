@@ -42,7 +42,7 @@ const baseV: [number, number] = [wallV - S.baseDepth, wallV]
 export const COUNTER_V: [number, number] = [baseV[0] - S.aisle - S.counterDepth, baseV[0] - S.aisle]
 // Against the wall behind the bathroom, like the render's second counter against its side wall.
 const counterU: [number, number] = [frontU, frontU + S.counterLength]
-// The sink and its tap are in the middle of the island (owner): the tap is at its middle, and the basin centred on it.
+// The tap is in the middle of the island (owner). The sink is used while cooking, so the basin is at the edge on the oven's side, and the tap stands on its long side away from the oven, in line with the island's middle.
 const islandMiddleU = counterU[0] + S.counterLength / 2
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
@@ -68,8 +68,8 @@ export const KITCHEN_BOXES: KitchenBox[] = [
   { id: 'counter', u: counterU, v: COUNTER_V, y: [floor, floor + S.baseHeight], color: WHITE },
   { id: 'counter-top', u: counterU, v: [COUNTER_V[0] - S.overhang, COUNTER_V[1]], y: [floor + S.baseHeight, floor + S.baseHeight + S.worktop], color: TOSCANA_VENA_COLOR, pattern: TOSCANA_VENA_SLAB },
   // The sink is in the second counter (owner), a ceramic basin flush with the top, with a brass tap at its back edge.
-  { id: 'sink', u: [islandMiddleU - .3, islandMiddleU + .3], v: [(COUNTER_V[0] + COUNTER_V[1]) / 2 - .2, (COUNTER_V[0] + COUNTER_V[1]) / 2 + .2], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
-  { id: 'tap', u: [islandMiddleU - .02, islandMiddleU + .02], v: [(COUNTER_V[0] + COUNTER_V[1]) / 2 + .22, (COUNTER_V[0] + COUNTER_V[1]) / 2 + .26], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .28], color: '#a67c3d' },
+  { id: 'sink', u: [islandMiddleU - .3, islandMiddleU + .3], v: [COUNTER_V[1] - .08 - .4, COUNTER_V[1] - .08], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .006], color: '#f4f1ea' },
+  { id: 'tap', u: [islandMiddleU - .02, islandMiddleU + .02], v: [COUNTER_V[1] - .08 - .4 - .06, COUNTER_V[1] - .08 - .4 - .02], y: [floor + S.baseHeight + S.worktop, floor + S.baseHeight + S.worktop + .28], color: '#a67c3d' },
   ...stoolCentres.map((centre, index) => ({
     id: `stool-${index + 1}`, u: [centre - S.stool / 2, centre + S.stool / 2] as [number, number],
     v: [COUNTER_V[0] - S.overhang + .05 - S.stool, COUNTER_V[0] - S.overhang + .05] as [number, number],
