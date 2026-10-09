@@ -12,6 +12,7 @@ import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOX } from './rack.ts'
 import { tvMountBoxes } from './tv-mount.ts'
+import { ACCESS_POINT_BOXES } from './access-point.ts'
 import { wallDataSocket, wallOutlet } from './outlets.ts'
 import { mediaBoxBoxes, passThroughBoxes } from './wall-fittings.ts'
 import { SPIN_DRYER_PARTS } from './spin-dryer.ts'
@@ -218,6 +219,8 @@ function firstFloor(): Furnishing[] {
   for (const box of KITCHEN_UPPER_BOXES) add(fromBox(box, 'kitchen-', { roughness: box.id === 'microwave' ? .35 : .6, taper: GLASS_CABINET.glass.taper, ...(box.pattern ? { kitchen: box } : {}), ...(box.id === 'microwave' || box.id === 'hood' ? { model: `/models/house/${box.id === 'hood' ? 'kitchen-hood' : 'microwave'}.glb`, turn: 0 } : {}) }))
   // The outlet behind the microwave, 1.5 m above the floor, on the party wall: turned to face the room, which is toward lower v.
   for (const part of wallOutlet('outlet-microwave', '-v', KITCHEN_LIVING.v[1], MICROWAVE_CENTRE_U, F, UPPER_CABINET.outletHeight)) add({ ...part, roughness: .6, solid: false, hung: true })
+  // The access point on the stair hall's ceiling.
+  for (const box of ACCESS_POINT_BOXES) add(fromBox(box, '', { roughness: box.glow ? .4 : .5 }))
   // The laundry: the washing machine and the spin dryer against the party wall, and the stair's first flight on the light-well side.
   for (const box of WASHING_MACHINE_BOXES) add({ ...box, roughness: .35, solid: box.y[0] - F < 1 })
   for (const part of SPIN_DRYER_PARTS) add({ id: `dryer-${part.id}`, u: part.u, v: part.v, y: part.y, color: part.color, metalness: part.metalness, roughness: .3, shape: part.shape === 'cylinder' ? 'ellipse' : undefined, solid: true })
