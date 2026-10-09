@@ -201,15 +201,15 @@
 .gen-key-bar::before { width: 10px !important; height: 10px !important; border: 0 !important; background: var(--gen-bar); border-radius: 2px; }
 .gen-legend .gen-key-mean::before { border-color: var(--gen-typical); border-top-style: dashed; }
 
-.gen-details { background: var(--gen-details-bg); border: 1px solid var(--gen-card-border); border-radius: 10px; padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.gen-details { background: var(--gen-details-bg); border: 1px solid var(--gen-card-border); border-radius: 10px; padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; overflow-x: auto; }
 .generation-workspace { grid-template-columns: minmax(0, 1fr) 304px; }
 .generation-workspace .solar-inspector { padding: 24px 22px; height: auto; max-height: none; }
 .generation-main { min-width: 0; }
-.gen-details header { display: flex; align-items: center; gap: 14px; }
-.gen-details header > div:first-child { flex: 1; }
+.gen-details header { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
+.gen-details header > div:first-child { flex: 1; min-width: 12em; }
 .gen-details h2 { margin: 2px 0 0; font-size: 16px; font-weight: 560; letter-spacing: -.01em; text-transform: none; color: inherit; }
 .gen-details .eyebrow { font-size: 9px; color: #9c895f; }
-.gen-tabs { display: flex; gap: 4px; }
+.gen-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
 .gen-tab-body { display: flex; flex-direction: column; gap: 10px; }
 .gen-context { margin: 0; font-size: 11px; color: #829077; }
 .gen-context::first-letter { text-transform: uppercase; }
