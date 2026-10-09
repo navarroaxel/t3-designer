@@ -18,7 +18,7 @@ const cut = FLOOR_HEIGHT + CUT_HEIGHT
 
 export const KITCHEN_SIZES = {
   baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .675, fridgeDepth: .668, fridgeHeight: 1.785, fridgeFreezerFrom: 0, fridgeDoor: .03,
-  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, topOverhang: .02, plinthHeight: .1, plinthRecess: .05, stool: .36, stoolHeight: .65,
+  counterDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, overhang: .3, topOverhang: .02, plinthHeight: .1, plinthRecess: .05, stool: .4, stoolHeight: .85,
 }
 /**
  * The freezer's height from its capacity (owner: 89 L net, 101 L gross). The gross volume is the liner: inner width times inner depth times
@@ -342,9 +342,10 @@ export const conduitLightsOn = (states: Readonly<Record<string, number>>) => (st
  * the wall but not touching it (owner: at least 1 cm, for the carcass of the cabinet it stands in), with its door on the aisle side like the sink's, flush with the cabinets' fronts, and on the same plinth as they are (owner): its own 10 cm plinth is set 5 cm back, as theirs. It is a Blender model
  * (scripts/blender/jobs/dishwasher-job.json) standing inside the island's cabinet, of which only its door shows.
  */
-export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .02, model: '/models/house/dishwasher.glb' }
+export const DISHWASHER = { width: .45, height: .85, depth: .59, fromWall: .02, proud: .005, model: '/models/house/dishwasher.glb' }
 export const DISHWASHER_BOX = {
   u: [counterU[0] + DISHWASHER.fromWall, counterU[0] + DISHWASHER.fromWall + DISHWASHER.width] as [number, number],
-  v: [COUNTER_V[1] - DISHWASHER.depth, COUNTER_V[1]] as [number, number],
+  // Its door stands 5 mm proud of the cabinets' fronts, so that the two do not draw on the same plane and flicker.
+  v: [COUNTER_V[1] + DISHWASHER.proud - DISHWASHER.depth, COUNTER_V[1] + DISHWASHER.proud] as [number, number],
   y: [floor, floor + DISHWASHER.height] as [number, number],
 }
