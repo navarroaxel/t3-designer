@@ -557,9 +557,10 @@ export const FLOOR_TILING: FloorTiling[] = [
 
 /**
  * The first-floor balcony (owner): 7.94 m wide along the front and 0.86 m deep in front of the street line. Its
- * position along the front, centred on the facade, and its 0.3 m slab edge are assumed. It stays in the first-floor cutaway.
+ * position along the front, centred on the facade, and its 0.3 m slab edge are assumed. A 0.3 m kerb (owner) runs up round its three outer sides, and the railing stands on it, up to the ceiling.
+ * It stays in the first-floor cutaway.
  */
-export const BALCONY = { width: 7.94, depth: .86, edge: .3 }
+export const BALCONY = { width: 7.94, depth: .86, edge: .3, curb: .3, curbThickness: .1 }
 /** The balcony floor is Navona natural, the bathroom's tile (owner). */
 FLOOR_TILING.push({ id: 'balcony', color: BATHROOM_FLOOR.color, pattern: NAVONA_TILES, rects: [[-5 - BALCONY.depth, -5, -BALCONY.width / 2, BALCONY.width / 2]] })
 

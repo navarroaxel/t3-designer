@@ -1,5 +1,5 @@
 import { HOUSE_CENTER, HOUSE_HALF_WIDTH, HOUSE_YAW, PARAPET_THICKNESS, ROOF_LEVEL } from '../data/building-site'
-import { BALCONY, OPENINGS, SIDE_OPENINGS } from '../data/house-plan'
+import { BALCONY, CUT_HEIGHT, OPENINGS, SIDE_OPENINGS, SLAB_THICKNESS } from '../data/house-plan'
 
 /**
  * Front elevation of the house, read from Street View (August 2025).
@@ -39,8 +39,8 @@ function Box({ part, castShadow }: { part: Part; castShadow: boolean }) {
 
 /** The azotea's front (owner): a 0.3 m wall, and over it a grey railing up to 1.2 m, drawn as bars and two rails. */
 const ROOF_RAILING = { u: -6 + PARAPET_THICKNESS / 2, top: ROOF_LEVEL + 1.2, bottom: ROOF_LEVEL + .3, bars: .12, color: '#8d9491' }
-/** The first-floor balcony's railing is the azotea's (owner): the same grey bars and two rails, 1 m above the slab. */
-const BALCONY_RAILING = { top: FLOOR + 1, bottom: FLOOR }
+/** The first-floor balcony's railing is the azotea's (owner): the same grey bars and two rails, standing on the balcony's 0.3 m kerb and going up to the ceiling. */
+const BALCONY_RAILING = { top: 2 * FLOOR - SLAB_THICKNESS, bottom: FLOOR + BALCONY.curb }
 
 /** A railing of bars and two rails along a run from `from` to `to`, in local house coordinates (u, v). */
 function Railing({ from, to, bottom, top }: { from: [number, number]; to: [number, number]; bottom: number; top: number }) {
@@ -65,12 +65,16 @@ function RoofRailing() {
   return <Railing from={[u, -HOUSE_HALF_WIDTH + PARAPET_THICKNESS]} to={[u, HOUSE_HALF_WIDTH - PARAPET_THICKNESS]} bottom={bottom} top={top} />
 }
 /** The balcony's railing, at the plan's absolute heights (from the ground floor's level): the walkthrough draws it in place of the plan's solid rail walls, which only stop the visitor. */
-export function BalconyRailing() {
-  const { top, bottom } = BALCONY_RAILING, back = FRONT - BALCONY.depth, half = BALCONY.width / 2
+export function BalconyRailing({ top = BALCONY_RAILING.top }: { top?: number }) {
+  const { bottom } = BALCONY_RAILING, back = FRONT - BALCONY.depth, half = BALCONY.width / 2, { curb, curbThickness: t } = BALCONY
+  const kerb = (u: number, depth: number, v: Span) => <Box part={{ u, depth, v, y: [FLOOR, FLOOR + curb], color: slabs[0].color }} castShadow />
   return <>
-    <Railing from={[back, -half]} to={[back, half]} bottom={bottom} top={top} />
-    <Railing from={[back, -half]} to={[FRONT, -half]} bottom={bottom} top={top} />
-    <Railing from={[back, half]} to={[FRONT, half]} bottom={bottom} top={top} />
+    {kerb(back + t / 2, t, [-half, half])}
+    {kerb(FRONT - BALCONY.depth / 2, BALCONY.depth, [-half, -half + t])}
+    {kerb(FRONT - BALCONY.depth / 2, BALCONY.depth, [half - t, half])}
+    <Railing from={[back + t / 2, -half + t / 2]} to={[back + t / 2, half - t / 2]} bottom={bottom} top={top} />
+    <Railing from={[back + t / 2, -half + t / 2]} to={[FRONT, -half + t / 2]} bottom={bottom} top={top} />
+    <Railing from={[back + t / 2, half - t / 2]} to={[FRONT, half - t / 2]} bottom={bottom} top={top} />
   </>
 }
 
@@ -81,7 +85,7 @@ export function HouseFacade({ physical = false, balconyOnly = false }: { physica
     {slabs.map(part => <Box key={part.u} part={part} castShadow={physical} />)}
     {!physical && balconyOnly && <>
       {/* The first-floor balcony alone, for the cutaway: its slab (above) and its railing. */}
-      <BalconyRailing />
+      <BalconyRailing top={FLOOR + CUT_HEIGHT} />
     </>}
     {!physical && !balconyOnly && <>
       {/* Rear wall of the first floor, facing the terrace and the light well: glass in its openings. */}
