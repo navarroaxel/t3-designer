@@ -202,15 +202,20 @@ const TERRACE_SW = (u: number) => houseSouthWestEdge(u) + TERRACE_WALL_THICKNESS
  * (its north-east half, the other being the stair's first flight) and the stairwell, a notch in the floor along the north-east party wall.
  * The perimeter is what the walkthrough treats as floor, so it follows all three.
  */
-function firstFloorPerimeter(withTerrace = true, withHole = true): Point2D[] {
+function firstFloorPerimeter(withTerrace = true, withHole = true, withOfficeRoof = false): Point2D[] {
   const hole = STAIRWELL_HOLE
   const terrace = withTerrace ? [local(AZOTEA_REAR, TERRACE_INNER), local(TERRACE_REAR, TERRACE_INNER), local(TERRACE_REAR, houseSouthWestEdge(TERRACE_REAR))] : []
   return [
     local(-5, FIRST_OUTLINE[0][1]), local(-5, -BALCONY_V), local(BALCONY_FRONT, -BALCONY_V), local(BALCONY_FRONT, BALCONY_V), local(-5, BALCONY_V),
     local(-5, HOUSE_HALF_WIDTH), ...(withHole ? [local(hole[0], HOUSE_HALF_WIDTH), local(hole[0], hole[2]), local(hole[1], hole[2]), local(hole[1], HOUSE_HALF_WIDTH)] : []),
-    local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness), ...terrace, local(AZOTEA_REAR, FIRST_OUTLINE[0][1]),
+    ...(withOfficeRoof
+      // Past the laundry, the slab goes on over the office's arm, to its back wall, and comes back along the light well's edge to the azotea's wall.
+      ? [local(HOUSE_REAR.northEast, HOUSE_HALF_WIDTH), local(HOUSE_REAR.northEast, GROUND_WELL_EDGE), local(AZOTEA_REAR, GROUND_WELL_EDGE)]
+      : [local(LAUNDRY_BACK, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness)]), ...terrace, local(AZOTEA_REAR, FIRST_OUTLINE[0][1]),
   ]
 }
+
+const FIRST_FLOOR_SLAB: Point2D[] = firstFloorPerimeter(true, true, true)
 
 /** The ground floor's outline with the light well filled in: the well is a patio the visitor can step out onto, bounded at the back by the lot behind. */
 function groundPerimeter(): Point2D[] {
@@ -278,16 +283,10 @@ export function ceilingPolygon(floor: Floor): Point2D[] {
 }
 
 /**
- * What the first floor's slab does not cover over the office's arm on the ground floor: the first floor reaches the arm only with the laundry's north-east half (to its back wall), so what is
- * left is the strip along the light well and everything past the laundry's back wall. The walkthrough draws its own ceiling there, at the ground floor's ceiling height; where the first floor's
- * slab is, that slab is the ceiling, and a second one there would fight it for the same pixels.
+ * The first floor's slab as the walkthrough draws it: the floor's outline, and over the office's arm, behind the light well, the same slab, which is the office's ceiling. The slab is
+ * not floor to walk on there (`walkOutline` leaves it out), and the perimeter the plan checks against keeps to the rooms.
  */
-const GROUND_ROOF: Point2D[] = [
-  local(WELL_BACK_U, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, GROUND_WELL_EDGE), local(HOUSE_REAR.northEast, HOUSE_HALF_WIDTH), local(LAUNDRY_BACK, HOUSE_HALF_WIDTH),
-  local(LAUNDRY_BACK, LAUNDRY_V0 - LAUNDRY.wallThickness), local(AZOTEA_REAR, LAUNDRY_V0 - LAUNDRY.wallThickness),
-]
-/** The same array at every call, so what draws it does not rebuild its geometry at each render. */
-export const groundRoofPolygon = (): Point2D[] => GROUND_ROOF
+export const firstFloorSlabPolygon = (): Point2D[] => FIRST_FLOOR_SLAB
 
 function buildFloor(floor: Floor): Apartment {
   const outline = floor === 'ground' ? GROUND_OUTLINE : FIRST_OUTLINE

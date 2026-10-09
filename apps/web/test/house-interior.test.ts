@@ -575,9 +575,10 @@ test('the island\'s switch is aimed at, not the wood behind it: E reaches the sw
   assert.equal(target(FLOOR_HEIGHT + 2)?.id, 'island-canopy-wall-panel', 'aimed over it, the wood')
 })
 
-test('the office has a ceiling: the first floor\'s slab where it reaches, the roof of its own where it does not, and never both', async () => {
-  const { groundRoofPolygon, HOUSE_FLOORS } = await import('../src/data/house-interior.ts')
+test('the first floor\'s slab covers the whole office, and leaves the light well open', async () => {
+  const { firstFloorSlabPolygon, HOUSE_FLOORS, walkOutline } = await import('../src/data/house-interior.ts')
   const { GROUND_OFFICE } = await import('../src/data/house-plan.ts')
+  const { GROUND_WELL_EDGE, WELL_BACK_U, HOUSE_REAR } = await import('../src/data/building-site.ts')
   const inside = (point: [number, number], polygon: readonly (readonly number[])[]) => {
     let result = false
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -586,11 +587,12 @@ test('the office has a ceiling: the first floor\'s slab where it reaches, the ro
     }
     return result
   }
-  const slab = HOUSE_FLOORS.first.perimeter, roof = groundRoofPolygon()
+  const slab = firstFloorSlabPolygon()
   for (let u = GROUND_OFFICE.u[0] + .05; u < GROUND_OFFICE.u[1]; u += .1) {
-    for (let v = GROUND_OFFICE.v[0] + .05; v < GROUND_OFFICE.v[1]; v += .1) {
-      const covered = [inside([u, -v], slab), inside([u, -v], roof)]
-      assert.equal(covered.filter(Boolean).length, 1, `(${u.toFixed(2)}, ${v.toFixed(2)}) has one ceiling: slab ${covered[0]}, roof ${covered[1]}`)
-    }
+    for (let v = GROUND_OFFICE.v[0] + .05; v < GROUND_OFFICE.v[1]; v += .1) assert.ok(inside([u, -v], slab), `(${u.toFixed(2)}, ${v.toFixed(2)}) is under the slab`)
   }
+  for (const v of [-.5, 0, .5, 1.5]) assert.ok(!inside([(WELL_BACK_U + HOUSE_REAR.northEast) / 2, -v], slab), `the light well at v = ${v} stays open`)
+  // The slab over the office is a ceiling, not a floor: the plan's perimeter and the walkable outline keep to the rooms.
+  assert.ok(!inside([HOUSE_REAR.northEast - .2, -(GROUND_WELL_EDGE + .5)], HOUSE_FLOORS.first.perimeter))
+  assert.ok(!inside([HOUSE_REAR.northEast - .2, -(GROUND_WELL_EDGE + .5)], walkOutline('first')))
 })
