@@ -1,6 +1,6 @@
-"""The kitchen's bar stool, from the owner's pictures: a Tolix-style stool in gloss black pressed steel with a low back. Four tapered legs that splay out toward the floor, a square pressed seat with a
-rolled edge and a hand slot at the back, two rails for the feet (a ring at mid height and a lower rung at the front and the back), and a low back: a round rod bent into a U, fixed to the seat at both
-ends, with a pressed plate in the middle bolted to the seat's edge with two chrome rivets. Units in metres; 0.40 m wide and deep, 0.85 m tall (the seat at 0.65 m).
+"""The kitchen's bar stool, from the owner's picture: a modern stool with a cream upholstered shell, the seat and a tall curved back in one soft piece, on four slim tapered legs in a light wood finish that splay
+out toward the floor, with a black square footrest ring between them. Units in metres; 0.46 m wide, 0.45 m deep and 1.00 m tall, the seat at 0.75 m. The picture has no sizes: the seat height is the one the first stool
+had, and the rest is estimated from the picture.
 
 Axes in Blender: X is the width, Y the depth (the front, the side one sits on, is -Y, which the exporter turns into +Z; the back is at +Y) and Z the height; it stands on its feet at Z = 0, centred.
 """
@@ -30,25 +30,18 @@ def build(request, _default_material):
     from mathutils import Vector
 
     w, h, d = request['dimensions']
-    black = paint(bpy, 'Gloss black steel', '#0d0e10', .22, .55)
-    chrome = paint(bpy, 'Chrome', '#d6d9dc', .15, 1)
+    cream = paint(bpy, 'Cream upholstery', '#e2d1ae', .92)
+    wood = paint(bpy, 'Light wood finish', '#d8ae78', .48)
+    black = paint(bpy, 'Black steel', '#1a1a1c', .4, .6)
     parts = []
-    half, back = w / 2, d / 2
-    seat_top = h * .765
-    seat_thick = .045
+    half = w / 2
+    seat_top, seat_thick = .75, .07
 
-    def link(name, mesh, finish):
-        data = bpy.data.meshes.new(name)
-        mesh.to_mesh(data)
-        mesh.free()
-        obj = bpy.data.objects.new(name, data)
-        bpy.context.collection.objects.link(obj)
-        data.materials.append(finish)
-        for polygon in data.polygons:
+    def smooth(obj):
+        for polygon in obj.data.polygons:
             polygon.use_smooth = True
-        parts.append(obj)
 
-    def box(name, finish, x, y, z, bevel=.003):
+    def box(name, finish, x, y, z, bevel=.003, segments=3):
         bpy.ops.mesh.primitive_cube_add(size=1, location=((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, (z[0] + z[1]) / 2))
         obj = bpy.context.object
         obj.name = name
@@ -60,62 +53,136 @@ def build(request, _default_material):
         size = min(x[1] - x[0], y[1] - y[0], z[1] - z[0])
         if bevel and size > .004:
             soft = obj.modifiers.new('Soft edges', 'BEVEL')
-            soft.width = min(bevel, size / 3)
-            soft.segments = 3
+            soft.width = min(bevel, size / 2.2)
+            soft.segments = segments
             bpy.ops.object.modifier_apply(modifier=soft.name)
-        for polygon in obj.data.polygons:
-            polygon.use_smooth = True
+        smooth(obj)
         obj.data.materials.append(finish)
         parts.append(obj)
+        return obj
 
-    # The four legs: tapered, wider at the seat, splaying out toward the floor, each a square-sectioned loft from the seat's underside to the floor.
+    # The seat: a soft, rounded slab. Its back half is the very ellipse the back's shell stands on, so that no corner of it sticks out of the shell; its front half is a rounder, wider curve, reaching 21.5 cm forward.
+    centre_y = .02
+    rx0, ry0 = half, .215
+    foot = .93
+    rx_b, ry_b, ry_front = rx0 * foot, ry0 * foot, centre_y + .215
+    outline = bmesh.new()
+    count = 96
+    ring_top = []
+    for i in range(count):
+        t = 2 * math.pi * i / count
+        c, sn = math.cos(t), math.sin(t)
+        if sn >= 0:
+            x, y = rx_b * c, centre_y + ry_b * sn
+        else:
+            n = 2.6
+            x = rx_b * math.copysign(abs(c) ** (2 / n), c)
+            y = centre_y + ry_front * math.copysign(abs(sn) ** (2 / n), sn)
+        ring_top.append(outline.verts.new((x, y, seat_top)))
+    face = outline.faces.new(ring_top)
+    extruded = bmesh.ops.extrude_face_region(outline, geom=[face])
+    bmesh.ops.translate(outline, vec=(0, 0, -seat_thick), verts=[v for v in extruded['geom'] if isinstance(v, bmesh.types.BMVert)])
+    bmesh.ops.recalc_face_normals(outline, faces=outline.faces[:])
+    seat_data = bpy.data.meshes.new('Seat')
+    outline.to_mesh(seat_data)
+    outline.free()
+    seat = bpy.data.objects.new('Seat', seat_data)
+    bpy.context.collection.objects.link(seat)
+    bpy.context.view_layer.objects.active = seat
+    bpy.ops.object.select_all(action='DESELECT')
+    seat.select_set(True)
+    soft_seat = seat.modifiers.new('Soft edges', 'BEVEL')
+    soft_seat.width = .022
+    soft_seat.segments = 5
+    soft_seat.limit_method = 'ANGLE'
+    bpy.ops.object.modifier_apply(modifier=soft_seat.name)
+    smooth(seat)
+    seat.data.materials.append(cream)
+    parts.append(seat)
+
+    # The back: a shell that wraps the seat's back half, in the picture's shape: it narrows a little toward the top, leans back, and its top edge falls toward the sides, so that it blends into the seat's edges.
+    # Built as a loft over the angle round the back (from -85 to 85 degrees about +Y) and the height, with an inner and an outer face, a rim and two ends, then smoothed (subdivision) so that the edges are soft.
+    shell_bottom, shell_top = seat_top - .035, h
+    around = math.radians(85)
+    thick0, thick1, lean, drop = .045, .03, .03, .15
+    steps_a, steps_z = 31, 11
+    shell = bmesh.new()
+    outer_grid, inner_grid = [], []
+    for i in range(steps_a):
+        u = -1 + 2 * i / (steps_a - 1)
+        angle = u * around
+        top = shell_top - drop * u * u
+        column_out, column_in = [], []
+        for j in range(steps_z):
+            f = j / (steps_z - 1)
+            z = shell_bottom + (top - shell_bottom) * f
+            # An egg: it stands on the seat's own back ellipse at the foot, widest high up, and a little narrower at the very top.
+            narrow = 1 - (1 - foot) * (1 - f) ** 2 - .05 * f ** 3
+            rx, ry = rx0 * narrow, ry0 * narrow
+            thick = thick0 + (thick1 - thick0) * f
+            cy = centre_y + lean * f * f
+            column_out.append(shell.verts.new((rx * math.sin(angle), cy + ry * math.cos(angle), z)))
+            column_in.append(shell.verts.new(((rx - thick) * math.sin(angle), cy + (ry - thick) * math.cos(angle), z)))
+        outer_grid.append(column_out)
+        inner_grid.append(column_in)
+    for i in range(steps_a - 1):
+        for j in range(steps_z - 1):
+            shell.faces.new((outer_grid[i][j], outer_grid[i + 1][j], outer_grid[i + 1][j + 1], outer_grid[i][j + 1]))
+            shell.faces.new((inner_grid[i][j], inner_grid[i][j + 1], inner_grid[i + 1][j + 1], inner_grid[i + 1][j]))
+        shell.faces.new((outer_grid[i][-1], outer_grid[i + 1][-1], inner_grid[i + 1][-1], inner_grid[i][-1]))
+        shell.faces.new((outer_grid[i][0], inner_grid[i][0], inner_grid[i + 1][0], outer_grid[i + 1][0]))
+    for i in (0, steps_a - 1):
+        for j in range(steps_z - 1):
+            shell.faces.new((outer_grid[i][j], outer_grid[i][j + 1], inner_grid[i][j + 1], inner_grid[i][j]) if i == 0 else (outer_grid[i][j], inner_grid[i][j], inner_grid[i][j + 1], outer_grid[i][j + 1]))
+    bmesh.ops.recalc_face_normals(shell, faces=shell.faces[:])
+    shell_data = bpy.data.meshes.new('Back shell')
+    shell.to_mesh(shell_data)
+    shell.free()
+    outer = bpy.data.objects.new('Back shell', shell_data)
+    bpy.context.collection.objects.link(outer)
+    bpy.context.view_layer.objects.active = outer
+    bpy.ops.object.select_all(action='DESELECT')
+    outer.select_set(True)
+    soft = outer.modifiers.new('Soft', 'SUBSURF')
+    soft.levels = 2
+    soft.render_levels = 2
+    bpy.ops.object.modifier_apply(modifier=soft.name)
+    smooth(outer)
+    outer.data.materials.append(cream)
+    parts.append(outer)
+
+    # The legs: four slim cones from under the seat to the floor, splaying out 4 cm.
     legs = bmesh.new()
+    sides = 14
+    def ring(centre, radius, z):
+        return [legs.verts.new((centre[0] + math.cos(2 * math.pi * i / sides) * radius, centre[1] + math.sin(2 * math.pi * i / sides) * radius, z)) for i in range(sides)]
+    top_z = seat_top - seat_thick
     for sx in (-1, 1):
         for sy in (-1, 1):
-            top_c = (sx * (half - .038), sy * (back - .038), seat_top - seat_thick)
-            foot_c = (sx * (half - .008), sy * (back - .008), 0)
-            top_r, foot_r = .024, .014
-            def square(centre, radius, z):
-                return [legs.verts.new((centre[0] + dx * radius, centre[1] + dy * radius, z)) for dx, dy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
-            upper, lower = square(top_c, top_r, top_c[2]), square(foot_c, foot_r, foot_c[2])
-            for index in range(4):
-                legs.faces.new((lower[index], lower[(index + 1) % 4], upper[(index + 1) % 4], upper[index]))
+            upper = ring((sx * .165, sy * .14), .0165, top_z)
+            lower = ring((sx * .205, sy * .18), .0085, 0)
+            for i in range(sides):
+                legs.faces.new((lower[i], lower[(i + 1) % sides], upper[(i + 1) % sides], upper[i]))
             legs.faces.new(lower[::-1])
+            legs.faces.new(upper)
     bmesh.ops.recalc_face_normals(legs, faces=legs.faces[:])
-    link('Legs', legs, black)
+    data = bpy.data.meshes.new('Legs')
+    legs.to_mesh(data)
+    legs.free()
+    leg_obj = bpy.data.objects.new('Legs', data)
+    bpy.context.collection.objects.link(leg_obj)
+    data.materials.append(wood)
+    smooth(leg_obj)
+    parts.append(leg_obj)
 
-    # The seat: a square pressed pan with a rolled edge and a hand slot at the back.
-    box('Seat', black, (-half, half), (-back, back), (seat_top - seat_thick, seat_top), .008)
-    box('Seat dish', black, (-half + .02, half - .02), (-back + .02, back - .02), (seat_top, seat_top + .003), .003)
-    box('Hand slot', paint(bpy, 'Slot', '#030304', .6), (-.045, .045), (back - .09, back - .065), (seat_top + .002, seat_top + .0035), .001)
-
-    # The footrests: a ring at mid height, and a lower rung at the front and the back.
-    mid, low, bar = h * .33, h * .15, .011
-    inner = half - .022
-    for y in (-inner, inner):
-        box('Mid rail', black, (-inner, inner), (y - bar / 2, y + bar / 2), (mid - bar / 2, mid + bar / 2), .004)
-        box('Low rung', black, (-half + .012, half - .012), (y * 1.05 - bar / 2, y * 1.05 + bar / 2), (low - bar / 2, low + bar / 2), .004)
-    for x in (-inner, inner):
-        box('Mid side rail', black, (x - bar / 2, x + bar / 2), (-inner, inner), (mid - bar / 2, mid + bar / 2), .004)
-
-    # The back: a rod bent into a U, up from both back corners of the seat and across, with the pressed plate in the middle, bolted to the seat's edge with two chrome rivets.
-    rod = .012
-    top_rod = h - rod
-    for x in (-1, 1):
-        box('Back upright', black, (x * (half - .02) - rod / 2, x * (half - .02) + rod / 2), (back - .03 - rod / 2, back - .03 + rod / 2), (seat_top, top_rod + rod), .004)
-    box('Back rod', black, (-half + .02 - rod / 2, half - .02 + rod / 2), (back - .03 - rod / 2, back - .03 + rod / 2), (top_rod, top_rod + rod), .004)
-    box('Back plate', black, (-.06, .06), (back - .016, back - .004), (seat_top - .06, seat_top + .16), .006)
-    box('Back plate relief', black, (-.04, .04), (back - .004, back), (seat_top + .02, seat_top + .13), .005)
-    for x in (-.04, .04):
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=.0065, location=(x, back + .001, seat_top - .035))
-        rivet = bpy.context.object
-        rivet.name = 'Rivet'
-        rivet.scale = (1, .5, 1)
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-        for polygon in rivet.data.polygons:
-            polygon.use_smooth = True
-        rivet.data.materials.append(chrome)
-        parts.append(rivet)
+    # The footrest ring: four square rods between the legs, low down, in black.
+    rod, rod_z = .012, .28
+    t = (top_z - rod_z) / top_z
+    gx, gy = .165 + .04 * t, .14 + .04 * t
+    for sy in (-1, 1):
+        box('Rail front/back', black, (-gx, gx), (sy * gy - rod / 2, sy * gy + rod / 2), (rod_z - rod / 2, rod_z + rod / 2), .004)
+    for sx in (-1, 1):
+        box('Rail side', black, (sx * gx - rod / 2, sx * gx + rod / 2), (-gy, gy), (rod_z - rod / 2, rod_z + rod / 2), .004)
 
     for obj in parts:
         obj.data.transform(obj.matrix_world)
@@ -131,7 +198,7 @@ def build(request, _default_material):
             vertex.co = Vector(tuple((vertex.co[i] - centre[i]) * target[i] / size[i] for i in range(3)))
         obj.data.update()
     return parts, {
-        'recipe': 'stool', 'version': 1, 'fidelityStatus': 'draft-needs-visual-review',
+        'recipe': 'stool', 'version': 3, 'fidelityStatus': 'draft-needs-visual-review',
         'normalization': 'outer-bounds-to-declared-dimensions', 'inputBounds': list(size), 'partCount': len(parts),
         'recipeSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
     }

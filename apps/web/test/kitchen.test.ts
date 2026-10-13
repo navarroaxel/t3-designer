@@ -40,12 +40,13 @@ test('the island\'s top is 2.20 by 1.00 m and its cabinets 0.70 m deep, against 
   assert.ok(box('counter').v[0] - box('counter-top').v[0] > .25 && box('counter').v[0] - box('counter-top').v[0] < .3, 'overhang toward the stools: 28 cm')
   for (const stool of stools) {
     assert.ok(stool.v[1] <= box('counter').v[0] + 1e-9, 'stools on the side away from the cabinets')
-    assert.ok(stool.y[1] < box('counter-top').y[0], 'and tucked under the top')
+    assert.ok(Math.abs(stool.u[1] - stool.u[0] - .46) < 1e-9 && Math.abs(stool.y[1] - stool.y[0] - 1) < 1e-9, 'the stool of the owner\'s picture: 46 cm wide and 1.00 m tall (estimated), its seat at 75 cm')
+    assert.ok(stool.y[0] + KITCHEN_SIZES.stoolSeat < box('counter-top').y[0], 'its seat (75 cm) tucked under the top')
   }
 })
 
-test('kitchen pieces do not overlap, except a top over its cabinet and stools under the overhang', () => {
-  const allowed = new Set(['fridge-handle:fridge-door', 'fridge-handle:fridge-freezer-door', 'fridge-dispenser:fridge-door', 'worktop:base', 'oven:base', 'cooktop:worktop', 'counter-top:counter'])
+test('kitchen pieces do not overlap, except a top over its cabinet and the stools, whose seats are under the overhang', () => {
+  const allowed = new Set(['fridge-handle:fridge-door', 'fridge-handle:fridge-freezer-door', 'fridge-dispenser:fridge-door', 'worktop:base', 'oven:base', 'cooktop:worktop', 'counter-top:counter', 'counter-top:stool-1', 'counter-top:stool-2', 'counter-top:stool-3'])
   for (const [index, a] of KITCHEN_BOXES.entries()) for (const b of KITCHEN_BOXES.slice(index + 1)) {
     const inside = overlap(a.u, b.u) > 1e-6 && overlap(a.v, b.v) > 1e-6 && overlap(a.y, b.y) > 1e-6
     if (inside) assert.ok(allowed.has(`${a.id}:${b.id}`) || allowed.has(`${b.id}:${a.id}`), `${a.id} overlaps ${b.id}`)

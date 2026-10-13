@@ -19,7 +19,7 @@ const cut = FLOOR_HEIGHT + CUT_HEIGHT
 export const KITCHEN_SIZES = {
   baseDepth: .6, baseHeight: .9, worktop: .03, columnWidth: .45, columnDepth: .6, fridgeWidth: .675, fridgeDepth: .668, fridgeHeight: 1.785, fridgeFreezerFrom: 0, fridgeDoor: .03,
   // The island's top is 2.20 by 1.00 m and its cabinets 0.70 m deep (owner): the top stands 0.28 m out toward the stools, and 2 cm out on the aisle side and the end.
-  counterDepth: .7, counterTopDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, topOverhang: .02, plinthHeight: .1, plinthRecess: .05, stool: .4, stoolHeight: .85,
+  counterDepth: .7, counterTopDepth: 1, counterLength: 2.2, aisle: 1.1, stoveFromHall: .45, ovenWidth: .55, cooktopWidth: .58, topOverhang: .02, plinthHeight: .1, plinthRecess: .05, stool: .46, stoolHeight: 1.0, stoolSeat: .75,
 }
 /**
  * The freezer's height from its capacity (owner: 89 L net, 101 L gross). The gross volume is the liner: inner width times inner depth times
@@ -53,7 +53,7 @@ const sinkMiddleU = (sinkU[0] + sinkU[1]) / 2
 const cabinetU: [number, number] = [counterU[0], counterU[1] - S.topOverhang]
 const stoolCentres = [0, 1, 2].map(index => counterU[0] + S.counterLength * (index + .5) / 3)
 
-const PLINTH = '#2f3033', OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#cdb07a'
+const PLINTH = '#2f3033', OAK = '#d8bf98', SILVER = '#c9cdd1', SIDE_GREY = '#8e9297', WHITE = '#e9e7e2', STOOL = '#e2d1ae'
 
 export const KITCHEN_BOXES: KitchenBox[] = [
   // The tall column stands on the same plinth, set back on its front (owner: the cabinets rest on it).
