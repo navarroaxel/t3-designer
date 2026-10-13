@@ -1,3 +1,4 @@
+import { LED_STRIP } from './led-strip.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { BATHROOM_DOOR, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from './house-plan.ts'
 
@@ -61,9 +62,6 @@ export const BATHROOM_NICHE = (() => {
   return { shelf, divider, depth, face, u: [face - depth, face] as [number, number], v: [centre - width / 2, centre + width / 2] as [number, number], y: [bottom, bottom + 2 * (shelf + divider)] as [number, number] }
 })()
 
-/** The bathroom's warm LED strips, under the vanity and in the niche, are one kind (owner): the same colour, 8 mm thick and 2 cm wide. */
-const LED_STRIP = { color: '#ffa645', thickness: .008, width: .02 }
-/** The warm amber of those strips, for the lights they cast. */
 export const BATHROOM_LED_COLOUR = LED_STRIP.color
 
 /** The porcelain boards of the niche, under each shelf (the lower one is its sill), in the recess (not in the room, so not among the fixtures). */

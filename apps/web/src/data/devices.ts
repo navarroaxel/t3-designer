@@ -1,6 +1,6 @@
 import { BALCONY_SWITCH_ID } from './balcony-lights.ts'
 import { BATHROOM_ACCENT_KEY, BATHROOM_MOTION_KEY, BATHROOM_SENSOR_ID, BATHROOM_SWITCH_ID } from './bathroom.ts'
-import { GLASS_DOOR_ID, ISLAND_SWITCH_ID, ISLAND_WOOD_ID, KITCHEN_SWITCH_ID } from './kitchen.ts'
+import { GLASS_DOOR_ID, ISLAND_SWITCH_ID, ISLAND_WOOD_ID, KITCHEN_ACCENT_KEY, KITCHEN_SWITCH_ID } from './kitchen.ts'
 
 /**
  * Everything a visitor of the walkthrough can work with, in one table. A visitor aims at a device and presses E (use it), X (take it away or put it back) or Q (the TV's arm). Each entry says what the
@@ -95,7 +95,12 @@ export const DEVICES: readonly Device[] = [
     hungHigh: id => !/^(bathroom-ceiling-(vanity-led|niche-(led|wash)-)|mirror-)/.test(id),
   }),
   lightSwitch(BATHROOM_SENSOR_ID, ['', ''], id => /^bathroom-ceiling-(light-|box|extractor|sensor)/.test(id), { use: undefined, sensor: { key: BATHROOM_MOTION_KEY } }),
-  lightSwitch(KITCHEN_SWITCH_ID, ['kitchenLightsOn', 'kitchenLightsOff'], id => /^kitchen-(conduit-|switch-)/.test(id)),
+  // The kitchen's switch is two-way too: E for the conduit box's spots and Q for the accent lights inside the glasses cabinet (low enough for the cutaway to draw them).
+  lightSwitch(KITCHEN_SWITCH_ID, ['kitchenLightsOn', 'kitchenLightsOff'], id => /^kitchen-(conduit-|switch-|upper-accent-)/.test(id), {
+    extend: { key: KITCHEN_ACCENT_KEY, labels: ['kitchenAccentOn', 'kitchenAccentOff'], initial: 1 },
+    extendLights: id => /^kitchen-(upper-accent-|switch-dot-2)/.test(id),
+    hungHigh: id => !/^kitchen-upper-accent-/.test(id),
+  }),
   lightSwitch(BALCONY_SWITCH_ID, ['balconyLightsOn', 'balconyLightsOff'], id => id.startsWith('balcony-'), { offModels: true }),
 ]
 
@@ -127,6 +132,8 @@ export const isLit = (states: States, pieceId: string) => {
 }
 /** Whether the bathroom's motion sensor sees the visitor, and its lights are on. */
 export const isMotionOn = (states: States) => read(states, BATHROOM_MOTION_KEY, 0)
+/** Whether the glasses cabinet's accent lights are on: the kitchen switch's Q. */
+export const isKitchenAccentOn = (states: States) => read(states, KITCHEN_ACCENT_KEY, 1)
 /** Whether the bathroom's accent lights, the strips under the vanity and in the niche, are on: the switch's Q. */
 export const isAccentOn = (states: States) => read(states, BATHROOM_ACCENT_KEY, 1)
 /** Whether the model of a piece is drawn in its `-off` twin: its switch is off. */

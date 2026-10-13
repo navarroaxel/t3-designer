@@ -1,3 +1,4 @@
+import { LED_STRIP } from './led-strip.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { CUT_HEIGHT, KITCHEN_LIVING, LIVING_DOOR, SLAB_THICKNESS, WALL_PAINT, TOSCANA_VENA_COLOR, TOSCANA_VENA_SLAB, type TilePattern } from './house-plan.ts'
 
@@ -166,6 +167,17 @@ function glassCabinetBoxes(): IslandPiece[] {
     { id: 'upper-glass-pane', u: glassInner, v: [front[0] + .007, front[0] + .007 + GLASS_CABINET.pane], y: [lowY + .005 + GLASS_CABINET.frame, glassRail - GLASS_CABINET.frame], color: '#c4dadf', opacity: .32 },
     { id: 'upper-glass-handle', u: [glassMiddleU - .05, glassMiddleU + .05], v: [front[0] - .012, front[0]], y: [lowY + .012, lowY + .02], color: '#c9cdd1' },
     ...cups,
+    // The accent lights of the two shelves (owner's request, as the bathroom's niche): a warm LED strip along the top of each, just behind the glass, and a wash of it on the back wall and on each shelf's board. The shelves are the cabinet's
+    // bottom and its shelf; the tops are the shelf's underside and the rail's. Switched with the kitchen's switch (Q).
+    ...[glassShelf, glassRail].flatMap((top, index): IslandPiece[] => {
+      const bottom = index === 0 ? lowY + P : glassShelf + P
+      return [
+        { id: `upper-accent-led-${index + 1}`, u: glassInner, v: [front[1] + .02, front[1] + .02 + LED_STRIP.width], y: [top - LED_STRIP.thickness, top], color: LED_STRIP.color, glow: true },
+        { id: `upper-accent-wash-${index + 1}`, u: glassInner, v: [upperV[1] - .002, upperV[1]], y: [bottom, top], color: LED_STRIP.color, glow: true, opacity: .6 },
+        // The strip's light on the shelf's board under it, a warm glow over the board where the glasses stand.
+        { id: `upper-accent-board-${index + 1}`, u: glassInner, v: [front[1] + .01, upperV[1] - .01], y: [bottom, bottom + .002], color: LED_STRIP.color, glow: true, opacity: .45 },
+      ]
+    }),
   ]
 }
 export const KITCHEN_UPPER_BOXES: IslandPiece[] = [
@@ -317,10 +329,15 @@ export const KITCHEN_CONDUIT_BOXES: IslandPiece[] = [
  */
 export const KITCHEN_SWITCH_ID = 'kitchen-switch-plate'
 const kitchenSwitchV = LIVING_DOOR.v[1] + .14, kitchenSwitchY = floor + 1.1
+/** What the second gang (Q) of the kitchen's switch works: the accent lights of the glasses cabinet; its state starts on. */
+export const KITCHEN_ACCENT_KEY = 'kitchen-accent'
 export const KITCHEN_SWITCH_BOXES: IslandPiece[] = [
-  { id: 'switch-plate', u: [frontU, frontU + .008], v: [kitchenSwitchV - .036, kitchenSwitchV + .036], y: [kitchenSwitchY - .036, kitchenSwitchY + .036], color: '#f3f2ee' },
-  { id: 'switch-rocker', u: [frontU + .008, frontU + .011], v: [kitchenSwitchV - .014, kitchenSwitchV + .014], y: [kitchenSwitchY - .024, kitchenSwitchY + .024], color: '#d9d8d3' },
-  { id: 'switch-dot', u: [frontU + .008, frontU + .0085], v: [kitchenSwitchV + .024, kitchenSwitchV + .029], y: [kitchenSwitchY + .024, kitchenSwitchY + .029], color: '#ffcf8a', glow: true },
+  // A two-gang plate: the rocker nearer the door (E) works the conduit box's lights, the other (Q) the glasses cabinet's accent lights; each has its little light.
+  { id: 'switch-plate', u: [frontU, frontU + .008], v: [kitchenSwitchV - .066, kitchenSwitchV + .066], y: [kitchenSwitchY - .036, kitchenSwitchY + .036], color: '#f3f2ee' },
+  { id: 'switch-rocker', u: [frontU + .008, frontU + .011], v: [kitchenSwitchV - .052, kitchenSwitchV - .024], y: [kitchenSwitchY - .024, kitchenSwitchY + .024], color: '#d9d8d3' },
+  { id: 'switch-dot', u: [frontU + .008, frontU + .0085], v: [kitchenSwitchV - .014, kitchenSwitchV - .009], y: [kitchenSwitchY + .024, kitchenSwitchY + .029], color: '#ffcf8a', glow: true },
+  { id: 'switch-rocker-2', u: [frontU + .008, frontU + .011], v: [kitchenSwitchV + .024, kitchenSwitchV + .052], y: [kitchenSwitchY - .024, kitchenSwitchY + .024], color: '#d9d8d3' },
+  { id: 'switch-dot-2', u: [frontU + .008, frontU + .0085], v: [kitchenSwitchV + .009, kitchenSwitchV + .014], y: [kitchenSwitchY + .024, kitchenSwitchY + .029], color: '#ffcf8a', glow: true },
 ]
 
 /**
