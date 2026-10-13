@@ -13,7 +13,7 @@ import { BATHROOM_DOOR, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from 
  * the run starts at the north-east corner and goes toward the south-west party wall, decreasing v. House frame [u, v].
  */
 /** A box, or an ellipse inscribed in it, narrowing toward the floor by `taper` (1 = straight sides). */
-export type BathroomBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; opacity?: number; metalness?: number; shape?: 'ellipse'; taper?: number }
+export type BathroomBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; opacity?: number; metalness?: number; shape?: 'ellipse'; taper?: number; cylinder?: boolean }
 
 const wall = FIRST_FLOOR_BATHROOM.u[1]
 const floor = FLOOR_HEIGHT
@@ -106,21 +106,44 @@ export const BATHROOM_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({
   v: FIRST_FLOOR_BATHROOM.v[0] + (FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0]) * (index + .5) / BATHROOM_LIGHT_BOX.count,
 }))
 /**
- * The front spot (owner's request): a surface-mounted spot on the mirror's wall, above the mirror, aimed into the room to light the face from the front. It is centred along the wall (the middle of the bathroom's
- * width, in v), 2.3 m up. A black housing 9 cm across and 5 cm deep with a glowing lens on its face. Heights above the ground-floor level.
+ * The front light (owner's request, from the owner's photo): a bar of three adjustable spots on a chrome backplate, on the mirror's wall above the mirror, aimed into the room to light the face from the front. It is
+ * centred along the wall (the middle of the bathroom's width, in v), 2.3 m up. The plate is 42 cm by 11 cm; each head is a brushed-steel cylinder 5.5 cm across and 7.5 cm long on a short stub, with a chrome ring
+ * round a glowing lens. The sizes are assumed from the photo (the heads there are tilted; here they point straight out). Heights above the ground-floor level.
  */
-export const BATHROOM_FRONT_SPOT = { size: .09, depth: .05, lens: .006, height: 2.3 }
-export const BATHROOM_FRONT_SPOT_AT = { u: wall, v: (FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2, y: floor + BATHROOM_FRONT_SPOT.height }
-const spot = BATHROOM_FRONT_SPOT, spotAt = BATHROOM_FRONT_SPOT_AT
-const spotV: [number, number] = [spotAt.v - spot.size / 2, spotAt.v + spot.size / 2], spotY: [number, number] = [spotAt.y - spot.size / 2, spotAt.y + spot.size / 2]
-const BATHROOM_FRONT_SPOT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
-  { id: 'ceiling-spot-housing', u: [wall - spot.depth, wall], v: spotV, y: spotY, color: BLACK },
-  { id: 'ceiling-spot-lens', u: [wall - spot.depth - spot.lens, wall - spot.depth], v: [spotV[0] + .01, spotV[1] - .01], y: [spotY[0] + .01, spotY[1] - .01], color: '#fff6e6', glow: true },
-]
+export const BATHROOM_FRONT_SPOT = { plateWidth: .42, plateHeight: .11, plateDepth: .015, head: .055, headLength: .075, stub: .02, stubLength: .03, ring: .01, lens: .004, pitch: .13, height: 2.3 }
+const spot = BATHROOM_FRONT_SPOT
+/** How far the bar stands out of the wall, lens included. */
+export const BATHROOM_FRONT_SPOT_DEPTH = spot.plateDepth + spot.stubLength + spot.headLength + spot.ring + spot.lens
+export const BATHROOM_FRONT_SPOT_AT = { u: wall, v: (FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2, y: floor + spot.height }
+const spotAt = BATHROOM_FRONT_SPOT_AT
+const STEEL = '#b9bcc0', CHROME_PLATE = '#dcdfe2'
+/** A cylinder along u (`cylinder`: its diameter is the width of its v and y spans), or a box. */
+const spotBoxes = (): (BathroomBox & { glow?: boolean; cylinder?: boolean })[] => {
+  const across = (centre: number, size: number): [number, number] => [centre - size / 2, centre + size / 2]
+  const plate = { id: 'ceiling-spot-plate', u: [wall - spot.plateDepth, wall] as [number, number], v: across(spotAt.v, spot.plateWidth), y: across(spotAt.y, spot.plateHeight), color: CHROME_PLATE, metalness: .8 }
+  const heads = [-1, 0, 1].flatMap(step => {
+    const v = spotAt.v + step * spot.pitch, n = step + 2
+    let u1 = wall - spot.plateDepth
+    const along = (length: number): [number, number] => { const span: [number, number] = [u1 - length, u1]; u1 -= length; return span }
+    return [
+      { id: `ceiling-spot-stub-${n}`, u: along(spot.stubLength), v: across(v, spot.stub), y: across(spotAt.y, spot.stub), color: STEEL, metalness: .7, cylinder: true },
+      { id: `ceiling-spot-head-${n}`, u: along(spot.headLength), v: across(v, spot.head), y: across(spotAt.y, spot.head), color: STEEL, metalness: .6, cylinder: true },
+      { id: `ceiling-spot-ring-${n}`, u: along(spot.ring), v: across(v, spot.head + .005), y: across(spotAt.y, spot.head + .005), color: '#e6e8ea', metalness: .85, cylinder: true },
+      { id: `ceiling-spot-lens-${n}`, u: along(spot.lens), v: across(v, spot.head - .014), y: across(spotAt.y, spot.head - .014), color: '#fff6e6', glow: true, cylinder: true },
+    ]
+  })
+  return [plate, ...heads]
+}
+export const BATHROOM_FRONT_SPOT_BOXES = spotBoxes()
+/**
+ * The vanity floats, so a warm LED strip runs under it (owner's request), along its underside near the front edge, to light the floor. It is on the bathroom's switch with the downlights. It hangs below
+ * the cut, so it is drawn in the cutaway too.
+ */
+export const VANITY_LED_BOX: BathroomBox & { glow: true } = { id: 'ceiling-vanity-led', u: [vanityU[0] + .03, vanityU[0] + .05], v: [vanityV[0] + .03, vanityV[1] - .03], y: [floor + S.vanityFloat - .008, floor + S.vanityFloat], color: '#ffe0b0', glow: true }
+export const VANITY_LED_LIGHT = { u: vanityU[0] + .04, v: (vanityV[0] + vanityV[1]) / 2, y: floor + S.vanityFloat - .03 }
 export const BATHROOM_LIGHT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
   { id: 'ceiling-box', u: lightBoxU, v: FIRST_FLOOR_BATHROOM.v, y: lightBoxY, color: '#f1efe9' },
   ...BATHROOM_LIGHT_POSITIONS.map((at, index) => ({ id: `ceiling-light-${index + 1}`, u: [at.u - BATHROOM_LIGHT_BOX.light / 2, at.u + BATHROOM_LIGHT_BOX.light / 2] as [number, number], v: [at.v - BATHROOM_LIGHT_BOX.light / 2, at.v + BATHROOM_LIGHT_BOX.light / 2] as [number, number], y: [lightBoxY[0] - .004, lightBoxY[0] + .002] as [number, number], color: '#fff6e6', glow: true, round: true })),
-  ...BATHROOM_FRONT_SPOT_BOXES,
 ]
 
 /**

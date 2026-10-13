@@ -1,7 +1,7 @@
 import { DEVICES, TV_IDS, dependsOnDevice, isArmExtended, isInPlace } from './devices.ts'
 import { DOG, DOG_BOX } from './dog.ts'
 import { BALCONY_BOXES, BALCONY_LIGHT_POSITIONS } from './balcony-lights.ts'
-import { BATHROOM_BOXES, BATHROOM_LIGHT_BOXES, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, MIRROR_LIGHT_BOXES } from './bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_FRONT_SPOT_BOXES, BATHROOM_LIGHT_BOXES, VANITY_LED_BOX, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
@@ -201,6 +201,14 @@ function firstFloor(): Furnishing[] {
   for (const part of wallOutlet('outlet-kitchen-rear', '-u', KITCHEN_LIVING.u[1], rearOutletV, F)) add({ ...part, roughness: .6, solid: false, hung: true })
   // The bathroom's light box on the wall facing the mirror, with its three recessed LED downlights; drawn only in the walkthrough (it hangs above the cut).
   for (const box of [...BATHROOM_LIGHT_BOXES, ...BATHROOM_SWITCH_BOXES]) add(fromBox(box, 'bathroom-', { roughness: box.glow ? .4 : .9, hung: true }))
+  // The front light over the mirror: a chrome plate and three heads. A head is a cylinder along u: the ellipse is drawn about the vertical, so it is laid on its side (roll) and its u span carries the diameter and its y span the length.
+  for (const box of BATHROOM_FRONT_SPOT_BOXES) {
+    const piece = fromBox(box, 'bathroom-', { roughness: box.glow ? .4 : box.metalness ? .3 : .9, hung: true, ...(box.metalness ? { metalness: box.metalness } : {}) })
+    if (!box.cylinder) { add(piece); continue }
+    const centre = (box.y[0] + box.y[1]) / 2, length = box.u[1] - box.u[0], at = (box.u[0] + box.u[1]) / 2, diameter = box.v[1] - box.v[0]
+    add({ ...piece, shape: 'ellipse', roll: Math.PI / 2, u: [at - diameter / 2, at + diameter / 2], y: [centre - length / 2, centre + length / 2] })
+  }
+  add(fromBox(VANITY_LED_BOX, 'bathroom-', { roughness: .4 }))
   for (const box of MIRROR_LIGHT_BOXES) add({ ...box, roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {
     // The toilet is one Blender model, its back to the wall and its front toward -u; the lid, the panel and the light are part of it.

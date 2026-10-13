@@ -4,7 +4,7 @@ import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { isOn } from '../src/data/devices.ts'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -135,12 +135,23 @@ test('the bathroom has a light switch inside, beside the door, between its edge 
   assert.ok(isOn({}, BATHROOM_SWITCH_ID) && !isOn({ [BATHROOM_SWITCH_ID]: 0 }, BATHROOM_SWITCH_ID))
 })
 
-test('the front spot is on the mirror\'s wall, centred along it, above the mirror, and is lit by the bathroom switch', () => {
-  const housing = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-spot-housing')!, lens = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-spot-lens')!
-  const middle = (FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2
-  assert.ok(Math.abs((housing.v[0] + housing.v[1]) / 2 - middle) < 1e-9, 'centred along the wall')
-  assert.equal(housing.u[1], FIRST_FLOOR_BATHROOM.u[1], 'on the mirror\'s wall')
+test('the front light is a bar of three spots on the mirror\'s wall, centred along it, above the mirror, and is lit by the bathroom switch', () => {
+  const plate = BATHROOM_FRONT_SPOT_BOXES.find(item => item.id === 'ceiling-spot-plate')!, lenses = BATHROOM_FRONT_SPOT_BOXES.filter(item => item.id.startsWith('ceiling-spot-lens-'))
+  const middle = (FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2, centre = (box: { v: [number, number] }) => (box.v[0] + box.v[1]) / 2
+  assert.ok(Math.abs(centre(plate) - middle) < 1e-9, 'centred along the wall')
+  assert.equal(plate.u[1], FIRST_FLOOR_BATHROOM.u[1], 'on the mirror\'s wall')
   assert.equal(BATHROOM_FRONT_SPOT_AT.v, middle)
-  assert.ok(housing.y[0] >= FLOOR_HEIGHT + MIRROR.top, 'above the mirror')
-  assert.ok(lens.glow && lens.u[1] <= housing.u[0] + 1e-9, 'a glowing lens on its face')
+  assert.ok(plate.y[0] >= FLOOR_HEIGHT + MIRROR.top, 'above the mirror')
+  assert.equal(lenses.length, 3); assert.ok(lenses.every(lens => lens.glow && lens.u[1] <= plate.u[0] + 1e-9), 'a glowing lens on each head, out of the plate')
+  assert.ok(Math.abs(centre(lenses[1]) - middle) < 1e-9, 'the middle head is on the middle')
+  assert.ok(Math.abs(centre(lenses[0]) + centre(lenses[2]) - 2 * middle) < 1e-9, 'the side heads are symmetric')
+  const ids = furnishingsOn('first').map(piece => piece.id)
+  assert.ok(ids.includes('bathroom-ceiling-spot-plate') && ids.includes('bathroom-ceiling-spot-lens-3'))
+})
+
+test('a warm LED strip runs under the floating vanity, lit by the bathroom switch', () => {
+  const body = BATHROOM_BOXES.find(item => item.id === 'vanity-body')!
+  assert.ok(VANITY_LED_BOX.glow && VANITY_LED_BOX.y[1] === body.y[0], 'on the vanity\'s underside')
+  assert.ok(VANITY_LED_BOX.v[0] >= body.v[0] && VANITY_LED_BOX.v[1] <= body.v[1] && VANITY_LED_BOX.u[0] >= body.u[0] && VANITY_LED_BOX.u[1] <= body.u[1], 'within its footprint')
+  assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-ceiling-vanity-led' && piece.glow))
 })
