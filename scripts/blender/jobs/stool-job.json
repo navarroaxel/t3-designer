@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "kind": "stool",
   "id": "stool",
-  "label": "Oak bar stool with a low ladder back and a sage-green upholstered seat",
+  "label": "Bar stool with a cream upholstered shell, slim tapered wooden legs and a black footrest ring",
   "units": "meters",
   "dimensions": [
-    0.41,
-    1.02,
-    0.41
+    0.46,
+    1.0,
+    0.45
   ],
   "material": {
-    "baseColor": "#d19653",
-    "roughness": 0.55
+    "baseColor": "#e2d1ae",
+    "roughness": 0.92
   },
   "source": {
-    "description": "Solid oak bar stool: a 41 cm square upholstered seat at 75 cm, 102 cm tall in all, a ladder back of two slats and a footrest ring (the owner's picture and sizes; the section of the legs and the rungs is estimated).",
-    "dimensionalStatus": "user-supplied",
+    "description": "The owner's picture: a modern bar stool, the seat and a curved back in one cream upholstered shell, on four slim tapered legs in a light wood finish and with a black square footrest ring. The picture has no sizes: the seat at 75 cm is the first stool's, the rest (46 cm wide, 45 deep, 1.00 m tall) is estimated.",
+    "dimensionalStatus": "estimated",
     "url": null
   },
   "parameters": {}
