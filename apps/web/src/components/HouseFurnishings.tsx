@@ -221,6 +221,8 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
     if (piece.kitchen) return <KitchenPiece key={piece.id} box={piece.kitchen} />
     const size: [number, number, number] = [piece.u[1] - piece.u[0], piece.y[1] - piece.y[0], piece.v[1] - piece.v[0]]
     const ellipse = piece.shape === 'ellipse'
+    // The linear pendant gives its light from points just under its bar: if the bar cast a shadow it would shut out everything above it, and the walls and the ceiling would show its wedges.
+    const givesLight = /^island-canopy-pendant-/.test(piece.id)
     const tv = piece.id === 'tv-main' || piece.id === 'tv-living'
     // X takes a TV off its mount: the mount stays on the wall, the TV (and its picture) is gone.
     if (tv && !isTvMounted(devices, piece.id)) return null
@@ -236,9 +238,9 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
           transparent={piece.opacity !== undefined} opacity={piece.opacity ?? 1} depthWrite={piece.opacity === undefined}
           {...(lit ? { emissive: tint ?? piece.color, emissiveIntensity: 1.6 * Math.min(1.6, 1 + (lightGain - 1) / 5), toneMapped: false } : {})} />
         // A soft edge catches the light and breaks the voxel look; plates, slots and ports stay sharp.
-        if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? rollRotation(piece) : undefined} castShadow receiveShadow>{material}</RoundedBox>
+        if (radius > 0) return <RoundedBox args={size} radius={radius} smoothness={3} position={position} rotation={piece.roll ? rollRotation(piece) : undefined} castShadow={!givesLight} receiveShadow>{material}</RoundedBox>
         return <mesh position={position} rotation={piece.disc ? [Math.PI / 2, 0, 0] : piece.roll ? rollRotation(piece) : undefined}
-          scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow receiveShadow>
+          scale={ellipse ? [size[0] / 2, 1, size[2] / 2] : undefined} castShadow={!givesLight} receiveShadow>
           {piece.disc ? <cylinderGeometry args={[size[0] / 2, size[0] / 2, size[2], 40]} /> : ellipse ? <cylinderGeometry args={[1, piece.taper ?? 1, size[1], 40]} /> : <boxGeometry args={size} />}
           {material}
         </mesh>
