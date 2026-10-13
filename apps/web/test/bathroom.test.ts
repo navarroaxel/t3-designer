@@ -253,3 +253,12 @@ test('the sensor sees the visitor inside the bathroom and in front of its door, 
   assert.ok(!at((u0 + u1) / 2, (v0 + v1) / 2, 0), 'not on the floor below')
   assert.ok(!at(u1 + .5, (v0 + v1) / 2), 'not behind the wall, in the living')
 })
+
+test('only the three downlights go by the sensor: the mirror\'s light and the strips are manual, whatever the sensor sees', () => {
+  const mirror = ['bathroom-ceiling-spot-lens-2', 'mirror-halo', 'mirror-led-top', 'mirror-led-left'], strips = ['bathroom-ceiling-vanity-led', 'bathroom-ceiling-niche-led-1', 'bathroom-ceiling-niche-led-2']
+  const seen = { [BATHROOM_MOTION_KEY]: 1 }, unseen = { [BATHROOM_MOTION_KEY]: 0 }
+  for (const id of [...mirror, ...strips]) assert.equal(isLit(seen, id), isLit(unseen, id), `${id} does not care for the sensor`)
+  // E works the mirror's light, backlight included; Q the strips.
+  assert.ok(mirror.every(id => isLit({}, id)) && mirror.every(id => !isLit({ [BATHROOM_SWITCH_ID]: 0 }, id)) && strips.every(id => isLit({ [BATHROOM_SWITCH_ID]: 0 }, id)))
+  assert.ok(strips.every(id => !isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id)) && mirror.every(id => isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id)))
+})
