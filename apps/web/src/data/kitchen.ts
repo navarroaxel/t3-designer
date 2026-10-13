@@ -247,20 +247,20 @@ export const KITCHEN_NOOK_BOXES: IslandPiece[] = [
 /**
  * The island's canopy: a lowered ceiling over the island, the "techito", all drywall (owner: the wood is not part of it; see ISLAND_WOOD, which comes on and off): a slab 10 cm thick whose
  * underside is at the height of the conduit box's, 2.75 m (owner), 1.82 m over the worktop, and above it, set in 3 cm all round, the drywall box, the "cajón", up to the real ceiling at 3.00 m. The 3 cm of the slab left bare round the box carry the
- * light line, a warm LED strip (no painted wash up the box's faces: owner). Three pendant lamps (owner: instead of recessed downlights), black domes on cords hung from the slab's underside in a row along the island's middle, 0.95 m down, their rims 0.80 m over the worktop, light it. The island's two outlets and
+ * light line, a warm LED strip (no painted wash up the box's faces: owner). One linear pendant (owner's picture, in place of the three domes that hung here, themselves in place of recessed downlights): a black bar 1.6 m long and 3.5 cm by 4 cm along the island's middle, on two thin cords from the slab's underside, 0.95 m down to its underside, with a warm LED slit along it; it gives its light from two points, a quarter of its length from each end. Its rim stood 0.80 m over the worktop, light it. The island's two outlets and
  * its switch are on the wall, which is plain again. Heights above the ground-floor level. They hang above the 1.5 m cut, so they are not in KITCHEN_BOXES.
  */
-export const ISLAND_CANOPY = { soffit: UPPER_CABINET.ceiling - KITCHEN_CONDUIT_BOX.height, slab: .1, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, light: { diameter: .3, count: 3, from: .4, to: 1.8, drop: .95 } }
+export const ISLAND_CANOPY = { soffit: UPPER_CABINET.ceiling - KITCHEN_CONDUIT_BOX.height, slab: .1, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, light: { length: 1.6, width: .035, height: .04, drop: .95, cordInset: .2, cord: .004, slit: .015, centre: 1.1, count: 2 } }
 export type IslandPiece = KitchenBox & { glow?: boolean; round?: boolean; opacity?: number; grain?: 'walnut'; model?: string }
 const islandTop = KITCHEN_BOXES.find(box => box.id === 'counter-top')!
 const canopyU: [number, number] = islandTop.u, canopyV: [number, number] = islandTop.v
 /** The island's axis across its 1 m top (owner: the outlets, the switch and the lights are symmetric about it). */
 export const ISLAND_AXIS_V = (canopyV[0] + canopyV[1]) / 2
 const canopySoffit = floor + ISLAND_CANOPY.soffit, canopyTop = floor + ISLAND_CANOPY.ceiling
-export const ISLAND_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({ length: ISLAND_CANOPY.light.count }, (_, index) => ({
-  u: canopyU[0] + ISLAND_CANOPY.light.from + (ISLAND_CANOPY.light.to - ISLAND_CANOPY.light.from) * index / (ISLAND_CANOPY.light.count - 1),
-  v: ISLAND_AXIS_V,
-}))
+const PENDANT = ISLAND_CANOPY.light
+const pendantCentre = canopyU[0] + PENDANT.centre
+/** The two points a quarter of the linear pendant's length from its ends, on the island's axis, where its light is given from. */
+export const ISLAND_LIGHT_POSITIONS: { u: number; v: number }[] = [-1, 1].map(side => ({ u: pendantCentre + side * PENDANT.length / 4, v: ISLAND_AXIS_V }))
 const drywallU: [number, number] = [canopyU[0], canopyU[1] - .03], drywallV: [number, number] = [canopyV[0] + .03, canopyV[1] - .03]
 const slabTop = canopySoffit + ISLAND_CANOPY.slab
 const ledY: [number, number] = [slabTop, slabTop + .008]
@@ -273,14 +273,24 @@ function ledSides(): IslandPiece[] {
     { id: 'canopy-led-end', u: [drywallU[1] + gap, drywallU[1] + gap + strip], v: [drywallV[0] - gap - strip, drywallV[1] + gap + strip], y: ledY, color: LED, glow: true },
   ]
 }
+/** The linear pendant's pieces: the bar, its LED slit, and the two cords (round) from the bar's top up to the slab's underside. Their ids start `canopy-pendant-`, which makes them the pendants' group of lights. */
+function linearPendant(): IslandPiece[] {
+  const bottom = canopySoffit - PENDANT.drop, top = bottom + PENDANT.height, half = PENDANT.length / 2
+  const across = (size: number): [number, number] => [ISLAND_AXIS_V - size / 2, ISLAND_AXIS_V + size / 2]
+  return [
+    { id: 'canopy-pendant-bar', u: [pendantCentre - half, pendantCentre + half], v: across(PENDANT.width), y: [bottom, top], color: '#141517' },
+    { id: 'canopy-pendant-led', u: [pendantCentre - half + .02, pendantCentre + half - .02], v: across(PENDANT.slit), y: [bottom - .002, bottom], color: LED, glow: true },
+    ...[-1, 1].map((side, index): IslandPiece => ({ id: `canopy-pendant-cord-${index + 1}`, u: [pendantCentre + side * (half - PENDANT.cordInset) - PENDANT.cord / 2, pendantCentre + side * (half - PENDANT.cordInset) + PENDANT.cord / 2], v: across(PENDANT.cord), y: [top, canopySoffit], color: '#0c0d0e', round: true })),
+  ]
+}
 export const ISLAND_CANOPY_BOXES: IslandPiece[] = [
   // The slab of the lowered ceiling, white drywall, the whole of the island's top, and over it the box, set in 3 cm all round.
   { id: 'canopy-slab', u: canopyU, v: canopyV, y: [canopySoffit, slabTop], color: WALL_PAINT.partition },
   { id: 'canopy-drywall', u: drywallU, v: drywallV, y: [slabTop, canopyTop], color: WALL_PAINT.partition },
   // The light line: a warm LED strip on the 3 cm of the slab left bare round the drywall box, against its foot on the three open sides, and a faint wash of light up the white faces.
   ...ledSides(),
-  // The pendant lamps: Blender models (scripts/blender/jobs/island-pendant-job.json, and `-off`), hung from the slab's underside on a cord, 0.30 m across the dome and 0.95 m from its rim to the ceiling.
-  ...ISLAND_LIGHT_POSITIONS.map((at, index): IslandPiece => ({ id: `canopy-pendant-${index + 1}`, u: [at.u - ISLAND_CANOPY.light.diameter / 2, at.u + ISLAND_CANOPY.light.diameter / 2], v: [at.v - ISLAND_CANOPY.light.diameter / 2, at.v + ISLAND_CANOPY.light.diameter / 2], y: [canopySoffit - ISLAND_CANOPY.light.drop, canopySoffit], color: '#141517', model: '/models/house/island-pendant.glb' }))
+  // The linear pendant (owner's picture): a black bar along the island's middle, 1.6 m long, hung from the slab's underside by two thin cords, with a warm LED slit along its underside.
+  ...linearPendant(),
 ]
 
 /**

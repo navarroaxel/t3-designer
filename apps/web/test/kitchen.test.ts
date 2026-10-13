@@ -247,19 +247,22 @@ test('the island\'s canopy is a drywall slab and box over the island, with no wo
   // The box over it, set in 3 cm all round, up to the real ceiling.
   assert.ok(Math.abs(drywall.y[0] - slab.y[1]) < 1e-9 && Math.abs(drywall.y[1] - (top.y[1] - .93 + ISLAND_CANOPY.ceiling)) < 1e-9, 'the box up to the ceiling')
   assert.ok(drywall.u[0] >= top.u[0] && drywall.u[1] <= top.u[1] - .029 && drywall.v[0] >= top.v[0] + .029 && drywall.v[1] <= top.v[1] - .029, 'set in 3 cm')
-  // Three downlights in a row along the island's middle, recessed in the slab's underside, lit.
-  const lights = pieces.filter(piece => piece.id.startsWith('canopy-pendant-'))
-  assert.equal(lights.length, 3); assert.equal(ISLAND_LIGHT_POSITIONS.length, 3)
-  // Three pendant lamps (owner: instead of recessed downlights): Blender models hung from the slab's underside on a cord, 0.95 m from the dome's rim up to it, in a row along the island's middle.
-  for (const lamp of lights) {
-    assert.ok(lamp.model === '/models/house/island-pendant.glb' && Math.abs(lamp.y[1] - slab.y[0]) < 1e-9 && Math.abs(lamp.y[1] - lamp.y[0] - ISLAND_CANOPY.light.drop) < 1e-9, `${lamp.id} hangs from the slab`)
-    assert.ok(lamp.u[0] >= top.u[0] && lamp.u[1] <= top.u[1] && lamp.v[0] >= top.v[0] && lamp.v[1] <= top.v[1], `${lamp.id} is over the island`)
-    assert.ok(lamp.y[0] - top.y[1] >= .75, `${lamp.id}'s rim is at least 75 cm over the worktop`)
-  }
-  assert.ok(!pieces.some(piece => piece.id.startsWith('canopy-light-')), 'no recessed downlights')
+  // One linear pendant (owner's picture, in place of the three domes): a black bar along the island's middle, 1.6 m, on two thin cords from the slab's underside, with a lit LED slit.
+  const parts = pieces.filter(piece => piece.id.startsWith('canopy-pendant-'))
+  const bar = parts.find(piece => piece.id === 'canopy-pendant-bar')!, slit = parts.find(piece => piece.id === 'canopy-pendant-led')!, cords = parts.filter(piece => piece.id.startsWith('canopy-pendant-cord-'))
+  assert.equal(parts.length, 4, 'a bar, its slit and two cords'); assert.equal(cords.length, 2); assert.equal(ISLAND_LIGHT_POSITIONS.length, 2)
+  assert.ok(!parts.some(piece => piece.model), 'no domes'); assert.ok(!pieces.some(piece => piece.id.startsWith('canopy-light-')), 'no recessed downlights')
+  assert.ok(Math.abs(bar.u[1] - bar.u[0] - 1.6) < 1e-9, '1.6 m long'); assert.ok(bar.v[1] - bar.v[0] < .05 && bar.y[1] - bar.y[0] < .05, 'a slim section')
+  assert.ok(Math.abs((bar.v[0] + bar.v[1]) / 2 - ISLAND_AXIS_V) < 1e-9, 'along the island\'s middle')
+  assert.ok(bar.u[0] >= top.u[0] && bar.u[1] <= top.u[1] && bar.v[0] >= top.v[0] && bar.v[1] <= top.v[1], 'over the island')
+  assert.ok(bar.y[0] - top.y[1] >= .75, 'the bar is at least 75 cm over the worktop')
+  for (const cord of cords) assert.ok(Math.abs(cord.y[1] - slab.y[0]) < 1e-9 && Math.abs(cord.y[0] - bar.y[1]) < 1e-9 && cord.round && cord.u[0] > bar.u[0] && cord.u[1] < bar.u[1], `${cord.id} hangs from the slab to the bar`)
+  assert.ok(slit.glow && slit.y[1] <= bar.y[0] + 1e-9 && slit.u[0] > bar.u[0] && slit.u[1] < bar.u[1], 'a lit slit under the bar')
+  assert.ok(Math.abs(bar.y[0] - (slab.y[0] - ISLAND_CANOPY.light.drop)) < 1e-9, 'the bar hangs where the domes\' rims did')
+  // Its light is given from two points on the axis, a quarter of its length from each end.
   assert.ok(new Set(ISLAND_LIGHT_POSITIONS.map(at => at.v)).size === 1, 'in a row')
-  const gaps = ISLAND_LIGHT_POSITIONS.map(at => at.u).sort((a, b) => a - b)
-  assert.ok(Math.abs(gaps[1] - gaps[0] - (gaps[2] - gaps[1])) < 1e-9, 'evenly spaced')
+  const ends = ISLAND_LIGHT_POSITIONS.map(at => at.u).sort((x, y) => x - y)
+  assert.ok(Math.abs(ends[1] - ends[0] - .8) < 1e-9 && Math.abs((ends[0] + ends[1]) / 2 - (bar.u[0] + bar.u[1]) / 2) < 1e-9, 'half a bar apart, centred on it')
 })
 
 test('the island has a light switch on the wall and a light line round the drywall box; the lights start on and the switch is a device', () => {
