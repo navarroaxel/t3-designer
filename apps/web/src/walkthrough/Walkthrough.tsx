@@ -21,6 +21,7 @@ import { perfRequested } from './perf'
 import { clockLabel, DEFAULT_KITCHEN_KELVIN, lightGain, KELVIN, TEST_TIMES, KITCHEN_LIGHT_GROUPS, kelvinColour, type KitchenLightGroup, type KitchenLightKelvin } from '../data/light-colour'
 import { saveScreenshot } from './screenshot'
 import { AmbientOcclusion } from '../components/AmbientOcclusion'
+import { BATHROOM_MOTION_KEY, BATHROOM_SENSOR, isNearBathroom } from '../data/bathroom'
 import { availableActions, deviceAction, isDevice, type Action } from '../data/devices'
 import './walkthrough.css'
 
@@ -101,7 +102,17 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const capture = useRef<(() => Promise<string | null>) | null>(null)
   const initialDoors = useMemo(() => initialWalkDoorStates(snapshot), [snapshot])
   const [visitDoors, setVisitDoors] = useState(() => ({ snapshot, values: initialDoors }))
-  const doorStates = visitDoors.snapshot === snapshot ? visitDoors.values : initialDoors
+  const visitStates = visitDoors.snapshot === snapshot ? visitDoors.values : initialDoors
+  // The bathroom's motion sensor: it sees the visitor near the bathroom and lights its downlights, and lets them go a while after.
+  const [pose, setPose] = useState<WalkPose | null>(null)
+  const near = !!pose && isNearBathroom(pose.x, pose.z, pose.feetOffset)
+  const [motion, setMotion] = useState(false)
+  useEffect(() => {
+    if (near) { setMotion(true); return }
+    const timer = setTimeout(() => setMotion(false), BATHROOM_SENSOR.hold * 1000)
+    return () => clearTimeout(timer)
+  }, [near])
+  const doorStates = useMemo(() => ({ ...visitStates, [BATHROOM_MOTION_KEY]: motion ? 1 : 0 }), [visitStates, motion])
   const initialWorld = useMemo(() => buildWalkWorld(snapshot, initialDoors, upper), [snapshot, initialDoors, upper])
   const world = useMemo(() => withWalkDoorStates(initialWorld, doorStates), [initialWorld, doorStates])
   const [roomId, setRoomId] = useState('')
@@ -111,7 +122,7 @@ export function Walkthrough({ snapshot, upper, onClose, initialMoment, reference
   const [spawnHeight, setSpawnHeight] = useState(1.65)
   const spawn = useMemo(() => !roomId && startAt && isWalkPositionFree(initialWorld, startAt.position, spawnHeight, startAt.elevation ?? 0) ? startAt : findWalkSpawn(initialWorld, roomId || undefined, spawnHeight), [initialWorld, roomId, spawnHeight, startAt])
   const [reset, setReset] = useState(0), [active, setActive] = useState(false), [entered, setEntered] = useState(false)
-  const [ready, setReady] = useState(false), [pose, setPose] = useState<WalkPose | null>(null)
+  const [ready, setReady] = useState(false)
   const [kitchenKelvin, setKitchenKelvin] = useState<KitchenLightKelvin>(DEFAULT_KITCHEN_KELVIN)
   const setGroupKelvin = (group: KitchenLightGroup | 'all', value: number) => setKitchenKelvin(previous => group === 'all' ? { pendants: value, line: value, conduit: value } : { ...previous, [group]: value })
   const [artificialLights, setArtificialLights] = useState(() => snapshot.customization?.lighting.artificialEnabled !== false), [torch, setTorch] = useState(false)

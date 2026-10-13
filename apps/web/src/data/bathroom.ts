@@ -192,21 +192,42 @@ export const BATHROOM_FRONT_SPOT_BOXES = spotBoxes()
  */
 export const VANITY_LED_BOX: BathroomBox & { glow: true } = { id: 'ceiling-vanity-led', u: [vanityU[0] + .03, vanityU[0] + .03 + LED_STRIP.width], v: [vanityV[0] + .03, vanityV[1] - .03], y: [floor + S.vanityFloat - LED_STRIP.thickness, floor + S.vanityFloat], color: LED_STRIP.color, glow: true }
 export const VANITY_LED_LIGHT = { u: vanityU[0] + .04, v: (vanityV[0] + vanityV[1]) / 2, y: floor + S.vanityFloat - .03 }
+/**
+ * The downlights go by a motion sensor (owner's request), a small white dome in the underside of the light box on the door's side: they light when the visitor comes near the bathroom, that is inside it or in
+ * the 1.5 m in front of its door (a sensor in the doorway sees in), and stay on `hold` seconds after. The switch by the door is two-way: E works the bar of spots over the mirror, Q the accent strips under the vanity
+ * and in the niche (`BATHROOM_ACCENT_KEY`, on at the start). The visit keeps the sensor's state under `BATHROOM_MOTION_KEY`.
+ */
+export const BATHROOM_SENSOR_ID = 'bathroom-ceiling-sensor'
+export const BATHROOM_MOTION_KEY = 'motion-bathroom'
+export const BATHROOM_ACCENT_KEY = 'bathroom-accent'
+export const BATHROOM_SENSOR = { hold: 12, reach: 1.5, side: .6, dome: .05 }
+/** Whether a visitor at (x, z) of the first floor's frame, with their feet `feetOffset` over the ground, is where the sensor sees them. */
+export function isNearBathroom(x: number, z: number, feetOffset: number): boolean {
+  if (feetOffset < floor - .3 || feetOffset > floor + .3 + 1) return false
+  const v = -z, [u0, u1] = FIRST_FLOOR_BATHROOM.u, [v0, v1] = FIRST_FLOOR_BATHROOM.v
+  const inside = x >= u0 && x <= u1 && v >= v0 && v <= v1
+  const inFront = x >= BATHROOM_DOOR.u[0] - BATHROOM_SENSOR.side && x <= BATHROOM_DOOR.u[1] + BATHROOM_SENSOR.side && v >= v1 && v <= v1 + BATHROOM_SENSOR.reach
+  return inside || inFront
+}
 export const BATHROOM_LIGHT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
   { id: 'ceiling-box', u: lightBoxU, v: FIRST_FLOOR_BATHROOM.v, y: lightBoxY, color: '#f1efe9' },
   ...BATHROOM_LIGHT_POSITIONS.map((at, index) => ({ id: `ceiling-light-${index + 1}`, u: [at.u - BATHROOM_LIGHT_BOX.light / 2, at.u + BATHROOM_LIGHT_BOX.light / 2] as [number, number], v: [at.v - BATHROOM_LIGHT_BOX.light / 2, at.v + BATHROOM_LIGHT_BOX.light / 2] as [number, number], y: [lightBoxY[0] - .004, lightBoxY[0] + .002] as [number, number], color: '#fff6e6', glow: true, round: true })),
   ...BATHROOM_EXTRACTOR_BOXES,
+  { id: 'ceiling-sensor', u: [(lightBoxU[0] + lightBoxU[1]) / 2 - BATHROOM_SENSOR.dome / 2, (lightBoxU[0] + lightBoxU[1]) / 2 + BATHROOM_SENSOR.dome / 2], v: [FIRST_FLOOR_BATHROOM.v[1] - .12 - BATHROOM_SENSOR.dome / 2, FIRST_FLOOR_BATHROOM.v[1] - .12 + BATHROOM_SENSOR.dome / 2], y: [lightBoxY[0] - .012, lightBoxY[0]], color: '#f1efe9', round: true },
 ]
 
 /**
- * The bathroom's light switch (owner's request): a single plate on the wall of the door, inside the bathroom, a hand's width past the door's edge on the side of the vanity (between the door and the
+ * The bathroom's light switch (owner's request): a plate on the wall of the door, inside the bathroom, a hand's width past the door's edge on the side of the vanity (between the door and the
  * vanity's end, 1.10 m up), with a rocker and a small light that shows while the lights are on. A visitor aims at it and presses E to switch the three downlights off and on; they start on. It is
  * a device of its own, `bathroom-switch-plate`. The plate faces the bathroom, toward lower v.
  */
 export const BATHROOM_SWITCH_ID = 'bathroom-switch-plate'
 const switchWall = FIRST_FLOOR_BATHROOM.v[1], switchU = BATHROOM_DOOR.u[1] + .14, switchY = FLOOR_HEIGHT + 1.1
 export const BATHROOM_SWITCH_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
-  { id: 'switch-plate', u: [switchU - .036, switchU + .036], v: [switchWall - .008, switchWall], y: [switchY - .036, switchY + .036], color: '#f3f2ee' },
-  { id: 'switch-rocker', u: [switchU - .014, switchU + .014], v: [switchWall - .011, switchWall - .008], y: [switchY - .024, switchY + .024], color: '#d9d8d3' },
-  { id: 'switch-dot', u: [switchU + .024, switchU + .029], v: [switchWall - .0085, switchWall - .008], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
+  // A two-gang plate: the left rocker (E) works the bar of spots over the mirror, the right one (Q) the strips under the vanity and in the niche; each has its little light.
+  { id: 'switch-plate', u: [switchU - .066, switchU + .066], v: [switchWall - .008, switchWall], y: [switchY - .036, switchY + .036], color: '#f3f2ee' },
+  { id: 'switch-rocker', u: [switchU - .052, switchU - .024], v: [switchWall - .011, switchWall - .008], y: [switchY - .024, switchY + .024], color: '#d9d8d3' },
+  { id: 'switch-dot', u: [switchU - .014, switchU - .009], v: [switchWall - .0085, switchWall - .008], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
+  { id: 'switch-rocker-2', u: [switchU + .024, switchU + .052], v: [switchWall - .011, switchWall - .008], y: [switchY - .024, switchY + .024], color: '#d9d8d3' },
+  { id: 'switch-dot-2', u: [switchU + .009, switchU + .014], v: [switchWall - .0085, switchWall - .008], y: [switchY + .024, switchY + .029], color: '#ffcf8a', glow: true },
 ]

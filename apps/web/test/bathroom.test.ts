@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
-import { isOn } from '../src/data/devices.ts'
+import { availableActions, deviceAction, isAccentOn, isLit, isMotionOn, isOn } from '../src/data/devices.ts'
 import { HOUSE_FLOORS, shellWallBoxes, wallNiches } from '../src/data/house-interior.ts'
 import { wallRotation } from '@t3-designer/geometry'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, BATHROOM_NICHE_BOXES, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, BATHROOM_NICHE_BOXES, BATHROOM_ACCENT_KEY, BATHROOM_MOTION_KEY, BATHROOM_SENSOR, isNearBathroom, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -216,4 +216,40 @@ test('the niche has a dim warm LED strip at the top of each shelf, inside the re
   }
   const lit = furnishingsOn('first').filter(piece => piece.id.startsWith('bathroom-ceiling-niche-led-'))
   assert.equal(lit.length, 2); assert.ok(lit.every(piece => piece.glow))
+})
+
+test('the bathroom\'s switch is two-way: E works the spots over the mirror, Q the strips under the vanity and in the niche', () => {
+  const plate = furnishingsOn('first').find(piece => piece.id === BATHROOM_SWITCH_ID)!
+  near(plate.u[1] - plate.u[0], .132); assert.ok(plate.u[1] < FIRST_FLOOR_BATHROOM.u[1] - BATHROOM_SIZES.vanityDepth, 'still clear of the vanity')
+  const actions = availableActions(BATHROOM_SWITCH_ID, {})
+  assert.deepEqual(actions, { use: 'bathroomLightsOff', extend: 'accentLightsOff' })
+  assert.deepEqual(deviceAction(BATHROOM_SWITCH_ID, 'extend', {}), { [BATHROOM_ACCENT_KEY]: 0 })
+  assert.equal(availableActions(BATHROOM_SWITCH_ID, { [BATHROOM_ACCENT_KEY]: 0 }).extend, 'accentLightsOn')
+  assert.ok(isAccentOn({}) && !isAccentOn({ [BATHROOM_ACCENT_KEY]: 0 }))
+  const strips = ['bathroom-ceiling-vanity-led', 'bathroom-ceiling-niche-led-1', 'bathroom-ceiling-niche-led-2', 'bathroom-switch-dot-2'], spots = ['bathroom-ceiling-spot-lens-1', 'bathroom-ceiling-spot-lens-3', 'bathroom-switch-dot']
+  const accentOff = { [BATHROOM_ACCENT_KEY]: 0 }, mirrorOff = { [BATHROOM_SWITCH_ID]: 0 }
+  assert.ok(strips.every(id => isLit({}, id)) && spots.every(id => isLit({}, id)))
+  assert.ok(strips.every(id => !isLit(accentOff, id)) && spots.every(id => isLit(accentOff, id)), 'Q puts out only the strips')
+  assert.ok(spots.every(id => !isLit(mirrorOff, id)) && strips.every(id => isLit(mirrorOff, id)), 'E puts out only the spots')
+})
+
+test('the downlights go by a motion sensor in the light box: lit while the visitor is near the bathroom, off otherwise', () => {
+  const downlights = ['bathroom-ceiling-light-1', 'bathroom-ceiling-light-2', 'bathroom-ceiling-light-3']
+  assert.ok(downlights.every(id => !isLit({}, id)), 'off with nobody near')
+  assert.ok(downlights.every(id => isLit({ [BATHROOM_MOTION_KEY]: 1 }, id)) && isMotionOn({ [BATHROOM_MOTION_KEY]: 1 }) && !isMotionOn({}))
+  // The switch does not work them.
+  assert.ok(downlights.every(id => !isLit({ [BATHROOM_SWITCH_ID]: 1, [BATHROOM_ACCENT_KEY]: 1 }, id)))
+  const sensor = furnishingsOn('first').find(piece => piece.id === 'bathroom-ceiling-sensor')!
+  assert.ok(sensor && sensor.shape === 'ellipse' && !sensor.glow, 'a small dome in the box')
+})
+
+test('the sensor sees the visitor inside the bathroom and in front of its door, on the first floor only', () => {
+  const [u0, u1] = FIRST_FLOOR_BATHROOM.u, [v0, v1] = FIRST_FLOOR_BATHROOM.v, door = (BATHROOM_DOOR.u[0] + BATHROOM_DOOR.u[1]) / 2
+  const at = (u: number, v: number, feet = FLOOR_HEIGHT) => isNearBathroom(u, -v, feet)
+  assert.ok(at((u0 + u1) / 2, (v0 + v1) / 2), 'inside')
+  assert.ok(at(door, v1 + .5) && at(door, v1 + BATHROOM_SENSOR.reach - .05), 'in front of the door')
+  assert.ok(!at(door, v1 + BATHROOM_SENSOR.reach + .3), 'farther along the hall')
+  assert.ok(!at(BATHROOM_DOOR.u[1] + BATHROOM_SENSOR.side + .3, v1 + .5), 'to the side')
+  assert.ok(!at((u0 + u1) / 2, (v0 + v1) / 2, 0), 'not on the floor below')
+  assert.ok(!at(u1 + .5, (v0 + v1) / 2), 'not behind the wall, in the living')
 })
