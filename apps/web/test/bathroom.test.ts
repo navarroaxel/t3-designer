@@ -2,7 +2,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { isOn } from '../src/data/devices.ts'
-import { shellWallBoxes } from '../src/data/house-interior.ts'
+import { HOUSE_FLOORS, shellWallBoxes, wallNiches } from '../src/data/house-interior.ts'
+import { wallRotation } from '@t3-designer/geometry'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
 import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
@@ -175,4 +176,16 @@ test('the shower has a two-shelf niche cut into the wall that faces its taps, ce
   assert.ok(boxes.some(box => covers(box, n.face - n.depth / 2, n.y[0] - .05, mid)), 'wall under it')
   assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-niche-shelf'), 'the board between the shelves')
   assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-niche-sill'), 'the sill')
+})
+
+test('the walkthrough draws the niche: one wall carries it, and in the wall\'s frame it is where the recess is in the house', () => {
+  const carriers = HOUSE_FLOORS.first.walls.filter(wall => wallNiches(wall).length > 0)
+  assert.equal(carriers.length, 1)
+  assert.equal(HOUSE_FLOORS.ground.walls.filter(wall => wallNiches(wall).length > 0).length, 0)
+  const wall = carriers[0], [niche] = wallNiches(wall), n = BATHROOM_NICHE, angle = wallRotation(wall)
+  const lx = niche.offset + niche.width / 2, lz = niche.side * (wall.thickness / 2 - niche.depth / 2)
+  // The wall's frame turned to the house's: x = u, z = -v.
+  near(wall.from[0] + lx * Math.cos(angle) + lz * Math.sin(angle), n.face - n.depth / 2)
+  near(wall.from[1] - lx * Math.sin(angle) + lz * Math.cos(angle), -(n.v[0] + n.v[1]) / 2)
+  near(niche.bottom + FLOOR_HEIGHT, n.y[0]); near(niche.depth, n.depth); near(niche.width, .62)
 })

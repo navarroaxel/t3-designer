@@ -1,4 +1,4 @@
-import { segmentWall } from '@t3-designer/geometry'
+import { segmentWall, wallRotation } from '@t3-designer/geometry'
 import { ApartmentSchema, SCENE_SCHEMA_VERSION, type Apartment, type Door, type Point2D, type Room, type Wall, type Window } from '@t3-designer/scene-schema'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import {
@@ -342,6 +342,24 @@ export function floorOfRoom(roomId: string): Floor | undefined {
 
 export type ShellBox = { center: [number, number, number]; size: [number, number, number]; kind: Wall['kind'] }
 const ANNEX = /^(first-(laundry|balcony|terrace)|ground-well-rear)/
+
+/**
+ * A recess in a wall, in the wall's own frame (as `Wall` draws it): where along the wall it starts, how wide, how high off the floor of its level and how tall, how deep, and the face of the wall it is cut
+ * from (+1 the one local z points to, -1 the other).
+ */
+export type WallNiche = { offset: number; width: number; bottom: number; height: number; depth: number; side: 1 | -1 }
+
+/** The niches cut in a wall of the house: the shower's, in the first-floor partition that faces its taps. */
+export function wallNiches(wall: Wall): WallNiche[] {
+  const n = BATHROOM_NICHE
+  if (!wall.id.startsWith('first-') || wall.kind !== 'interior' || Math.abs(wall.thickness - PARTITION_THICKNESS) > 1e-6) return []
+  const dx = wall.to[0] - wall.from[0], dz = wall.to[1] - wall.from[1], length = Math.hypot(dx, dz), ux = dx / length, uz = dz / length
+  // The partition is the one at the bathroom's wall, running along v, and the niche's span falls within it.
+  if (Math.abs(ux) > 1e-6 || Math.abs(wall.from[0] - (n.face - PARTITION_THICKNESS / 2)) > 1e-6) return []
+  const offset = uz > 0 ? -n.v[1] - wall.from[1] : wall.from[1] + n.v[0]
+  if (offset < -1e-6 || offset + (n.v[1] - n.v[0]) > length + 1e-6) return []
+  return [{ offset, width: n.v[1] - n.v[0], bottom: n.y[0] - FLOOR_HEIGHT, height: n.y[1] - n.y[0], depth: n.depth, side: Math.sin(wallRotation(wall)) >= 0 ? 1 : -1 }]
+}
 
 /**
  * The wall box with the shower's niche cut out of it, as the boxes around the recess: the wall on each side, above and below it, and the thin back left behind it. A box that is not the partition
