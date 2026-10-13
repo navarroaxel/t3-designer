@@ -13,7 +13,7 @@ import { BATHROOM_DOOR, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from 
  * the run starts at the north-east corner and goes toward the south-west party wall, decreasing v. House frame [u, v].
  */
 /** A box, or an ellipse inscribed in it, narrowing toward the floor by `taper` (1 = straight sides). */
-export type BathroomBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; opacity?: number; metalness?: number; shape?: 'ellipse'; taper?: number; cylinder?: boolean }
+export type BathroomBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; opacity?: number; metalness?: number; shape?: 'ellipse'; taper?: number; cylinder?: { length: number; tilt: number } }
 
 const wall = FIRST_FLOOR_BATHROOM.u[1]
 const floor = FLOOR_HEIGHT
@@ -117,23 +117,34 @@ export const BATHROOM_FRONT_SPOT_DEPTH = spot.plateDepth + spot.stubLength + spo
 export const BATHROOM_FRONT_SPOT_AT = { u: wall, v: (FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2, y: floor + spot.height }
 const spotAt = BATHROOM_FRONT_SPOT_AT
 const STEEL = '#b9bcc0', CHROME_PLATE = '#dcdfe2'
-/** A cylinder along u (`cylinder`: its diameter is the width of its v and y spans), or a box. */
-const spotBoxes = (): (BathroomBox & { glow?: boolean; cylinder?: boolean })[] => {
+/**
+ * The heads are tilted down toward the floor, 60 degrees under the horizontal, about the v axis. A head's pieces stack along its axis from the plate (a stub, the head, a ring and the lens); `cylinder` carries each
+ * one's length along the axis and the tilt, and its u and y span the square its diameter makes about its centre.
+ */
+export const BATHROOM_FRONT_SPOT_TILT = Math.PI / 3
+const spotBoxes = (): (BathroomBox & { glow?: boolean })[] => {
   const across = (centre: number, size: number): [number, number] => [centre - size / 2, centre + size / 2]
   const plate = { id: 'ceiling-spot-plate', u: [wall - spot.plateDepth, wall] as [number, number], v: across(spotAt.v, spot.plateWidth), y: across(spotAt.y, spot.plateHeight), color: CHROME_PLATE, metalness: .8 }
+  const tilt = BATHROOM_FRONT_SPOT_TILT, along = [-Math.cos(tilt), -Math.sin(tilt)]
   const heads = [-1, 0, 1].flatMap(step => {
     const v = spotAt.v + step * spot.pitch, n = step + 2
-    let u1 = wall - spot.plateDepth
-    const along = (length: number): [number, number] => { const span: [number, number] = [u1 - length, u1]; u1 -= length; return span }
+    let reach = 0
+    const segment = (id: string, length: number, diameter: number, color: string, extra: { metalness?: number; glow?: boolean }): BathroomBox & { glow?: boolean } => {
+      const middle = reach + length / 2
+      reach += length
+      return { id: `ceiling-spot-${id}-${n}`, u: across(wall - spot.plateDepth + along[0] * middle, diameter), v: across(v, diameter), y: across(spotAt.y + along[1] * middle, diameter), color, cylinder: { length, tilt }, ...extra }
+    }
     return [
-      { id: `ceiling-spot-stub-${n}`, u: along(spot.stubLength), v: across(v, spot.stub), y: across(spotAt.y, spot.stub), color: STEEL, metalness: .7, cylinder: true },
-      { id: `ceiling-spot-head-${n}`, u: along(spot.headLength), v: across(v, spot.head), y: across(spotAt.y, spot.head), color: STEEL, metalness: .6, cylinder: true },
-      { id: `ceiling-spot-ring-${n}`, u: along(spot.ring), v: across(v, spot.head + .005), y: across(spotAt.y, spot.head + .005), color: '#e6e8ea', metalness: .85, cylinder: true },
-      { id: `ceiling-spot-lens-${n}`, u: along(spot.lens), v: across(v, spot.head - .014), y: across(spotAt.y, spot.head - .014), color: '#fff6e6', glow: true, cylinder: true },
+      segment('stub', spot.stubLength, spot.stub, STEEL, { metalness: .7 }),
+      segment('head', spot.headLength, spot.head, STEEL, { metalness: .6 }),
+      segment('ring', spot.ring, spot.head + .005, '#e6e8ea', { metalness: .85 }),
+      segment('lens', spot.lens, spot.head - .014, '#fff6e6', { glow: true }),
     ]
   })
   return [plate, ...heads]
 }
+/** Where the bar's light shines from: in front of the middle head's lens, under the plate. */
+export const BATHROOM_FRONT_SPOT_LIGHT = { u: wall - spot.plateDepth - Math.cos(BATHROOM_FRONT_SPOT_TILT) * (BATHROOM_FRONT_SPOT_DEPTH - spot.plateDepth + .05), y: spotAt.y - Math.sin(BATHROOM_FRONT_SPOT_TILT) * (BATHROOM_FRONT_SPOT_DEPTH - spot.plateDepth + .05), v: spotAt.v }
 export const BATHROOM_FRONT_SPOT_BOXES = spotBoxes()
 /**
  * The vanity floats, so a warm LED strip runs under it (owner's request), along its underside near the front edge, to light the floor. It is on the bathroom's switch with the downlights. It hangs below

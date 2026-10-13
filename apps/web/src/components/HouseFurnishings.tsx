@@ -13,7 +13,7 @@ import { LightPool } from './LightPool'
 import { StaticBake } from './StaticBake'
 import { kelvinColour, DEFAULT_KITCHEN_KELVIN, type KitchenLightKelvin } from '../data/light-colour'
 import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID } from '../data/balcony-lights'
-import { BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_DEPTH, VANITY_LED_LIGHT, BATHROOM_LIGHT_POSITIONS, BATHROOM_SWITCH_ID } from '../data/bathroom'
+import { BATHROOM_FRONT_SPOT_LIGHT, VANITY_LED_LIGHT, BATHROOM_LIGHT_POSITIONS, BATHROOM_SWITCH_ID } from '../data/bathroom'
 import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, ISLAND_SWITCH_ID, ISLAND_WOOD, ISLAND_WOOD_ID, KITCHEN_SWITCH_ID } from '../data/kitchen'
 import { CONDUIT_LIGHT_POSITIONS, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
@@ -181,7 +181,7 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
       ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).forEach(strip => sources.push({ id: strip.id, position: [(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2], color: kelvinColour(kitchenKelvin.line), intensity: .5 * lightGain, distance: 2.2 }))
     }
     if (bathroomOn) BATHROOM_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `bathroom-${index}`, position: [at.u, FLOOR_HEIGHT + 2.6, -at.v], color: '#fff1dc', intensity: 1.4 * lightGain, distance: 2.6 }))
-    if (bathroomOn) sources.push({ id: 'bathroom-front', position: [BATHROOM_FRONT_SPOT_AT.u - BATHROOM_FRONT_SPOT_DEPTH - .1, BATHROOM_FRONT_SPOT_AT.y, -BATHROOM_FRONT_SPOT_AT.v], color: '#fff1dc', intensity: 1.6 * lightGain, distance: 2.8 })
+    if (bathroomOn) sources.push({ id: 'bathroom-front', position: [BATHROOM_FRONT_SPOT_LIGHT.u, BATHROOM_FRONT_SPOT_LIGHT.y, -BATHROOM_FRONT_SPOT_LIGHT.v], color: '#fff1dc', intensity: 1.6 * lightGain, distance: 2.8 })
     if (bathroomOn) sources.push({ id: 'bathroom-vanity-led', position: [VANITY_LED_LIGHT.u, VANITY_LED_LIGHT.y, -VANITY_LED_LIGHT.v], color: '#ffe0b0', intensity: .5 * lightGain, distance: 1.4 })
     if (conduitOn) CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).forEach((at, index) => sources.push({ id: `conduit-${index}`, position: [at.u, FLOOR_HEIGHT + 2.65, -at.v], color: kelvinColour(kitchenKelvin.conduit), intensity: 1.2 * lightGain, distance: 3 }))
     if (balconyOn) BALCONY_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `balcony-${index}`, position: [at.u - .08, BALCONY_LANTERN_Y, -at.v], color: '#ffe3bd', intensity: 1.2 * lightGain, distance: 3 }))

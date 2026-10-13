@@ -145,6 +145,7 @@ test('the front light is a bar of three spots on the mirror\'s wall, centred alo
   assert.equal(lenses.length, 3); assert.ok(lenses.every(lens => lens.glow && lens.u[1] <= plate.u[0] + 1e-9), 'a glowing lens on each head, out of the plate')
   assert.ok(Math.abs(centre(lenses[1]) - middle) < 1e-9, 'the middle head is on the middle')
   assert.ok(Math.abs(centre(lenses[0]) + centre(lenses[2]) - 2 * middle) < 1e-9, 'the side heads are symmetric')
+  assert.ok(lenses.every(lens => (lens.y[0] + lens.y[1]) / 2 < (plate.y[0] + plate.y[1]) / 2 - .05), 'the heads are tilted down: their lenses are under the plate\'s middle')
   const ids = furnishingsOn('first').map(piece => piece.id)
   assert.ok(ids.includes('bathroom-ceiling-spot-plate') && ids.includes('bathroom-ceiling-spot-lens-3'))
 })
