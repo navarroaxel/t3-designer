@@ -129,15 +129,15 @@ export const BATHROOM_LIGHT_BOX = { depth: .3, height: .3, ceiling: FLOOR_HEIGHT
 const lightBoxU: [number, number] = [FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[0] + BATHROOM_LIGHT_BOX.depth]
 const lightBoxY: [number, number] = [FLOOR_HEIGHT + BATHROOM_LIGHT_BOX.ceiling - BATHROOM_LIGHT_BOX.height, FLOOR_HEIGHT + BATHROOM_LIGHT_BOX.ceiling]
 /**
- * The extractor (owner's request): a round grille in the underside of the light box, at its end against the back wall (the shower's), facing down. A white ring 16 cm across, 2 cm from the wall, round a dark
- * opening 12 cm across a little lower than the ring's face. Heights above the ground-floor level.
+ * The extractor (owner's request): a square grille in the underside of the light box, at its end against the back wall (the shower's), facing down. A white frame 16 cm square, 2 cm from the wall, round a dark
+ * opening 12 cm square a little lower than the ring's face. Heights above the ground-floor level.
  */
 export const BATHROOM_EXTRACTOR = { ring: .16, opening: .12, fromWall: .02 }
 export const BATHROOM_EXTRACTOR_AT = { u: (lightBoxU[0] + lightBoxU[1]) / 2, v: FIRST_FLOOR_BATHROOM.v[0] + BATHROOM_EXTRACTOR.fromWall + BATHROOM_EXTRACTOR.ring / 2 }
 const extractor = (diameter: number): Pick<BathroomBox, 'u' | 'v'> => ({ u: [BATHROOM_EXTRACTOR_AT.u - diameter / 2, BATHROOM_EXTRACTOR_AT.u + diameter / 2], v: [BATHROOM_EXTRACTOR_AT.v - diameter / 2, BATHROOM_EXTRACTOR_AT.v + diameter / 2] })
-const BATHROOM_EXTRACTOR_BOXES: (BathroomBox & { round?: boolean })[] = [
-  { id: 'ceiling-extractor-ring', ...extractor(BATHROOM_EXTRACTOR.ring), y: [lightBoxY[0] - .01, lightBoxY[0]], color: '#f6f5f1', round: true },
-  { id: 'ceiling-extractor-opening', ...extractor(BATHROOM_EXTRACTOR.opening), y: [lightBoxY[0] - .0125, lightBoxY[0] - .0095], color: '#2a2b2d', round: true },
+const BATHROOM_EXTRACTOR_BOXES: BathroomBox[] = [
+  { id: 'ceiling-extractor-ring', ...extractor(BATHROOM_EXTRACTOR.ring), y: [lightBoxY[0] - .01, lightBoxY[0]], color: '#f6f5f1' },
+  { id: 'ceiling-extractor-opening', ...extractor(BATHROOM_EXTRACTOR.opening), y: [lightBoxY[0] - .0125, lightBoxY[0] - .0095], color: '#2a2b2d' },
 ]
 /** The three downlights share out what the extractor leaves of the box's length, from its far edge to the wall by the door: evenly, each in the middle of its third. */
 const downlightsFrom = FIRST_FLOOR_BATHROOM.v[0] + BATHROOM_EXTRACTOR.fromWall + BATHROOM_EXTRACTOR.ring
