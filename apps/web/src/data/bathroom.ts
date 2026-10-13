@@ -128,9 +128,22 @@ export const MIRROR_LIGHT_BOXES: (BathroomBox & { glow?: boolean })[] = [
 export const BATHROOM_LIGHT_BOX = { depth: .3, height: .3, ceiling: FLOOR_HEIGHT - SLAB_THICKNESS, light: .09, count: 3 }
 const lightBoxU: [number, number] = [FIRST_FLOOR_BATHROOM.u[0], FIRST_FLOOR_BATHROOM.u[0] + BATHROOM_LIGHT_BOX.depth]
 const lightBoxY: [number, number] = [FLOOR_HEIGHT + BATHROOM_LIGHT_BOX.ceiling - BATHROOM_LIGHT_BOX.height, FLOOR_HEIGHT + BATHROOM_LIGHT_BOX.ceiling]
+/**
+ * The extractor (owner's request): a round grille in the underside of the light box, at its end against the back wall (the shower's), facing down. A white ring 16 cm across, 2 cm from the wall, round a dark
+ * opening 12 cm across a little lower than the ring's face. Heights above the ground-floor level.
+ */
+export const BATHROOM_EXTRACTOR = { ring: .16, opening: .12, fromWall: .02 }
+export const BATHROOM_EXTRACTOR_AT = { u: (lightBoxU[0] + lightBoxU[1]) / 2, v: FIRST_FLOOR_BATHROOM.v[0] + BATHROOM_EXTRACTOR.fromWall + BATHROOM_EXTRACTOR.ring / 2 }
+const extractor = (diameter: number): Pick<BathroomBox, 'u' | 'v'> => ({ u: [BATHROOM_EXTRACTOR_AT.u - diameter / 2, BATHROOM_EXTRACTOR_AT.u + diameter / 2], v: [BATHROOM_EXTRACTOR_AT.v - diameter / 2, BATHROOM_EXTRACTOR_AT.v + diameter / 2] })
+const BATHROOM_EXTRACTOR_BOXES: (BathroomBox & { round?: boolean })[] = [
+  { id: 'ceiling-extractor-ring', ...extractor(BATHROOM_EXTRACTOR.ring), y: [lightBoxY[0] - .01, lightBoxY[0]], color: '#f6f5f1', round: true },
+  { id: 'ceiling-extractor-opening', ...extractor(BATHROOM_EXTRACTOR.opening), y: [lightBoxY[0] - .0125, lightBoxY[0] - .0095], color: '#2a2b2d', round: true },
+]
+/** The three downlights share out what the extractor leaves of the box's length, from its far edge to the wall by the door: evenly, each in the middle of its third. */
+const downlightsFrom = FIRST_FLOOR_BATHROOM.v[0] + BATHROOM_EXTRACTOR.fromWall + BATHROOM_EXTRACTOR.ring
 export const BATHROOM_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({ length: BATHROOM_LIGHT_BOX.count }, (_, index) => ({
   u: (lightBoxU[0] + lightBoxU[1]) / 2,
-  v: FIRST_FLOOR_BATHROOM.v[0] + (FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0]) * (index + .5) / BATHROOM_LIGHT_BOX.count,
+  v: downlightsFrom + (FIRST_FLOOR_BATHROOM.v[1] - downlightsFrom) * (index + .5) / BATHROOM_LIGHT_BOX.count,
 }))
 /**
  * The front light (owner's request, from the owner's photo): a bar of three adjustable spots on a chrome backplate, on the mirror's wall above the mirror, aimed into the room to light the face from the front. It is
@@ -182,6 +195,7 @@ export const VANITY_LED_LIGHT = { u: vanityU[0] + .04, v: (vanityV[0] + vanityV[
 export const BATHROOM_LIGHT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
   { id: 'ceiling-box', u: lightBoxU, v: FIRST_FLOOR_BATHROOM.v, y: lightBoxY, color: '#f1efe9' },
   ...BATHROOM_LIGHT_POSITIONS.map((at, index) => ({ id: `ceiling-light-${index + 1}`, u: [at.u - BATHROOM_LIGHT_BOX.light / 2, at.u + BATHROOM_LIGHT_BOX.light / 2] as [number, number], v: [at.v - BATHROOM_LIGHT_BOX.light / 2, at.v + BATHROOM_LIGHT_BOX.light / 2] as [number, number], y: [lightBoxY[0] - .004, lightBoxY[0] + .002] as [number, number], color: '#fff6e6', glow: true, round: true })),
+  ...BATHROOM_EXTRACTOR_BOXES,
 ]
 
 /**

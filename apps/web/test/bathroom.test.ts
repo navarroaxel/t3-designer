@@ -124,6 +124,19 @@ test('the bathroom has a drywall light box under the ceiling on the wall facing 
   const steps = BATHROOM_LIGHT_POSITIONS.map(at => at.v).sort((a, b) => a - b)
   near(steps[1] - steps[0], steps[2] - steps[1])
   assert.ok(new Set(BATHROOM_LIGHT_POSITIONS.map(at => at.u)).size === 1, 'in a row')
+  // The extractor takes the box's end at the back wall; no downlight overlaps it.
+  const ring = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-extractor-ring')!
+  assert.ok(lights.every(light => light.v[0] >= ring.v[1]), 'the downlights start past the extractor')
+})
+
+test('the extractor is a round grille in the underside of the light box, at its end against the back wall, facing down', () => {
+  const box = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-box')!, ring = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-extractor-ring')!, opening = BATHROOM_LIGHT_BOXES.find(item => item.id === 'ceiling-extractor-opening')!
+  assert.ok(ring.u[0] >= box.u[0] && ring.u[1] <= box.u[1] && ring.v[0] >= box.v[0], 'within the box')
+  assert.ok(ring.v[0] - box.v[0] < .05, 'against the back wall')
+  near(ring.y[1], box.y[0]); assert.ok(opening.y[0] < ring.y[0], 'the opening is lower than the ring, on the face that looks down')
+  near((ring.u[0] + ring.u[1]) / 2, (box.u[0] + box.u[1]) / 2); near(ring.v[1] - ring.v[0], .16)
+  const pieces = furnishingsOn('first')
+  assert.ok(['ring', 'opening'].every(part => pieces.find(piece => piece.id === `bathroom-ceiling-extractor-${part}`)?.shape === 'ellipse'), 'round')
 })
 
 test('the bathroom has a light switch inside, beside the door, between its edge and the vanity, that starts on and is a device', () => {
