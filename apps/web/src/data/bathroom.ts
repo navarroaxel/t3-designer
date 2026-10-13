@@ -102,12 +102,12 @@ export const BATHROOM_BOXES: BathroomBox[] = [
 /**
  * The shower's fittings (owner's, from the Piazza CUBE 111060M datasheet: "bañera de embutir con transferencia", brushed gold): on the wall that the niche faces, centred on the shower. A square wall arm with a 58 mm flange runs 38 cm out of the
  * wall, bends down (R 70 mm) and ends in a 200 mm square rain head, its top 10.5 cm under the arm; the built-in mixer has a 129 by 178 mm plate with a round 20 mm diverter and a 42 mm lever that stands 54 mm out; and the spout has a 60 mm flange
- * and sticks 18.7 cm out. The datasheet's measures; the heights are assumed: the arm at 2.2 m, the mixer's plate centred at 1.05 m, the spout at 0.45 m (the set is for a bath: there is no tub in this shower, so it pours on the floor). `cylinder` boxes are
+ * and sticks 18.7 cm out. The datasheet's measures; the heights are assumed: the arm at 2.2 m, the mixer's plate centred at 1.05 m, the spout at 0.85 m, under the mixer (the set is for a bath: there is no tub in this shower, so it pours on the floor). `cylinder` boxes are
  * tubes along their axis, as the front light's heads are (see `BATHROOM_FRONT_SPOT_TILT`): they run out of the wall, tilted `tilt` down. Heights above the ground-floor level.
  */
 const GOLD = '#c9a95c'
 const showerMiddle = (showerV[0] + showerV[1]) / 2
-const SHOWER_SET = { armHeight: 2.2, mixerHeight: 1.05, spoutHeight: .45, flange: .01 }
+const SHOWER_SET = { armHeight: 2.2, mixerHeight: 1.05, spoutHeight: .85, flange: .01 }
 const around = (centre: number, size: number): [number, number] => [centre - size / 2, centre + size / 2]
 /** A tube from `from` to `to` out of the wall: distances out of the wall and heights over the floor; diameter `d`. */
 const tube = (id: string, from: [number, number], to: [number, number], d: number): BathroomBox => {

@@ -269,6 +269,7 @@ test('the shower has the Piazza CUBE set in brushed gold: a rain arm and a 20 cm
   const head = by('shower-head'), plate = by('shower-mixer-plate'), lever = by('shower-mixer-lever'), spout = by('shower-spout'), flange = by('shower-arm-flange')
   near(head.u[1] - head.u[0], .2); near(head.v[1] - head.v[0], .2)
   near(flange.v[1] - flange.v[0], .058); near(plate.v[1] - plate.v[0], .129); near(plate.y[1] - plate.y[0], .178)
+  assert.ok(spout.y[1] < plate.y[0] && spout.y[0] > FLOOR_HEIGHT + .8, 'the spout is under the mixer, at about 85 cm')
   near(lever.v[1] - lever.v[0], .042); near(wall - lever.u[0], .054); near(wall - spout.u[0], .187)
   near(wall - (head.u[0] + head.u[1]) / 2, .403, 1e-9)
   assert.ok(head.y[1] < flange.y[0], 'the head hangs under the arm'); near(flange.y[0] + .029 - head.y[1], .105)
