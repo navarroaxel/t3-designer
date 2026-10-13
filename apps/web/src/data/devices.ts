@@ -89,10 +89,10 @@ export const DEVICES: readonly Device[] = [
   lightSwitch(ISLAND_SWITCH_ID, ['islandLightsOn', 'islandLightsOff'], id => /^island-(canopy-(pendant|led|slab|drywall)|switch-)/.test(id), { offModels: true }),
   // The bathroom: a two-way switch by the door, E for the mirror's light (the bar of spots over it and its backlight) and Q for the strips under the vanity and in the niche (they hang low, so the cutaway draws them); and a motion sensor in the light
   // box, for its downlights, that lights them when the visitor comes near.
-  lightSwitch(BATHROOM_SWITCH_ID, ['bathroomLightsOn', 'bathroomLightsOff'], id => /^(bathroom-(ceiling-spot-|switch-|ceiling-vanity-led|ceiling-niche-led-)|mirror-(halo|led-))/.test(id), {
+  lightSwitch(BATHROOM_SWITCH_ID, ['bathroomLightsOn', 'bathroomLightsOff'], id => /^(bathroom-(ceiling-spot-|switch-|ceiling-vanity-led|ceiling-niche-(led|wash)-)|mirror-(halo|led-))/.test(id), {
     extend: { key: BATHROOM_ACCENT_KEY, labels: ['accentLightsOn', 'accentLightsOff'], initial: 1 },
-    extendLights: id => /^bathroom-(ceiling-vanity-led|ceiling-niche-led-|switch-dot-2)/.test(id),
-    hungHigh: id => !/^(bathroom-ceiling-(vanity-led|niche-led-)|mirror-)/.test(id),
+    extendLights: id => /^bathroom-(ceiling-vanity-led|ceiling-niche-(led|wash)-|switch-dot-2)/.test(id),
+    hungHigh: id => !/^(bathroom-ceiling-(vanity-led|niche-(led|wash)-)|mirror-)/.test(id),
   }),
   lightSwitch(BATHROOM_SENSOR_ID, ['', ''], id => /^bathroom-ceiling-(light-|box|extractor|sensor)/.test(id), { use: undefined, sensor: { key: BATHROOM_MOTION_KEY } }),
   lightSwitch(KITCHEN_SWITCH_ID, ['kitchenLightsOn', 'kitchenLightsOff'], id => /^kitchen-(conduit-|switch-)/.test(id)),

@@ -75,6 +75,12 @@ export const BATHROOM_NICHE_BOXES: (BathroomBox & { glow?: boolean })[] = [
     id: `ceiling-niche-led-${index + 1}`, u: [BATHROOM_NICHE.face - .03, BATHROOM_NICHE.face - .03 + LED_STRIP.width] as [number, number], v: [BATHROOM_NICHE.v[0] + .015, BATHROOM_NICHE.v[1] - .015] as [number, number],
     y: [top - LED_STRIP.thickness, top] as [number, number], color: LED_STRIP.color, glow: true,
   })),
+  // The wash of those strips on the back of each shelf: a thin, faint warm plane on the recess's back, lit with them. The pool's light of the niche goes when the visitor is far; this stays, so the niche looks lit from the hall.
+  ...[0, 1].map(index => ({
+    id: `ceiling-niche-wash-${index + 1}`, u: [BATHROOM_NICHE.u[0], BATHROOM_NICHE.u[0] + .002] as [number, number], v: BATHROOM_NICHE.v,
+    y: [BATHROOM_NICHE.y[0] + BATHROOM_NICHE.divider + index * (BATHROOM_NICHE.shelf + BATHROOM_NICHE.divider), BATHROOM_NICHE.y[0] + (index + 1) * (BATHROOM_NICHE.shelf + BATHROOM_NICHE.divider)] as [number, number],
+    color: LED_STRIP.color, opacity: .3, glow: true,
+  })),
 ]
 
 export const BATHROOM_BOXES: BathroomBox[] = [

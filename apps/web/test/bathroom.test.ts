@@ -293,3 +293,12 @@ test('the shower has the Piazza CUBE set in brushed gold: a rain arm and a 20 cm
   assert.ok(pieces.find(piece => piece.id === 'bathroom-shower-head')?.hung && !pieces.find(piece => piece.id === 'bathroom-shower-mixer-plate')?.hung, 'the head hangs high, the mixer does not')
   assert.equal(pieces.find(piece => piece.id === 'bathroom-shower-arm-bend')?.shape, 'ellipse')
 })
+
+test('the niche keeps a faint warm wash on the back of each shelf, lit with the strips, whatever the pool carries', () => {
+  const n = BATHROOM_NICHE, washes = BATHROOM_NICHE_BOXES.filter(item => item.id.startsWith('ceiling-niche-wash-'))
+  assert.equal(washes.length, 2)
+  for (const wash of washes) assert.ok(wash.glow && wash.opacity !== undefined && wash.opacity < .5 && wash.color === VANITY_LED_BOX.color && wash.u[0] >= n.u[0] && wash.u[1] <= n.u[1] && wash.y[0] >= n.y[0] && wash.y[1] <= n.y[1], wash.id)
+  const ids = washes.map(wash => `bathroom-${wash.id}`)
+  assert.ok(ids.every(id => isLit({}, id) && !isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id) && isLit({ [BATHROOM_MOTION_KEY]: 0 }, id)), 'on with the Q switch, not with the sensor')
+  assert.ok(furnishingsOn('first').filter(piece => piece.id.startsWith('bathroom-ceiling-niche-wash-')).length === 2)
+})
