@@ -1,6 +1,6 @@
 import { BALCONY_SWITCH_ID } from './balcony-lights.ts'
-import { BATHROOM_SWITCH_ID } from './bathroom.ts'
-import { GLASS_DOOR_ID, ISLAND_SWITCH_ID, ISLAND_WOOD_ID, KITCHEN_SWITCH_ID } from './kitchen.ts'
+import { BATHROOM_ACCENT_KEY, BATHROOM_MOTION_KEY, BATHROOM_SENSOR_ID, BATHROOM_SWITCH_ID } from './bathroom.ts'
+import { GLASS_DOOR_ID, ISLAND_SWITCH_ID, ISLAND_WOOD_ID, KITCHEN_ACCENT_KEY, KITCHEN_SWITCH_ID } from './kitchen.ts'
 
 /**
  * Everything a visitor of the walkthrough can work with, in one table. A visitor aims at a device and presses E (use it), X (take it away or put it back) or Q (the TV's arm). Each entry says what the
@@ -21,15 +21,19 @@ export type Device = {
   /** X: takes it away, and puts it back. Its state is `key`: 1 in place, 0 away; it starts away if `startsAway`. */
   detach?: { key: string; startsAway?: boolean; labels: Labels }
   /** Q: unfolds and folds the mount's arm. */
-  extend?: { key: string; labels: Labels }
+  extend?: { key: string; labels: Labels; /** Where its state starts: 0 (folded, off) if not said. */ initial?: 0 | 1 }
   /** The pieces of the furnishings that are the device's: they go with it when it is taken away, and they are drawn at each change. */
   pieces?: (pieceId: string) => boolean
   /** Pieces that are not the device's, but that react to its state (the outlets on the island's wall stand out of its wood): drawn at each change, and not taken away with it. */
   affects?: (pieceId: string) => boolean
   /** The device's pieces hang above the 1.5 m cut: the cutaway does not draw them. */
-  hungHigh?: boolean
+  hungHigh?: boolean | ((pieceId: string) => boolean)
   /** A switch: what glows in its pieces lights with it. */
   lights?: boolean
+  /** A two-way switch: the glowing pieces it names light with its Q state (`extend`) instead of its E one. */
+  extendLights?: (pieceId: string) => boolean
+  /** A motion sensor: what glows in its pieces lights while the state `key` is 1. The walkthrough sets it as the visitor comes near; nobody works it. */
+  sensor?: { key: string }
   /** Its models have an `-off` twin, drawn while it is off. */
   offModels?: boolean
   /** A group: the pieces it holds; the aim volume is the box that holds them all. */
@@ -83,8 +87,20 @@ export const DEVICES: readonly Device[] = [
   { id: GLASS_DOOR_ID, use: { initial: 0, labels: ['glassDoorOpen', 'glassDoorClose'] }, pieces: id => id.startsWith('kitchen-upper-glass-') },
   // The lights: the island's lamps and light line, the bathroom's downlights, the conduit box's and the balcony's lanterns.
   lightSwitch(ISLAND_SWITCH_ID, ['islandLightsOn', 'islandLightsOff'], id => /^island-(canopy-(pendant|led|slab|drywall)|switch-)/.test(id), { offModels: true }),
-  lightSwitch(BATHROOM_SWITCH_ID, ['bathroomLightsOn', 'bathroomLightsOff'], id => /^bathroom-(ceiling-|switch-)/.test(id)),
-  lightSwitch(KITCHEN_SWITCH_ID, ['kitchenLightsOn', 'kitchenLightsOff'], id => /^kitchen-(conduit-|switch-)/.test(id)),
+  // The bathroom: a two-way switch by the door, E for the mirror's light (the bar of spots over it and its backlight) and Q for the strips under the vanity and in the niche (they hang low, so the cutaway draws them); and a motion sensor in the light
+  // box, for its downlights, that lights them when the visitor comes near.
+  lightSwitch(BATHROOM_SWITCH_ID, ['bathroomLightsOn', 'bathroomLightsOff'], id => /^(bathroom-(ceiling-spot-|switch-|ceiling-vanity-led|ceiling-niche-(led|wash)-)|mirror-(halo|led-))/.test(id), {
+    extend: { key: BATHROOM_ACCENT_KEY, labels: ['accentLightsOn', 'accentLightsOff'], initial: 1 },
+    extendLights: id => /^bathroom-(ceiling-vanity-led|ceiling-niche-(led|wash)-|switch-dot-2)/.test(id),
+    hungHigh: id => !/^(bathroom-ceiling-(vanity-led|niche-(led|wash)-)|mirror-)/.test(id),
+  }),
+  lightSwitch(BATHROOM_SENSOR_ID, ['', ''], id => /^bathroom-ceiling-(light-|box|extractor|sensor)/.test(id), { use: undefined, sensor: { key: BATHROOM_MOTION_KEY } }),
+  // The kitchen's switch is two-way too: E for the conduit box's spots and Q for the accent lights inside the glasses cabinet (low enough for the cutaway to draw them).
+  lightSwitch(KITCHEN_SWITCH_ID, ['kitchenLightsOn', 'kitchenLightsOff'], id => /^kitchen-(conduit-|switch-|upper-accent-)/.test(id), {
+    extend: { key: KITCHEN_ACCENT_KEY, labels: ['kitchenAccentOn', 'kitchenAccentOff'], initial: 1 },
+    extendLights: id => /^kitchen-(upper-accent-|switch-dot-2)/.test(id),
+    hungHigh: id => !/^kitchen-upper-accent-/.test(id),
+  }),
   lightSwitch(BALCONY_SWITCH_ID, ['balconyLightsOn', 'balconyLightsOff'], id => id.startsWith('balcony-'), { offModels: true }),
 ]
 
@@ -104,11 +120,22 @@ export const isDetachable = (id: string) => !!BY_ID.get(id)?.detach
 /** Whether a piece has been taken away with the device that owns it. */
 export const isPieceAway = (states: States, pieceId: string) => DEVICES.some(device => device.detach && device.pieces?.(pieceId) && !isInPlace(states, device.id))
 /** Whether the cutaway leaves the piece out, because it hangs above the cut. */
-export const isHungHigh = (pieceId: string) => DEVICES.some(device => device.hungHigh && device.pieces?.(pieceId))
+export const isHungHigh = (pieceId: string) => DEVICES.some(device => device.pieces?.(pieceId) && (typeof device.hungHigh === 'function' ? device.hungHigh(pieceId) : device.hungHigh))
 /** Whether what a piece looks like can change with a visit: it belongs to a device or reacts to one. Such pieces are drawn at each change, and never baked. */
 export const dependsOnDevice = (pieceId: string) => DEVICES.some(device => device.pieces?.(pieceId) || device.affects?.(pieceId))
 /** Whether a glowing piece is lit: it is, unless its switch is off. */
-export const isLit = (states: States, pieceId: string) => { const owner = ownerOf(pieceId); return !owner?.lights || isOn(states, owner.id) }
+export const isLit = (states: States, pieceId: string) => {
+  const owner = ownerOf(pieceId)
+  if (!owner?.lights) return true
+  if (owner.sensor) return read(states, owner.sensor.key, 0)
+  return owner.extend && owner.extendLights?.(pieceId) ? read(states, owner.extend.key, owner.extend.initial ?? 0) : isOn(states, owner.id)
+}
+/** Whether the bathroom's motion sensor sees the visitor, and its lights are on. */
+export const isMotionOn = (states: States) => read(states, BATHROOM_MOTION_KEY, 0)
+/** Whether the glasses cabinet's accent lights are on: the kitchen switch's Q. */
+export const isKitchenAccentOn = (states: States) => read(states, KITCHEN_ACCENT_KEY, 1)
+/** Whether the bathroom's accent lights, the strips under the vanity and in the niche, are on: the switch's Q. */
+export const isAccentOn = (states: States) => read(states, BATHROOM_ACCENT_KEY, 1)
 /** Whether the model of a piece is drawn in its `-off` twin: its switch is off. */
 export const isOffModel = (states: States, pieceId: string) => { const owner = ownerOf(pieceId); return !!owner?.offModels && !isOn(states, owner.id) }
 
@@ -123,7 +150,7 @@ export function availableActions(id: string, states: States): Partial<Record<Act
   const out: Partial<Record<Action, string>> = {}
   if (device.use && !(device.use.whileInPlace && !isInPlace(states, id))) out.use = device.use.labels[isOn(states, id) ? 1 : 0]
   if (device.detach) out.detach = device.detach.labels[isInPlace(states, id) ? 0 : 1]
-  if (device.extend) out.extend = device.extend.labels[read(states, device.extend.key, 0) ? 1 : 0]
+  if (device.extend) out.extend = device.extend.labels[read(states, device.extend.key, device.extend.initial ?? 0) ? 1 : 0]
   return out
 }
 
@@ -133,5 +160,5 @@ export function deviceAction(id: string, action: Action, states: States): Record
   if (!device || !availableActions(id, states)[action]) return null
   if (action === 'use') return { [device.use!.key ?? id]: isOn(states, id) ? 0 : 1 }
   if (action === 'detach') return { [device.detach!.key]: isInPlace(states, id) ? 0 : 1 }
-  return { [device.extend!.key]: read(states, device.extend!.key, 0) ? 0 : 1 }
+  return { [device.extend!.key]: read(states, device.extend!.key, device.extend!.initial ?? 0) ? 0 : 1 }
 }

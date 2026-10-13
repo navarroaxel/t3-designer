@@ -1,4 +1,4 @@
-import { segmentWall } from '@t3-designer/geometry'
+import { segmentWall, wallRotation } from '@t3-designer/geometry'
 import { ApartmentSchema, SCENE_SCHEMA_VERSION, type Apartment, type Door, type Point2D, type Room, type Wall, type Window } from '@t3-designer/scene-schema'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import {
@@ -8,6 +8,7 @@ import {
   MAIN_ROOM_DRYWALL, MAIN_ROOM_SETBACK, OFFICE_DOOR, OPENINGS, PANTRY_DOOR, PARTITION_THICKNESS, SECONDARY_DOOR, SECONDARY_WARDROBE, SIDE_OPENINGS,
   SLAB_THICKNESS, STAIRWELL_HOLE, STAIR_CAVE, BALCONY, WALL_THICKNESS, exteriorThickness, polygonArea, type Floor, type PlanPoint,
 } from './house-plan.ts'
+import { BATHROOM_NICHE } from './bathroom.ts'
 import { LAUNDRY } from './laundry.ts'
 import { TERRACE_INNER, TERRACE_PARTY_WALL, TERRACE_RAILING, TERRACE_REAR_WALL, TERRACE_WALL_THICKNESS, houseSouthWestEdge } from './building-site.ts'
 import { AZOTEA_REAR, HOUSE_HALF_WIDTH, PARTY_WALL, WELL_BACK_U, HOUSE_REAR, GROUND_WELL_EDGE } from './building-site.ts'
@@ -343,6 +344,40 @@ export type ShellBox = { center: [number, number, number]; size: [number, number
 const ANNEX = /^(first-(laundry|balcony|terrace)|ground-well-rear)/
 
 /**
+ * A recess in a wall, in the wall's own frame (as `Wall` draws it): where along the wall it starts, how wide, how high off the floor of its level and how tall, how deep, and the face of the wall it is cut
+ * from (+1 the one local z points to, -1 the other).
+ */
+export type WallNiche = { offset: number; width: number; bottom: number; height: number; depth: number; side: 1 | -1 }
+
+/** The niches cut in a wall of the house: the shower's, in the first-floor partition that faces its taps. */
+export function wallNiches(wall: Wall): WallNiche[] {
+  const n = BATHROOM_NICHE
+  if (!wall.id.startsWith('first-') || wall.kind !== 'interior' || Math.abs(wall.thickness - PARTITION_THICKNESS) > 1e-6) return []
+  const dx = wall.to[0] - wall.from[0], dz = wall.to[1] - wall.from[1], length = Math.hypot(dx, dz), ux = dx / length, uz = dz / length
+  // The partition is the one at the bathroom's wall, running along v, and the niche's span falls within it.
+  if (Math.abs(ux) > 1e-6 || Math.abs(wall.from[0] - (n.face - PARTITION_THICKNESS / 2)) > 1e-6) return []
+  const offset = uz > 0 ? -n.v[1] - wall.from[1] : wall.from[1] + n.v[0]
+  if (offset < -1e-6 || offset + (n.v[1] - n.v[0]) > length + 1e-6) return []
+  return [{ offset, width: n.v[1] - n.v[0], bottom: n.y[0] - FLOOR_HEIGHT, height: n.y[1] - n.y[0], depth: n.depth, side: Math.sin(wallRotation(wall)) >= 0 ? 1 : -1 }]
+}
+
+/**
+ * The wall box with the shower's niche cut out of it, as the boxes around the recess: the wall on each side, above and below it, and the thin back left behind it. A box that is not the partition
+ * the niche is in, or that the niche does not fall in, is returned as it is.
+ */
+function cutNiche(box: ShellBox, floor: Floor): ShellBox[] {
+  const n = BATHROOM_NICHE
+  const [cx, cy, cv] = box.center, [sx, sy, sv] = box.size
+  const within = floor === 'first' && box.kind === 'interior' && Math.abs(sx - PARTITION_THICKNESS) < 1e-6 && Math.abs(cx - (n.face - PARTITION_THICKNESS / 2)) < 1e-6
+    && cv - sv / 2 <= n.v[0] + 1e-6 && cv + sv / 2 >= n.v[1] - 1e-6 && cy - sy / 2 <= n.y[0] + 1e-6
+  if (!within) return [box]
+  const y0 = cy - sy / 2, y1 = cy + sy / 2, hole: [number, number] = [n.y[0], Math.min(n.y[1], y1)]
+  const part = (u: [number, number], y: [number, number], v: [number, number]): ShellBox[] => y[1] - y[0] < 1e-6 || v[1] - v[0] < 1e-6 ? [] : [{ center: [(u[0] + u[1]) / 2, (y[0] + y[1]) / 2, (v[0] + v[1]) / 2], size: [u[1] - u[0], y[1] - y[0], v[1] - v[0]], kind: box.kind }]
+  const wall: [number, number] = [n.face - PARTITION_THICKNESS, n.face], back: [number, number] = [n.face - PARTITION_THICKNESS, n.u[0]]
+  return [...part(wall, [y0, y1], [cv - sv / 2, n.v[0]]), ...part(wall, [y0, y1], [n.v[1], cv + sv / 2]), ...part(wall, [y0, hole[0]], n.v), ...part(wall, [hole[1], y1], n.v), ...part(back, hole, n.v)]
+}
+
+/**
  * The walls of one floor as solid boxes in the house frame ([u, y, v], absolute heights), sawn off at `top`: what the floor cutaway draws.
  * They come from the same walls, doors and windows the walkthrough walks through, so the two views cannot drift apart. The balcony and the
  * laundry are left out: the cutaway draws them from the facade and the laundry's own volumes.
@@ -361,10 +396,10 @@ export function shellWallBoxes(floor: Floor, top: number): ShellBox[] {
       if (roof - bottom < 1e-6) continue
       const along = segment.offset + segment.length / 2
       const x = wall.from[0] + ux * along, z = wall.from[1] + uz * along
-      boxes.push({
+      boxes.push(...cutNiche({
         center: [x, (bottom + roof) / 2, -z], kind: wall.kind,
         size: alongU ? [segment.length, roof - bottom, wall.thickness] : [wall.thickness, roof - bottom, segment.length],
-      })
+      }, floor))
     }
   }
   return boxes

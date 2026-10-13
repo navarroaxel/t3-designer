@@ -13,7 +13,7 @@ test('the table of devices is well formed: ids are unique, each device does some
   const ids = DEVICES.map(device => device.id)
   assert.equal(new Set(ids).size, ids.length, 'unique ids')
   for (const device of DEVICES) {
-    assert.ok(device.use || device.detach || device.extend, `${device.id} does something`)
+    assert.ok(device.use || device.detach || device.extend || device.sensor, `${device.id} does something`)
     const labels = [...(device.use?.labels ?? []), ...(device.detach?.labels ?? []), ...(device.extend?.labels ?? [])]
     for (const label of labels) for (const language of ['es', 'en'] as const) assert.ok(words(language)[label]?.length > 3, `${device.id}: "${label}" has words in ${language}`)
     assert.ok(device.pieces, `${device.id} says which pieces are its own`)
@@ -72,9 +72,9 @@ test('E, X and Q do what the table says, only while they can, and never what the
 test('the switches start on, and flip: the words follow what the switch is now', () => {
   for (const [id, on, off] of [[ISLAND_SWITCH_ID, 'islandLightsOn', 'islandLightsOff'], [BATHROOM_SWITCH_ID, 'bathroomLightsOn', 'bathroomLightsOff'], [KITCHEN_SWITCH_ID, 'kitchenLightsOn', 'kitchenLightsOff'], [BALCONY_SWITCH_ID, 'balconyLightsOn', 'balconyLightsOff']] as const) {
     assert.ok(isOn({}, id), `${id} starts on`)
-    assert.deepEqual(availableActions(id, {}), { use: off }, 'on: it offers to turn them off')
+    assert.equal(availableActions(id, {}).use, off, 'on: it offers to turn them off')
     assert.deepEqual(deviceAction(id, 'use', {}), { [id]: 0 })
-    assert.deepEqual(availableActions(id, { [id]: 0 }), { use: on }); assert.deepEqual(deviceAction(id, 'use', { [id]: 0 }), { [id]: 1 })
+    assert.equal(availableActions(id, { [id]: 0 }).use, on); assert.deepEqual(deviceAction(id, 'use', { [id]: 0 }), { [id]: 1 })
     assert.ok(deviceOf(id)?.lights && deviceOf(id)?.hungHigh, `${id} lights what it owns, which hangs high`)
   }
   // Doors that open start shut.
