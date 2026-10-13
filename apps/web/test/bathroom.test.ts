@@ -6,7 +6,7 @@ import { HOUSE_FLOORS, shellWallBoxes, wallNiches } from '../src/data/house-inte
 import { wallRotation } from '@t3-designer/geometry'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, BATHROOM_NICHE_BOXES, BATHROOM_ACCENT_KEY, BATHROOM_MOTION_KEY, BATHROOM_SENSOR, isNearBathroom, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, BATHROOM_NICHE_BOXES, BATHROOM_SHOWER_BOXES, BATHROOM_ACCENT_KEY, BATHROOM_MOTION_KEY, BATHROOM_SENSOR, isNearBathroom, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -75,7 +75,6 @@ test('the shower has no tray and no enclosure: the same floor, and a single fixe
   assert.ok(box('shower-glass-frame-edge') && box('shower-glass-frame-foot'))
   assert.ok(box('shower-glass-frame-edge').u[1] - box('shower-glass-frame-edge').u[0] < .03)
   // The taps are on the back wall inside the shower.
-  assert.ok(box('shower-taps').v[0] >= shower[0] && box('shower-taps').v[1] <= shower[1])
 })
 
 test('fixtures do not overlap, except a top over its body, the seat on its bowl and the glass in its frame', () => {
@@ -261,4 +260,23 @@ test('only the three downlights go by the sensor: the mirror\'s light and the st
   // E works the mirror's light, backlight included; Q the strips.
   assert.ok(mirror.every(id => isLit({}, id)) && mirror.every(id => !isLit({ [BATHROOM_SWITCH_ID]: 0 }, id)) && strips.every(id => isLit({ [BATHROOM_SWITCH_ID]: 0 }, id)))
   assert.ok(strips.every(id => !isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id)) && mirror.every(id => isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id)))
+})
+
+test('the shower has the Piazza CUBE set in brushed gold: a rain arm and a 20 cm square head, a built-in mixer and a spout, centred on the shower', () => {
+  const by = (id: string) => BATHROOM_SHOWER_BOXES.find(item => item.id === id)!, middle = (BATHROOM_RUN.shower[0] + BATHROOM_RUN.shower[1]) / 2, wall = FIRST_FLOOR_BATHROOM.u[1]
+  const centre = (item: { v: [number, number] }) => (item.v[0] + item.v[1]) / 2
+  for (const item of BATHROOM_SHOWER_BOXES) { near(centre(item), middle); assert.equal(item.color, BATHROOM_SHOWER_BOXES[0].color, `${item.id} is the same gold`); assert.ok(item.v[0] >= BATHROOM_RUN.shower[0] && item.v[1] <= BATHROOM_RUN.shower[1], `${item.id} within the shower`) }
+  const head = by('shower-head'), plate = by('shower-mixer-plate'), lever = by('shower-mixer-lever'), spout = by('shower-spout'), flange = by('shower-arm-flange')
+  near(head.u[1] - head.u[0], .2); near(head.v[1] - head.v[0], .2)
+  near(flange.v[1] - flange.v[0], .058); near(plate.v[1] - plate.v[0], .129); near(plate.y[1] - plate.y[0], .178)
+  near(lever.v[1] - lever.v[0], .042); near(wall - lever.u[0], .054); near(wall - spout.u[0], .187)
+  near(wall - (head.u[0] + head.u[1]) / 2, .403, 1e-9)
+  assert.ok(head.y[1] < flange.y[0], 'the head hangs under the arm'); near(flange.y[0] + .029 - head.y[1], .105)
+  assert.ok(plate.y[1] < FLOOR_HEIGHT + CUT_HEIGHT && head.y[0] > FLOOR_HEIGHT + CUT_HEIGHT, 'the mixer is under the cut, the head above')
+  // The arm is a chain of tubes from the wall to the head's neck, each starting where the last ends.
+  const run = by('shower-arm-run'), bend = by('shower-arm-bend'), neck = by('shower-arm-neck')
+  assert.ok(run.cylinder!.tilt === 0 && Math.abs(bend.cylinder!.tilt - Math.PI / 4) < 1e-9 && Math.abs(neck.cylinder!.tilt - Math.PI / 2) < 1e-9)
+  const pieces = furnishingsOn('first')
+  assert.ok(pieces.find(piece => piece.id === 'bathroom-shower-head')?.hung && !pieces.find(piece => piece.id === 'bathroom-shower-mixer-plate')?.hung, 'the head hangs high, the mixer does not')
+  assert.equal(pieces.find(piece => piece.id === 'bathroom-shower-arm-bend')?.shape, 'ellipse')
 })
