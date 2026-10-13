@@ -171,13 +171,13 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
   const fridgeOpen = isOn(devices, FRIDGE_ID) && !!fridge && !fridgeAway
   // Closed, the fridge is the Blender model (feet included, so it starts 4 cm below the body), unless the cut would saw it: then its boxes are drawn, cut like the rest.
   const fridgeModel = !!fridge && !fridgeOpen && !fridgeAway && (cut === undefined || cut >= fridge.y[1])
-  // What can light the kitchen, the bathroom and the balcony, as point lights, once the tour runs on the first floor: a warm light in each pendant lamp (10 cm over its rim), neutral white under each bathroom
+  // What can light the kitchen, the bathroom and the balcony, as point lights, once the tour runs on the first floor: a warm light at two points of the linear pendant (6 cm under its bar), neutral white under each bathroom
   // downlight, a light under every second conduit-box spot (to keep their number down), a lantern's light 8 cm out of its glass and a faint warm one over the middle of each LED strip.
   const lightSources = useMemo((): LightSource[] => {
     if (floor !== 'first' || cut !== undefined) return []
     const sources: LightSource[] = []
     if (lightsOn) {
-      ISLAND_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `island-${index}`, position: [at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop + .1, -at.v], color: kelvinColour(kitchenKelvin.pendants), intensity: 1.8 * lightGain, distance: 2.8 }))
+      ISLAND_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `island-${index}`, position: [at.u, FLOOR_HEIGHT + ISLAND_CANOPY.soffit - ISLAND_CANOPY.light.drop - .06, -at.v], color: kelvinColour(kitchenKelvin.pendants), intensity: 2.4 * lightGain, distance: 3 }))
       ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).forEach(strip => sources.push({ id: strip.id, position: [(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2], color: kelvinColour(kitchenKelvin.line), intensity: .5 * lightGain, distance: 2.2 }))
     }
     // The three downlights are one light, in the middle of them: three would take half the pool's places and push the niche's and the vanity's out when the sensor lights them.
