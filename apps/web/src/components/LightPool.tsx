@@ -13,7 +13,7 @@ export function LightPool({ sources, size = 6 }: { sources: readonly LightSource
   const assigned = useRef<(string | null)[]>(Array.from({ length: size }, () => null)), shown = useRef<number[]>(Array.from({ length: size }, () => 0))
   const latest = useRef(sources), since = useRef(1), from = useRef(new Vector3())
   latest.current = sources
-  const camera = useThree(state => state.camera)
+  const camera = useThree(state => state.camera), gl = useThree(state => state.gl)
   useFrame((_, delta) => {
     const holder = group.current
     if (!holder) return
@@ -26,6 +26,8 @@ export function LightPool({ sources, size = 6 }: { sources: readonly LightSource
       const before = assigned.current
       assigned.current = chooseSources(latest.current, [from.current.x, from.current.y, from.current.z], before, size)
       assigned.current.forEach((id, index) => { if (id !== before[index]) shown.current[index] = 0 })
+      // A light that moved to another lamp casts from there: the scene's shadows may be static (drawn only on request), so ask for them again.
+      if (assigned.current.some((id, index) => id !== before[index])) gl.shadowMap.needsUpdate = true
     }
     assigned.current.forEach((id, index) => {
       const light = lights.current[index], source = id ? latest.current.find(item => item.id === id) : undefined
@@ -37,6 +39,7 @@ export function LightPool({ sources, size = 6 }: { sources: readonly LightSource
     })
   })
   return <group ref={holder => { group.current = holder }} name="light-pool">
-    {Array.from({ length: size }, (_, index) => <pointLight key={index} ref={light => { lights.current[index] = light }} intensity={0} decay={2} />)}
+    {Array.from({ length: size }, (_, index) => <pointLight key={index} ref={light => { lights.current[index] = light }} intensity={0} decay={2}
+      castShadow shadow-mapSize={[256, 256]} shadow-camera-near={.05} shadow-camera-far={4} shadow-bias={-.0005} shadow-normalBias={.02} />)}
   </group>
 }
