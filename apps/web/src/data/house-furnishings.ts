@@ -1,7 +1,7 @@
 import { DEVICES, TV_IDS, dependsOnDevice, isArmExtended, isInPlace } from './devices.ts'
 import { DOG, DOG_BOX } from './dog.ts'
 import { BALCONY_BOXES, BALCONY_LIGHT_POSITIONS } from './balcony-lights.ts'
-import { BATHROOM_BOXES, BATHROOM_FRONT_SPOT_BOXES, BATHROOM_LIGHT_BOXES, VANITY_LED_BOX, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, MIRROR_LIGHT_BOXES } from './bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_FRONT_SPOT_BOXES, BATHROOM_NICHE_BOXES, BATHROOM_LIGHT_BOXES, VANITY_LED_BOX, BATHROOM_OUTLET, BATHROOM_SWITCH_BOXES, MIRROR_LIGHT_BOXES } from './bathroom.ts'
 import { DOORBELL_BOXES } from './doorbell.ts'
 import { FIREPLACE, FIREPLACE_U, FIREPLACE_V } from './fireplace.ts'
 import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
@@ -208,6 +208,7 @@ function firstFloor(): Furnishing[] {
     const centre = (box.y[0] + box.y[1]) / 2, at = (box.u[0] + box.u[1]) / 2, diameter = box.v[1] - box.v[0], { length, tilt } = box.cylinder
     add({ ...piece, shape: 'ellipse', roll: Math.PI / 2 + tilt, u: [at - diameter / 2, at + diameter / 2], y: [centre - length / 2, centre + length / 2] })
   }
+  for (const box of BATHROOM_NICHE_BOXES) add(fromBox(box, 'bathroom-', { roughness: .6 }))
   add(fromBox(VANITY_LED_BOX, 'bathroom-', { roughness: .4 }))
   for (const box of MIRROR_LIGHT_BOXES) add({ ...box, roughness: .4, solid: false })
   for (const box of BATHROOM_BOXES) {

@@ -1,3 +1,4 @@
+import { BATHROOM_NICHE } from '../src/data/bathroom.ts'
 import { RACK_BOXES } from '../src/data/rack.ts'
 import assert from 'node:assert/strict'
 import test from 'node:test'
@@ -122,7 +123,9 @@ test('the cutaway draws the same walls as the walkthrough walks through', () => 
     const top = level + CUT_HEIGHT
     const fromPlan = wallBoxes(OUTLINES[floor], OPENINGS[floor], level, top, undefined, SIDE_OPENINGS[floor])
     const partitions = (floor === 'ground' ? GROUND_PARTITIONS : FIRST_FLOOR_PARTITIONS).map(([u0, u1, v0, v1]) => ({ size: [u1 - u0, CUT_HEIGHT, v1 - v0] as [number, number, number] }))
-    close(volume(shellWallBoxes(floor, top)), volume(fromPlan) + volume(partitions), 1e-6)
+    // The shower's niche is cut out of a partition of the first floor, as far up as the cut.
+    const niche = floor === 'first' ? BATHROOM_NICHE.depth * (BATHROOM_NICHE.v[1] - BATHROOM_NICHE.v[0]) * (Math.min(BATHROOM_NICHE.y[1], top) - BATHROOM_NICHE.y[0]) : 0
+    close(volume(shellWallBoxes(floor, top)), volume(fromPlan) + volume(partitions) - niche, 1e-6)
   }
 })
 

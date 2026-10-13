@@ -2,9 +2,10 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FLOOR_HEIGHT } from '../src/data/building-site.ts'
 import { isOn } from '../src/data/devices.ts'
+import { shellWallBoxes } from '../src/data/house-interior.ts'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -155,4 +156,22 @@ test('a warm LED strip runs under the floating vanity, lit by the bathroom switc
   assert.ok(VANITY_LED_BOX.glow && VANITY_LED_BOX.y[1] === body.y[0], 'on the vanity\'s underside')
   assert.ok(VANITY_LED_BOX.v[0] >= body.v[0] && VANITY_LED_BOX.v[1] <= body.v[1] && VANITY_LED_BOX.u[0] >= body.u[0] && VANITY_LED_BOX.u[1] <= body.u[1], 'within its footprint')
   assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-ceiling-vanity-led' && piece.glow))
+})
+
+test('the shower has a two-shelf niche cut into the wall that faces its taps, centred on the shower, 30 cm a shelf', () => {
+  const n = BATHROOM_NICHE, showerMiddle = (BATHROOM_RUN.shower[0] + BATHROOM_RUN.shower[1]) / 2
+  assert.ok(Math.abs((n.v[0] + n.v[1]) / 2 - showerMiddle) < 1e-9, 'centred on the shower')
+  assert.ok(n.v[0] >= BATHROOM_RUN.shower[0] && n.v[1] <= BATHROOM_RUN.shower[1], 'within the shower')
+  assert.ok(Math.abs(n.y[1] - n.y[0] - (2 * .3 + .02)) < 1e-9, 'two 30 cm shelves and the board between them')
+  assert.equal(n.face, FIRST_FLOOR_BATHROOM.u[0], 'on the wall opposite the taps')
+  assert.ok(n.depth < .12, 'it leaves some of the partition behind it')
+  const boxes = shellWallBoxes('first', 2 * FLOOR_HEIGHT - SLAB_THICKNESS)
+  const mid = (n.v[0] + n.v[1]) / 2, shelfMid = (n.y[0] + n.y[1]) / 2
+  // No wall box fills the recess, and the thin back is there behind it.
+  const covers = (box: { center: number[]; size: number[] }, u: number, y: number, v: number) => Math.abs(box.center[0] - u) <= box.size[0] / 2 && Math.abs(box.center[1] - y) <= box.size[1] / 2 && Math.abs(box.center[2] - v) <= box.size[2] / 2
+  assert.ok(!boxes.some(box => covers(box, n.face - n.depth / 2, shelfMid, mid)), 'the recess is empty')
+  assert.ok(boxes.some(box => covers(box, n.face - n.depth - .01, shelfMid, mid)), 'the back is left')
+  assert.ok(boxes.some(box => covers(box, n.face - n.depth / 2, shelfMid, n.v[0] - .05)) && boxes.some(box => covers(box, n.face - n.depth / 2, shelfMid, n.v[1] + .05)), 'wall on each side')
+  assert.ok(boxes.some(box => covers(box, n.face - n.depth / 2, n.y[0] - .05, mid)), 'wall under it')
+  assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-niche-shelf'), 'the board between the shelves')
 })
