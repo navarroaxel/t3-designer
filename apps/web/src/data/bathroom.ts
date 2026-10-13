@@ -13,7 +13,7 @@ import { BATHROOM_DOOR, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from 
  * the run starts at the north-east corner and goes toward the south-west party wall, decreasing v. House frame [u, v].
  */
 /** A box, or an ellipse inscribed in it, narrowing toward the floor by `taper` (1 = straight sides). */
-export type BathroomBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; opacity?: number; metalness?: number; shape?: 'ellipse'; taper?: number; cylinder?: { length: number; tilt: number } }
+export type BathroomBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; opacity?: number; metalness?: number; shape?: 'ellipse'; taper?: number; cylinder?: { length: number; tilt: number }; /** A round plate on a wall that faces along v: a cylinder along v, its radius half the u span. */ disc?: true }
 
 const wall = FIRST_FLOOR_BATHROOM.u[1]
 const floor = FLOOR_HEIGHT
@@ -101,7 +101,7 @@ export const BATHROOM_BOXES: BathroomBox[] = [
 
 /**
  * The shower's fittings (owner's, from the Piazza CUBE 111060M datasheet: "bañera de embutir con transferencia", brushed gold): on the wall that the niche faces, centred on the shower. A square wall arm with a 58 mm flange runs 38 cm out of the
- * wall, bends down (R 70 mm) and ends in a 200 mm square rain head, its top 10.5 cm under the arm; the built-in mixer has a 129 by 178 mm plate with a round 20 mm diverter and a 42 mm lever that stands 54 mm out; and the spout has a 60 mm flange
+ * wall, bends down (R 70 mm) and ends in a 200 mm square rain head, its top 10.5 cm under the arm; the built-in mixer (on the back wall, see below) has a 129 by 178 mm plate with a round 20 mm diverter and a 42 mm lever that stands 54 mm out; and the spout has a 60 mm flange
  * and sticks 18.7 cm out. The datasheet's measures; the heights are assumed: the arm at 2.2 m, the mixer's plate centred at 1.05 m, the spout at 0.85 m, under the mixer (the set is for a bath: there is no tub in this shower, so it pours on the floor). `cylinder` boxes are
  * tubes along their axis, as the front light's heads are (see `BATHROOM_FRONT_SPOT_TILT`): they run out of the wall, tilted `tilt` down. Heights above the ground-floor level.
  */
@@ -115,7 +115,7 @@ const tube = (id: string, from: [number, number], to: [number, number], d: numbe
   return { id, u: around(wall - middle[0], d), v: around(showerMiddle, d), y: around(middle[1], d), color: GOLD, metalness: .85, cylinder: { length, tilt: Math.atan2(-dy, dx) } }
 }
 const SHOWER_ARM_Y = floor + SHOWER_SET.armHeight, SHOWER_HEAD_TOP = SHOWER_ARM_Y - .105
-const SHOWER_MIXER_Y = floor + SHOWER_SET.mixerHeight, SHOWER_SPOUT_Y = floor + SHOWER_SET.spoutHeight
+const SHOWER_MIXER_U = FIRST_FLOOR_BATHROOM.u[0] + .35, SHOWER_MIXER_Y = floor + SHOWER_SET.mixerHeight, SHOWER_SPOUT_Y = floor + SHOWER_SET.spoutHeight
 export const BATHROOM_SHOWER_BOXES: (BathroomBox & { glow?: boolean })[] = [
   // The rain arm: the flange, the run along the wall's normal, the bend in a 45 degree piece and the neck down to the head; then the head, a square plate with a smaller one under it for its step.
   { id: 'shower-arm-flange', u: [wall - SHOWER_SET.flange, wall], v: around(showerMiddle, .058), y: around(SHOWER_ARM_Y, .058), color: GOLD, metalness: .85 },
@@ -124,10 +124,11 @@ export const BATHROOM_SHOWER_BOXES: (BathroomBox & { glow?: boolean })[] = [
   tube('shower-arm-neck', [.403, SHOWER_ARM_Y - .07], [.403, SHOWER_HEAD_TOP], .022),
   { id: 'shower-head', u: around(wall - .403, .2), v: around(showerMiddle, .2), y: [SHOWER_HEAD_TOP - .008, SHOWER_HEAD_TOP], color: GOLD, metalness: .85 },
   { id: 'shower-head-step', u: around(wall - .403, .184), v: around(showerMiddle, .184), y: [SHOWER_HEAD_TOP - .012, SHOWER_HEAD_TOP - .008], color: GOLD, metalness: .85 },
-  // The mixer: its plate, the diverter's knob above the middle and the lever hanging from below it.
-  { id: 'shower-mixer-plate', u: [wall - SHOWER_SET.flange, wall], v: around(showerMiddle, .129), y: around(SHOWER_MIXER_Y, .178), color: GOLD, metalness: .85 },
-  tube('shower-mixer-knob', [SHOWER_SET.flange, SHOWER_MIXER_Y + .045], [SHOWER_SET.flange + .03, SHOWER_MIXER_Y + .045], .02),
-  { id: 'shower-mixer-lever', u: [wall - .054, wall - SHOWER_SET.flange], v: around(showerMiddle, .042), y: [SHOWER_MIXER_Y - .085, SHOWER_MIXER_Y + .005], color: GOLD, metalness: .85 },
+  // The mixer (owner's request: to open the shower without getting wet): on the back wall, to the left of the niche (facing it), 35 cm from the wall of the niche, away from the rain; its plate, the diverter's knob above the middle
+  // and the lever hanging from below it. The wall faces +v, so the plate is thin in v and the knob a disc along v.
+  { id: 'shower-mixer-plate', u: around(SHOWER_MIXER_U, .129), v: [end, end + SHOWER_SET.flange], y: around(SHOWER_MIXER_Y, .178), color: GOLD, metalness: .85 },
+  { id: 'shower-mixer-knob', u: around(SHOWER_MIXER_U, .02), v: [end + SHOWER_SET.flange, end + SHOWER_SET.flange + .03], y: around(SHOWER_MIXER_Y + .045, .02), color: GOLD, metalness: .85, disc: true },
+  { id: 'shower-mixer-lever', u: around(SHOWER_MIXER_U, .042), v: [end + SHOWER_SET.flange, end + .054], y: [SHOWER_MIXER_Y - .085, SHOWER_MIXER_Y + .005], color: GOLD, metalness: .85 },
   // The spout.
   { id: 'shower-spout-flange', u: [wall - SHOWER_SET.flange, wall], v: around(showerMiddle, .06), y: around(SHOWER_SPOUT_Y, .06), color: GOLD, metalness: .85 },
   { id: 'shower-spout', u: [wall - .187, wall - SHOWER_SET.flange], v: around(showerMiddle, .035), y: [SHOWER_SPOUT_Y - .0075 - .0075, SHOWER_SPOUT_Y + .0075 - .0075], color: GOLD, metalness: .85 },

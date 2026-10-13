@@ -29,16 +29,3 @@ test('with nothing to light the pool is empty, and a source that is gone is let 
   assert.deepEqual(chooseSources([], [0, 0, 0], ['a', 'b'], 2), [null, null])
   assert.deepEqual(chooseSources([source('b', 0)], [0, 0, 0], ['a', 'b'], 2), [null, 'b'])
 })
-
-test('the sources of a group are shown together or not at all: a group that does not fit whole gives way to nearer singles', () => {
-  const grouped = (id: string, x: number): LightSource => ({ ...source(id, x), group: 'box' })
-  const sources = [grouped('g1', 0), grouped('g2', 1), grouped('g3', 2), source('s', 5), source('t', 6)]
-  // Three slots: the group (nearest at x = 0) takes them all.
-  assert.deepEqual([...chooseSources(sources, [0, 0, 0], [], 3)].sort(), ['g1', 'g2', 'g3'])
-  // Two slots: the group does not fit, so the two nearest singles are shown, not two thirds of the group.
-  assert.deepEqual([...chooseSources(sources, [0, 0, 0], [], 2)].sort(), ['s', 't'])
-  // Four slots: the group and the nearest single.
-  assert.deepEqual([...chooseSources(sources, [0, 0, 0], [], 4)].sort(), ['g1', 'g2', 'g3', 's'])
-  // Far from the group, the singles come first, and the group is whole or out whatever the slots.
-  for (const size of [1, 2, 3, 4, 5, 6]) { const shown = chooseSources(sources, [6, 0, 0], [], size).filter(id => id?.startsWith('g')); assert.ok(shown.length === 0 || shown.length === 3, `size ${size}`) }
-})

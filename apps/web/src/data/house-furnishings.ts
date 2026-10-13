@@ -205,6 +205,7 @@ function firstFloor(): Furnishing[] {
   // What is above the cut hangs high (the cutaway does not draw it): the front light's bar and the rain arm and head.
   for (const box of [...BATHROOM_FRONT_SPOT_BOXES, ...BATHROOM_SHOWER_BOXES]) {
     const piece = fromBox(box, 'bathroom-', { roughness: box.glow ? .4 : box.metalness ? .3 : .9, ...(box.y[0] >= cut - 1e-9 ? { hung: true as const } : {}), ...(box.metalness ? { metalness: box.metalness } : {}) })
+    if (box.disc) { add({ ...piece, disc: true as const }); continue }
     if (!box.cylinder) { add(piece); continue }
     const centre = (box.y[0] + box.y[1]) / 2, at = (box.u[0] + box.u[1]) / 2, diameter = box.v[1] - box.v[0], { length, tilt } = box.cylinder
     add({ ...piece, shape: 'ellipse', roll: Math.PI / 2 + tilt, u: [at - diameter / 2, at + diameter / 2], y: [centre - length / 2, centre + length / 2] })

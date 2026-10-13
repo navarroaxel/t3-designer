@@ -262,15 +262,27 @@ test('only the three downlights go by the sensor: the mirror\'s light and the st
   assert.ok(strips.every(id => !isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id)) && mirror.every(id => isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id)))
 })
 
+test('the shower\'s mixer is on the back wall, to the left of the niche, away from the rain, to open without getting wet', () => {
+  const plate = BATHROOM_SHOWER_BOXES.find(item => item.id === 'shower-mixer-plate')!, knob = BATHROOM_SHOWER_BOXES.find(item => item.id === 'shower-mixer-knob')!, head = BATHROOM_SHOWER_BOXES.find(item => item.id === 'shower-head')!
+  near(plate.v[0], FIRST_FLOOR_BATHROOM.v[0]); assert.ok(plate.v[1] - plate.v[0] < .02, 'flat on the back wall')
+  assert.ok(knob.disc && knob.v[0] >= plate.v[1] - 1e-9, 'a knob standing out of the plate')
+  // The niche is on the wall at u[0]; seen from the room, the left of it is toward the lower v, the back wall; the mixer is nearer that wall than the rain head is.
+  const mixer = (plate.u[0] + plate.u[1]) / 2, rain = (head.u[0] + head.u[1]) / 2
+  assert.ok(mixer < rain - .5, 'well away from the head, toward the niche\'s wall')
+  assert.ok(plate.u[0] > FIRST_FLOOR_BATHROOM.u[0] + .1, 'clear of the niche\'s wall')
+  assert.ok(furnishingsOn('first').find(piece => piece.id === 'bathroom-shower-mixer-knob')?.disc, 'drawn as a disc')
+})
+
 test('the shower has the Piazza CUBE set in brushed gold: a rain arm and a 20 cm square head, a built-in mixer and a spout, centred on the shower', () => {
   const by = (id: string) => BATHROOM_SHOWER_BOXES.find(item => item.id === id)!, middle = (BATHROOM_RUN.shower[0] + BATHROOM_RUN.shower[1]) / 2, wall = FIRST_FLOOR_BATHROOM.u[1]
   const centre = (item: { v: [number, number] }) => (item.v[0] + item.v[1]) / 2
-  for (const item of BATHROOM_SHOWER_BOXES) { near(centre(item), middle); assert.equal(item.color, BATHROOM_SHOWER_BOXES[0].color, `${item.id} is the same gold`); assert.ok(item.v[0] >= BATHROOM_RUN.shower[0] && item.v[1] <= BATHROOM_RUN.shower[1], `${item.id} within the shower`) }
+  // The mixer is on the back wall, the rest on the wall of the taps and centred on the shower.
+  for (const item of BATHROOM_SHOWER_BOXES) { assert.equal(item.color, BATHROOM_SHOWER_BOXES[0].color, `${item.id} is the same gold`); if (!item.id.startsWith('shower-mixer')) { near(centre(item), middle); assert.ok(item.v[0] >= BATHROOM_RUN.shower[0] && item.v[1] <= BATHROOM_RUN.shower[1], `${item.id} within the shower`) } }
   const head = by('shower-head'), plate = by('shower-mixer-plate'), lever = by('shower-mixer-lever'), spout = by('shower-spout'), flange = by('shower-arm-flange')
   near(head.u[1] - head.u[0], .2); near(head.v[1] - head.v[0], .2)
-  near(flange.v[1] - flange.v[0], .058); near(plate.v[1] - plate.v[0], .129); near(plate.y[1] - plate.y[0], .178)
+  near(flange.v[1] - flange.v[0], .058); near(plate.u[1] - plate.u[0], .129); near(plate.y[1] - plate.y[0], .178)
   assert.ok(spout.y[1] < plate.y[0] && spout.y[0] > FLOOR_HEIGHT + .8, 'the spout is under the mixer, at about 85 cm')
-  near(lever.v[1] - lever.v[0], .042); near(wall - lever.u[0], .054); near(wall - spout.u[0], .187)
+  near(lever.u[1] - lever.u[0], .042); near(lever.v[1] - FIRST_FLOOR_BATHROOM.v[0], .054); near(wall - spout.u[0], .187)
   near(wall - (head.u[0] + head.u[1]) / 2, .403, 1e-9)
   assert.ok(head.y[1] < flange.y[0], 'the head hangs under the arm'); near(flange.y[0] + .029 - head.y[1], .105)
   assert.ok(plate.y[1] < FLOOR_HEIGHT + CUT_HEIGHT && head.y[0] > FLOOR_HEIGHT + CUT_HEIGHT, 'the mixer is under the cut, the head above')
