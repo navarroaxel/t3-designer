@@ -558,19 +558,20 @@ test('with the wood on the pendant lamps hang from its underside, 3 cm lower tha
   assert.ok(Math.abs(slab.y[0] - Math.min(...wood.map(item => item.y[0])) - ISLAND_WOOD.thickness) < 1e-9, 'the wood is as thick as the lamps are lowered')
 })
 
-test('the glasses cabinet has a warm accent strip at the top of each of its two shelves and a faint wash on its back, lit by the kitchen switch\'s second gang (Q)', () => {
+test('the glasses cabinet has a warm accent strip at the top of each of its two shelves and a wash on its back and a glow on each shelf\'s board, lit by the kitchen switch\'s second gang (Q)', () => {
   const pieces = furnishingsOn('first'), find = (id: string) => pieces.find(piece => piece.id === id)!
   const rail = find('kitchen-upper-glass-rail'), shelf = find('kitchen-upper-glass-shelf'), pane = find('kitchen-upper-glass-pane')
-  const strips = [1, 2].map(index => find(`kitchen-upper-accent-led-${index}`)), washes = [1, 2].map(index => find(`kitchen-upper-accent-wash-${index}`))
+  const strips = [1, 2].map(index => find(`kitchen-upper-accent-led-${index}`)), washes = [1, 2].map(index => find(`kitchen-upper-accent-wash-${index}`)), boards = [1, 2].map(index => find(`kitchen-upper-accent-board-${index}`))
   // The two tops: the underside of the shelf and the underside of the rail, each strip hung from it, behind the glass and inside the cabinet.
   assert.ok(Math.abs(strips[0].y[1] - shelf.y[0]) < 1e-9 && Math.abs(strips[1].y[1] - rail.y[0]) < 1e-9, 'under the shelf and under the rail')
   for (const strip of strips) {
     assert.ok(strip.glow && strip.color === LED_STRIP.color, 'the house\'s warm strip'); assert.ok(Math.abs(strip.y[1] - strip.y[0] - LED_STRIP.thickness) < 1e-9 && Math.abs(strip.v[1] - strip.v[0] - LED_STRIP.width) < 1e-9, 'the same size')
     assert.ok(strip.v[0] > pane.v[1] && strip.u[0] >= pane.u[0] && strip.u[1] <= pane.u[1] && strip.v[1] < rail.v[1], 'behind the glass, inside the cabinet')
   }
-  for (const wash of washes) assert.ok(wash.glow && wash.opacity !== undefined && wash.opacity < .5 && Math.abs(wash.v[1] - rail.v[1]) < 1e-9, 'a faint plane on the back wall')
+  for (const wash of washes) assert.ok(wash.glow && wash.opacity !== undefined && wash.opacity > .4 && wash.opacity < .8 && Math.abs(wash.v[1] - rail.v[1]) < 1e-9, 'a plane of warm light on the back wall')
+  for (const board of boards) assert.ok(board.glow && board.opacity !== undefined && board.y[1] - board.y[0] < .005 && board.v[0] > pane.v[1] && board.v[1] <= rail.v[1], 'a glow on the board of the shelf, behind the glass')
   // Q works them, E does not, and they start on.
-  const ids = [...strips, ...washes].map(piece => piece.id)
+  const ids = [...strips, ...washes, ...boards].map(piece => piece.id)
   assert.ok(isKitchenAccentOn({}) && !isKitchenAccentOn({ [KITCHEN_ACCENT_KEY]: 0 }))
   assert.ok(ids.every(id => isLit({}, id) && !isLit({ [KITCHEN_ACCENT_KEY]: 0 }, id) && isLit({ [KITCHEN_SWITCH_ID]: 0 }, id)), 'Q puts them out, E does not')
   assert.ok(!isLit({ [KITCHEN_SWITCH_ID]: 0 }, 'kitchen-conduit-light-1') && isLit({ [KITCHEN_ACCENT_KEY]: 0 }, 'kitchen-conduit-light-1'), 'and the conduit spots go by E only')
