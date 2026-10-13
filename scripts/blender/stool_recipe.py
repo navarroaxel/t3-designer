@@ -61,15 +61,50 @@ def build(request, _default_material):
         parts.append(obj)
         return obj
 
-    # The seat: a soft, rounded slab, a little deeper than the back's shell is.
-    front, rear = -.215, .215
-    box('Seat', cream, (-half, half), (front, rear), (seat_top - seat_thick, seat_top), .03, 5)
+    # The seat: a soft, rounded slab. Its back half is the very ellipse the back's shell stands on, so that no corner of it sticks out of the shell; its front half is a rounder, wider curve, reaching 21.5 cm forward.
+    centre_y = .02
+    rx0, ry0 = half, .215
+    foot = .93
+    rx_b, ry_b, ry_front = rx0 * foot, ry0 * foot, centre_y + .215
+    outline = bmesh.new()
+    count = 96
+    ring_top = []
+    for i in range(count):
+        t = 2 * math.pi * i / count
+        c, sn = math.cos(t), math.sin(t)
+        if sn >= 0:
+            x, y = rx_b * c, centre_y + ry_b * sn
+        else:
+            n = 2.6
+            x = rx_b * math.copysign(abs(c) ** (2 / n), c)
+            y = centre_y + ry_front * math.copysign(abs(sn) ** (2 / n), sn)
+        ring_top.append(outline.verts.new((x, y, seat_top)))
+    face = outline.faces.new(ring_top)
+    extruded = bmesh.ops.extrude_face_region(outline, geom=[face])
+    bmesh.ops.translate(outline, vec=(0, 0, -seat_thick), verts=[v for v in extruded['geom'] if isinstance(v, bmesh.types.BMVert)])
+    bmesh.ops.recalc_face_normals(outline, faces=outline.faces[:])
+    seat_data = bpy.data.meshes.new('Seat')
+    outline.to_mesh(seat_data)
+    outline.free()
+    seat = bpy.data.objects.new('Seat', seat_data)
+    bpy.context.collection.objects.link(seat)
+    bpy.context.view_layer.objects.active = seat
+    bpy.ops.object.select_all(action='DESELECT')
+    seat.select_set(True)
+    soft_seat = seat.modifiers.new('Soft edges', 'BEVEL')
+    soft_seat.width = .022
+    soft_seat.segments = 5
+    soft_seat.limit_method = 'ANGLE'
+    bpy.ops.object.modifier_apply(modifier=soft_seat.name)
+    smooth(seat)
+    seat.data.materials.append(cream)
+    parts.append(seat)
 
     # The back: a shell that wraps the seat's back half, in the picture's shape: it narrows a little toward the top, leans back, and its top edge falls toward the sides, so that it blends into the seat's edges.
     # Built as a loft over the angle round the back (from -85 to 85 degrees about +Y) and the height, with an inner and an outer face, a rim and two ends, then smoothed (subdivision) so that the edges are soft.
     shell_bottom, shell_top = seat_top - .035, h
-    centre_y, around, rise = .02, math.radians(85), 15
-    rx0, ry0, thick0, thick1, lean, drop = half, .215, .045, .03, .03, .15
+    around = math.radians(85)
+    thick0, thick1, lean, drop = .045, .03, .03, .15
     steps_a, steps_z = 31, 11
     shell = bmesh.new()
     outer_grid, inner_grid = [], []
@@ -81,8 +116,8 @@ def build(request, _default_material):
         for j in range(steps_z):
             f = j / (steps_z - 1)
             z = shell_bottom + (top - shell_bottom) * f
-            # An egg: narrow at the foot, where it meets the seat, widest high up, and a little narrower at the very top.
-            narrow = 1 - .17 * (1 - f) ** 2 - .05 * f ** 3
+            # An egg: it stands on the seat's own back ellipse at the foot, widest high up, and a little narrower at the very top.
+            narrow = 1 - (1 - foot) * (1 - f) ** 2 - .05 * f ** 3
             rx, ry = rx0 * narrow, ry0 * narrow
             thick = thick0 + (thick1 - thick0) * f
             cy = centre_y + lean * f * f
@@ -124,8 +159,8 @@ def build(request, _default_material):
     top_z = seat_top - seat_thick
     for sx in (-1, 1):
         for sy in (-1, 1):
-            upper = ring((sx * .17, sy * .15), .0165, top_z)
-            lower = ring((sx * .21, sy * .19), .0085, 0)
+            upper = ring((sx * .165, sy * .14), .0165, top_z)
+            lower = ring((sx * .205, sy * .18), .0085, 0)
             for i in range(sides):
                 legs.faces.new((lower[i], lower[(i + 1) % sides], upper[(i + 1) % sides], upper[i]))
             legs.faces.new(lower[::-1])
@@ -143,7 +178,7 @@ def build(request, _default_material):
     # The footrest ring: four square rods between the legs, low down, in black.
     rod, rod_z = .012, .28
     t = (top_z - rod_z) / top_z
-    gx, gy = .17 + .04 * t, .15 + .04 * t
+    gx, gy = .165 + .04 * t, .14 + .04 * t
     for sy in (-1, 1):
         box('Rail front/back', black, (-gx, gx), (sy * gy - rod / 2, sy * gy + rod / 2), (rod_z - rod / 2, rod_z + rod / 2), .004)
     for sx in (-1, 1):
