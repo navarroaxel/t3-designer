@@ -6,7 +6,7 @@ import { HOUSE_FLOORS, shellWallBoxes, wallNiches } from '../src/data/house-inte
 import { wallRotation } from '@t3-designer/geometry'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, BATHROOM_NICHE_BOXES, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -188,4 +188,18 @@ test('the walkthrough draws the niche: one wall carries it, and in the wall\'s f
   near(wall.from[0] + lx * Math.cos(angle) + lz * Math.sin(angle), n.face - n.depth / 2)
   near(wall.from[1] - lx * Math.sin(angle) + lz * Math.cos(angle), -(n.v[0] + n.v[1]) / 2)
   near(niche.bottom + FLOOR_HEIGHT, n.y[0]); near(niche.depth, n.depth); near(niche.width, .62)
+})
+
+test('the niche has a dim warm LED strip at the top of each shelf, inside the recess, lit by the bathroom switch', () => {
+  const n = BATHROOM_NICHE, strips = BATHROOM_NICHE_BOXES.filter(item => item.id.startsWith('ceiling-niche-led-'))
+  assert.equal(strips.length, 2)
+  const tops = strips.map(strip => strip.y[1]).sort((a, b) => a - b)
+  near(tops[0], n.y[0] + .01 + .3); near(tops[1], n.y[1])
+  for (const strip of strips) {
+    assert.ok(strip.glow, 'glowing'); assert.equal(strip.color, VANITY_LED_BOX.color, 'the colour of the strip under the vanity')
+    near(strip.y[1] - strip.y[0], VANITY_LED_BOX.y[1] - VANITY_LED_BOX.y[0]); near(strip.u[1] - strip.u[0], VANITY_LED_BOX.u[1] - VANITY_LED_BOX.u[0])
+    assert.ok(strip.u[0] >= n.u[0] && strip.u[1] <= n.u[1] && strip.v[0] >= n.v[0] && strip.v[1] <= n.v[1] && strip.y[0] >= n.y[0] && strip.y[1] <= n.y[1], 'inside the recess')
+  }
+  const lit = furnishingsOn('first').filter(piece => piece.id.startsWith('bathroom-ceiling-niche-led-'))
+  assert.equal(lit.length, 2); assert.ok(lit.every(piece => piece.glow))
 })

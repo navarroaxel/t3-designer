@@ -61,10 +61,18 @@ export const BATHROOM_NICHE = (() => {
   return { shelf, divider, depth, face, u: [face - depth, face] as [number, number], v: [centre - width / 2, centre + width / 2] as [number, number], y: [bottom, bottom + 2 * (shelf + divider)] as [number, number] }
 })()
 
+/** The bathroom's warm LED strips, under the vanity and in the niche, are one kind (owner): the same colour, 8 mm thick and 2 cm wide. */
+const LED_STRIP = { color: '#ffe0b0', thickness: .008, width: .02 }
+
 /** The porcelain boards of the niche, under each shelf (the lower one is its sill), in the recess (not in the room, so not among the fixtures). */
-export const BATHROOM_NICHE_BOXES: BathroomBox[] = [
+export const BATHROOM_NICHE_BOXES: (BathroomBox & { glow?: boolean })[] = [
   { id: 'niche-sill', u: BATHROOM_NICHE.u, v: BATHROOM_NICHE.v, y: [BATHROOM_NICHE.y[0], BATHROOM_NICHE.y[0] + BATHROOM_NICHE.divider], color: '#e9e6df' },
   { id: 'niche-shelf', u: BATHROOM_NICHE.u, v: BATHROOM_NICHE.v, y: [BATHROOM_NICHE.y[0] + BATHROOM_NICHE.shelf + BATHROOM_NICHE.divider, BATHROOM_NICHE.y[0] + BATHROOM_NICHE.shelf + 2 * BATHROOM_NICHE.divider], color: '#e9e6df' },
+  // A warm LED strip (owner's request), the same as the one under the vanity, along the top of each shelf, just inside its front edge, to bring out the niche: the lower one under the board above it, the upper one under the niche's top.
+  ...[BATHROOM_NICHE.y[0] + BATHROOM_NICHE.divider + BATHROOM_NICHE.shelf, BATHROOM_NICHE.y[1]].map((top, index) => ({
+    id: `ceiling-niche-led-${index + 1}`, u: [BATHROOM_NICHE.face - .03, BATHROOM_NICHE.face - .03 + LED_STRIP.width] as [number, number], v: [BATHROOM_NICHE.v[0] + .015, BATHROOM_NICHE.v[1] - .015] as [number, number],
+    y: [top - LED_STRIP.thickness, top] as [number, number], color: LED_STRIP.color, glow: true,
+  })),
 ]
 
 export const BATHROOM_BOXES: BathroomBox[] = [
@@ -167,7 +175,7 @@ export const BATHROOM_FRONT_SPOT_BOXES = spotBoxes()
  * The vanity floats, so a warm LED strip runs under it (owner's request), along its underside near the front edge, to light the floor. It is on the bathroom's switch with the downlights. It hangs below
  * the cut, so it is drawn in the cutaway too.
  */
-export const VANITY_LED_BOX: BathroomBox & { glow: true } = { id: 'ceiling-vanity-led', u: [vanityU[0] + .03, vanityU[0] + .05], v: [vanityV[0] + .03, vanityV[1] - .03], y: [floor + S.vanityFloat - .008, floor + S.vanityFloat], color: '#ffe0b0', glow: true }
+export const VANITY_LED_BOX: BathroomBox & { glow: true } = { id: 'ceiling-vanity-led', u: [vanityU[0] + .03, vanityU[0] + .03 + LED_STRIP.width], v: [vanityV[0] + .03, vanityV[1] - .03], y: [floor + S.vanityFloat - LED_STRIP.thickness, floor + S.vanityFloat], color: LED_STRIP.color, glow: true }
 export const VANITY_LED_LIGHT = { u: vanityU[0] + .04, v: (vanityV[0] + vanityV[1]) / 2, y: floor + S.vanityFloat - .03 }
 export const BATHROOM_LIGHT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
   { id: 'ceiling-box', u: lightBoxU, v: FIRST_FLOOR_BATHROOM.v, y: lightBoxY, color: '#f1efe9' },
