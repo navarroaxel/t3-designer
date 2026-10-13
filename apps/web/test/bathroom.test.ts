@@ -6,7 +6,7 @@ import { HOUSE_FLOORS, shellWallBoxes, wallNiches } from '../src/data/house-inte
 import { wallRotation } from '@t3-designer/geometry'
 import { furnishingDevices, furnishingsOn } from '../src/data/house-furnishings.ts'
 import { BATHROOM_DOOR, BATHROOM_DOOR_SWING, CUT_HEIGHT, FIRST_FLOOR_BATHROOM, SLAB_THICKNESS } from '../src/data/house-plan.ts'
-import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, BATHROOM_NICHE_BOXES, BATHROOM_SHOWER_BOXES, BATHROOM_ACCENT_KEY, BATHROOM_MOTION_KEY, BATHROOM_SENSOR, isNearBathroom, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
+import { BATHROOM_BOXES, BATHROOM_SWITCH_ID, BATHROOM_LIGHT_BOXES, BATHROOM_LIGHT_POSITIONS, BATHROOM_FRONT_SPOT_AT, BATHROOM_FRONT_SPOT_BOXES, VANITY_LED_BOX, BATHROOM_NICHE, BATHROOM_NICHE_BOXES, BATHROOM_SHOWER_BOXES, BATHROOM_ACCENT_KEY, BATHROOM_LIGHT_REGION, BATHROOM_MOTION_KEY, BATHROOM_SENSOR, isNearBathroom, MIRROR, MIRROR_LIGHT_BOXES, BATHROOM_RUN, BATHROOM_SIZES } from '../src/data/bathroom.ts'
 
 const box = (id: string) => BATHROOM_BOXES.find(item => item.id === id)!
 const overlap = (a: [number, number], b: [number, number]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
@@ -301,4 +301,11 @@ test('the niche keeps a faint warm wash on the back of each shelf, lit with the 
   const ids = washes.map(wash => `bathroom-${wash.id}`)
   assert.ok(ids.every(id => isLit({}, id) && !isLit({ [BATHROOM_ACCENT_KEY]: 0 }, id) && isLit({ [BATHROOM_MOTION_KEY]: 0 }, id)), 'on with the Q switch, not with the sensor')
   assert.ok(furnishingsOn('first').filter(piece => piece.id.startsWith('bathroom-ceiling-niche-wash-')).length === 2)
+})
+
+test('the bathroom\'s point lights count in the pool only for a camera inside the bathroom or in the 2.5 m in front of its door, not in the living behind the wall', () => {
+  const r = BATHROOM_LIGHT_REGION, [u0, u1] = FIRST_FLOOR_BATHROOM.u, [v0, v1] = FIRST_FLOOR_BATHROOM.v, door = (BATHROOM_DOOR.u[0] + BATHROOM_DOOR.u[1]) / 2
+  const holds = (u: number, v: number) => u >= r.x[0] && u <= r.x[1] && -v >= r.z[0] && -v <= r.z[1]
+  assert.ok(holds((u0 + u1) / 2, (v0 + v1) / 2), 'inside'); assert.ok(holds(door, v1 + 2), 'in front of the door')
+  assert.ok(!holds(u1 + 1, (v0 + v1) / 2), 'not in the living behind the wall'); assert.ok(!holds(door, v1 + 3.5), 'not far along the hall')
 })

@@ -240,6 +240,11 @@ export const VANITY_LED_LIGHT = { u: vanityU[0] + .04, v: (vanityV[0] + vanityV[
 export const BATHROOM_SENSOR_ID = 'bathroom-ceiling-sensor'
 export const BATHROOM_MOTION_KEY = 'motion-bathroom'
 export const BATHROOM_ACCENT_KEY = 'bathroom-accent'
+/**
+ * Where the camera has to be for the bathroom's point lights to count in the pool (x = u and z = -v, as the lights' positions are): inside the bathroom, or in the 2.5 m in front of its door, where it can
+ * be seen into. Farther, or in the living behind the wall, they are behind walls that stop them, and would take the places of the lamps that light the room the visitor is in.
+ */
+export const BATHROOM_LIGHT_REGION = { x: [FIRST_FLOOR_BATHROOM.u[0] - .2, FIRST_FLOOR_BATHROOM.u[1] + .2] as [number, number], z: [-(FIRST_FLOOR_BATHROOM.v[1] + 2.5), -FIRST_FLOOR_BATHROOM.v[0] + .2] as [number, number] }
 export const BATHROOM_SENSOR = { hold: 12, reach: 1.5, side: .6, dome: .05 }
 /** Whether a visitor at (x, z) of the first floor's frame, with their feet `feetOffset` over the ground, is where the sensor sees them. */
 export function isNearBathroom(x: number, z: number, feetOffset: number): boolean {

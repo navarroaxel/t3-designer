@@ -29,3 +29,12 @@ test('with nothing to light the pool is empty, and a source that is gone is let 
   assert.deepEqual(chooseSources([], [0, 0, 0], ['a', 'b'], 2), [null, null])
   assert.deepEqual(chooseSources([source('b', 0)], [0, 0, 0], ['a', 'b'], 2), [null, 'b'])
 })
+
+test('a source with a region is shown only to a camera inside it, and does not take the place of a lamp that lights the camera\'s own room', () => {
+  const shut = (id: string, x: number): LightSource => ({ ...source(id, x), region: { x: [-1, 1], z: [-1, 1] } })
+  // Behind a wall, but nearer than the lamp of the room the camera is in.
+  const sources = [shut('bath-1', 0), shut('bath-2', 0.2), source('kitchen', 8)]
+  assert.deepEqual(chooseSources(sources, [3, 0, 0], [], 2).filter(Boolean), ['kitchen'], 'outside the region the shut lights are not shown')
+  assert.deepEqual([...chooseSources(sources, [0.5, 0, 0], [], 2)].sort(), ['bath-1', 'bath-2'], 'inside it they are, and nearest')
+  assert.deepEqual(chooseSources(sources, [0, 0, 1.5], [], 3).filter(Boolean), ['kitchen'], 'the region holds z too')
+})

@@ -13,7 +13,7 @@ import { LightPool } from './LightPool'
 import { StaticBake } from './StaticBake'
 import { kelvinColour, DEFAULT_KITCHEN_KELVIN, type KitchenLightKelvin } from '../data/light-colour'
 import { BALCONY_LANTERN_Y, BALCONY_LIGHT_POSITIONS, BALCONY_SWITCH_ID } from '../data/balcony-lights'
-import { BATHROOM_FRONT_SPOT_LIGHT, VANITY_LED_LIGHT, BATHROOM_NICHE, BATHROOM_LED_COLOUR, BATHROOM_LIGHT_POSITIONS, BATHROOM_SWITCH_ID } from '../data/bathroom'
+import { BATHROOM_FRONT_SPOT_LIGHT, VANITY_LED_LIGHT, BATHROOM_NICHE, BATHROOM_LED_COLOUR, BATHROOM_LIGHT_REGION, BATHROOM_LIGHT_POSITIONS, BATHROOM_SWITCH_ID } from '../data/bathroom'
 import { GLASS_CABINET, GLASS_DOOR_ID, GLASS_HINGE, ISLAND_SWITCH_ID, ISLAND_WOOD, ISLAND_WOOD_ID, KITCHEN_SWITCH_ID } from '../data/kitchen'
 import { CONDUIT_LIGHT_POSITIONS, ISLAND_CANOPY, ISLAND_CANOPY_BOXES, ISLAND_LIGHT_POSITIONS, NOOK } from '../data/kitchen'
 import { FLOOR_HEIGHT } from '../data/building-site'
@@ -181,10 +181,10 @@ export function HouseFurnishings({ floor, devices = {}, absolute = false, cut, k
       ISLAND_CANOPY_BOXES.filter(piece => piece.id.startsWith('canopy-led-')).forEach(strip => sources.push({ id: strip.id, position: [(strip.u[0] + strip.u[1]) / 2, strip.y[1] + .05, -(strip.v[0] + strip.v[1]) / 2], color: kelvinColour(kitchenKelvin.line), intensity: .5 * lightGain, distance: 2.2 }))
     }
     // The three downlights are one light, in the middle of them: three would take half the pool's places and push the niche's and the vanity's out when the sensor lights them.
-    if (motionOn) sources.push({ id: 'bathroom-downlights', position: [BATHROOM_LIGHT_POSITIONS[0].u, FLOOR_HEIGHT + 2.6, -BATHROOM_LIGHT_POSITIONS.reduce((sum, at) => sum + at.v, 0) / BATHROOM_LIGHT_POSITIONS.length], color: '#fff1dc', intensity: 2.6 * lightGain, distance: 3.2 })
-    if (bathroomOn) sources.push({ id: 'bathroom-front', position: [BATHROOM_FRONT_SPOT_LIGHT.u, BATHROOM_FRONT_SPOT_LIGHT.y, -BATHROOM_FRONT_SPOT_LIGHT.v], color: '#fff1dc', intensity: 1.6 * lightGain, distance: 2.8 })
-    if (accentOn) sources.push({ id: 'bathroom-vanity-led', position: [VANITY_LED_LIGHT.u, VANITY_LED_LIGHT.y, -VANITY_LED_LIGHT.v], color: BATHROOM_LED_COLOUR, intensity: .5 * lightGain, distance: 1.4 })
-    if (accentOn) sources.push({ id: 'bathroom-niche-led', position: [BATHROOM_NICHE.face + .1, (BATHROOM_NICHE.y[0] + BATHROOM_NICHE.y[1]) / 2, -(BATHROOM_NICHE.v[0] + BATHROOM_NICHE.v[1]) / 2], color: BATHROOM_LED_COLOUR, intensity: .35 * lightGain, distance: 1.2 })
+    if (motionOn) sources.push({ id: 'bathroom-downlights', position: [BATHROOM_LIGHT_POSITIONS[0].u, FLOOR_HEIGHT + 2.6, -BATHROOM_LIGHT_POSITIONS.reduce((sum, at) => sum + at.v, 0) / BATHROOM_LIGHT_POSITIONS.length], color: '#fff1dc', intensity: 2.6 * lightGain, region: BATHROOM_LIGHT_REGION, distance: 3.2 })
+    if (bathroomOn) sources.push({ id: 'bathroom-front', position: [BATHROOM_FRONT_SPOT_LIGHT.u, BATHROOM_FRONT_SPOT_LIGHT.y, -BATHROOM_FRONT_SPOT_LIGHT.v], color: '#fff1dc', intensity: 1.6 * lightGain, region: BATHROOM_LIGHT_REGION, distance: 2.8 })
+    if (accentOn) sources.push({ id: 'bathroom-vanity-led', position: [VANITY_LED_LIGHT.u, VANITY_LED_LIGHT.y, -VANITY_LED_LIGHT.v], color: BATHROOM_LED_COLOUR, intensity: .5 * lightGain, region: BATHROOM_LIGHT_REGION, distance: 1.4 })
+    if (accentOn) sources.push({ id: 'bathroom-niche-led', position: [BATHROOM_NICHE.face + .1, (BATHROOM_NICHE.y[0] + BATHROOM_NICHE.y[1]) / 2, -(BATHROOM_NICHE.v[0] + BATHROOM_NICHE.v[1]) / 2], color: BATHROOM_LED_COLOUR, intensity: .35 * lightGain, region: BATHROOM_LIGHT_REGION, distance: 1.2 })
     if (conduitOn) CONDUIT_LIGHT_POSITIONS.filter((_, index) => index % 2 === 0).forEach((at, index) => sources.push({ id: `conduit-${index}`, position: [at.u, FLOOR_HEIGHT + 2.65, -at.v], color: kelvinColour(kitchenKelvin.conduit), intensity: 1.2 * lightGain, distance: 3 }))
     if (balconyOn) BALCONY_LIGHT_POSITIONS.forEach((at, index) => sources.push({ id: `balcony-${index}`, position: [at.u - .08, BALCONY_LANTERN_Y, -at.v], color: '#ffe3bd', intensity: 1.2 * lightGain, distance: 3 }))
     return sources
