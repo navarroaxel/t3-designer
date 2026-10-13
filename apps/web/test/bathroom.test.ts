@@ -158,15 +158,15 @@ test('a warm LED strip runs under the floating vanity, lit by the bathroom switc
   assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-ceiling-vanity-led' && piece.glow))
 })
 
-test('the shower has a two-shelf niche cut into the wall that faces its taps, centred on the shower, 30 cm a shelf', () => {
+test('the shower has a two-shelf niche cut into the wall that faces its taps, centred on the shower, 62 cm wide, 30 cm a shelf over a 1 cm porcelain board', () => {
   const n = BATHROOM_NICHE, showerMiddle = (BATHROOM_RUN.shower[0] + BATHROOM_RUN.shower[1]) / 2
   assert.ok(Math.abs((n.v[0] + n.v[1]) / 2 - showerMiddle) < 1e-9, 'centred on the shower')
   assert.ok(n.v[0] >= BATHROOM_RUN.shower[0] && n.v[1] <= BATHROOM_RUN.shower[1], 'within the shower')
-  assert.ok(Math.abs(n.y[1] - n.y[0] - (2 * .3 + .02)) < 1e-9, 'two 30 cm shelves and the board between them')
+  near(n.v[1] - n.v[0], .62); near(n.shelf, .3); near(n.y[1] - n.y[0], 2 * .31)
   assert.equal(n.face, FIRST_FLOOR_BATHROOM.u[0], 'on the wall opposite the taps')
   assert.ok(n.depth < .12, 'it leaves some of the partition behind it')
   const boxes = shellWallBoxes('first', 2 * FLOOR_HEIGHT - SLAB_THICKNESS)
-  const mid = (n.v[0] + n.v[1]) / 2, shelfMid = (n.y[0] + n.y[1]) / 2
+  const mid = (n.v[0] + n.v[1]) / 2, shelfMid = n.y[0] + .01 + .15
   // No wall box fills the recess, and the thin back is there behind it.
   const covers = (box: { center: number[]; size: number[] }, u: number, y: number, v: number) => Math.abs(box.center[0] - u) <= box.size[0] / 2 && Math.abs(box.center[1] - y) <= box.size[1] / 2 && Math.abs(box.center[2] - v) <= box.size[2] / 2
   assert.ok(!boxes.some(box => covers(box, n.face - n.depth / 2, shelfMid, mid)), 'the recess is empty')
@@ -174,4 +174,5 @@ test('the shower has a two-shelf niche cut into the wall that faces its taps, ce
   assert.ok(boxes.some(box => covers(box, n.face - n.depth / 2, shelfMid, n.v[0] - .05)) && boxes.some(box => covers(box, n.face - n.depth / 2, shelfMid, n.v[1] + .05)), 'wall on each side')
   assert.ok(boxes.some(box => covers(box, n.face - n.depth / 2, n.y[0] - .05, mid)), 'wall under it')
   assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-niche-shelf'), 'the board between the shelves')
+  assert.ok(furnishingsOn('first').some(piece => piece.id === 'bathroom-niche-sill'), 'the sill')
 })

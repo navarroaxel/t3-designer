@@ -51,19 +51,20 @@ const vanityU: [number, number] = [wall - S.vanityDepth, wall]
 const bodyTop = floor + S.vanityHeight - S.topThickness
 
 /**
- * The shower's niche (owner's request): a recess of two shelves built into the wall that faces the shower's taps (the bathroom's wall on the wardrobe's side, u[0]), centred on the shower's width. Each
- * shelf is 30 cm tall inside, with a 2 cm shelf between them; the recess is cut 8 cm into the 12 cm partition, from the room's face, so 4 cm of it is left behind. Its width, its height off the floor and its
+ * The shower's niche (owner's request): a recess of two shelves built into the wall that faces the shower's taps (the bathroom's wall on the wardrobe's side, u[0]), centred on the shower's width, 62 cm wide.
+ * Each shelf is 30 cm tall inside over a 1 cm porcelain board (the owner's: the same porcelain as the tiles), 31 cm a shelf and 62 cm the two; the recess is cut 8 cm into the 12 cm partition, from the room's face, so 4 cm of it is left behind. Its width, its height off the floor and its
  * depth are assumed. Heights above the ground-floor level.
  */
 export const BATHROOM_NICHE = (() => {
-  const shelf = .3, divider = .02, width = .3, depth = .08, bottom = floor + 1
+  const shelf = .3, divider = .01, width = .62, depth = .08, bottom = floor + 1
   const centre = (showerV[0] + showerV[1]) / 2, face = FIRST_FLOOR_BATHROOM.u[0]
-  return { shelf, divider, depth, face, u: [face - depth, face] as [number, number], v: [centre - width / 2, centre + width / 2] as [number, number], y: [bottom, bottom + 2 * shelf + divider] as [number, number] }
+  return { shelf, divider, depth, face, u: [face - depth, face] as [number, number], v: [centre - width / 2, centre + width / 2] as [number, number], y: [bottom, bottom + 2 * (shelf + divider)] as [number, number] }
 })()
 
-/** The board between the niche's two shelves, in the recess (not in the room, so not among the fixtures). */
+/** The porcelain boards of the niche, under each shelf (the lower one is its sill), in the recess (not in the room, so not among the fixtures). */
 export const BATHROOM_NICHE_BOXES: BathroomBox[] = [
-  { id: 'niche-shelf', u: BATHROOM_NICHE.u, v: BATHROOM_NICHE.v, y: [BATHROOM_NICHE.y[0] + BATHROOM_NICHE.shelf, BATHROOM_NICHE.y[0] + BATHROOM_NICHE.shelf + BATHROOM_NICHE.divider], color: '#e9e6df' },
+  { id: 'niche-sill', u: BATHROOM_NICHE.u, v: BATHROOM_NICHE.v, y: [BATHROOM_NICHE.y[0], BATHROOM_NICHE.y[0] + BATHROOM_NICHE.divider], color: '#e9e6df' },
+  { id: 'niche-shelf', u: BATHROOM_NICHE.u, v: BATHROOM_NICHE.v, y: [BATHROOM_NICHE.y[0] + BATHROOM_NICHE.shelf + BATHROOM_NICHE.divider, BATHROOM_NICHE.y[0] + BATHROOM_NICHE.shelf + 2 * BATHROOM_NICHE.divider], color: '#e9e6df' },
 ]
 
 export const BATHROOM_BOXES: BathroomBox[] = [
