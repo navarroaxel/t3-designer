@@ -105,9 +105,22 @@ export const BATHROOM_LIGHT_POSITIONS: { u: number; v: number }[] = Array.from({
   u: (lightBoxU[0] + lightBoxU[1]) / 2,
   v: FIRST_FLOOR_BATHROOM.v[0] + (FIRST_FLOOR_BATHROOM.v[1] - FIRST_FLOOR_BATHROOM.v[0]) * (index + .5) / BATHROOM_LIGHT_BOX.count,
 }))
+/**
+ * The front spot (owner's request): a surface-mounted spot on the mirror's wall, above the mirror, aimed into the room to light the face from the front. It is centred along the wall (the middle of the bathroom's
+ * width, in v), 2.3 m up. A black housing 9 cm across and 5 cm deep with a glowing lens on its face. Heights above the ground-floor level.
+ */
+export const BATHROOM_FRONT_SPOT = { size: .09, depth: .05, lens: .006, height: 2.3 }
+export const BATHROOM_FRONT_SPOT_AT = { u: wall, v: (FIRST_FLOOR_BATHROOM.v[0] + FIRST_FLOOR_BATHROOM.v[1]) / 2, y: floor + BATHROOM_FRONT_SPOT.height }
+const spot = BATHROOM_FRONT_SPOT, spotAt = BATHROOM_FRONT_SPOT_AT
+const spotV: [number, number] = [spotAt.v - spot.size / 2, spotAt.v + spot.size / 2], spotY: [number, number] = [spotAt.y - spot.size / 2, spotAt.y + spot.size / 2]
+const BATHROOM_FRONT_SPOT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
+  { id: 'ceiling-spot-housing', u: [wall - spot.depth, wall], v: spotV, y: spotY, color: BLACK },
+  { id: 'ceiling-spot-lens', u: [wall - spot.depth - spot.lens, wall - spot.depth], v: [spotV[0] + .01, spotV[1] - .01], y: [spotY[0] + .01, spotY[1] - .01], color: '#fff6e6', glow: true },
+]
 export const BATHROOM_LIGHT_BOXES: (BathroomBox & { glow?: boolean; round?: boolean })[] = [
   { id: 'ceiling-box', u: lightBoxU, v: FIRST_FLOOR_BATHROOM.v, y: lightBoxY, color: '#f1efe9' },
   ...BATHROOM_LIGHT_POSITIONS.map((at, index) => ({ id: `ceiling-light-${index + 1}`, u: [at.u - BATHROOM_LIGHT_BOX.light / 2, at.u + BATHROOM_LIGHT_BOX.light / 2] as [number, number], v: [at.v - BATHROOM_LIGHT_BOX.light / 2, at.v + BATHROOM_LIGHT_BOX.light / 2] as [number, number], y: [lightBoxY[0] - .004, lightBoxY[0] + .002] as [number, number], color: '#fff6e6', glow: true, round: true })),
+  ...BATHROOM_FRONT_SPOT_BOXES,
 ]
 
 /**
