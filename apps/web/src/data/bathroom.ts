@@ -62,7 +62,9 @@ export const BATHROOM_NICHE = (() => {
 })()
 
 /** The bathroom's warm LED strips, under the vanity and in the niche, are one kind (owner): the same colour, 8 mm thick and 2 cm wide. */
-const LED_STRIP = { color: '#ffe0b0', thickness: .008, width: .02 }
+const LED_STRIP = { color: '#ffa645', thickness: .008, width: .02 }
+/** The warm amber of those strips, for the lights they cast. */
+export const BATHROOM_LED_COLOUR = LED_STRIP.color
 
 /** The porcelain boards of the niche, under each shelf (the lower one is its sill), in the recess (not in the room, so not among the fixtures). */
 export const BATHROOM_NICHE_BOXES: (BathroomBox & { glow?: boolean })[] = [
