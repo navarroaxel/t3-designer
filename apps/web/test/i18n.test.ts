@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { compassBearing, dateFormatter, detectLocale, numberFormatter, parsePreference, resolveLocale } from '../src/i18n/locale.ts'
+import { compassBearing, dateFormatter, detectLocale, languageFromQuery, numberFormatter, parsePreference, resolveLocale } from '../src/i18n/locale.ts'
 
 test('browser negotiation respects order, regions and scripts', () => {
   for (const [languages, expected] of [
@@ -9,6 +9,16 @@ test('browser negotiation respects order, regions and scripts', () => {
     [['ES-ar'], 'es'], [['invalid_locale', 'es-MX'], 'es'],
     [['de-DE'], 'en'], [[], 'en'],
   ] as const) assert.equal(detectLocale(languages), expected)
+})
+
+test('a link asks for a language with ?lang=, with or without a region, and nothing else counts', () => {
+  for (const [search, expected] of [
+    ['?lang=es', 'es'], ['?lang=en', 'en'], ['?lang=ES', 'es'], ['?lang=es-AR', 'es'], ['?lang=en-US', 'en'], ['?lang=%20es%20', 'es'],
+    ['?utm_source=x&lang=es&other=1', 'es'], ['lang=es', 'es'],
+  ] as const) assert.equal(languageFromQuery(search), expected, search)
+  for (const search of ['', '?', '?lang=', '?lang=auto', '?lang=de', '?lang=fr-CA', '?lang=invalid_locale', '?lang=__proto__', '?language=es', '?lang=e s']) {
+    assert.equal(languageFromQuery(search), undefined, search)
+  }
 })
 
 test('only explicit supported preferences override the browser', () => {

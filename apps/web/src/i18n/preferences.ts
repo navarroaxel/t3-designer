@@ -11,6 +11,18 @@ function applyPreference(next: LanguagePreference) {
   listeners.forEach(listener => listener())
 }
 
+/** A choice made in Settings takes over from the link's `?lang=`: it leaves the address, so that a reload keeps the choice and not the link's language. */
+function dropLanguageFromAddress() {
+  try {
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has('lang')) return
+    url.searchParams.delete('lang')
+    window.history.replaceState(window.history.state, '', url)
+  } catch {
+    // An address that cannot be rewritten keeps working: the choice still applies to this page.
+  }
+}
+
 export function setLanguagePreference(next: LanguagePreference) {
   const validated = parsePreference(next)
   let saved = true
@@ -21,6 +33,7 @@ export function setLanguagePreference(next: LanguagePreference) {
     // Private/blocked storage still permits changing language for this session.
     saved = false
   }
+  dropLanguageFromAddress()
   applyPreference(validated)
   return saved
 }

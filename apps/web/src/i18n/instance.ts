@@ -1,13 +1,16 @@
 import { createInstance } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { resources } from './resources'
-import { fallbackLocale, languageStorageKey, parsePreference, resolveLocale, supportedLocales, type LanguagePreference } from './locale'
+import { fallbackLocale, languageFromQuery, languageStorageKey, parsePreference, resolveLocale, supportedLocales, type LanguagePreference } from './locale'
 
 export function browserLanguages(): readonly string[] {
   return navigator.languages.length ? navigator.languages : [navigator.language]
 }
 
+/** A link's `?lang=` wins for this visit, over the saved choice and the browser's languages, and is not saved; otherwise the saved choice, or automatic. */
 export function readPreference(): LanguagePreference {
+  const fromLink = languageFromQuery(window.location.search)
+  if (fromLink) return fromLink
   try {
     return parsePreference(window.localStorage.getItem(languageStorageKey))
   } catch {
