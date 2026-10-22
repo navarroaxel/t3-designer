@@ -340,10 +340,10 @@ export const MAIN_ROOM_CLOSET_WARDROBE = {
 }
 
 /**
- * The closet wardrobe has sliding doors (owner). The number of panels is assumed: five of about 0.91 m, which
- * overlap a little and run on two tracks, the odd ones on the track nearer the aisle. Spans are along u.
+ * The closet wardrobe has six sliding doors (owner's request; it had five, assumed): of about 0.76 m each along the room's 4.54 m, which
+ * overlap a little and run on two tracks, three on each, the odd ones on the track nearer the aisle. Spans are along u.
  */
-export const CLOSET_SLIDING_DOORS = { panels: 5, overlap: .03, thickness: .02, trackGap: .025 }
+export const CLOSET_SLIDING_DOORS = { panels: 6, overlap: .03, thickness: .02, trackGap: .025 }
 export type SlidingPanel = { u: [number, number]; v: [number, number]; front: boolean }
 export const CLOSET_SLIDING_PANELS: SlidingPanel[] = Array.from({ length: CLOSET_SLIDING_DOORS.panels }, (_, index) => {
   const [u0, u1] = MAIN_ROOM_CLOSET_WARDROBE.u

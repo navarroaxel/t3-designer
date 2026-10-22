@@ -357,10 +357,13 @@ test('the closet has a 0.60 m wardrobe along the whole party wall with neighbour
   near(MAIN_ROOM_CLOSET_WARDROBE.v[0] - MAIN_ROOM_DRYWALL[3], .9)
 })
 
-test('the closet wardrobe has sliding panels on two tracks that cover its length with small overlaps', () => {
+test('the closet wardrobe has six sliding panels on two tracks, three on each, that cover its length with small overlaps', () => {
   const [u0, u1] = MAIN_ROOM_CLOSET_WARDROBE.u
-  assert.equal(CLOSET_SLIDING_PANELS.length, 5)
-  assert.ok(Math.abs(CLOSET_SLIDING_PANELS[0].u[0] - u0) < 1e-9 && Math.abs(CLOSET_SLIDING_PANELS[4].u[1] - u1) < 1e-9)
+  assert.equal(CLOSET_SLIDING_PANELS.length, 6)
+  assert.equal(CLOSET_SLIDING_PANELS.filter(panel => panel.front).length, 3, 'three on the track nearer the aisle')
+  assert.ok(Math.abs(CLOSET_SLIDING_PANELS[0].u[0] - u0) < 1e-9 && Math.abs(CLOSET_SLIDING_PANELS[5].u[1] - u1) < 1e-9)
+  const widths = CLOSET_SLIDING_PANELS.map(panel => panel.u[1] - panel.u[0])
+  assert.ok(widths.every(width => width > .7 && width < .8), 'each a little under 0.80 m')
   for (const [index, panel] of CLOSET_SLIDING_PANELS.entries()) {
     // On the aisle side of the wardrobe, on one of two tracks, alternating.
     assert.ok(panel.v[1] <= MAIN_ROOM_CLOSET_WARDROBE.v[0] + 1e-9, 'in front of the wardrobe, not inside it')
