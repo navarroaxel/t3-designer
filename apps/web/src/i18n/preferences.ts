@@ -1,15 +1,20 @@
 import { useSyncExternalStore } from 'react'
 import { browserLanguages, i18n, readPreference } from './instance'
-import { languageStorageKey, parsePreference, resolveLocale, type LanguagePreference } from './locale'
+import { createLanguageTab } from './language-sync.ts'
+import { languageFromQuery, languageStorageKey, parsePreference, resolveLocale, type LanguagePreference } from './locale'
 
-let preference = readPreference()
 const listeners = new Set<() => void>()
 
-function applyPreference(next: LanguagePreference) {
-  preference = next
-  void i18n.changeLanguage(resolveLocale(preference, browserLanguages()))
-  listeners.forEach(listener => listener())
-}
+// A link's `?lang=` holds this tab's language until a language is chosen in it (see `createLanguageTab`).
+const tab = createLanguageTab({
+  initial: readPreference(),
+  fromLink: languageFromQuery(window.location.search) !== undefined,
+  storage: () => window.localStorage,
+  apply: next => {
+    void i18n.changeLanguage(resolveLocale(next, browserLanguages()))
+    listeners.forEach(listener => listener())
+  },
+})
 
 /** A choice made in Settings takes over from the link's `?lang=`: it leaves the address, so that a reload keeps the choice and not the link's language. */
 function dropLanguageFromAddress() {
@@ -34,7 +39,7 @@ export function setLanguagePreference(next: LanguagePreference) {
     saved = false
   }
   dropLanguageFromAddress()
-  applyPreference(validated)
+  tab.choose(validated)
   return saved
 }
 
@@ -44,23 +49,13 @@ function subscribe(listener: () => void) {
 }
 
 export function useLanguagePreference() {
-  return useSyncExternalStore(subscribe, () => preference)
+  return useSyncExternalStore(subscribe, () => tab.preference)
 }
 
 /** Install once at the app boundary; return cleanup for StrictMode/HMR. */
 export function listenForLanguageChanges() {
-  const browserChanged = () => {
-    if (preference === 'auto') applyPreference('auto')
-  }
-  const storageChanged = (event: StorageEvent) => {
-    if (event.key !== null && event.key !== languageStorageKey) return
-    try {
-      if (event.storageArea !== window.localStorage) return
-    } catch {
-      return
-    }
-    applyPreference(parsePreference(event.newValue))
-  }
+  const browserChanged = () => tab.browserChanged()
+  const storageChanged = (event: StorageEvent) => tab.storageChanged(event)
   window.addEventListener('languagechange', browserChanged)
   window.addEventListener('storage', storageChanged)
   return () => {
