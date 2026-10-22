@@ -27,6 +27,20 @@ export function detectLocale(languages: readonly string[]): Locale {
   return fallbackLocale
 }
 
+/**
+ * The language a shared link asks for with `?lang=es`: a supported language, with or without a region (`es-AR`, any case). Anything else, an empty value or `auto` asks for nothing and is ignored.
+ */
+export function languageFromQuery(search: string): Locale | undefined {
+  const value = new URLSearchParams(search).get('lang')?.trim()
+  if (!value) return undefined
+  try {
+    const base = Intl.getCanonicalLocales(value)[0]?.split('-')[0]
+    return isLocale(base) ? base : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function resolveLocale(preference: LanguagePreference, languages: readonly string[]): Locale {
   return preference === 'auto' ? detectLocale(languages) : preference
 }
