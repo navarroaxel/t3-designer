@@ -72,6 +72,6 @@ The manual (10 MB) is not copied into the repository; the link above is the sour
 
 ## The array against the datasheet
 
-- **Power**: the 18 panels of 620 Wp are 11.16 kWp, below the 16 kW the inputs take, so the inverter is not oversized on the DC side. The DC to AC ratio is 1.12; on clear days around noon the array reaches the 10 kW limit and the peak is clipped, which the model counts.
-- **Strings**: two series of 9 panels, one on each MPP tracker (the manual allows two strings per tracker, so each series could also be split in two).
+- **Power**: the 18 panels of 620 Wp are 11.16 kWp, below the 16 kW the inputs take. The DC to AC ratio is 1.12. The 10 kW cap is a limit the model applies, not something the default array reaches: with the 0.85 factor the model's highest peak over the year is about 8.2 kW, so no energy is clipped by default. A higher factor or a better-lit array could reach it.
+- **Strings**: two series of 9 panels, one on each MPP tracker. Whether a series could be split across a tracker's two inputs is not assumed: that needs a layout checked against the panel's datasheet.
 - **Not checked**: the panel's electrical data (open-circuit and maximum-power voltage, short-circuit current) is not known, so the series' voltage against the 200 to 650 V window, the 350 V full-load minimum and the 800 V maximum, and the current against 26 A, are open until the panel's datasheet is added.

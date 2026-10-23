@@ -118,7 +118,7 @@ test('a year at this site gives a plausible yield for panels nearly flat toward 
   const year = simulateYear()
   assert.equal(year.months.length, 12)
   // Buenos Aires: about 1300 to 1600 kWh per kWp for well-oriented panels; nearly flat ones a little less.
-  // Calibrated with the owner's January measurement (about 0.85 of the uncalibrated 1.48 MWh per kWp, less the inverter's clipping).
+  // Calibrated with the owner's January measurement (about 0.85 of the uncalibrated 1.48 MWh per kWp, less shading and the temperature).
   assert.ok(year.specificYield > 1100 && year.specificYield < 1450, `yield ${year.specificYield}`)
   closeTo(year.annualKwh, year.specificYield * ARRAY_WATTS / 1000, 1e-6)
   closeTo(year.annualKwh, year.months.reduce((sum, month) => sum + month.acKwh, 0), 1e-6)
