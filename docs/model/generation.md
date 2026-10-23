@@ -24,7 +24,7 @@ The factor stands in for whatever the typical values miss: NASA POWER's irradiat
 
 ## Result (current data)
 
-About 1.24 MWh per kWp per year (~13.9 MWh for 11.16 kWp, with the inverter's clipping) after the calibration, ~6.1 kWh/kWp on a clear December day and ~2.3 in June. Before it, the yield was 1.48 MWh per kWp. Shading costs well under 1% because the panels sit above the parapets and the neighbours are low.
+About 1.24 MWh per kWp per year (~14.0 MWh for 11.16 kWp, with the inverter's clipping) after the calibration, ~6.1 kWh/kWp on a clear December day and ~2.3 in June. Before it, the yield was 1.48 MWh per kWp. Shading costs well under 1% because the panels sit above the parapets and the neighbours are low.
 
 ## Limits
 

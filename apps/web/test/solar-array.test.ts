@@ -104,7 +104,7 @@ test('the array fits on the azotea and leaves room behind it', () => {
 test('the panels clear the parapets and the water tank', () => {
   const parapet = byId('HOUSE-PARAPET-REAR').height
   for (const panel of PANELS) assert.ok(panel.lowEdgeY >= parapet + .1, `${panel.id}: above the parapets`)
-  closeTo(LOW_EDGE_HEIGHT, PANELS[0].lowEdgeY - ROOF_LEVEL, 1e-12)
+  closeTo(LOW_EDGE_HEIGHT, rowPanels('front')[0].lowEdgeY - ROOF_LEVEL, 1e-12)
   const obstacles = SITE_BUILDINGS.filter(building => /^HOUSE-TANK-/.test(building.id))
   assert.ok(obstacles.length >= 6)
   for (const obstacle of obstacles) {
@@ -123,4 +123,14 @@ test('the panels clear the parapets and the water tank', () => {
 test('building the array twice gives the same panels', () => {
   const again: Panel[] = buildPanels()
   assert.deepEqual(again, PANELS)
+})
+
+test('the rows are one plane going uphill toward the rear, so no row sits below the one in front', () => {
+  const [back, middle, front] = ROWS.map(row => rowPanels(row)[0])
+  const slope = Math.tan(TILT_DEGREES * Math.PI / 180)
+  for (const [behind, ahead] of [[back, middle], [middle, front]]) {
+    assert.ok(behind.lowEdgeY > ahead.highEdgeY - 1e-9, 'the next row starts where the last ends')
+    // The edge of one row, carried across the gap, meets the edge of the next.
+    closeTo(behind.lowEdgeY, ahead.highEdgeY + (behind.u[0] - ahead.u[1]) * slope, 1e-9)
+  }
 })

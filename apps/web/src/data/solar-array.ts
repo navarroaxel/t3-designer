@@ -26,7 +26,7 @@ export const TILT_DEGREES = 5
 export const FACING_BEARING = 315
 
 // Assumptions, not yet confirmed by the owner. Change them here.
-/** Height of the panels' lower edge above the azotea slab. It clears the 1.1 m parapets. */
+/** Height of the front row's lower edge above the azotea slab. It clears the 1.1 m parapets; the rows behind rise from it. */
 export const LOW_EDGE_HEIGHT = 1.25
 /** Gap between neighbouring panels in a row, and between rows, measured along the ground. */
 export const PANEL_GAP = .01
@@ -70,12 +70,14 @@ export function buildPanels(): Panel[] {
   const tilt = radians(TILT_DEGREES)
   const depth = lengthM * Math.cos(tilt)
   const rise = lengthM * Math.sin(tilt)
-  const lowY = ROOF_LEVEL + LOW_EDGE_HEIGHT
+  const frontLowY = ROOF_LEVEL + LOW_EDGE_HEIGHT
+  const slope = Math.tan(tilt)
   // The panels face the street (-u), so the low edge is at the front (small u).
   const normal: Vec3 = [-Math.sin(tilt), Math.cos(tilt), 0]
   const byRow = new Map<PanelRow, Panel[]>()
   // Rows are packed from the street: the front row first, cantilevered past the front wall.
-  let uFront = STREET_LINE - FRONT_OVERHANG
+  const uStart = STREET_LINE - FRONT_OVERHANG
+  let uFront = uStart
   for (const row of [...ROWS].reverse()) {
     const count = ROW_COUNTS[row]
     const rowWidth = count * widthM + (count - 1) * PANEL_GAP
@@ -83,6 +85,8 @@ export function buildPanels(): Panel[] {
     // slightly, so a row is centred on the walls' positions at the middle of the row's depth.
     const vStart = (houseSouthWestEdge(uFront + depth / 2) + NORTH_EAST_WALL_OUTER_FACE + rowWidth) / 2
     const u: PlanRange = [uFront, uFront + depth]
+    // The rows are one continuous plane going uphill toward the rear (owner's photo), so no row shades the next.
+    const lowY = frontLowY + (uFront - uStart) * slope
     const panels: Panel[] = []
     for (let i = 0; i < count; i++) {
       const vHigh = vStart - i * (widthM + PANEL_GAP), vLow = vHigh - widthM
