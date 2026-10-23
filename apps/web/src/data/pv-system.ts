@@ -42,7 +42,8 @@ export const PV_SYSTEM = {
    * as the clipping limit. The rest is the datasheet, kept here to check the array against it.
    */
   inverter: {
-    model: 'SUN-10K-SG05LP3-EU-SM2', efficiency: .97, maxAcW: 10_000,
+    model: 'SUN-10K-SG05LP3-EU-SM2', efficiency: .97, maxEfficiency: .976, maxAcW: 10_000,
+    datasheetUrl: 'https://www.deyeinverter.com/deyeinverter/2025/11/17/%E3%80%90B%E3%80%91Manual_SUN-3-12K-SG05LP3-EU-SM2_20251115_en.pdf',
     maxApparentVA: 11_000, maxPvAccessW: 20_000, maxPvInputW: 16_000,
     mppt: { count: 2, stringsPerTracker: 2, voltageV: [200, 650], fullLoadVoltageV: [350, 650], maxInputV: 800, startUpV: 160, maxCurrentA: 26, maxShortCircuitA: 39 },
   },
