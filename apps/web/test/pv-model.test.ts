@@ -24,15 +24,15 @@ test('a series of panels with bypass diodes: the weakest panels limit it, up to 
   assert.equal(seriesPower([0, 0]), 0)
 })
 
-test('the two series of 8 cover every panel exactly once', () => {
+test('the two series of 9 cover every panel exactly once', () => {
   const strings = stringsFor(null)
   assert.equal(strings.length, 2)
-  for (const ids of strings) assert.equal(ids.length, 8)
+  for (const ids of strings) assert.equal(ids.length, 9)
   assert.deepEqual(strings.flat().sort(), PANELS.map(panel => panel.id).sort())
   // The wiring order lists every panel once.
   assert.deepEqual([...PV_SYSTEM.wiringOrder].sort(), PANELS.map(panel => panel.id).sort())
-  // The first series is the front row and the two south-west panels of the middle row.
-  assert.deepEqual([...strings[0]].sort(), ['front-1', 'front-2', 'front-3', 'front-4', 'front-5', 'front-6', 'middle-5', 'middle-6'])
+  // The first series is the front row and the three south-west panels of the middle row.
+  assert.deepEqual([...strings[0]].sort(), ['front-1', 'front-2', 'front-3', 'front-4', 'front-5', 'front-6', 'middle-4', 'middle-5', 'middle-6'])
 })
 
 test('the panels left out are rewired: one series up to ten panels, two even ones above', () => {
@@ -43,15 +43,15 @@ test('the panels left out are rewired: one series up to ten panels, two even one
   assert.deepEqual([...twelve[0]].sort(), PANELS.filter(panel => panel.row === 'front').map(panel => panel.id).sort())
   assert.deepEqual([...twelve[1]].sort(), PANELS.filter(panel => panel.row === 'middle').map(panel => panel.id).sort())
   // 10 panels, the most a series takes: all in the first, the second unused. 11: 6 and 5. One panel: the first holds it.
-  assert.deepEqual(stringsFor(without('middle')).map(ids => ids.length), [10, 0])
+  const ten = new Set(PV_SYSTEM.wiringOrder.slice(0, 10))
+  assert.deepEqual(stringsFor(ten).map(ids => ids.length), [10, 0])
   const eleven = new Set(PV_SYSTEM.wiringOrder.slice(0, 11))
   assert.deepEqual(stringsFor(eleven).map(ids => ids.length), [6, 5])
   assert.deepEqual(stringsFor(new Set(['back-1'])).map(ids => ids.length), [1, 0])
   assert.deepEqual(stringsFor(new Set(PV_SYSTEM.wiringOrder.slice(0, 8))).map(ids => ids.length), [8, 0])
   // No series ever holds more than the limit.
-  for (let count = 1; count <= 16; count++) for (const ids of stringsFor(new Set(PV_SYSTEM.wiringOrder.slice(0, count)))) assert.ok(ids.length <= PV_SYSTEM.maxPanelsPerString)
+  for (let count = 1; count <= 18; count++) for (const ids of stringsFor(new Set(PV_SYSTEM.wiringOrder.slice(0, count)))) assert.ok(ids.length <= PV_SYSTEM.maxPanelsPerString)
   // Only installed panels are wired, each once.
-  const ten = without('middle')
   assert.deepEqual(stringsFor(ten).flat().sort(), [...ten].sort())
 })
 
@@ -96,7 +96,7 @@ test('the array makes no power at night and never more than the panels or the in
 test('summer days give more than twice the energy of winter days', () => {
   const summer = simulateDay('2026-12-21'), winter = simulateDay('2026-06-21')
   assert.ok(summer.typical.acKwh > 2 * winter.typical.acKwh, `${summer.typical.acKwh} against ${winter.typical.acKwh}`)
-  // Clear days, per kWp, with the calibration (0.83): about 6.1 kWh in December and 2.3 kWh in June at this latitude.
+  // Clear days, per kWp, with the calibration (0.85): about 6.1 kWh in December and 2.3 kWh in June at this latitude.
   const perKwp = (kwh: number) => kwh / (ARRAY_WATTS / 1000)
   assert.ok(perKwp(summer.clear.acKwh) > 5.4 && perKwp(summer.clear.acKwh) < 7, `${perKwp(summer.clear.acKwh)}`)
   assert.ok(perKwp(winter.clear.acKwh) > 1.8 && perKwp(winter.clear.acKwh) < 3, `${perKwp(winter.clear.acKwh)}`)
@@ -118,7 +118,7 @@ test('a year at this site gives a plausible yield for panels nearly flat toward 
   const year = simulateYear()
   assert.equal(year.months.length, 12)
   // Buenos Aires: about 1300 to 1600 kWh per kWp for well-oriented panels; nearly flat ones a little less.
-  // Calibrated with the owner's January measurement (about 0.83 of the uncalibrated 1.48 MWh per kWp).
+  // Calibrated with the owner's January measurement (about 0.85 of the uncalibrated 1.48 MWh per kWp, less shading and the temperature).
   assert.ok(year.specificYield > 1100 && year.specificYield < 1450, `yield ${year.specificYield}`)
   closeTo(year.annualKwh, year.specificYield * ARRAY_WATTS / 1000, 1e-6)
   closeTo(year.annualKwh, year.months.reduce((sum, month) => sum + month.acKwh, 0), 1e-6)

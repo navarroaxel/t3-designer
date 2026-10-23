@@ -36,7 +36,7 @@ export const AZOTEA_OUTLINE: Point2[] = [
 ]
 
 /** The parts of the house the stair and the roof are made of, from the exterior's own volumes. */
-const PARTS = /^HOUSE-(PARAPET|TANK|LAUNDRY-(LANDING|PARTY|STEP-[12]|GUARD))/
+const PARTS = /^HOUSE-(PARAPET|TANK|WATER-HEATER|LAUNDRY-(LANDING|PARTY|STEP-[12]|GUARD))/
 const CLIMBABLE = /^HOUSE-LAUNDRY-(LANDING$|STEP-)/
 
 export const AZOTEA_OBSTACLES: Obstacle[] = [

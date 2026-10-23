@@ -48,7 +48,7 @@ export type BillingSettings = {
 
 export const DEFAULT_BILLING: BillingSettings = {
   tariff: 160, creditShare: .7, daytimeShare: .6, dayStart: 8, dayEnd: 20, fixedCharge: 0, cashOut: 'yearly', consumption: Array.from({ length: 12 }, () => 500),
-  installCost: 12_500_000, costPerPanelLeftOut: 0, priceChange: 0,
+  installCost: 15_000_000, costPerPanelLeftOut: 0, priceChange: 0,
 }
 
 /** Daytime shares the calculator offers as starting points. */

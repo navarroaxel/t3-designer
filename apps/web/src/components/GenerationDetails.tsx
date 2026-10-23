@@ -9,9 +9,10 @@ import { PowerChart, YearChart } from './GenerationCharts'
 import { PanelsView } from './GenerationPanels'
 import { BillView } from './GenerationBill'
 import { InvestmentView } from './GenerationInvestment'
+import { InverterView } from './GenerationInverter'
 
 const METRICS: YearMetric[] = ['perDay', 'perMonth', 'perKwp']
-type Tab = 'today' | 'year' | 'panels' | 'bill' | 'invest'
+type Tab = 'today' | 'year' | 'panels' | 'bill' | 'invest' | 'inverter'
 
 function Stat({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: string }) {
   return <div className="gen-stat"><span>{label}</span><strong>{value}{unit && <small>{unit}</small>}</strong>{note && <em>{note}</em>}</div>
@@ -58,8 +59,8 @@ export function GenerationDetails({ solar, generation, panels }: { solar: SolarS
         <h2>{t('building.genDetailsTitle')}</h2>
       </div>
       <div className="gen-tabs" role="tablist" aria-label={t('building.genDetailsTitle')}>
-        {(['today', 'year', 'panels', 'bill', 'invest'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
-          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : option === 'panels' ? 'building.genTabPanels' : option === 'bill' ? 'building.genTabBill' : 'building.genTabInvest')}</button>)}
+        {(['today', 'year', 'panels', 'inverter', 'bill', 'invest'] as const).map(option => <button key={option} role="tab" id={`gen-tab-${option}`} aria-selected={tab === option} aria-controls={`gen-panel-${option}`}
+          onClick={() => setTab(option)}>{t(option === 'today' ? 'building.genTabToday' : option === 'year' ? 'building.genTabYear' : option === 'panels' ? 'building.genTabPanels' : option === 'inverter' ? 'building.genTabInverter' : option === 'bill' ? 'building.genTabBill' : 'building.genTabInvest')}</button>)}
       </div>
     </header>
 
@@ -88,6 +89,11 @@ export function GenerationDetails({ solar, generation, panels }: { solar: SolarS
     {tab === 'panels' && <div role="tabpanel" id="gen-panel-panels" aria-labelledby="gen-tab-panels" className="gen-tab-body">
       <p className="gen-context">{t('building.genDetailsDay', { date: formatDate(new Date(`${moment.date}T12:00:00Z`), { dateStyle: 'full', timeZone: 'UTC' }), time: solar.time })}</p>
       <PanelsView day={day} panels={panels} fullYear={generation.fullYear} year={year} />
+    </div>}
+
+    {tab === 'inverter' && <div role="tabpanel" id="gen-panel-inverter" aria-labelledby="gen-tab-inverter" className="gen-tab-body">
+      <p className="gen-context">{t('building.genDetailsDay', { date: formatDate(new Date(`${moment.date}T12:00:00Z`), { dateStyle: 'full', timeZone: 'UTC' }), time: solar.time })}</p>
+      <InverterView day={day} panels={panels} />
     </div>}
 
     {tab === 'bill' && <div role="tabpanel" id="gen-panel-bill" aria-labelledby="gen-tab-bill" className="gen-tab-body">

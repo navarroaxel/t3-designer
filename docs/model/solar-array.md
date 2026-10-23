@@ -12,25 +12,24 @@ The planned array is defined in `apps/web/src/data/solar-array.ts` and drawn by
 
 | Item | Value | Provenance |
 | --- | --- | --- |
-| Panels | 16 of 620 Wp, 9.92 kWp in total | Owner |
+| Panels | 18 of 620 Wp, 11.16 kWp in total: the 16 first put on the azotea, and two more to complete the rectangle | Owner |
 | Panel size | 2465 by 1134 mm, laid with the long side along the slope | Owner (size); portrait is assumed |
-| Rows | 4 at the back and two rows of 6 toward the front | Owner |
-| Position | Toward the street, resting on the front wall with the front row cantilevered past it. The row of 4 is pushed to the left (north-east) and the two rows of 6 to the right (south-west), seen from the street | Owner |
-| Tilt | 5 degrees, so the rain runs off | Owner |
+| Rows | Three rows of 6, a full rectangle | Owner |
+| Position | Toward the street, with the front row cantilevered past the front wall, and in the middle of the azotea's width, leaving a walkway along each side wall | Owner |
+| Tilt | 5 degrees, so the rain runs off; the owner will give it more slope, by an amount not yet decided | Owner |
 | Mounting | Raised, on galvanized steel C-beams resting on the azotea walls, not on the floor | Owner |
-| Electrical | Two series of 8 panels, one 10 kW Deye inverter | Owner |
+| Electrical | Two series of 9 panels, one 10 kW Deye inverter ([SUN-10K-SG05LP3-EU-SM2](inverter-datasheet.md)) | Owner (the series' size follows from the 18 panels and the 10-panel limit) |
 
 ## What is assumed
 
 | Item | Value | Why it matters |
 | --- | --- | --- |
-| Height of the low edge above the azotea slab | 1.25 m | The 1.1 m parapets shade panels below their top, so the height sets how much the parapets matter. |
+| Height of the front row's low edge above the azotea slab | 1.25 m; the rows behind continue the same plane uphill (owner's photo), so the back row's low edge is about 0.4 m higher and no row shades another | The 1.1 m parapets shade panels below their top, so the height sets how much the parapets matter. |
 | Direction of the slope | Faces the street (north-west), low edge at the front | Sets the angle to the sun. |
-| Row gap and panel gap | 0.55 m and 0.01 m | Sets how much one row shades the next in low winter sun. |
+| Row gap and panel gap | 0.01 m for both: the rows touch, with no walkway between them (owner) | The rows share one plane, so the gap does not matter for shade. |
 | Front overhang | The front row projects 0.775 m past the front wall, to the inner face of the front parapet on the roof's front edge | The owner says it is cantilevered; the amount is assumed. It moves the whole array. |
-| Row of 4 | Rests on the north-east wall, flush with its outer face; it fits between the water tank slab and that wall | Where it sits against the tank. |
-| Rows of 6 | Rest on the south-west wall, flush with its outer face, leaving 1.6 m free on the north-east side | Sets which rows the side sun reaches. |
-| Space behind | About 1.1 m between the back row and the rear parapet, beside the tank | Access; the tank does not shade the rows in front of it. |
+| Side walkways | Each row is centred between the walls' outer faces, about 0.9 m free on each side | Sets which rows the side sun reaches. |
+| Space behind | About 3.2 m between the back row and the rear parapet, in front of the tank block, which is not under any row | Access; the tank does not shade the rows in front of it. |
 | Which panels form each series | Not decided | With one inverter input per series, a shaded panel limits its whole series. |
 
 ## What the model checks

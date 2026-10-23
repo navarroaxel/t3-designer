@@ -84,8 +84,8 @@ test('the day is split by string and by panel without losing or inventing energy
   closeEnough(panels.reduce((sum, panel) => sum + panel.kwh, 0), day.typical.acKwh)
   closeEnough(strings.reduce((sum, item) => sum + item.kwh, 0), day.typical.acKwh)
   assert.ok(panels.every(panel => panel.string >= 0 && panel.kwh > 0 && panel.shadeLossPercent >= 0 && panel.shadeLossPercent < 100))
-  // Eight panels per string, and every panel belongs to exactly one.
-  assert.deepEqual(strings.map(item => item.panels), [8, 8])
+  // Nine panels per string, and every panel belongs to exactly one.
+  assert.deepEqual(strings.map(item => item.panels), [9, 9])
   assert.equal(new Set(panels.map(panel => panel.id)).size, panels.length)
   // The per-panel light agrees with the array's mean.
   const mean = day.typical.panelPoaKwhM2.reduce((sum, value) => sum + value, 0) / PANELS.length
@@ -109,16 +109,16 @@ test('leaving panels out lowers the energy in proportion, frees the strings and 
   const { litFractions, sitePanelsFor } = await import('../src/lib/pv/shading.ts')
   const { sunAt } = await import('../src/lib/pv/model.ts')
   const ids = (rows: string[]) => new Set(PANELS.filter(panel => rows.includes(panel.row)).map(panel => panel.id))
-  const tenPanels = ids(['front', 'back'])
-  assert.equal(panelCount(null), 16)
+  const tenPanels = new Set([...ids(['front']), 'back-1', 'back-2', 'back-3', 'back-4'])
+  assert.equal(panelCount(null), 18)
   assert.equal(panelCount(tenPanels), 10)
   closeEnough(installedKwp(tenPanels), 10 * 0.62)
   const date = middleOfMonth(11)
   const full = simulateDay(date, 20), ten = simulateDay(date, 20, undefined, tenPanels)
   closeEnough(ten.kwp, 6.2)
-  // Ten of sixteen panels give about ten sixteenths of the energy; the sky's light on each is unchanged.
+  // Ten of eighteen panels give about ten eighteenths of the energy; the sky's light on each is unchanged.
   const ratio = ten.typical.acKwh / full.typical.acKwh
-  assert.ok(ratio > .58 && ratio < .66, `ratio ${ratio}`)
+  assert.ok(ratio > .52 && ratio < .60, `ratio ${ratio}`)
   // A panel left out gets and yields nothing, and the split still adds up.
   const { panels, strings } = panelStats(ten, tenPanels)
   assert.equal(panels.filter(panel => panel.installed).length, 10)

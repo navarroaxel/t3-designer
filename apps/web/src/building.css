@@ -241,6 +241,10 @@
 .gen-table th, .gen-table td { padding: 5px 8px; text-align: right; border-bottom: 1px solid var(--gen-card-border); }
 .gen-table th:first-child { text-align: left; font-weight: 500; text-transform: capitalize; }
 .gen-table thead th { font-size: 9px; font-weight: 550; color: #829077; text-transform: none; }
+.gen-table-plain th:first-child { text-transform: none; }
+.gen-stat-wide { grid-column: span 2; }
+.gen-stat-wide strong { font-size: 18px; }
+.gen-details a { color: inherit; text-decoration: underline; }
 .gen-table tr[aria-current='true'] { background: var(--gen-area); }
 .gen-table tr[aria-current='true'] th, .gen-table tr[aria-current='true'] td { font-weight: 650; }
 

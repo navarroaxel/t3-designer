@@ -1,13 +1,11 @@
 import { HOUSE_HALF_WIDTH, PARAPET_THICKNESS, ROOF_FRONT, ROOF_LEVEL, houseSouthWestEdge } from './building-site.ts'
 
 /**
- * The planned solar array on the azotea: 16 panels of 620 Wp in three rows, one
- * of 4 at the back and two of 6 toward the front. The panels are raised on
- * galvanized steel C-beams that rest on the azotea walls, nearly flat (5 degrees)
- * so the rain runs off, and connected in two series of 8 to a 10 kW Deye inverter.
- * The array sits toward the street, its front row cantilevered past the front wall.
- * The row of 4 is pushed to the left (north-east) and the two rows of 6 to the right
- * (south-west), seen from the street.
+ * The planned solar array on the azotea: 18 panels of 620 Wp, a full rectangle of three rows
+ * of 6. The panels are raised on galvanized steel C-beams that rest on the azotea walls,
+ * nearly flat (5 degrees) so the rain runs off, and connected in two series of 9 to a 10 kW
+ * Deye inverter. The array sits toward the street, its front row cantilevered past the front
+ * wall, and in the middle of the azotea's width, leaving a walkway along each side wall.
  *
  * House frame, as in building-site.ts: u toward the rear (south-east), v toward the
  * north-east, y up from the ground-floor level. The street front faces north-west.
@@ -19,8 +17,8 @@ export type PanelRow = 'back' | 'middle' | 'front'
 /** 620 Wp module, 2465 x 1134 mm, as the owner stated. Thickness is typical, not measured. */
 export const PANEL_SPEC = { lengthM: 2.465, widthM: 1.134, thicknessM: .03, watts: 620 } as const
 
-/** Row sizes: four at the back, two rows of six in front. */
-export const ROW_COUNTS: Record<PanelRow, number> = { back: 4, middle: 6, front: 6 }
+/** Row sizes: three rows of six, a full rectangle. */
+export const ROW_COUNTS: Record<PanelRow, number> = { back: 6, middle: 6, front: 6 }
 export const ROWS: PanelRow[] = ['back', 'middle', 'front']
 
 export const TILT_DEGREES = 5
@@ -28,11 +26,12 @@ export const TILT_DEGREES = 5
 export const FACING_BEARING = 315
 
 // Assumptions, not yet confirmed by the owner. Change them here.
-/** Height of the panels' lower edge above the azotea slab. It clears the 1.1 m parapets. */
+/** Height of the front row's lower edge above the azotea slab. It clears the 1.1 m parapets; the rows behind rise from it. */
 export const LOW_EDGE_HEIGHT = 1.25
 /** Gap between neighbouring panels in a row, and between rows, measured along the ground. */
 export const PANEL_GAP = .01
-export const ROW_GAP = .55
+/** The rows touch but for the same small gap: there is no walkway between them (owner). */
+export const ROW_GAP = PANEL_GAP
 /**
  * How far the front row projects past the front wall (the street line, u = -5), toward
  * the front edge of the roof slab, which is a 1 m cantilever level with the balcony.
@@ -40,7 +39,7 @@ export const ROW_GAP = .55
  * their low edge stops at the inner face of the front parapet.
  */
 export const FRONT_OVERHANG = -5 - (ROOF_FRONT + PARAPET_THICKNESS)
-/** Outer faces of the walls the rows rest against. */
+/** Outer faces of the walls the rows are centred between. */
 const STREET_LINE = -5
 const NORTH_EAST_WALL_OUTER_FACE = HOUSE_HALF_WIDTH
 
@@ -71,19 +70,23 @@ export function buildPanels(): Panel[] {
   const tilt = radians(TILT_DEGREES)
   const depth = lengthM * Math.cos(tilt)
   const rise = lengthM * Math.sin(tilt)
-  const lowY = ROOF_LEVEL + LOW_EDGE_HEIGHT
+  const frontLowY = ROOF_LEVEL + LOW_EDGE_HEIGHT
+  const slope = Math.tan(tilt)
   // The panels face the street (-u), so the low edge is at the front (small u).
   const normal: Vec3 = [-Math.sin(tilt), Math.cos(tilt), 0]
   const byRow = new Map<PanelRow, Panel[]>()
   // Rows are packed from the street: the front row first, cantilevered past the front wall.
-  let uFront = STREET_LINE - FRONT_OVERHANG
+  const uStart = STREET_LINE - FRONT_OVERHANG
+  let uFront = uStart
   for (const row of [...ROWS].reverse()) {
     const count = ROW_COUNTS[row]
     const rowWidth = count * widthM + (count - 1) * PANEL_GAP
-    // The row of 4 rests against the north-east wall (left); the two rows of 6 against the south-west wall (right).
-    // That wall leans slightly, so a row rests on it at the middle of the row's depth.
-    const vStart = row === 'back' ? NORTH_EAST_WALL_OUTER_FACE : houseSouthWestEdge(uFront + depth / 2) + rowWidth
+    // Every row is centred between the two side walls, so a walkway is left along each. The south-west wall leans
+    // slightly, so a row is centred on the walls' positions at the middle of the row's depth.
+    const vStart = (houseSouthWestEdge(uFront + depth / 2) + NORTH_EAST_WALL_OUTER_FACE + rowWidth) / 2
     const u: PlanRange = [uFront, uFront + depth]
+    // The rows are one continuous plane going uphill toward the rear (owner's photo), so no row shades the next.
+    const lowY = frontLowY + (uFront - uStart) * slope
     const panels: Panel[] = []
     for (let i = 0; i < count; i++) {
       const vHigh = vStart - i * (widthM + PANEL_GAP), vLow = vHigh - widthM

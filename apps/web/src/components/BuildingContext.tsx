@@ -95,6 +95,7 @@ const WHITE_PAINT = '#ecebe5'
 /** The azotea floor, its parapets and the concrete tank block are now painted white
  * (the owner's photo predates the repaint); the rest of the house is brick. */
 function finishFor(building: BuildingFootprint): Finish {
+  if (building.id.endsWith('-WATER-HEATER')) return { wall: '#8d949a', roof: '#26272a', roughness: .45, metalness: .35 }
   if (building.id.endsWith('-TANK-STEEL')) return { wall: '#d3d8dc', roof: '#e4e8eb', roughness: .38, metalness: .3 }
   // The lot behind is painted light yellow, which also keeps it from reading as part of the house.
   if (building.id === 'NEIGHBOR-B') return { wall: REAR_LOT_WALL_COLOR, roof: '#cbbd8c', roughness: .92, metalness: 0 }
