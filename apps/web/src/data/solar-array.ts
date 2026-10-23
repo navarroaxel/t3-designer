@@ -30,7 +30,8 @@ export const FACING_BEARING = 315
 export const LOW_EDGE_HEIGHT = 1.25
 /** Gap between neighbouring panels in a row, and between rows, measured along the ground. */
 export const PANEL_GAP = .01
-export const ROW_GAP = .55
+/** The rows touch but for the same small gap: there is no walkway between them (owner). */
+export const ROW_GAP = PANEL_GAP
 /**
  * How far the front row projects past the front wall (the street line, u = -5), toward
  * the front edge of the roof slab, which is a 1 m cantilever level with the balcony.

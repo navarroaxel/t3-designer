@@ -50,7 +50,7 @@ test('every panel is tilted 5 degrees and faces the street', () => {
   }
 })
 
-test('panels do not touch each other: a small gap in each row, a walkway between rows', () => {
+test('panels do not touch each other: the same small gap in a row and between rows, no walkway', () => {
   for (const row of ROWS) {
     const panels = rowPanels(row)
     for (let i = 1; i < panels.length; i++) {
@@ -60,8 +60,10 @@ test('panels do not touch each other: a small gap in each row, a walkway between
     for (const panel of panels) assert.deepEqual(panel.u, panels[0].u, `${row}: one line`)
   }
   const [back, middle, front] = ROWS.map(row => rowPanels(row)[0])
-  assert.ok(back.u[0] - middle.u[1] >= .5, 'gap between the back and middle rows')
-  assert.ok(middle.u[0] - front.u[1] >= .5, 'gap between the middle and front rows')
+  for (const [behind, ahead] of [[back, middle], [middle, front]]) {
+    const gap = behind.u[0] - ahead.u[1]
+    assert.ok(gap >= .009 && gap <= .05, `gap between rows ${gap}`)
+  }
 })
 
 test('the array sits toward the street, its front row cantilevered past the front wall', () => {
@@ -70,8 +72,8 @@ test('the array sits toward the street, its front row cantilevered past the fron
   assert.ok(FRONT_OVERHANG > 0 && FRONT_OVERHANG <= 1, 'no further than the roof edge, 1 m past the wall')
   // Rows are packed one behind the other from the street.
   const [back, middle] = [rowPanels('back')[0], rowPanels('middle')[0]]
-  closeTo(middle.u[0] - front.u[1], .55, 1e-9)
-  closeTo(back.u[0] - middle.u[1], .55, 1e-9)
+  closeTo(middle.u[0] - front.u[1], .01, 1e-9)
+  closeTo(back.u[0] - middle.u[1], .01, 1e-9)
 })
 
 test('every row is centred between the side walls, with a walkway along each', () => {
