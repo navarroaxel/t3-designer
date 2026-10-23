@@ -18,13 +18,13 @@ const planBox = (building: BuildingFootprint) => {
 }
 const overlap = (a: [number, number] | number[], b: [number, number] | number[]) => Math.min(a[1], b[1]) - Math.max(a[0], b[0])
 
-test('sixteen panels of 620 Wp in rows of 4, 6 and 6', () => {
-  assert.equal(PANELS.length, 16)
-  assert.deepEqual(ROWS.map(row => rowPanels(row).length), [4, 6, 6])
-  assert.deepEqual(ROW_COUNTS, { back: 4, middle: 6, front: 6 })
-  assert.equal(new Set(PANELS.map(panel => panel.id)).size, 16)
-  assert.equal(ARRAY_WATTS, 16 * 620)
-  assert.equal(ARRAY_WATTS, 9920)
+test('eighteen panels of 620 Wp in three rows of 6', () => {
+  assert.equal(PANELS.length, 18)
+  assert.deepEqual(ROWS.map(row => rowPanels(row).length), [6, 6, 6])
+  assert.deepEqual(ROW_COUNTS, { back: 6, middle: 6, front: 6 })
+  assert.equal(new Set(PANELS.map(panel => panel.id)).size, 18)
+  assert.equal(ARRAY_WATTS, 18 * 620)
+  assert.equal(ARRAY_WATTS, 11160)
   assert.equal(PANEL_SPEC.lengthM, 2.465)
   assert.equal(PANEL_SPEC.widthM, 1.134)
 })
@@ -74,17 +74,20 @@ test('the array sits toward the street, its front row cantilevered past the fron
   closeTo(back.u[0] - middle.u[1], .55, 1e-9)
 })
 
-test('the row of 4 rests on the north-east wall and the two rows of 6 on the south-west wall', () => {
-  closeTo(rowPanels('back')[0].v[1], 4.33, 1e-9)
-  for (const row of ['middle', 'front'] as const) {
+test('every row is centred between the side walls, with a walkway along each', () => {
+  const walkways: number[] = []
+  for (const row of ROWS) {
     const panels = rowPanels(row)
-    // The wall leans slightly; a row rests on it at the middle of its depth.
-    closeTo(panels.at(-1)!.v[0], houseSouthWestEdge((panels[0].u[0] + panels[0].u[1]) / 2), 1e-9)
-    assert.ok(panels[0].v[1] < 4.33 - 1, `${row}: leaves room on the north-east side`)
+    const depthMiddle = (panels[0].u[0] + panels[0].u[1]) / 2
+    // The south-west wall leans slightly; the walkways are measured at the middle of the row's depth.
+    const southWest = panels.at(-1)!.v[0] - houseSouthWestEdge(depthMiddle)
+    const northEast = 4.33 - panels[0].v[1]
+    closeTo(southWest, northEast, 1e-9)
+    assert.ok(southWest >= .7, `${row}: a walkway of at least 0.7 m on each side`)
+    walkways.push(southWest)
   }
-  // Seen from the street the row of 4 is on the left and the rows of 6 are pushed to the right.
-  const centre = (row: string) => rowPanels(row).reduce((sum, panel) => sum + (panel.v[0] + panel.v[1]) / 2, 0) / rowPanels(row).length
-  assert.ok(centre('back') > 0 && centre('middle') < 0 && centre('front') < 0)
+  // The rows line up, so the rectangle is one block (the wall's lean moves each row sideways by a few centimetres).
+  for (const walkway of walkways) closeTo(walkway, walkways[0], .05)
 })
 
 test('the array fits on the azotea and leaves room behind it', () => {

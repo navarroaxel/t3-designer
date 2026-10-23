@@ -34,7 +34,7 @@ const workspace = {
     genMonthTooltip: '{{month}}: {{energy}} kWh al mes, {{perDay}} kWh por día',
     genMonthEnergy: '{{energy}} kWh al mes',
     genMonthPerDay: '{{perDay}} kWh por día',
-    genCaveat: 'Es una estimación. Física de cielo despejado anclada al clima de 20 años de NASA POWER para este lugar, la sombra del entorno modelado, pérdidas típicas y un factor de eficiencia editable, en 0,83 por defecto según otra instalación del barrio (12 a 14 kWh por día en enero con seis paneles de 450 Wp). Esperá ±10 a 15% en el año. No incluye edificios lejanos ni el clima de un día en particular.',
+    genCaveat: 'Es una estimación. Física de cielo despejado anclada al clima de 20 años de NASA POWER para este lugar, la sombra del entorno modelado, pérdidas típicas y un factor de eficiencia editable, en 0,85 por defecto según otra instalación del barrio (12 a 14 kWh por día en enero con seis paneles de 450 Wp). Esperá ±10 a 15% en el año. No incluye edificios lejanos ni el clima de un día en particular.',
     genExpand: 'Ver todos los números →', genDetailsTitle: 'Generación en detalle',
     genTabToday: 'Día', genTabYear: 'Año',
     genDetailsDay: '{{date}}, con el reloj en {{time}}. La fecha y la hora se cambian con los controles del estudio y valen también para la vista de la casa.',

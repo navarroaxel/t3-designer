@@ -97,7 +97,7 @@ test('on the real array the water tank does not shade the panels at noon, and th
   // Winter noon: the sun is north at about 32 degrees.
   const noon = litFractions(sunTo(32))
   for (const panel of SITE_PANELS) assert.equal(noon[panel.id], 1, `${panel.id} lit at winter noon`)
-  assert.equal(SITE_PANELS.length, 16)
+  assert.equal(SITE_PANELS.length, 18)
 })
 
 test('only prisms that rise above the panels are kept as obstacles', () => {

@@ -194,7 +194,7 @@ test('the cost follows the panels installed only if each one saves something', (
   assert.equal(installCostFor(s, 6), 12_500_000)
   assert.equal(installCostFor({ ...s, costPerPanelLeftOut: 300_000 }, 6), 12_500_000 - 1_800_000)
   assert.equal(installCostFor({ ...s, costPerPanelLeftOut: 5_000_000 }, 6), 0)
-  assert.equal(DEFAULT_BILLING.installCost, 12_500_000)
+  assert.equal(DEFAULT_BILLING.installCost, 15_000_000)
   assert.equal(sanitizeBilling({ installCost: -1 }).installCost, 0)
   assert.equal(sanitizeBilling({ priceChange: 99 }).priceChange, 5)
 })

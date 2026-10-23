@@ -34,7 +34,7 @@ const workspace = {
     genMonthTooltip: '{{month}}: {{energy}} kWh a month, {{perDay}} kWh a day',
     genMonthEnergy: '{{energy}} kWh a month',
     genMonthPerDay: '{{perDay}} kWh a day',
-    genCaveat: 'An estimate. Clear-sky physics anchored to NASA POWER’s 20-year climate for this place, the shading of the modelled surroundings, typical losses, and an efficiency factor you can edit, 0.83 by default from another installation in the neighbourhood (12 to 14 kWh a day in January with six 450 Wp panels). Expect ±10 to 15% on the year. Distant buildings and the weather of a given day are not included.',
+    genCaveat: 'An estimate. Clear-sky physics anchored to NASA POWER’s 20-year climate for this place, the shading of the modelled surroundings, typical losses, and an efficiency factor you can edit, 0.85 by default from another installation in the neighbourhood (12 to 14 kWh a day in January with six 450 Wp panels). Expect ±10 to 15% on the year. Distant buildings and the weather of a given day are not included.',
     genExpand: 'All the numbers →', genDetailsTitle: 'Generation in detail',
     genTabToday: 'Day', genTabYear: 'Year',
     genDetailsDay: '{{date}}, with the clock at {{time}}. Change the date and time with the study’s controls; they are the house view’s too.',

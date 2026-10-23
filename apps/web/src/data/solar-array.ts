@@ -1,13 +1,11 @@
 import { HOUSE_HALF_WIDTH, PARAPET_THICKNESS, ROOF_FRONT, ROOF_LEVEL, houseSouthWestEdge } from './building-site.ts'
 
 /**
- * The planned solar array on the azotea: 16 panels of 620 Wp in three rows, one
- * of 4 at the back and two of 6 toward the front. The panels are raised on
- * galvanized steel C-beams that rest on the azotea walls, nearly flat (5 degrees)
- * so the rain runs off, and connected in two series of 8 to a 10 kW Deye inverter.
- * The array sits toward the street, its front row cantilevered past the front wall.
- * The row of 4 is pushed to the left (north-east) and the two rows of 6 to the right
- * (south-west), seen from the street.
+ * The planned solar array on the azotea: 18 panels of 620 Wp, a full rectangle of three rows
+ * of 6. The panels are raised on galvanized steel C-beams that rest on the azotea walls,
+ * nearly flat (5 degrees) so the rain runs off, and connected in two series of 9 to a 10 kW
+ * Deye inverter. The array sits toward the street, its front row cantilevered past the front
+ * wall, and in the middle of the azotea's width, leaving a walkway along each side wall.
  *
  * House frame, as in building-site.ts: u toward the rear (south-east), v toward the
  * north-east, y up from the ground-floor level. The street front faces north-west.
@@ -19,8 +17,8 @@ export type PanelRow = 'back' | 'middle' | 'front'
 /** 620 Wp module, 2465 x 1134 mm, as the owner stated. Thickness is typical, not measured. */
 export const PANEL_SPEC = { lengthM: 2.465, widthM: 1.134, thicknessM: .03, watts: 620 } as const
 
-/** Row sizes: four at the back, two rows of six in front. */
-export const ROW_COUNTS: Record<PanelRow, number> = { back: 4, middle: 6, front: 6 }
+/** Row sizes: three rows of six, a full rectangle. */
+export const ROW_COUNTS: Record<PanelRow, number> = { back: 6, middle: 6, front: 6 }
 export const ROWS: PanelRow[] = ['back', 'middle', 'front']
 
 export const TILT_DEGREES = 5
@@ -40,7 +38,7 @@ export const ROW_GAP = .55
  * their low edge stops at the inner face of the front parapet.
  */
 export const FRONT_OVERHANG = -5 - (ROOF_FRONT + PARAPET_THICKNESS)
-/** Outer faces of the walls the rows rest against. */
+/** Outer faces of the walls the rows are centred between. */
 const STREET_LINE = -5
 const NORTH_EAST_WALL_OUTER_FACE = HOUSE_HALF_WIDTH
 
@@ -80,9 +78,9 @@ export function buildPanels(): Panel[] {
   for (const row of [...ROWS].reverse()) {
     const count = ROW_COUNTS[row]
     const rowWidth = count * widthM + (count - 1) * PANEL_GAP
-    // The row of 4 rests against the north-east wall (left); the two rows of 6 against the south-west wall (right).
-    // That wall leans slightly, so a row rests on it at the middle of the row's depth.
-    const vStart = row === 'back' ? NORTH_EAST_WALL_OUTER_FACE : houseSouthWestEdge(uFront + depth / 2) + rowWidth
+    // Every row is centred between the two side walls, so a walkway is left along each. The south-west wall leans
+    // slightly, so a row is centred on the walls' positions at the middle of the row's depth.
+    const vStart = (houseSouthWestEdge(uFront + depth / 2) + NORTH_EAST_WALL_OUTER_FACE + rowWidth) / 2
     const u: PlanRange = [uFront, uFront + depth]
     const panels: Panel[] = []
     for (let i = 0; i < count; i++) {

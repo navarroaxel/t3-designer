@@ -33,7 +33,7 @@ Open the Vite URL shown in the terminal, normally
    north, at about 79° in December and 32° in June.
 3. Switch to **Top view** to see how far each neighbour's shadow reaches.
 4. Use **Floors** to cut the house open at the ground floor or the first floor. Only the exterior walls are modelled so far.
-5. Tick **Panels** to show the planned array of 16 panels (9.92 kWp) on the azotea. The panel shows the energy they generate, a day and a year, calibrated with a measured January.
+5. Tick **Panels** to show the planned array of 18 panels (11.16 kWp) on the azotea. The panel shows the energy they generate, a day and a year, calibrated with a measured January.
 
 Two more tabs look inside the house:
 
