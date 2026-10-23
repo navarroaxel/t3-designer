@@ -131,6 +131,10 @@ The ground floor's living has a **gas fireplace** (owner's photo) against the pa
 
 On the garage's south-west wall hangs the **three-phase 10 kW Deye hybrid inverter**, model SUN-10K-SG05LP3-EU-SM2 ([datasheet](inverter-datasheet.md)), its nearer edge 1 m from the garage's back wall, the one the pantry is behind, and to its right, seen facing the wall, the **electrical board** (owner's photos; `apps/web/src/data/garage-equipment.ts`). The inverter's sizes are the model's: 0.386 m wide, 0.66 m high and 0.25 m deep. The board is a surface-mounted, three-row unit, white with a smoked black door, drawn 0.45 m by 0.55 m and 0.12 m deep with 0.10 m from the inverter (assumed). Both hang 0.8 m off the floor, assumed, so they show whole under the cut.
 
+## The azotea's water heater
+
+An electric water heater, a **Señorial Family Electric 120** (owner's photo), stands in the azotea's rear corner opposite the stair, the south-west one, 5 cm from each parapet's inner face (`WATER_HEATER` in `apps/web/src/data/building-site.ts`). It is grey with a black cap, drawn as a plain cylinder. Its sizes are assumed, 0.50 m across and 1.30 m high, because the 120 L model's are not at hand (the 90 L one is 105.5 cm by 44 cm). It is an obstacle in the walkthrough.
+
 ## The doorbell
 
 A **UniFi doorbell**, model UVC-Doorbell-B (owner's photo), stands out from the recess's back wall beside the entrance door (`apps/web/src/data/doorbell.ts`): a slim black unit with the camera lens at the top and a textured button in the middle. Its size is the model's, 5.4 by 1.6 by 1 inches (13.7 by 4.1 by 2.5 cm; owner). Its place on the door's south-west side, 15 cm from it, and its height, 1.4 m, are assumed.

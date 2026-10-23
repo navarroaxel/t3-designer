@@ -208,6 +208,15 @@ const tankCentre: [number, number] = [(TANK_U[0] + TANK_U[1]) / 2, (TANK_V[0] + 
 const octagon = (u: number, v: number, radius: number): SitePoint[] =>
   Array.from({ length: 8 }, (_, i) => houseToSite(u + radius * Math.cos(Math.PI / 8 + i * Math.PI / 4), v + radius * Math.sin(Math.PI / 8 + i * Math.PI / 4)));
 
+/**
+ * The electric water heater, a Señorial Family Electric 120 (owner's photo), standing in the azotea's rear corner opposite the stair: the south-west one, 5 cm
+ * from each parapet's inner face. The product's sizes are not at hand (the 90 L model is 105.5 cm high and 44 cm across): 0.50 m across and 1.30 m high are assumed.
+ */
+export const WATER_HEATER = { diameter: .5, height: 1.3, clearance: .05 };
+const waterHeaterCentre = (): [number, number] => {
+  const u = AZOTEA_REAR - WALL - WATER_HEATER.clearance - WATER_HEATER.diameter / 2;
+  return [u, houseSouthWestEdge(u) + WALL + WATER_HEATER.clearance + WATER_HEATER.diameter / 2];
+};
 /** Where the rear parapet is open for the stair: its 0.9 m, against the north-east party wall's inner face. */
 const STAIR_OPENING: [number, number] = [HALF_WIDTH - PARTY_WALL - LAUNDRY.flight.width, HALF_WIDTH - PARTY_WALL];
 const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
@@ -226,6 +235,7 @@ const ROOFTOP_OBSTACLES: BuildingFootprint[] = [
   rooftop('TANK-SLAB', 'Losa del tanque', rect(TANK_U[0] - .1, TANK_U[1] + .1, TANK_V[0] - .1, TANK_V[1] + .1), .9, 1.2),
   rooftop('TANK-BLOCK', 'Tanque de hormigón', rect(TANK_U[0], TANK_U[1], TANK_V[0], TANK_V[1]), 1.2, 2.25),
   rooftop('TANK-STEEL', 'Tanque de acero', octagon(tankCentre[0], tankCentre[1], .5), 2.25, 3.75),
+  rooftop('WATER-HEATER', 'Termotanque eléctrico Señorial Family Electric 120', circleAround(waterHeaterCentre(), WATER_HEATER.diameter / 2, 20).map(([u, v]) => houseToSite(u, v)), 0, WATER_HEATER.height),
 ];
 
 // Where lot 7 (A) splits: a walled front patio next to the house, then the garage house.

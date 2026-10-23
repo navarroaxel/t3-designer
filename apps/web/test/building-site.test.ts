@@ -3,7 +3,7 @@ import test from 'node:test'
 import { genericBuildings } from '../src/data/block.ts'
 import { OPPOSITE_LOTS } from '../src/data/opposite-block.ts'
 import { laundryVolumes } from '../src/data/laundry.ts'
-import { AZOTEA_REAR, BUILDING_SITE, ENTRY_RECESS, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
+import { AZOTEA_REAR, BUILDING_SITE, ENTRY_RECESS, SITE_BUILDINGS, SITE_PARCEL, SITE_ROADS, WATER_HEATER, houseSouthWestEdge, houseToSite, siteToHouse, type BuildingFootprint, type SitePoint } from '../src/data/building-site.ts'
 
 function area(ring: SitePoint[]) {
   return Math.abs(ring.reduce((sum, a, index) => {
@@ -110,7 +110,7 @@ test('the light well is an open void between the terrace and the left arm', () =
   assert.ok(free > 2.5 * 4.4 && free < 2.5 * 4.6 + 3, `free area ${free.toFixed(2)} m2`)
 })
 
-const isRooftop = (building: BuildingFootprint) => /^HOUSE-(PARAPET|TANK)/.test(building.id)
+const isRooftop = (building: BuildingFootprint) => /^HOUSE-(PARAPET|TANK|WATER-HEATER)/.test(building.id)
 const groundVolumes = SITE_BUILDINGS.filter(building => !isRooftop(building))
 
 test('heights follow the reported floor counts, refined by Street View where it shows more', () => {
@@ -333,4 +333,20 @@ test('the black house opposite has a pitched room falling toward its azotea, and
   for (const id of ['OPP-24-TANK-A', 'OPP-24-TANK-B']) {
     assert.ok(frontU - centreU(byId(id)) > 9, `${id}: at the back of the roof`)
   }
+})
+
+test('the water heater stands in the rear corner opposite the stair, inside the parapets and clear of the tank', () => {
+  const heater = byId('HOUSE-WATER-HEATER')
+  const points = heater.footprint.map(point => siteToHouse(point as [number, number]))
+  const u = [Math.min(...points.map(p => p[0])), Math.max(...points.map(p => p[0]))]
+  const v = [Math.min(...points.map(p => p[1])), Math.max(...points.map(p => p[1]))]
+  closeTo(heater.height - heater.base!, WATER_HEATER.height, 1e-9)
+  closeTo(u[1] - u[0], WATER_HEATER.diameter, .02)
+  // The stair is on the north-east side (positive v); the heater is on the south-west one, against the rear parapet.
+  assert.ok(v[1] < 0, 'south-west side')
+  assert.ok(u[1] < AZOTEA_REAR - .08 && u[1] > AZOTEA_REAR - .2, 'by the rear parapet')
+  assert.ok(v[0] > houseSouthWestEdge((u[0] + u[1]) / 2) + .08, 'inside the south-west parapet')
+  const slab = byId('HOUSE-TANK-SLAB')
+  const slabPoints = slab.footprint.map(point => siteToHouse(point as [number, number]))
+  assert.ok(v[1] < Math.min(...slabPoints.map(p => p[1])), 'beside the tank slab, not under it')
 })
