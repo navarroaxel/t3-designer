@@ -133,7 +133,7 @@ On the garage's south-west wall hangs the **three-phase 10 kW Deye hybrid invert
 
 ## The azotea's water heater
 
-An electric water heater, a **Señorial Family Electric 120** (owner's photo), stands in the azotea's rear corner opposite the stair, the south-west one, 5 cm from each parapet's inner face (`WATER_HEATER` in `apps/web/src/data/building-site.ts`). It is grey with a black cap, drawn as a plain cylinder. Its sizes are assumed, 0.50 m across and 1.30 m high, because the 120 L model's are not at hand (the 90 L one is 105.5 cm by 44 cm). It is an obstacle in the walkthrough.
+An electric water heater, a **Señorial Family Electric 120** (owner's photo), stands in the azotea's rear corner opposite the stair, the south-west one, 5 cm from each parapet's inner face (`WATER_HEATER` in `apps/web/src/data/building-site.ts`). It is grey with a black cap, drawn as a plain cylinder. Its sizes are the maker's datasheet's for the TESLFP-120 AR: 41 cm across and 135.5 cm high (120 L, 3000 W, 31.7 kg). It is an obstacle in the walkthrough.
 
 ## The doorbell
 

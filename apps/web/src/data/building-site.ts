@@ -210,9 +210,9 @@ const octagon = (u: number, v: number, radius: number): SitePoint[] =>
 
 /**
  * The electric water heater, a Señorial Family Electric 120 (owner's photo), standing in the azotea's rear corner opposite the stair: the south-west one, 5 cm
- * from each parapet's inner face. The product's sizes are not at hand (the 90 L model is 105.5 cm high and 44 cm across): 0.50 m across and 1.30 m high are assumed.
+ * from each parapet's inner face. The sizes are the maker's datasheet's for the TESLFP-120 AR: 41 cm across and 135.5 cm high (Línea Family fichas técnicas).
  */
-export const WATER_HEATER = { diameter: .5, height: 1.3, clearance: .05 };
+export const WATER_HEATER = { diameter: .41, height: 1.355, clearance: .05 };
 const waterHeaterCentre = (): [number, number] => {
   const u = AZOTEA_REAR - WALL - WATER_HEATER.clearance - WATER_HEATER.diameter / 2;
   return [u, houseSouthWestEdge(u) + WALL + WATER_HEATER.clearance + WATER_HEATER.diameter / 2];
