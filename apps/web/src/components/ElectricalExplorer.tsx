@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { PV_SYSTEM } from '../data/pv-system'
 import {
-  BOXES, METER_DROP, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
+  PHASE_NAME, BOXES, METER_DROP, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
   type BoardId, type Circuit, type Device, type Phase,
 } from '../data/electrical'
 import { useLocale } from '../i18n/useLocale'
@@ -12,7 +12,7 @@ import '../electrical.css'
 const device = (id: string) => { const found = DEVICES.find(item => item.id === id); if (!found) throw new Error(`Unknown device ${id}`); return found }
 
 function PhaseChips({ phases }: { phases: readonly Phase[] }) {
-  return <span className="elec-phases">{phases.map(phase => <span key={phase} className={`elec-phase elec-${phase.toLowerCase()}`}>{phase}</span>)}</span>
+  return <span className="elec-phases">{phases.map(phase => <span key={phase} className={`elec-phase elec-${phase.toLowerCase()}`}>{PHASE_NAME[phase]}</span>)}</span>
 }
 
 /** The way the power goes, on one line: the strings to the inverter, the grid and the inverter's output to the selector, and the garage board's feeder to the pantry's. The small squares are devices, filled when they are in the garage board. */
@@ -182,7 +182,7 @@ function PhaseBalance() {
   return <section className="elec-balance" aria-labelledby="elec-balance-title">
     <h3 id="elec-balance-title">{t('electrical.balance.title')}</h3>
     <ul>{PHASES.map(phase => <li key={phase}>
-      <span className="elec-balance-name"><PhaseChips phases={[phase]} /> <span className="sr-only">{t('electrical.balance.phase', { phase })}</span></span>
+      <span className="elec-balance-name"><PhaseChips phases={[phase]} /> <span className="sr-only">{t('electrical.balance.phase', { phase: PHASE_NAME[phase] })}</span></span>
       <span className="elec-bar" aria-hidden="true"><span className={`elec-fill elec-${phase.toLowerCase()}`} style={{ width: `${power[phase] / top * 100}%` }} /></span>
       <span className="elec-balance-value">{t('electrical.balance.power', { kw: formatNumber(power[phase] / 1000, 1) })} · {t('electrical.balance.current', { amps: formatNumber(current[phase]) })} <span className="elec-demand">→ {t('electrical.balance.demand', { kw: formatNumber(power[phase] * SIMULTANEITY / 1000, 1), amps: formatNumber(current[phase] * SIMULTANEITY) })}</span></span>
     </li>)}</ul>
@@ -210,8 +210,8 @@ export function ElectricalExplorer() {
     [t('electrical.factFeeder'), t('electrical.factFeederValue', { conductors: FEEDER.conductors, mm2: FEEDER.cableMm2, conduit: FEEDER.conduitMm })],
   ]
   const notes = [
-    t('electrical.notes.earth'), t('electrical.notes.feeder', { phase: pantryBusiest, amps: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest]), factor: formatNumber(SIMULTANEITY, 1) }), 
-    t('electrical.notes.inverterLimit', { limit: INVERTER_MAX_OUTPUT_A, phase: busiest, amps: formatNumber(phaseCurrentA(onUps)[busiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(onUps)[busiest]), factor: formatNumber(SIMULTANEITY, 1) }),
+    t('electrical.notes.earth'), t('electrical.notes.feeder', { phase: PHASE_NAME[pantryBusiest], amps: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest]), factor: formatNumber(SIMULTANEITY, 1) }), 
+    t('electrical.notes.inverterLimit', { limit: INVERTER_MAX_OUTPUT_A, phase: PHASE_NAME[busiest], amps: formatNumber(phaseCurrentA(onUps)[busiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(onUps)[busiest]), factor: formatNumber(SIMULTANEITY, 1) }),
     t('electrical.notes.noUps'), t('electrical.notes.strings', { volts: PV_SYSTEM.inverter.mppt.maxInputV }), t('electrical.notes.comb'), t('electrical.notes.surge', { total: boardModules('garage', true), box: boxModules('garage') }), t('electrical.notes.feederOrigin'),
   ]
   return <div className="elec-workspace">

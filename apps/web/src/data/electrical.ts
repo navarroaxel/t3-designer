@@ -9,6 +9,8 @@ export type Phase = 'L1' | 'L2' | 'L3'
 export type BoardId = 'garage' | 'pantry'
 export type CircuitKind = 'lights' | 'outlets' | 'ac' | 'heater' | 'outdoor' | 'sauna'
 export const PHASES: readonly Phase[] = ['L1', 'L2', 'L3']
+/** What the phases are called on the page: R, S and T, as in Argentina. The ids stay L1, L2 and L3. */
+export const PHASE_NAME: Readonly<Record<Phase, string>> = { L1: 'R', L2: 'S', L3: 'T' }
 
 /** A circuit leaving a board: `loadW` is the connected power on it, when it has a load that counts (a big load, or a circuit of outlets at 10 A); the lights have none and are not counted. */
 export type Circuit = {
@@ -130,7 +132,7 @@ export const rowItems = (ids: readonly string[]) => ids.map(id => {
 })
 
 /** The feeder from the garage board to the pantry's: four conductors and the earth in one thick conduit, a second one empty for later. */
-export const FEEDER = { cableMm2: 6, conductors: 'L1 L2 L3 N + PE', conduitMm: 50, conduits: 2 }
+export const FEEDER = { cableMm2: 6, conductors: 'R S T N + PE', conduitMm: 50, conduits: 2 }
 
 export const boardCircuits = (board: BoardId) => CIRCUITS.filter(item => item.board === board)
 export const boardDevices = (board: BoardId, withOptional = false) => DEVICES.filter(item => item.board === board && (withOptional || !item.optional))

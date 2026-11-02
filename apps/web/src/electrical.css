@@ -22,11 +22,12 @@
 .elec-dot { fill: var(--elec-ac); }
 .elec-title { fill: currentColor; font-size: 13px; font-weight: 560; }
 .elec-sub, .elec-label { fill: currentColor; fill-opacity: .78; font-size: 10.5px; }
-.elec-key::before { content: ''; display: inline-block; width: 18px; height: 0; border-top: 3px solid; margin-right: 6px; vertical-align: middle; }
-.elec-key-ac::before { border-color: var(--elec-ac); }
-.elec-key-dc::before { border-color: var(--elec-dc); }
-.elec-key-device::before { width: 11px; height: 11px; border: 1.5px solid var(--gen-typical); background: var(--gen-bar); border-radius: 2px; }
-.elec-key-pantry::before { background: var(--gen-details-bg); }
+/* The legend. `.gen-legend li::before` (building.css) is more specific than a single class, so these name `.gen-legend` too, or every key would keep the text's colour. */
+.gen-legend .elec-key::before { width: 18px; height: 0; border: 0; border-top: 3px solid; margin-right: 6px; border-radius: 0; background: none; }
+.gen-legend .elec-key-ac::before { border-top-color: var(--elec-ac); }
+.gen-legend .elec-key-dc::before { border-top-color: var(--elec-dc); }
+.gen-legend .elec-key-device::before { width: 11px; height: 11px; border: 1.5px solid var(--gen-typical); border-radius: 2px; background: var(--gen-bar); }
+.gen-legend .elec-key-pantry::before { background: var(--gen-details-bg); }
 .elec-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; align-items: start; }
 .elec-board { display: flex; flex-direction: column; gap: 8px; min-width: 0; overflow-x: auto; }
 .elec-board .gen-table td { white-space: nowrap; }

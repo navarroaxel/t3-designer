@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AC_LOAD_W, BOXES, METER_DROP, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
+import { PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
 
 const circuit = (id: string) => { const found = CIRCUITS.find(item => item.id === id); assert.ok(found, id); return found }
 const phase = (id: string): Phase => { const { phases } = circuit(id); assert.equal(phases.length, 1, `${id} is on one phase`); return phases[0] }
@@ -35,6 +35,10 @@ test('the demand is 60 % of what is connected, the AEA\'s simultaneity factor fo
   assert.equal(SIMULTANEITY, .6)
   const connected = phaseCurrentA(), demand = phaseDemandA()
   for (const name of PHASES) assert.ok(Math.abs(demand[name] - connected[name] * .6) < 1e-9, name)
+})
+
+test('the phases are called R, S and T on the page', () => {
+  assert.deepEqual(PHASES.map(name => PHASE_NAME[name]), ['R', 'S', 'T'])
 })
 
 test('every circuit of outlets counts as 10 A', () => {
