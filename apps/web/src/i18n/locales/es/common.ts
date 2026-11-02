@@ -10,6 +10,7 @@ export default {
     apartment: { title: 'Interior de la casa', badge: 'Plantas, con medidas', nav: 'Interior' },
     building: { title: 'Casa y entorno', nav: 'Casa y sol' },
     generation: { title: 'Generación e inversión solar', nav: 'Generación' },
+    electrical: { title: 'Instalación eléctrica', nav: 'Eléctrico' },
   },
   settings: {
     title: 'Ajustes',

@@ -10,6 +10,7 @@ export default {
     apartment: { title: 'House interior', badge: 'Floor plans, measured', nav: 'Interior' },
     building: { title: 'House and surroundings', nav: 'House and sun' },
     generation: { title: 'Solar generation and investment', nav: 'Generation' },
+    electrical: { title: 'Electrical installation', nav: 'Electrical' },
   },
   settings: {
     title: 'Settings',

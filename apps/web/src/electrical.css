@@ -1,0 +1,63 @@
+/* The electrical factsheet: a page to read and to print. The card, the tables and the legend reuse the generation page's classes and tokens (building.css, theme.css), so both themes are covered. */
+:root {
+  /* Argentina's phase colours: brown, black and red, always with the phase's name beside them. */
+  --elec-l1: #8a5a2b; --elec-l2: #3b3f44; --elec-l3: #b3402f;
+  --elec-ac: var(--gen-typical); --elec-dc: var(--gen-clear);
+}
+@media screen {
+  :root[data-theme='dark'] { --elec-l1: #d1a06a; --elec-l2: #c3c9d0; --elec-l3: #f08c7c; }
+}
+.elec-workspace { padding: 0 22px 28px; max-width: 1180px; }
+.elec-sheet h3 { margin: 8px 0 4px; font-size: 13px; font-weight: 560; }
+.elec-scroll { overflow-x: auto; }
+.elec-diagram { display: block; width: 100%; min-width: 760px; height: auto; }
+.elec-node { fill: var(--gen-card); stroke: var(--gen-axis); stroke-width: 1.2; }
+.elec-node-board { stroke-width: 2; stroke: var(--gen-typical); }
+.elec-device { fill: var(--gen-bar); stroke: var(--gen-typical); stroke-width: 1.5; }
+/* The pantry's devices are outlined, the garage's filled. */
+.elec-device-pantry { fill: var(--gen-details-bg); }
+.elec-wire path { fill: none; stroke-width: 2.2; stroke-linejoin: round; }
+.elec-wire-ac path { stroke: var(--elec-ac); }
+.elec-wire-dc path { stroke: var(--elec-dc); }
+.elec-dot { fill: var(--elec-ac); }
+.elec-title { fill: currentColor; font-size: 13px; font-weight: 560; }
+.elec-sub, .elec-label { fill: currentColor; fill-opacity: .78; font-size: 10.5px; }
+/* The legend. `.gen-legend li::before` (building.css) is more specific than a single class, so these name `.gen-legend` too, or every key would keep the text's colour. */
+.gen-legend .elec-key::before { width: 18px; height: 0; border: 0; border-top: 3px solid; margin-right: 6px; border-radius: 0; background: none; }
+.gen-legend .elec-key-ac::before { border-top-color: var(--elec-ac); }
+.gen-legend .elec-key-dc::before { border-top-color: var(--elec-dc); }
+.gen-legend .elec-key-device::before { width: 11px; height: 11px; border: 1.5px solid var(--gen-typical); border-radius: 2px; background: var(--gen-bar); }
+.gen-legend .elec-key-pantry::before { background: var(--gen-details-bg); }
+.elec-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; align-items: start; }
+.elec-board { display: flex; flex-direction: column; gap: 8px; min-width: 0; overflow-x: auto; }
+.elec-board .gen-table td { white-space: nowrap; }
+.elec-board .gen-table th.elec-tag { font-weight: 650; letter-spacing: .02em; white-space: nowrap; }
+.elec-board .gen-table td.elec-name, .elec-board .gen-table thead th:nth-child(2) { text-align: left; white-space: normal; }
+.elec-total { margin: 2px 0 0; font-size: 11px; }
+.elec-phases { display: inline-flex; gap: 3px; }
+.elec-phase { display: inline-block; min-width: 24px; padding: 1px 5px; border: 1.5px solid; border-radius: 4px; text-align: center; font-size: 10px; font-weight: 600; }
+.elec-phase.elec-l1 { border-color: var(--elec-l1); } .elec-phase.elec-l2 { border-color: var(--elec-l2); } .elec-phase.elec-l3 { border-color: var(--elec-l3); }
+.elec-balance ul { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.elec-balance li { display: grid; grid-template-columns: 44px minmax(80px, 1fr) 260px; align-items: center; gap: 10px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.elec-bar { height: 12px; border-radius: 3px; background: var(--gen-card); border: 1px solid var(--gen-card-border); overflow: hidden; }
+.elec-fill { display: block; height: 100%; }
+.elec-fill.elec-l1 { background: var(--elec-l1); } .elec-fill.elec-l2 { background: var(--elec-l2); } .elec-fill.elec-l3 { background: var(--elec-l3); }
+.elec-balance-value { text-align: right; }
+.elec-demand { font-weight: 600; white-space: nowrap; }
+.elec-notes ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; line-height: 1.55; }
+@media (max-width: 760px) { .elec-workspace { padding: 0 8px 20px; } .elec-boards { grid-template-columns: minmax(0, 1fr); } }
+/* The rows of a board, drawn module by module (ModuleIcon): the name of the row, and the rail under its devices. */
+.elec-rows { display: flex; flex-direction: column; gap: 8px; }
+.elec-row { display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 8px; font-size: 10px; }
+.elec-rail-main { max-width: 220px; }
+.elec-rail { display: block; width: 100%; height: auto; padding: 3px 0; background: var(--gen-card); border: 1px solid var(--gen-card-border); border-radius: 5px; }
+/* On paper: only the sheet, in light colours, one board per block. */
+@media print {
+  .app-header, .workspace-switcher, .elec-print { display: none !important; }
+  html, body, .designer { background: #fff !important; color: #111 !important; }
+  .elec-workspace { padding: 0; max-width: none; }
+  .gen-details.elec-sheet { box-shadow: none; border: 0; padding: 0; overflow: visible; }
+  .elec-scroll { overflow: visible; }
+  .elec-diagram { min-width: 0; }
+  .elec-board, .elec-balance, .elec-notes { break-inside: avoid; }
+}

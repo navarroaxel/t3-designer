@@ -12,6 +12,7 @@ import { listenForThemeChanges } from './lib/theme'
 
 const BuildingExplorer = lazy(() => import('./components/BuildingExplorer').then(module => ({ default: module.BuildingExplorer })))
 const GenerationExplorer = lazy(() => import('./components/GenerationExplorer').then(module => ({ default: module.GenerationExplorer })))
+const ElectricalExplorer = lazy(() => import('./components/ElectricalExplorer').then(module => ({ default: module.ElectricalExplorer })))
 const ApartmentExplorer = lazy(() => import('./components/ApartmentExplorer').then(module => ({ default: module.ApartmentExplorer })))
 const ReferenceWalkthrough = lazy(() => import('./walkthrough/ReferenceWalkthrough').then(module => ({ default: module.ReferenceWalkthrough })))
 
@@ -70,6 +71,8 @@ export default function App() {
         ? <ApartmentExplorer solar={solar} state={apartmentView} layout={demoLayout} />
         : workspaceView === 'generation'
         ? <GenerationExplorer solar={solar} />
+        : workspaceView === 'electrical'
+        ? <ElectricalExplorer />
         : <BuildingExplorer solar={solar} onOpenGeneration={() => switchWorkspace('generation')} />}
       </Suspense>
       <Analytics />
