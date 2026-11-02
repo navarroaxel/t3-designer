@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AC_LOAD_W, BOXES, METER_DROP, TAGS, onInverterOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
+import { AC_LOAD_W, BOXES, METER_DROP, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
 
 const circuit = (id: string) => { const found = CIRCUITS.find(item => item.id === id); assert.ok(found, id); return found }
 const phase = (id: string): Phase => { const { phases } = circuit(id); assert.equal(phases.length, 1, `${id} is on one phase`); return phases[0] }
@@ -80,17 +80,17 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
 
 test('the garage board needs more modules than the pantry\'s, and the surge arresters are extra', () => {
   assert.ok(boardModules('garage') > boardModules('pantry'))
-  assert.equal(boardModules('garage'), 42)
-  assert.equal(boardModules('garage', true), 48, 'with the surge arresters')
+  assert.equal(boardModules('garage'), 46)
+  assert.equal(boardModules('garage', true), 52, 'with the surge arresters')
   assert.equal(boardModules('pantry'), 25)
   assert.equal(boardModules('pantry', true), boardModules('pantry'), 'the pantry has no optional device')
 })
 
-test('both boards are 48-module boxes, and the garage\'s takes everything, the surge arresters too, with none spare', () => {
+test('both boards are 48-module boxes; the garage\'s takes everything but the surge arresters, which go in a box of their own', () => {
   assert.equal(boxModules('garage'), 48)
   assert.equal(boxModules('pantry'), 48)
   assert.ok(boardModules('garage') < boxModules('garage'))
-  assert.equal(boardModules('garage', true), boxModules('garage'))
+  assert.ok(boardModules('garage', true) > boxModules('garage'))
   assert.ok(boardModules('pantry') <= boxModules('pantry'))
 })
 
@@ -116,9 +116,15 @@ test('the whole solar circuit\'s protections are in the last row of the garage b
   for (const id of ['inverter-ac', 'string-fuse-1', 'string-fuse-2', 'main', 'selector']) assert.ok(last.includes(id), id)
 })
 
-test('only the sauna heater is off the inverter\'s output; the rest hangs from it when the selector is on Inverter', () => {
-  assert.deepEqual(CIRCUITS.filter(item => item.offInverter).map(item => item.id), ['ground-sauna'])
-  assert.equal(onInverterOutput().length, CIRCUITS.length - 1)
+test('the water heater and the sauna heater are on the inverter\'s output without UPS; the rest hangs from the one with UPS', () => {
+  assert.deepEqual(CIRCUITS.filter(item => item.noUps).map(item => item.id).sort(), ['ground-sauna', 'upper-water-heater'])
+  assert.equal(onUpsOutput().length, CIRCUITS.length - 2)
+})
+
+test('the output without UPS has a type A device of its own, in the row of the water heater, and the sauna has a row to itself in the pantry', () => {
+  const row = BOXES.garage.rows.find(item => item.includes('rcd-garage-3'))
+  assert.ok(row?.includes('upper-water-heater'))
+  assert.ok(!BOXES.pantry.rows.some(item => item.includes('ground-sauna') && item.includes('rcd-pantry-2')))
 })
 
 test('the garage\'s general breaker is the upper floor\'s: four-pole, after the selector, and no larger than the residual-current devices it feeds', () => {

@@ -18,7 +18,7 @@ The main board is the meter's drop, at the entrance where the stairs to the uppe
 
 - The two daytime air conditioners (the office's and the living room's) are on different phases; so are the two night-time ones (the main bedroom's and the guest bedroom's). The water heater is not on the kitchen outlets' phase, where the kettle is.
 - The connected power of the big loads (air conditioners at 1.89 kW, the maker's cooling figure for the 553GIQ2201F; the water heater at 3 kW with both elements; each circuit of outlets at 10 A, the owner's figure, which the kitchen's 2.2 kW kettle fits in; the sauna heater at 5 kW, a third on each phase) is within 25 % between the phases. It is what is connected, not what runs at once; the demand applies the simultaneity factor of 0.6 that the AEA gives a house with superior electrification (the owner's figure).
-- With the selector on **Inverter** the house hangs from the inverter's output, which gives up to 16 A a phase ([datasheet](inverter-datasheet.md)). The sauna heater is not on that output (the owner's choice); without it the busiest phase still has more than that connected, so the manual's word on unbalanced loads is open.
+- With the selector on **Inverter** the house hangs from the inverter's UPS output, which gives up to 16 A a phase ([datasheet](inverter-datasheet.md)). The water heater and the sauna heater are not on it; without them the busiest phase still has a demand over that, so the manual's word on unbalanced loads is open.
 
 ## Open questions
 
@@ -32,6 +32,10 @@ The main board is the meter's drop, at the entrance where the stairs to the uppe
 
 ## Residual-current devices
 
-The loads with converters (the inverter air conditioners, switching power supplies, LED drivers) leak direct and high-frequency current that a type AC device does not see, and that can blind or trip a type A one. So the lights and the outlets are on a type A device, and what has an inverter (the air conditioners and the water heater in the garage; the office's air conditioner and the sauna in the pantry) is on a type F one, which also covers plain resistive loads. Each device is in the row of the circuits it protects (`BOXES` in `data/electrical.ts`). The Deye's own output is not under any of them; whether it asks for an external device, and of which type, is in its manual.
+The loads with converters (the inverter air conditioners, switching power supplies, LED drivers) leak direct and high-frequency current that a type AC device does not see, and that can blind or trip a type A one. So the lights and the outlets are on a type A device, and the air conditioners (the garage's and the office's) on a type F one. Each device is in the row of the circuits it protects (`BOXES` in `data/electrical.ts`). The Deye's own output is not under any of them; whether it asks for an external device, and of which type, is in its manual.
+
+## The inverter's two AC outputs
+
+The inverter has two AC outputs: one with UPS, which the selector takes (everything hangs from it when the selector is on Inverter), and one without. The water heater and the sauna heater are on the one without (the owner's choice): resistive loads with no battery backup, under a type A device of their own in the garage board's second row, from which the cable to the sauna in the pantry also leaves, without a breaker of its own at its origin. If the inverter fails they have no power even with the selector on Grid. The current the UPS output has to give leaves them out.
 
 The tests (`apps/web/test/electrical.test.ts`) keep the circuit count, the single three-phase load, the phase rules above, the breakers against their cables and the water heater's 20 A on 4 mm².

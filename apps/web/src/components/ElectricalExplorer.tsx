@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { PV_SYSTEM } from '../data/pv-system'
 import {
-  BOXES, METER_DROP, boardCircuits, boardDevices, boardModules, onInverterOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
+  BOXES, METER_DROP, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
   type BoardId, type Circuit, type Device, type Phase,
 } from '../data/electrical'
 import { useLocale } from '../i18n/useLocale'
@@ -26,7 +26,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<BoardId, { circuits: num
   return <svg className="elec-diagram" viewBox="0 0 1000 600" role="img" aria-label={t('electrical.diagramAria')}>
     {/* Wires first, so the boxes and devices sit over them. DC is the warm line, AC the green one. */}
     <g className="elec-wire elec-wire-dc"><path d="M150 53H330M150 123H330M530 82H640" /></g>
-    <g className="elec-wire elec-wire-ac"><path d="M120 290H160M280 290H560M400 170V290M500 170V205H615V240M670 290H752M700 290V490H752" /></g>
+    <g className="elec-wire elec-wire-ac"><path d="M120 290H160M280 290H560M400 170V290M500 170V205H615V240M670 290H752M700 290V490H752M530 140H800V200M800 140H990V520H970" /></g>
     <circle className="elec-dot" cx={400} cy={290} r={4} /><circle className="elec-dot" cx={700} cy={290} r={4} />
 
     {[['string1', 30], ['string2', 100]].map(([key, y]) => <g key={key}>
@@ -36,6 +36,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<BoardId, { circuits: num
     {[41, 111].map(y => <g key={y}>{square(190, y)}{text(201, y - 6, `${node('fuse')} ${device('string-fuse-1').ratingA} A`, 'elec-sub')}</g>)}
 
     <rect className="elec-node" x={330} y={20} width={200} height={150} rx={8} />
+    {text(555, 199, node('ups'), 'elec-sub')}{text(895, 132, node('noUps'), 'elec-sub')}
     {text(430, 62, node('inverter'), 'elec-title')}{text(430, 80, node('inverterSub'), 'elec-sub')}{text(430, 98, INVERTER_MODEL, 'elec-sub')}
     <rect className="elec-node" x={640} y={50} width={140} height={64} rx={6} />
     {text(710, 76, node('battery'), 'elec-title')}{text(710, 92, node('batterySub'), 'elec-sub')}{text(710, 106, node('batteryItm'), 'elec-sub')}
@@ -197,7 +198,7 @@ export function ElectricalExplorer() {
   const { t } = useTranslation('workspace')
   const upper = CIRCUITS.filter(item => item.floor === 'upper').length, ground = CIRCUITS.length - upper
   const busiestOf = (circuits: readonly Circuit[]) => { const current = phaseCurrentA(circuits); return PHASES.reduce((a, b) => current[b] > current[a] ? b : a) }
-  const onInverter = onInverterOutput(), busiest = busiestOf(onInverter), pantryBusiest = busiestOf(boardCircuits('pantry'))
+  const onUps = onUpsOutput(), busiest = busiestOf(onUps), pantryBusiest = busiestOf(boardCircuits('pantry'))
   const { formatNumber } = useLocale()
   const sizes = { garage: { circuits: boardCircuits('garage').length, modules: boardModules('garage') }, pantry: { circuits: boardCircuits('pantry').length, modules: boardModules('pantry') } }
   const facts: [string, string][] = [
@@ -210,8 +211,8 @@ export function ElectricalExplorer() {
   ]
   const notes = [
     t('electrical.notes.earth'), t('electrical.notes.feeder', { phase: pantryBusiest, amps: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest]), factor: formatNumber(SIMULTANEITY, 1) }), 
-    t('electrical.notes.inverterLimit', { limit: INVERTER_MAX_OUTPUT_A, phase: busiest, amps: formatNumber(phaseCurrentA(onInverter)[busiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(onInverter)[busiest]), factor: formatNumber(SIMULTANEITY, 1) }),
-    t('electrical.notes.strings', { volts: PV_SYSTEM.inverter.mppt.maxInputV }), t('electrical.notes.comb'), t('electrical.notes.surge', { total: boardModules('garage', true), box: boxModules('garage') }), t('electrical.notes.feederOrigin'),
+    t('electrical.notes.inverterLimit', { limit: INVERTER_MAX_OUTPUT_A, phase: busiest, amps: formatNumber(phaseCurrentA(onUps)[busiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(onUps)[busiest]), factor: formatNumber(SIMULTANEITY, 1) }),
+    t('electrical.notes.noUps'), t('electrical.notes.strings', { volts: PV_SYSTEM.inverter.mppt.maxInputV }), t('electrical.notes.comb'), t('electrical.notes.surge', { total: boardModules('garage', true), box: boxModules('garage') }), t('electrical.notes.feederOrigin'),
   ]
   return <div className="elec-workspace">
     <article className="gen-details elec-sheet" aria-labelledby="elec-title">
