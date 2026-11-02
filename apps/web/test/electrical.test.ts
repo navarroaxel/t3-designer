@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
+import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
 
 const circuit = (id: string) => { const found = CIRCUITS.find(item => item.id === id); assert.ok(found, id); return found }
 const phase = (id: string): Phase => { const { phases } = circuit(id); assert.equal(phases.length, 1, `${id} is on one phase`); return phases[0] }
@@ -39,6 +39,18 @@ test('the demand is 60 % of what is connected, the AEA\'s simultaneity factor fo
 
 test('the phases are called R, S and T on the page', () => {
   assert.deepEqual(PHASES.map(name => PHASE_NAME[name]), ['R', 'S', 'T'])
+})
+
+test('the current checks use the currents the makers state: 8.73 A for each air conditioner, 13.6 A for the water heater', () => {
+  for (const item of CIRCUITS.filter(item => item.kind === 'ac')) assert.equal(item.currentA, AC_CURRENT_A, item.id)
+  assert.equal(circuit('upper-water-heater').currentA, WATER_HEATER_A)
+  const living = phaseCurrentA([circuit('upper-ac-living')])
+  assert.ok(Math.abs(living.L2 - 8.73) < 1e-9, 'not 1890 W over 230 V')
+  assert.ok(AC_LOAD_W / 230 < AC_CURRENT_A, 'the power factor makes the maker\'s current the larger one')
+})
+
+test('every breaker is above the current its circuit carries, the maker\'s where it is stated', () => {
+  for (const item of CIRCUITS) if (item.currentA) assert.ok(item.ratingA > item.currentA, item.id)
 })
 
 test('every circuit of outlets counts as 10 A', () => {

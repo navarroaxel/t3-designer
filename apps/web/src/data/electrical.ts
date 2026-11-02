@@ -16,22 +16,26 @@ export const PHASE_NAME: Readonly<Record<Phase, string>> = { L1: 'R', L2: 'S', L
 export type Circuit = {
   id: string; board: BoardId; floor: 'upper' | 'ground'; kind: CircuitKind
   phases: readonly Phase[]; ratingA: number; cableMm2: number; modules: number; loadW?: number
+  /** The current the maker states, amps on each phase, where there is one; the current checks use it, not `loadW` over the voltage, which leaves out the power factor. */
+  currentA?: number
   /** True where the circuit hangs from the inverter's output without UPS, not from the one with UPS that the selector takes: the water heater and the sauna heater do. */
   noUps?: true
 }
 
 /** Phase-to-neutral voltage, volts; the line-to-line one is 400. */
 export const PHASE_VOLTAGE = 230
-/** The 553GIQ2201F's cooling power (the maker's table, 8.73 A); it is the figure the air conditioners are counted at. */
+/** The 553GIQ2201F's electrical consumption in cooling (the maker's table: 1.89 kW, 8.73 A); the power display counts the air conditioners at it, and the current checks at its 8.73 A. */
 export const AC_LOAD_W = 1890
-/** Both elements of the Señorial Family electric water heater (1 500 W each). */
+export const AC_CURRENT_A = 8.73
+/** Both elements of the Señorial Family electric water heater (1 500 W each; the maker's sheet: 6.8 / 13.6 A). */
 export const WATER_HEATER_W = 3000
+export const WATER_HEATER_A = 13.6
 /** What a circuit of outlets is counted at: 10 A, the owner's figure and the rating of the Argentine outlet's plug. The kitchen's kettle (2.2 kW; the air fryer is used instead of it, not with it) fits in it. */
 export const OUTLET_LOAD_W = 10 * 230
 export const SAUNA_W = 5000
 
-const circuit = (id: string, board: BoardId, floor: Circuit['floor'], kind: CircuitKind, phase: Phase | readonly Phase[], ratingA: number, cableMm2: number, extra: { modules?: number; loadW?: number; noUps?: true } = {}): Circuit =>
-  ({ id, board, floor, kind, phases: typeof phase === 'string' ? [phase] : phase, ratingA, cableMm2, modules: extra.modules ?? (typeof phase === 'string' ? 1 : phase.length), loadW: extra.loadW, noUps: extra.noUps })
+const circuit = (id: string, board: BoardId, floor: Circuit['floor'], kind: CircuitKind, phase: Phase | readonly Phase[], ratingA: number, cableMm2: number, extra: { modules?: number; loadW?: number; currentA?: number; noUps?: true } = {}): Circuit =>
+  ({ id, board, floor, kind, phases: typeof phase === 'string' ? [phase] : phase, ratingA, cableMm2, modules: extra.modules ?? (typeof phase === 'string' ? 1 : phase.length), loadW: extra.loadW, currentA: extra.currentA, noUps: extra.noUps })
 
 /**
  * The circuits. The daytime air conditioners (the office's and the living room's) are on different phases, and so are the two bedrooms', which are used at night; the water heater is not on the kettle's phase.
@@ -44,15 +48,15 @@ export const CIRCUITS: readonly Circuit[] = [
   circuit('upper-outlets-rooms', 'garage', 'upper', 'outlets', 'L1', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('upper-outdoor', 'garage', 'upper', 'outdoor', 'L2', 10, 1.5, { modules: 2 }),
   circuit('upper-azotea', 'garage', 'upper', 'outdoor', 'L3', 16, 2.5, { modules: 2 }),
-  circuit('upper-ac-living', 'garage', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W }),
-  circuit('upper-ac-main-room', 'garage', 'upper', 'ac', 'L1', 16, 4, { modules: 2, loadW: AC_LOAD_W }),
-  circuit('upper-ac-guest-room', 'garage', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W }),
-  circuit('upper-water-heater', 'garage', 'upper', 'heater', 'L1', 20, 4, { modules: 2, loadW: WATER_HEATER_W, noUps: true }),
+  circuit('upper-ac-living', 'garage', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
+  circuit('upper-ac-main-room', 'garage', 'upper', 'ac', 'L1', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
+  circuit('upper-ac-guest-room', 'garage', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
+  circuit('upper-water-heater', 'garage', 'upper', 'heater', 'L1', 20, 4, { modules: 2, loadW: WATER_HEATER_W, currentA: WATER_HEATER_A, noUps: true }),
   circuit('ground-lights-1', 'pantry', 'ground', 'lights', 'L3', 10, 1.5, { modules: 2 }),
   circuit('ground-lights-2', 'pantry', 'ground', 'lights', 'L1', 10, 1.5, { modules: 2 }),
   circuit('ground-outlets-office', 'pantry', 'ground', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('ground-outlets-pantry', 'pantry', 'ground', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
-  circuit('ground-ac-office', 'pantry', 'ground', 'ac', 'L3', 16, 4, { modules: 2, loadW: AC_LOAD_W }),
+  circuit('ground-ac-office', 'pantry', 'ground', 'ac', 'L3', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
   circuit('ground-sauna', 'pantry', 'ground', 'sauna', PHASES, 10, 2.5, { loadW: SAUNA_W, noUps: true }),
 ]
 
@@ -149,8 +153,11 @@ export function phaseLoadW(circuits: readonly Circuit[] = CIRCUITS): Record<Phas
 }
 
 /** The connected current on each phase, amps, and the inverter's maximum AC output current on a phase, the limit if the house is on the inverter's own output. */
-export const phaseCurrentA = (circuits: readonly Circuit[] = CIRCUITS): Record<Phase, number> =>
-  Object.fromEntries(PHASES.map(phase => [phase, phaseLoadW(circuits)[phase] / PHASE_VOLTAGE])) as Record<Phase, number>
+export function phaseCurrentA(circuits: readonly Circuit[] = CIRCUITS): Record<Phase, number> {
+  const total: Record<Phase, number> = { L1: 0, L2: 0, L3: 0 }
+  for (const item of circuits) for (const phase of item.phases) total[phase] += item.currentA ?? (item.loadW ?? 0) / item.phases.length / PHASE_VOLTAGE
+  return total
+}
 /** The simultaneity factor the AEA gives a house with superior electrification (the owner's figure): 60 % of what is connected is taken to be on at once. */
 export const SIMULTANEITY = .6
 /** The demand on each phase, amps: the connected current times the simultaneity factor. */
