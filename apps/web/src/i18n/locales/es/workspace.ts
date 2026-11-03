@@ -388,7 +388,7 @@ const workspace = {
     },
     device: {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica AC del inversor, 4P',
-      'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'battery-dc': '🔋 ITM DC de la batería, 2P 100 A (probablemente aparte: cable grueso)', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
+      'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'battery-dc': '🔋 ITM DC de la batería, 2P 100 A', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
       feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
       'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },

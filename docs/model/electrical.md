@@ -22,7 +22,7 @@ The main board is the meter's drop, at the entrance where the stairs to the uppe
 
 ## Open questions
 
-- The main breaker's and the changeover switch's ratings follow the supply, which the model does not have. The battery's DC breaker (2P, 100 A, two modules) is drawn in the TSINV to have it marked; with the thickness of the battery's cable it will probably be outside the box.
+- The main breaker's and the changeover switch's ratings follow the supply, which the model does not have. The battery's DC breaker is 2P, 100 A, two modules, and is in the TSINV.
 - The TSPA and the pantry's are the owner's 48-module Genrod; that it is three rows of sixteen is assumed from the owner's photo: count the real box. The TSPA needs 36 modules (its first row only has the floor's main breaker); the pantry's needs 25. TSINV is a new 24-module box of two rows of twelve (the rows are assumed too) and needs 18. The changeover switch is a four-pole switch, 72 mm, four modules.
 - TSINV's first row has the changeover switch and the inverter's breaker, and its second the strings' DC breakers and their DC surge arresters, one per string, and the battery's DC breaker (the inverter may have its own, and then the external one is not needed). The supply of the TSPA hangs from the changeover switch, and so does the pantry's feeder.
 - The pantry's main breaker (4P, 32 A) is in the TSPB, at the end of the feeder (the owner's choice). The feeder's 6 mm² cable then has no breaker of its own at its origin, and only the supply's incoming breaker looks after it: that one has to be 32 A or less, or a 32 A breaker for the feeder is put in the TSINV, which has the room.
