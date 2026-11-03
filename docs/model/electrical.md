@@ -11,7 +11,7 @@ The main board is the meter's drop, at the entrance where the stairs to the uppe
 | Two boards: the garage's (solar and the upper floor) and the pantry's (the ground floor) | Owner |
 | The circuits on each floor (upper: 2 lights, 2 outlets, outdoor, azotea, 3 air conditioners, water heater; ground: 2 lights, 2 outlets, the office's air conditioner, the sauna) | Owner |
 | Three-phase supply behind the Deye inverter; a three-phase 5 kW dry sauna, the only three-phase load | Owner |
-| A fuse per string and a three-position changeover switch (Grid · 0 · Inverter) in the garage board, to leave the inverter out | Owner |
+| A DC breaker per string (the installer's) and a three-position changeover switch (Grid · 0 · Inverter) in the garage board, to leave the inverter out | Owner |
 | The phase of each circuit, the ratings, the cable sizes, the residual-current devices, the feeder (6 mm², 32 A, its breaker in the pantry board) | Proposed, for an electrician to confirm |
 
 ## Why the phases are split as they are
@@ -23,9 +23,10 @@ The main board is the meter's drop, at the entrance where the stairs to the uppe
 ## Open questions
 
 - The main breaker's and the changeover switch's ratings follow the supply, which the model does not have. The battery comes with a 100 A breaker of its own, so none is drawn for it in the garage board.
-- Both boards are the owner's 48-module Genrod; that it is three rows of sixteen is assumed from the owner's photo: count the real box. The garage board needs 42 modules (48 with the optional surge arresters, none spare); the pantry's needs 25. The changeover switch is a four-pole switch, 72 mm, four modules.
-- The garage board's last row is the solar circuit (the inverter's breaker and the strings' fuses), with the supply's main breaker and the changeover switch: the first two rows are full (16 modules each) with the type A group and with the type F group and the output without UPS, so the solar items could only go last if the supply goes with them.
+- Both boards are the owner's 48-module Genrod; that it is three rows of sixteen is assumed from the owner's photo: count the real box. The garage board needs 48 modules, the whole box (54 with the optional surge arresters, which go in a box of their own); the pantry's needs 25. The changeover switch is a four-pole switch, 72 mm, four modules.
+- The garage board's last row is the solar circuit (the inverter's breaker and the strings' DC breakers), with the supply's main breaker and the changeover switch: the first two rows are full (16 modules each) with the type A group and with the type F group and the output without UPS, so the solar items could only go last if the supply goes with them.
 - The pantry's main breaker (4P, 32 A) is in the pantry board, at the end of the feeder (the owner's choice). The feeder's 6 mm² cable then has no breaker of its own at its origin, and only the supply's incoming breaker looks after it: that one has to be 32 A or less, or a 32 A breaker stays in the garage board for the feeder.
+- The string breakers are two-pole DC ones (the installer put one on each string, instead of a fuse): they have to be rated for DC at the string's open-circuit voltage (1000 V DC or more), so check the label; an AC breaker does not put out a DC arc. They are 16 A here, a placeholder for the real model, and each takes two modules. The DC surge arrester is still needed, one per MPPT input.
 - The two bedrooms' air conditioners are labelled ACMR (main bedroom) and ACGR (guest bedroom); the other labels on the rows are in the tables' label column.
 - With a three-phase comb bar each one-pole module takes the phase of its place, so the order in a row has to match the phase in the table, or the breaker is wired with cable. Every circuit on one phase is bipolar (the owner's choice) and carries its own neutral.
 - The upper floor's circuits run on from the pantry to the garage board: about 20 conductors in one 40 mm conduit, by the numbers. The pantry's earth bar gathers the earth wires of both floors.

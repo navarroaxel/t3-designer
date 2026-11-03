@@ -33,7 +33,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<BoardId, { circuits: num
       <rect className="elec-node" x={20} y={y as number} width={130} height={46} rx={6} />
       {text(85, (y as number) + 21, node(key as 'string1'), 'elec-title')}{text(85, (y as number) + 36, node('panels'), 'elec-sub')}
     </g>)}
-    {[41, 111].map(y => <g key={y}>{square(190, y)}{text(201, y - 6, `${node('fuse')} ${device('string-fuse-1').ratingA} A`, 'elec-sub')}</g>)}
+    {[41, 111].map(y => <g key={y}>{square(190, y)}{text(201, y - 6, `${node('dcBreaker')} ${device('string-dc-1').ratingA} A`, 'elec-sub')}</g>)}
 
     <rect className="elec-node" x={330} y={20} width={200} height={150} rx={8} />
     {text(555, 199, node('ups'), 'elec-sub')}{text(895, 132, node('noUps'), 'elec-sub')}
@@ -63,7 +63,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<BoardId, { circuits: num
 const protection = (item: Device, t: TFunction<'workspace'>) => {
   if (item.optional) return '—'
   if (item.ratingA === null) return t(item.id === 'selector' ? 'electrical.board.bySupply' : 'electrical.board.byManual')
-  return item.id.startsWith('string-fuse') ? `${item.ratingA} A gPV` : `${item.poles}P ${item.ratingA} A`
+  return `${item.poles}P ${item.ratingA} A${item.id.startsWith('string-dc') ? ' DC' : ''}`
 }
 
 const MODULE_W = 18, DEVICE_H = 80
@@ -71,14 +71,14 @@ const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--ele
 
 /**
  * One device of a board's row drawn as it looks on the rail, to read the board at a glance: the white body with its terminals above and below, the black lever (one bar across the poles of a
- * bipolar or a four-pole), and a stripe of the phase's colour. A residual-current device is grey with a blue lever, a test button and the N marking; the changeover switch has a knob; a string's fuse, a cylinder. The
+ * bipolar or a four-pole), and a stripe of the phase's colour. A residual-current device is grey with a blue lever, a test button and the N marking; the changeover switch has a knob. A string's DC breaker is a bipolar one with the DC colour's stripe. The
  * body keeps the real colours of the equipment in both themes, like the scene's materials do.
  */
 function ModuleIcon({ x, id, modules, phase, rating, tag, name }: { x: number; id: string; modules: number; phase?: Phase; rating: string; tag: string; name: string }) {
   const w = modules * MODULE_W, cx = x + w / 2
-  const rcd = id.startsWith('rcd'), selector = id === 'selector', fuse = id.startsWith('string-fuse')
+  const rcd = id.startsWith('rcd'), selector = id === 'selector', dc = id.startsWith('string-dc')
   const poles = Array.from({ length: modules }, (_, pole) => x + (pole + .5) * MODULE_W)
-  const stripe = phase ? PHASE_FILL[phase] : fuse ? 'var(--elec-dc)' : rcd ? 'var(--gen-typical)' : '#9aa0a6'
+  const stripe = phase ? PHASE_FILL[phase] : dc ? 'var(--elec-dc)' : rcd ? 'var(--gen-typical)' : '#9aa0a6'
   return <g>
     <title>{name}</title>
     <rect x={x + .6} y={0} width={w - 1.2} height={DEVICE_H} rx={2.5} fill={rcd ? '#dfe3e6' : '#f4f5f6'} stroke="#7d8389" strokeWidth={.8} />
@@ -89,8 +89,7 @@ function ModuleIcon({ x, id, modules, phase, rating, tag, name }: { x: number; i
     {rcd && <><circle cx={x + MODULE_W * .9} cy={25} r={3.6} fill="#f1e9d2" stroke="#8d8466" strokeWidth={.6} /><text x={x + MODULE_W * .9} y={26.6} textAnchor="middle" fontSize={4.4} fill="#4a4636" fontWeight={700}>T</text>
       <text x={x + w - MODULE_W * .5} y={20} textAnchor="middle" fontSize={5.5} fill="#2b2f33" fontWeight={700}>N</text></>}
     {selector && <><circle cx={cx} cy={52} r={12} fill="#1f2124" /><path d={`M${cx} 52V43`} stroke="#f4f5f6" strokeWidth={2.2} strokeLinecap="round" /></>}
-    {fuse && <rect x={x + 4.5} y={36} width={MODULE_W - 9} height={24} rx={2} fill="#c9a45c" stroke="#8a6d2b" strokeWidth={.7} />}
-    {!selector && !fuse && (rcd
+    {!selector && (rcd
       ? <rect x={x + 3.5} y={50} width={Math.min(14, w - 7)} height={17} rx={2} fill="#2d6cb5" />
       : <>{poles.map(px => <rect key={`l${px}`} x={px - 5.5} y={44} width={11} height={20} rx={2} fill="#17181a" />)}{modules > 1 && <rect x={x + 3.5} y={57} width={w - 7} height={7} rx={1.5} fill="#17181a" />}</>)}
     <text x={cx} y={DEVICE_H + 11} textAnchor="middle" fontSize={7} fill="currentColor" fontWeight={600}>{tag}</text>

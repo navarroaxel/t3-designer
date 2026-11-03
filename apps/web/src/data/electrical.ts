@@ -69,8 +69,8 @@ export const DEVICES: readonly Device[] = [
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
   { id: 'selector', board: 'garage', poles: 4, modules: 4, ratingA: null },
   { id: 'inverter-ac', board: 'garage', poles: 4, modules: 4, ratingA: 20 },
-  { id: 'string-fuse-1', board: 'garage', poles: 1, modules: 1, ratingA: 15 },
-  { id: 'string-fuse-2', board: 'garage', poles: 1, modules: 1, ratingA: 15 },
+  { id: 'string-dc-1', board: 'garage', poles: 2, modules: 2, ratingA: 16 },
+  { id: 'string-dc-2', board: 'garage', poles: 2, modules: 2, ratingA: 16 },
   { id: 'rcd-garage', board: 'garage', poles: 4, modules: 4, ratingA: 40 },
   { id: 'rcd-garage-2', board: 'garage', poles: 4, modules: 4, ratingA: 40 },
   /** The device of the output without UPS: it covers the water heater and the line to the sauna heater in the pantry. Both are resistive, so type A. */
@@ -94,7 +94,7 @@ export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null
  * outlet circuits (the standard's); the rest are the usual short forms.
  */
 export const TAGS: Readonly<Record<string, string>> = {
-  'meter-itm': 'ITM', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-fuse-1': 'F1', 'string-fuse-2': 'F2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
+  'meter-itm': 'ITM', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
   feeder: 'TMPB', 'surge-dc': 'SPD DC', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
@@ -103,7 +103,7 @@ export const TAGS: Readonly<Record<string, string>> = {
 
 /**
  * The boxes and what goes in which row, left to right, as the installer sets them. Both boxes are the owner's 48-module Genrod; that it is three rows of sixteen follows from the owner's photo
- * of it (three rows) and is assumed. The garage's last row has the solar circuit (the owner's choice): the inverter's breaker and the strings' fuses (the battery comes with a 100 A breaker of its own), and with them the supply's main
+ * of it (three rows) and is assumed. The garage's last row has the solar circuit (the owner's choice): the inverter's breaker and the strings' DC breakers (the battery comes with a 100 A breaker of its own), and with them the supply's main
  * breaker and the changeover switch, because the other two rows are full with their groups; the first two rows each have their own residual-current device, type A for the lights and the outlets and
  * type F for what has an inverter (the air conditioners). The water heater and the line to the sauna come from the inverter's output without UPS, under a type A device of their own,
  * in the garage's second row with the air conditioners. The optional surge arresters are not in the rows: with them the garage's
@@ -115,7 +115,7 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
     rows: [
       ['rcd-garage', 'upper-lights-1', 'upper-lights-2', 'upper-outdoor', 'upper-azotea', 'upper-outlets-rooms', 'upper-outlets-kitchen'],
       ['rcd-garage-2', 'upper-ac-living', 'upper-ac-main-room', 'upper-ac-guest-room', 'rcd-garage-3', 'upper-water-heater'],
-      ['selector', 'main', 'inverter-ac', 'string-fuse-1', 'string-fuse-2'],
+      ['selector', 'main', 'inverter-ac', 'string-dc-1', 'string-dc-2'],
     ],
   },
   pantry: {

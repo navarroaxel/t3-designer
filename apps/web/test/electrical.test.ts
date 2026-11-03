@@ -96,8 +96,8 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
 
 test('the garage board needs more modules than the pantry\'s, and the surge arresters are extra', () => {
   assert.ok(boardModules('garage') > boardModules('pantry'))
-  assert.equal(boardModules('garage'), 46)
-  assert.equal(boardModules('garage', true), 52, 'with the surge arresters')
+  assert.equal(boardModules('garage'), 48)
+  assert.equal(boardModules('garage', true), 54, 'with the surge arresters')
   assert.equal(boardModules('pantry'), 25)
   assert.equal(boardModules('pantry', true), boardModules('pantry'), 'the pantry has no optional device')
 })
@@ -105,7 +105,7 @@ test('the garage board needs more modules than the pantry\'s, and the surge arre
 test('both boards are 48-module boxes; the garage\'s takes everything but the surge arresters, which go in a box of their own', () => {
   assert.equal(boxModules('garage'), 48)
   assert.equal(boxModules('pantry'), 48)
-  assert.ok(boardModules('garage') < boxModules('garage'))
+  assert.ok(boardModules('garage') <= boxModules('garage'), 'the box is full')
   assert.ok(boardModules('garage', true) > boxModules('garage'))
   assert.ok(boardModules('pantry') <= boxModules('pantry'))
 })
@@ -129,7 +129,7 @@ test('every circuit and device is in exactly one row of its board, and no row is
 
 test('the whole solar circuit\'s protections are in the last row of the garage board, with the supply\'s', () => {
   const last = BOXES.garage.rows[BOXES.garage.rows.length - 1]
-  for (const id of ['inverter-ac', 'string-fuse-1', 'string-fuse-2', 'main', 'selector']) assert.ok(last.includes(id), id)
+  for (const id of ['inverter-ac', 'string-dc-1', 'string-dc-2', 'main', 'selector']) assert.ok(last.includes(id), id)
 })
 
 test('the water heater and the sauna heater are on the inverter\'s output without UPS; the rest hangs from the one with UPS', () => {
@@ -167,7 +167,8 @@ test('each residual-current device is in the row of the circuits it protects', (
   assert.ok(BOXES.pantry.rows[1].includes('rcd-pantry-2') && BOXES.pantry.rows[1].includes('ground-ac-office'))
 })
 
-test('each string has its own fuse, in the garage board with the changeover switch', () => {
-  for (const id of ['string-fuse-1', 'string-fuse-2', 'selector']) assert.equal(DEVICES.find(item => item.id === id)?.board, 'garage', id)
+test('each string has its own two-pole DC breaker, in the garage board with the changeover switch', () => {
+  for (const id of ['string-dc-1', 'string-dc-2', 'selector']) assert.equal(DEVICES.find(item => item.id === id)?.board, 'garage', id)
+  for (const id of ['string-dc-1', 'string-dc-2']) assert.equal(DEVICES.find(item => item.id === id)?.poles, 2, id)
   assert.equal(boardDevices('pantry').length, 3, 'the pantry\'s board has its main breaker, two residual-current devices, type A and type F, and the circuits')
 })
