@@ -51,7 +51,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
 
     <rect className="elec-node" x={500} y={240} width={110} height={100} rx={6} />
     {text(555, 284, node('selector'), 'elec-title')}{text(555, 302, node('selectorPositions'), 'elec-sub')}
-    {text(712, 430, node('feeder'), 'elec-sub', 'start')}{text(712, 444, `${FEEDER.cableMm2} mm² · ${FEEDER.conductors}`, 'elec-sub', 'start')}
+    {text(712, 440, `4(1x${FEEDER.cableMm2})mm²+PE`, 'elec-sub', 'start')}
 
     <rect className="elec-node elec-node-board" x={740} y={240} width={230} height={130} rx={8} />
     {square(752, 279)}{text(784, 294, `${node('main')} ${device('main').ratingA} A`, 'elec-sub', 'start')}

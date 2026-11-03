@@ -373,7 +373,7 @@ const workspace = {
       inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 BAT', batterySub: 'baja tensión', batteryItm: 'ITM DC 100 A',
       inverterBreaker: '☀️ INV', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'CON', selectorPositions: 'Grid/Inverter',
       tsinv: 'TSINV', tsinvSub: 'Tablero solar', pa: 'TSPA', paSub: 'PA', pantry: 'TSPB', pantrySub: 'PB',
-      count: '{{circuits}} circuitos · {{modules}} módulos', feeder: 'Alimentador', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
+      count: '{{circuits}} circuitos · {{modules}} módulos', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
     },
     board: {
       solar: 'TSINV Tablero Solar', pa: 'TSPA Tablero PA - Garage', pantry: 'TSPB Tablero PB - Despensa',
