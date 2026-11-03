@@ -12,6 +12,7 @@
 .elec-scroll { overflow-x: auto; }
 .elec-diagram { display: block; width: 100%; min-width: 760px; height: auto; }
 .elec-node { fill: var(--gen-card); stroke: var(--gen-axis); stroke-width: 1.2; }
+.elec-frame { fill: none; stroke: var(--gen-typical); stroke-width: 1.6; stroke-dasharray: 7 5; }
 .elec-node-board { stroke-width: 2; stroke: var(--gen-typical); }
 .elec-device { fill: var(--gen-bar); stroke: var(--gen-typical); stroke-width: 1.5; }
 /* The pantry's devices are outlined, the garage's filled. */
@@ -28,7 +29,7 @@
 .gen-legend .elec-key-dc::before { border-top-color: var(--elec-dc); }
 .gen-legend .elec-key-device::before { width: 11px; height: 11px; border: 1.5px solid var(--gen-typical); border-radius: 2px; background: var(--gen-bar); }
 .gen-legend .elec-key-pantry::before { background: var(--gen-details-bg); }
-.elec-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; align-items: start; }
+.elec-boards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
 .elec-board { display: flex; flex-direction: column; gap: 8px; min-width: 0; overflow-x: auto; }
 .elec-board .gen-table td { white-space: nowrap; }
 .elec-board .gen-table th.elec-tag { font-weight: 650; letter-spacing: .02em; white-space: nowrap; }
@@ -45,12 +46,12 @@
 .elec-balance-value { text-align: right; }
 .elec-demand { font-weight: 600; white-space: nowrap; }
 .elec-notes ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; line-height: 1.55; }
+@media (max-width: 900px) { .elec-boards { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 760px) { .elec-workspace { padding: 0 8px 20px; } .elec-boards { grid-template-columns: minmax(0, 1fr); } }
 /* The rows of a board, drawn module by module (ModuleIcon): the name of the row, and the rail under its devices. */
 .elec-rows { display: flex; flex-direction: column; gap: 8px; }
 .elec-row { display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 8px; font-size: 10px; }
-.elec-rail-main { max-width: 220px; }
-.elec-rail { display: block; width: 100%; height: auto; padding: 3px 0; background: var(--gen-card); border: 1px solid var(--gen-card-border); border-radius: 5px; }
+.elec-rail { display: block; height: auto; padding: 3px 0; background: var(--gen-card); border: 1px solid var(--gen-card-border); border-radius: 5px; }
 /* On paper: only the sheet, in light colours, one board per block. */
 @media print {
   .app-header, .workspace-switcher, .elec-print { display: none !important; }

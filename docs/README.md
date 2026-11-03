@@ -8,4 +8,4 @@
 - [Solar array](model/solar-array.md): the 18 planned panels, what is stated and what is assumed.
 - [Inverter datasheet](model/inverter-datasheet.md): the Deye SUN-10K-SG05LP3-EU-SM2's figures, and how the model and the array use them.
 - [Solar model](model/solar-model.md): calculations, time rules, and limitations.
-- [Electrical installation](model/electrical.md): the two boards, the supply's order and the split of the phases, shown in the Electrical tab.
+- [Electrical installation](model/electrical.md): the four boards, the supply's order and the split of the phases, shown in the Electrical tab.
