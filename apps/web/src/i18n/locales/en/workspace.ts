@@ -357,7 +357,7 @@ const workspace = {
     board: {
       solar: 'TSINV Solar board', pa: 'TSPA PA board - Garage', pantry: 'TSPB PB board - Pantry',
       solarNote: 'It is in the garage, next to the inverter: a new 24-module box of two rows of twelve (rows assumed). The first row has the changeover switch and the inverter\'s AC breaker; the second, the strings\' DC breakers and their DC surge arresters, one per string, and the battery\'s 100 A DC breaker. The feeder to the pantry leaves the changeover switch, and so does the supply of the TSPA.',
-      paNote: 'It is in the garage, the old 48-module Genrod. It takes the upper floor: the residual-current devices, the circuits and, in the first row, the floor\'s main breaker, which hangs from the changeover switch in the TSINV.',
+      paNote: 'Located in the garage, the upper floor\'s main breaker hangs from the changeover switch in the TSINV.',
       pantryNote: 'It is in the pantry, where the upper floor\'s conduits come down. It has the ground floor\'s main breaker and feeds it; the UDM and the network\'s PoE supplies are there too. It gathers the earth wires of both floors on one bar.',
       main: 'Main board', mainNote: 'It is the drop from the utility\'s meter, a Genrod of one row of sixteen modules that holds the supply\'s protections: the main breaker, the AC surge arrester and the three-phase voltage protector, which opens when a phase\'s voltage is out of range (a lost neutral shows up as a high voltage on some phase). The changeover switch and the inverter\'s grid input are fed from it. The arrester is next to the earth rod.',
       device: 'Device', circuit: 'Circuit', phase: 'Phase', breaker: 'Protection', cable: 'Cable', modules: 'Modules', load: 'Load',
