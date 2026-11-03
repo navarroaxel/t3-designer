@@ -28,7 +28,7 @@
 .gen-legend .elec-key-dc::before { border-top-color: var(--elec-dc); }
 .gen-legend .elec-key-device::before { width: 11px; height: 11px; border: 1.5px solid var(--gen-typical); border-radius: 2px; background: var(--gen-bar); }
 .gen-legend .elec-key-pantry::before { background: var(--gen-details-bg); }
-.elec-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; align-items: start; }
+.elec-boards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
 .elec-board { display: flex; flex-direction: column; gap: 8px; min-width: 0; overflow-x: auto; }
 .elec-board .gen-table td { white-space: nowrap; }
 .elec-board .gen-table th.elec-tag { font-weight: 650; letter-spacing: .02em; white-space: nowrap; }
@@ -45,6 +45,7 @@
 .elec-balance-value { text-align: right; }
 .elec-demand { font-weight: 600; white-space: nowrap; }
 .elec-notes ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; line-height: 1.55; }
+@media (max-width: 900px) { .elec-boards { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 760px) { .elec-workspace { padding: 0 8px 20px; } .elec-boards { grid-template-columns: minmax(0, 1fr); } }
 /* The rows of a board, drawn module by module (ModuleIcon): the name of the row, and the rail under its devices. */
 .elec-rows { display: flex; flex-direction: column; gap: 8px; }
