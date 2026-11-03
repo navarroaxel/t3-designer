@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, MAIN_BOARD_ITEMS, VOLTAGE_PROTECTOR, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
+import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, MAIN_BOARD_ITEMS, VOLTAGE_PROTECTOR, SURGE_AC, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
 
 const circuit = (id: string) => { const found = CIRCUITS.find(item => item.id === id); assert.ok(found, id); return found }
 const phase = (id: string): Phase => { const { phases } = circuit(id); assert.equal(phases.length, 1, `${id} is on one phase`); return phases[0] }
@@ -94,20 +94,16 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
   for (const item of CIRCUITS.filter(item => item.phases.length === 1)) assert.equal(item.modules, 2, item.id)
 })
 
-test('the garage board needs more modules than the pantry\'s, and the surge arresters have a box of their own', () => {
+test('the garage board needs more modules than the pantry\'s', () => {
   assert.ok(boardModules('garage') > boardModules('pantry'))
   assert.equal(boardModules('garage'), 48)
   assert.equal(boardModules('pantry'), 25)
-  assert.equal(boardModules('surge'), 6, 'the AC arrester (four modules) and the DC one (two)')
 })
 
-test('both boards are 48-module boxes and the garage\'s is full; the surge arresters go in a box of eight modules of their own', () => {
+test('both boards are 48-module boxes and the garage\'s is full', () => {
   assert.equal(boxModules('garage'), 48)
   assert.equal(boxModules('pantry'), 48)
   assert.equal(boardModules('garage'), boxModules('garage'), 'the box is full')
-  assert.equal(boxModules('surge'), 8)
-  assert.ok(boardModules('surge') <= boxModules('surge'))
-  assert.deepEqual(boardDevices('surge').map(item => item.id).sort(), ['surge-ac', 'surge-dc'])
   assert.ok(boardModules('pantry') <= boxModules('pantry'))
 })
 
@@ -120,7 +116,7 @@ test('the pantry\'s main breaker, the feeder\'s, is in the pantry board, in the 
 })
 
 test('every circuit and device is in exactly one row of its board, and no row is longer than the box\'s', () => {
-  for (const board of ['garage', 'pantry', 'surge'] as const) {
+  for (const board of ['garage', 'pantry'] as const) {
     const placed = BOXES[board].rows.flat()
     const expected = [...boardCircuits(board), ...boardDevices(board)].map(item => item.id)
     assert.deepEqual([...placed].sort(), [...expected].sort(), `${board}: what is placed is what the board holds`)
@@ -152,20 +148,21 @@ test('the garage\'s general breaker is the upper floor\'s: four-pole, after the 
   assert.ok(last.indexOf('selector') < last.indexOf('main'))
 })
 
-test('the main board is the meter\'s drop: a twelve-module box with a four-pole breaker and a voltage protector after it, on none of the other boards', () => {
+test('the main board is the meter\'s drop: a sixteen-module box with the breaker, the AC surge arrester and the voltage protector, and none of them on the other boards', () => {
   assert.equal(METER_DROP.poles, 4)
   assert.equal(TAGS[METER_DROP.id], 'ITM')
-  assert.equal(METER_DROP.boxModules, 12, 'one row of twelve')
-  assert.deepEqual(MAIN_BOARD_ITEMS.map(item => item.id), [METER_DROP.id, VOLTAGE_PROTECTOR.id])
+  assert.equal(METER_DROP.boxModules, 16, 'one row of sixteen')
+  assert.deepEqual(MAIN_BOARD_ITEMS.map(item => item.id), [METER_DROP.id, SURGE_AC.id, VOLTAGE_PROTECTOR.id])
   assert.equal(VOLTAGE_PROTECTOR.modules, 5)
   assert.equal(VOLTAGE_PROTECTOR.ratingA, 63)
+  assert.equal(SURGE_AC.modules, 4, '3+1 is four poles')
   const used = MAIN_BOARD_ITEMS.reduce((sum, item) => sum + item.modules, 0)
-  assert.equal(used, 9)
+  assert.equal(used, 13)
   assert.ok(used <= METER_DROP.boxModules)
-  assert.ok(used + DEVICES.find(item => item.id === 'surge-ac')!.modules > METER_DROP.boxModules, 'the AC surge arrester would not fit: it has its own board')
+  assert.ok(used > 12, 'a box of twelve would be too small')
   for (const item of MAIN_BOARD_ITEMS) {
     assert.ok(!DEVICES.some(other => other.id === item.id))
-    assert.ok(!BOXES.garage.rows.flat().includes(item.id) && !BOXES.pantry.rows.flat().includes(item.id) && !BOXES.surge.rows.flat().includes(item.id))
+    assert.ok(!BOXES.garage.rows.flat().includes(item.id) && !BOXES.pantry.rows.flat().includes(item.id))
   }
 })
 

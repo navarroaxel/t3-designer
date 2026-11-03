@@ -6,7 +6,7 @@ import { PV_SYSTEM } from './pv-system.ts'
  * three-phase sauna are the owner's; the phase of each circuit, the ratings and the cable sizes are proposals (`assumed`) for the electrician to confirm. The reasons are in docs/model/electrical.md.
  */
 export type Phase = 'L1' | 'L2' | 'L3'
-export type BoardId = 'garage' | 'pantry' | 'surge'
+export type BoardId = 'garage' | 'pantry'
 export type CircuitKind = 'lights' | 'outlets' | 'ac' | 'heater' | 'outdoor' | 'sauna'
 export const PHASES: readonly Phase[] = ['L1', 'L2', 'L3']
 /** What the phases are called on the page: R, S and T, as in Argentina. The ids stay L1, L2 and L3. */
@@ -77,22 +77,22 @@ export const DEVICES: readonly Device[] = [
   { id: 'rcd-garage-3', board: 'garage', poles: 4, modules: 4, ratingA: 40 },
   /** The pantry board's main breaker, at the end of the feeder (the owner's choice): the feeder's cable has no breaker of its own at its origin, so the supply's main one has to be at most what the 6 mm² takes. */
   { id: 'feeder', board: 'pantry', poles: 4, modules: 4, ratingA: 32 },
-  { id: 'surge-dc', board: 'surge', poles: 2, modules: 2, ratingA: null },
-  { id: 'surge-ac', board: 'surge', poles: 4, modules: 4, ratingA: null },
   { id: 'rcd-pantry', board: 'pantry', poles: 4, modules: 4, ratingA: 40 },
   { id: 'rcd-pantry-2', board: 'pantry', poles: 4, modules: 4, ratingA: 40 },
 ]
 
 /**
- * The main board, the meter's drop (the owner's): a Genrod of one row of twelve modules, with a four-pole breaker and, after it, a three-phase voltage protector, from which the changeover switch and the inverter's grid input are fed.
- * It is not one of the boards with rows: the breaker's rating follows the supply, and what it protects first is the cable to the garage, so it is 32 A or less while the pantry's feeder, which has no breaker of its own at its origin,
- * hangs from that cable. The AC surge arrester (four modules) would make thirteen, so it stays in the surge board.
+ * The main board, the meter's drop (the owner's): a Genrod of one row of sixteen modules that holds the protections of the supply, from which the changeover switch and the inverter's grid input are fed: the four-pole breaker,
+ * the AC surge arrester after it, and the three-phase voltage protector. It is not one of the boards with rows: the breaker's rating follows the supply, and what it protects first is the cable to the garage, so it is 32 A or
+ * less while the pantry's feeder, which has no breaker of its own at its origin, hangs from that cable. The strings' DC surge arrester is in none of the boards (see the notes).
  */
-export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null as number | null, boxModules: 12 }
+export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null as number | null, boxModules: 16 }
+/** The AC surge arrester, 3+1: a varistor from each phase to neutral and a spark gap from neutral to earth, four modules. It sits next to the earth bar and the rod. The maker says what back-up breaker or fuse it needs. */
+export const SURGE_AC = { id: 'surge-ac', poles: 4, modules: 4, ratingA: null as number | null }
 /** A BAW RU400F63 Plus type of protector (the owner's picture), five modules: it reads each phase's voltage and current and opens its contactors, in series with the load, when a voltage is out of range. 63 A a phase. */
-export const VOLTAGE_PROTECTOR = { id: 'voltage-protector', poles: 4, modules: 5, ratingA: 63 }
-/** What is in the main board, left to right: the breaker first, then the protector. */
-export const MAIN_BOARD_ITEMS = [METER_DROP, VOLTAGE_PROTECTOR] as const
+export const VOLTAGE_PROTECTOR = { id: 'voltage-protector', poles: 4, modules: 5, ratingA: 63 as number | null }
+/** What is in the main board, left to right: the breaker, the AC arrester that is next to it, and the protector. */
+export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as const
 
 /**
  * Short tags for the cells of the boards' rows, where a one-module breaker is 18 mm wide and a name does not fit. IUG and TUG are the Argentine names of the general-use lighting and
@@ -100,7 +100,7 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, VOLTAGE_PROTECTOR] as const
  */
 export const TAGS: Readonly<Record<string, string>> = {
   'meter-itm': 'ITM', 'voltage-protector': 'PROT', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
-  feeder: 'TMPB', 'surge-dc': 'SPD DC', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
+  feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
   'ground-lights-1': 'IUG3', 'ground-lights-2': 'IUG4', 'ground-outlets-office': 'TUG O', 'ground-outlets-pantry': 'TUG D', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
@@ -111,8 +111,7 @@ export const TAGS: Readonly<Record<string, string>> = {
  * of it (three rows) and is assumed. The garage's last row has the solar circuit (the owner's choice): the inverter's breaker and the strings' DC breakers (the battery comes with a 100 A breaker of its own), and with them the supply's main
  * breaker and the changeover switch, because the other two rows are full with their groups; the first two rows each have their own residual-current device, type A for the lights and the outlets and
  * type F for what has an inverter (the air conditioners). The water heater and the line to the sauna come from the inverter's output without UPS, under a type A device of their own,
- * in the garage's second row with the air conditioners. The surge arresters are not in the garage's rows: the garage board is full at 48 modules, so they have a small
- * box of their own, one row of eight (an assumed size), next to it. The ids are those of `CIRCUITS` and `DEVICES`.
+ * in the garage's second row with the air conditioners. The ids are those of `CIRCUITS` and `DEVICES`.
  */
 export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly string[])[] }> = {
   garage: {
@@ -123,7 +122,6 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
       ['selector', 'main', 'inverter-ac', 'string-dc-1', 'string-dc-2'],
     ],
   },
-  surge: { perRow: 8, rows: [['surge-ac', 'surge-dc']] },
   pantry: {
     perRow: 16,
     rows: [

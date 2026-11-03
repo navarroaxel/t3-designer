@@ -339,7 +339,7 @@ const workspace = {
     print: 'Print or save as PDF',
     factsTitle: 'At a glance',
     factSupply: 'Supply', factSupplyValue: 'Three-phase, 3L + N · 230/400 V',
-    factInverter: 'Hybrid inverter', factBoards: 'Boards', factBoardsValue: 'Garage (solar and upper floor), pantry (ground floor) and a small surge-protection box',
+    factInverter: 'Hybrid inverter', factBoards: 'Boards', factBoardsValue: 'Garage (solar and upper floor), and pantry (ground floor)',
     factCircuits: 'Circuits', factCircuitsValue: '{{upper}} on the upper floor and {{ground}} on the ground floor',
     factSelector: 'Changeover switch', factSelectorValue: 'Grid · 0 · Inverter, to leave the inverter out',
     factFeeder: 'Feeder to the pantry', factFeederValue: '{{conductors}} of {{mm2}} mm², a {{conduit}} mm conduit and a spare one',
@@ -356,10 +356,9 @@ const workspace = {
     },
     board: {
       garage: 'Garage board', pantry: 'Pantry board',
-      surge: 'Surge-protection board', surgeNote: 'A small box of its own next to the garage board, which has no free module left: the AC arrester (3+1, after the main board\'s breaker) and the DC one for the strings. Its earth conductor to the earth bar has to be as short as it can be. Whether the inverter already has its own DC arresters is open (see its manual), and the arresters\' own back-up breaker or fuse is what their maker asks for.',
       garageNote: 'It is in the garage, next to the inverter. It takes the strings, the grid and the inverter, and feeds the upper floor. The feeder to the pantry leaves the changeover switch, before its upper-floor main breaker.',
       pantryNote: 'It is in the pantry, where the upper floor\'s conduits come down. It has the ground floor\'s main breaker and feeds it; the UDM and the network\'s PoE supplies are there too. It gathers the earth wires of both floors on one bar.',
-      main: 'Main board', mainNote: 'It is the drop from the utility\'s meter, a Genrod of one row of twelve modules: the main breaker and, after it, the three-phase voltage protector, which opens when a phase\'s voltage is out of range (a lost neutral shows up as a high voltage on some phase). The changeover switch and the inverter\'s grid input are fed from it. The AC surge arrester would make thirteen modules, so it is in the surge board.',
+      main: 'Main board', mainNote: 'It is the drop from the utility\'s meter, a Genrod of one row of sixteen modules that holds the supply\'s protections: the main breaker, the AC surge arrester and the three-phase voltage protector, which opens when a phase\'s voltage is out of range (a lost neutral shows up as a high voltage on some phase). The changeover switch and the inverter\'s grid input are fed from it. The arrester is next to the earth rod.',
       device: 'Device', circuit: 'Circuit', phase: 'Phase', breaker: 'Protection', cable: 'Cable', modules: 'Modules', load: 'Load',
       byManual: 'per manual', bySupply: 'per the supply', loadW: '{{kw}} kW',
       total: 'Modules needed', fit: '{{box}}-module box · free: {{free}}',
@@ -368,7 +367,7 @@ const workspace = {
     device: {
       main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC breaker, 4P',
       'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
-      feeder: 'Pantry main breaker, 4P', 'surge-dc': '☀️ DC surge arrester, 2P', 'surge-ac': 'AC surge arrester, 3+1 (4P)',
+      feeder: 'Pantry main breaker, 4P', 'surge-ac': 'AC surge arrester, 3+1 (4P)',
       'meter-itm': 'Meter-drop breaker, 4P', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-pantry': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioner)',
     },
     circuit: {
@@ -390,7 +389,7 @@ const workspace = {
       noUps: 'The inverter has two AC outputs: with UPS, which the changeover switch takes, and without UPS, for the water heater and the sauna. Those two loads have no battery backup, and if the inverter fails they have no power even with the changeover switch on Grid. The sauna\'s cable to PB leaves the garage\'s residual-current device and has no breaker of its own at its origin.',
       strings: 'The strings come down in DC (up to {{volts}} V) in conduits of their own, apart from the 220 V ones. The DC breakers and the changeover switch are in the garage board.',
       comb: 'It is set up in rows, left to right. If you use a three-phase comb bar, each module takes the phase of its place: the row\'s order has to match the phase in the table; if not, it is wired with cable. Every circuit on one phase is bipolar (the phase and the neutral are cut), and each has a neutral of its own.',
-      surge: 'The garage board is full (its 48 modules), so the surge arresters go in a small box of their own next to it, one row of eight modules (assumed size).',
+      surge: 'The AC surge arrester is in the main board, next to the earth rod, with a short earth wire (half a metre or less in all). The strings\' DC arrester is in no board yet: it goes by the inverter, in a small box, and the inverter may have its own, so check its manual first. If the pantry is more than about 10 m of cable from the main board, a small AC arrester of its own there protects it better.',
       feederOrigin: 'The pantry\'s main breaker is at the end of the feeder, which leaves the garage\'s changeover switch before the upper-floor main breaker: the 6 mm² cable has no breaker of its own at its origin, and only the one that leaves the main board for the garage looks after it. That one has to be 32 A or less, which is what the cable takes; if it is larger, leave a 32 A breaker in the garage for the feeder.',
     },
   },

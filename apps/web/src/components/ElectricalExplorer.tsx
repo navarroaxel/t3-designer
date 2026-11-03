@@ -165,13 +165,13 @@ function MainBoardCard() {
     <h3 id="elec-board-main">{t('electrical.board.main')}</h3>
     <p className="array-note">{t('electrical.board.mainNote')}</p>
     <svg className="elec-rail elec-rail-main" viewBox={`0 0 ${boxModules * MODULE_W} ${DEVICE_H + 16}`} role="img" aria-label={MAIN_BOARD_ITEMS.map(item => deviceNames[item.id]).join(', ')}>
-      {MAIN_BOARD_ITEMS.map(item => { const x = at * MODULE_W; at += item.modules; return <ModuleIcon key={item.id} x={x} id={item.id} modules={item.modules} rating={item.ratingA ? `${item.ratingA} A` : `${item.poles}P`} tag={TAGS[item.id]} name={deviceNames[item.id]} /> })}
+      {MAIN_BOARD_ITEMS.map(item => { const x = at * MODULE_W; at += item.modules; return <ModuleIcon key={item.id} x={x} id={item.id} modules={item.modules} rating={item.ratingA ? `${item.ratingA} A` : item.id.startsWith('surge') ? '' : `${item.poles}P`} tag={TAGS[item.id]} name={deviceNames[item.id]} /> })}
       {used < boxModules && <g><rect x={used * MODULE_W + 1} y={1} width={(boxModules - used) * MODULE_W - 2} height={DEVICE_H - 2} rx={2.5} fill="none" stroke="currentColor" strokeOpacity={.5} strokeDasharray="4 3" />
         <text x={(used + (boxModules - used) / 2) * MODULE_W} y={DEVICE_H / 2 + 3} textAnchor="middle" fontSize={7} fill="currentColor" fillOpacity={.75}>{t('electrical.board.free', { count: boxModules - used })}</text></g>}
     </svg>
     <table className="gen-table gen-table-plain">
       <thead><tr><th scope="col">{t('electrical.board.tag')}</th><th scope="col">{t('electrical.board.device')}</th><th scope="col">{t('electrical.board.breaker')}</th><th scope="col">{t('electrical.board.modules')}</th></tr></thead>
-      <tbody>{MAIN_BOARD_ITEMS.map(item => <tr key={item.id}><th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{deviceNames[item.id]}</td><td>{item.ratingA === null ? t('electrical.board.bySupply') : `${item.poles}P ${item.ratingA} A`}</td><td>{item.modules}</td></tr>)}</tbody>
+      <tbody>{MAIN_BOARD_ITEMS.map(item => <tr key={item.id}><th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{deviceNames[item.id]}</td><td>{item.ratingA === null ? t(item.id === METER_DROP.id ? 'electrical.board.bySupply' : 'electrical.board.byManual') : `${item.poles}P ${item.ratingA} A`}</td><td>{item.modules}</td></tr>)}</tbody>
     </table>
     <p className="elec-total"><strong>{t('electrical.board.total')}: {used}</strong> · {t('electrical.board.fit', { box: boxModules, free: boxModules - used })}</p>
   </section>
@@ -238,7 +238,7 @@ export function ElectricalExplorer() {
         </ul>
         <p className="array-note">{t('electrical.selectorNote')}</p>
       </section>
-      <div className="elec-boards"><BoardCard board="garage" /><BoardCard board="surge" /><BoardCard board="pantry" /></div>
+      <div className="elec-boards"><BoardCard board="garage" /><BoardCard board="pantry" /></div>
       <MainBoardCard />
       <PhaseBalance />
       <section className="elec-notes" aria-labelledby="elec-notes-title">

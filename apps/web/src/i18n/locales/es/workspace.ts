@@ -360,7 +360,7 @@ const workspace = {
     print: 'Imprimir o guardar en PDF',
     factsTitle: 'En resumen',
     factSupply: 'Suministro', factSupplyValue: 'Trifásico, 3F + N · 230/400 V',
-    factInverter: 'Inversor híbrido', factBoards: 'Tableros', factBoardsValue: 'Garage (solar y PA), despensa (PB) y una caja chica de protecciones contra sobretensiones',
+    factInverter: 'Inversor híbrido', factBoards: 'Tableros', factBoardsValue: 'Garage (solar y PA) y despensa (PB)',
     factCircuits: 'Circuitos', factCircuitsValue: '{{upper}} en PA y {{ground}} en PB',
     factSelector: 'Conmutadora', factSelectorValue: 'Red · 0 · Inversor, para dejar el inversor afuera',
     factFeeder: 'Alimentador a la despensa', factFeederValue: '{{conductors}} de {{mm2}} mm², caño de {{conduit}} mm y otro de reserva',
@@ -377,10 +377,9 @@ const workspace = {
     },
     board: {
       garage: 'Tablero del garage', pantry: 'Tablero de la despensa',
-      surge: 'Tablero de protecciones (SPD)', surgeNote: 'Una caja chica aparte, al lado del tablero del garage, que no tiene ningún módulo libre: el descargador AC (3+1, después de la térmica del tablero principal) y el de CC de los strings. El cable de tierra hacia la bornera tiene que ser lo más corto posible. Si el inversor ya trae descargadores de CC propios está sin verificar (ver su manual), y la térmica o el fusible de respaldo de los descargadores es el que pida su fabricante.',
       garageNote: 'Está en el garage, al lado del inversor. Recibe los strings, la red y el inversor, y reparte PA. El alimentador de la despensa sale de la conmutadora, antes de su térmica general de PA.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
-      main: 'Tablero principal', mainNote: 'Es la bajada del medidor de la compañía, un Genrod de una fila de doce módulos: el ITM general y, después, el protector de tensión trifásico, que abre cuando la tensión de una fase se sale de rango (un neutro cortado se ve como tensión alta en alguna fase). De ahí salen la conmutadora y la entrada del inversor. El descargador AC haría trece módulos, así que está en el tablero de protecciones.',
+      main: 'Tablero principal', mainNote: 'Es la bajada del medidor de la compañía, un Genrod de una fila de dieciséis módulos que junta las protecciones de la red: el ITM general, el descargador AC y el protector de tensión trifásico, que abre cuando la tensión de una fase se sale de rango (un neutro cortado se ve como tensión alta en alguna fase). De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
       device: 'Dispositivo', circuit: 'Circuito', phase: 'Fase', breaker: 'Protección', cable: 'Cable', modules: 'Módulos', load: 'Carga',
       byManual: 'según manual', bySupply: 'según el servicio', loadW: '{{kw}} kW',
       total: 'Módulos necesarios', fit: 'Caja de {{box}} módulos · libres: {{free}}',
@@ -389,7 +388,7 @@ const workspace = {
     device: {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica AC del inversor, 4P',
       'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
-      feeder: 'Térmica PB, 4P', 'surge-dc': '☀️ Descargador DC, 2P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
+      feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
       'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },
     circuit: {
@@ -411,7 +410,7 @@ const workspace = {
       noUps: 'El inversor tiene dos salidas AC: con UPS, de la que cuelga la conmutadora, y sin UPS, para el termotanque y el sauna. Esas dos cargas no tienen respaldo de batería, y si el inversor falla se quedan sin energía aunque la conmutadora esté en Red. El cable del sauna a PB sale del diferencial del garage y no tiene térmica propia en su origen.',
       strings: 'Los strings bajan en continua (hasta {{volts}} V) en caños propios, aparte de los de 220 V. Las térmicas DC y la conmutadora van en el tablero del garage.',
       comb: 'Se arma por filas, de izquierda a derecha. Si usás peine trifásico, cada módulo toma la fase de su posición: el orden de la fila tiene que coincidir con la fase de la tabla; si no, se conecta con cable. Todos los circuitos de una fase van con bipolares (se corta la fase y el neutro), y llevan su neutro propio.',
-      surge: 'El tablero del garage está lleno (sus 48 módulos), así que los descargadores van en una caja chica aparte, al lado: una fila de ocho módulos (tamaño supuesto).',
+      surge: 'El descargador AC está en el tablero principal, junto a la jabalina, con un cable de tierra corto (medio metro o menos en total). El descargador DC de los strings todavía no está en ningún tablero: va al lado del inversor, en una caja chica, y el inversor puede traer los suyos, así que conviene mirar antes su manual. Si la despensa queda a más de unos 10 m de cable del tablero principal, un descargador AC chico propio ahí la protege mejor.',
       feederOrigin: 'La térmica PB está al final del alimentador, que sale de la conmutadora del garage antes de la térmica general de PA: el cable de 6 mm² no tiene una térmica propia en su origen y solo lo cuida la que sale del tablero principal hacia el garage. Esa tiene que ser de 32 A o menos, que es lo que aguanta ese cable; si es mayor, dejá una térmica de 32 A en el garage para el alimentador.',
     },
   },
