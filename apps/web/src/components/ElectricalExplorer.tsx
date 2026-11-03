@@ -68,6 +68,9 @@ const protection = (item: Device, t: TFunction<'workspace'>) => {
 }
 
 const MODULE_W = 18, DEVICE_H = 80
+/** Every module is drawn the same size on every board, 26 px wide, so a board with fewer modules per row looks narrower; on a narrow screen the row shrinks to fit. */
+const MODULE_PX = 26
+const railStyle = (modules: number) => ({ width: modules * MODULE_PX, maxWidth: '100%' })
 const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--elec-l2)', L3: 'var(--elec-l3)' }
 
 /**
@@ -116,8 +119,7 @@ function BoardRows({ board }: { board: BoardId }) {
       const items = rowItems(row), used = items.reduce((sum, item) => sum + item.modules, 0)
       let at = 0
       return <div key={index} className="elec-row" role="listitem">
-        <span className="elec-row-name">{t('electrical.board.row', { n: index + 1 })}</span>
-        <svg className="elec-rail" viewBox={`0 0 ${perRow * MODULE_W} ${DEVICE_H + 16}`} role="img" aria-label={`${t('electrical.board.row', { n: index + 1 })}: ${items.map(item => names[item.id]).join(', ')}`}>
+        <svg className="elec-rail" style={railStyle(perRow)} viewBox={`0 0 ${perRow * MODULE_W} ${DEVICE_H + 16}`} role="img" aria-label={`${t('electrical.board.row', { n: index + 1 })}: ${items.map(item => names[item.id]).join(', ')}`}>
           {items.map(item => { const x = at * MODULE_W; at += item.modules; return <ModuleIcon key={item.id} x={x} id={item.id} modules={item.modules} phase={item.phases?.length === 1 ? item.phases[0] : undefined} rating={rating(item.id)} tag={TAGS[item.id]} name={names[item.id]} /> })}
           {used < perRow && <g><rect x={used * MODULE_W + 1} y={1} width={(perRow - used) * MODULE_W - 2} height={DEVICE_H - 2} rx={2.5} fill="none" stroke="currentColor" strokeOpacity={.5} strokeDasharray="4 3" />
             <text x={(used + (perRow - used) / 2) * MODULE_W} y={DEVICE_H / 2 + 3} textAnchor="middle" fontSize={8} fill="currentColor" fillOpacity={.75}>{t('electrical.board.free', { count: perRow - used })}</text></g>}
@@ -166,7 +168,7 @@ function MainBoardCard() {
   return <section className="elec-board elec-main-board" aria-labelledby="elec-board-main">
     <h3 id="elec-board-main">{t('electrical.board.main')}</h3>
     <p className="array-note">{t('electrical.board.mainNote')}</p>
-    <svg className="elec-rail elec-rail-main" viewBox={`0 0 ${boxModules * MODULE_W} ${DEVICE_H + 16}`} role="img" aria-label={MAIN_BOARD_ITEMS.map(item => deviceNames[item.id]).join(', ')}>
+    <svg className="elec-rail" style={railStyle(boxModules)} viewBox={`0 0 ${boxModules * MODULE_W} ${DEVICE_H + 16}`} role="img" aria-label={MAIN_BOARD_ITEMS.map(item => deviceNames[item.id]).join(', ')}>
       {MAIN_BOARD_ITEMS.map(item => { const x = at * MODULE_W; at += item.modules; return <ModuleIcon key={item.id} x={x} id={item.id} modules={item.modules} rating={item.ratingA ? `${item.ratingA} A` : item.id.startsWith('surge') ? '' : `${item.poles}P`} tag={TAGS[item.id]} name={deviceNames[item.id]} /> })}
       {used < boxModules && <g><rect x={used * MODULE_W + 1} y={1} width={(boxModules - used) * MODULE_W - 2} height={DEVICE_H - 2} rx={2.5} fill="none" stroke="currentColor" strokeOpacity={.5} strokeDasharray="4 3" />
         <text x={(used + (boxModules - used) / 2) * MODULE_W} y={DEVICE_H / 2 + 3} textAnchor="middle" fontSize={7} fill="currentColor" fillOpacity={.75}>{t('electrical.board.free', { count: boxModules - used })}</text></g>}
