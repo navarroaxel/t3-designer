@@ -66,6 +66,8 @@ export type Device = { id: string; board: BoardId; poles: number; modules: numbe
 export const DEVICES: readonly Device[] = [
   /** The PA board's general breaker, for PA only: it is after the changeover switch (in the TSINV), and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
   { id: 'main', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
+  /** The TSPA's own AC surge arrester: it is more than 10 m of cable from the TP's, so the first one does not protect it well. 3+1, four modules, after the main breaker. */
+  { id: 'surge-ac-pa', board: 'pa', poles: 4, modules: 4, ratingA: null },
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
   { id: 'selector', board: 'solar', poles: 4, modules: 4, ratingA: null },
   { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
@@ -104,7 +106,7 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as con
  */
 export const TAGS: Readonly<Record<string, string>> = {
   'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'battery-dc': 'BAT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
-  feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
+  feeder: 'TMPB', 'surge-ac': 'SPD AC', 'surge-ac-pa': 'SPD PA', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
   'ground-lights-1': 'IUG3', 'ground-lights-2': 'IUG4', 'ground-outlets-office': 'TUG O', 'ground-outlets-pantry': 'TUG D', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
@@ -113,7 +115,7 @@ export const TAGS: Readonly<Record<string, string>> = {
 /**
  * The boxes and what goes in which row, left to right, as the installer sets them. The PA board and the pantry's are the owner's 48-module Genrod; that it is three rows of sixteen follows from the owner's photo
  * of it (three rows) and is assumed. TSINV is a new 24-module box of two rows of twelve (the owner's, the rows assumed) in the garage, next to the inverter: its first row has the changeover switch and the inverter's
- * breaker, its second the strings' DC breakers and their DC surge arresters, one per string, and the battery's 100 A DC breaker, which is probably outside in the real installation, because of the thick cable, and is drawn here to have it marked. The PA board takes what hangs from the changeover switch for the upper floor: its first row is the floor's main breaker, alone, and the other two
+ * breaker, its second the strings' DC breakers and their DC surge arresters, one per string, and the battery's 100 A DC breaker, which is probably outside in the real installation, because of the thick cable, and is drawn here to have it marked. The PA board takes what hangs from the changeover switch for the upper floor: its first row is the floor's main breaker and its AC surge arrester, and the other two
  * each have their own residual-current device, type A for the lights and the outlets and type F for what has an inverter (the air conditioners); the water heater and the line to the sauna come from the inverter's output without
  * UPS, under a type A device of their own, in the last row with the air conditioners. The ids are those of `CIRCUITS` and `DEVICES`.
  */
@@ -128,7 +130,7 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
   pa: {
     perRow: 16,
     rows: [
-      ['main'],
+      ['main', 'surge-ac-pa'],
       ['rcd-garage', 'upper-lights-1', 'upper-lights-2', 'upper-outdoor', 'upper-azotea', 'upper-outlets-rooms', 'upper-outlets-kitchen'],
       ['rcd-garage-2', 'upper-ac-living', 'upper-ac-main-room', 'upper-ac-guest-room', 'rcd-garage-3', 'upper-water-heater'],
     ],
