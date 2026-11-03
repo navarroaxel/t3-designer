@@ -355,7 +355,7 @@ const workspace = {
     "failed": "No se pudo cargar: {{label}}"
   },
   electrical: {
-    eyebrow: 'Ficha de la instalación eléctrica', title: 'Dos tableros, tres fases',
+    eyebrow: 'Ficha de la instalación eléctrica', title: 'Cuatro tableros, tres fases',
     intro: 'Cómo queda repartida la instalación: el TSINV en el garage lleva las protecciones del inversor y de los strings y la conmutadora, el TSPA del garage lleva PA, y un tablero en la despensa lleva PB. Los circuitos, la conmutadora y el sauna trifásico son del diseño del dueño; las fases, las protecciones y los cables son propuestas para que las confirme un electricista, no lo que está hecho.',
     print: 'Imprimir o guardar en PDF',
     factsTitle: 'En resumen',
@@ -371,7 +371,7 @@ const workspace = {
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', dcBreaker: '☀️ Térmica DC', panels: 'Paneles · DC',
       inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 Batería', batterySub: 'baja tensión', batteryItm: 'ITM DC 100 A',
-      inverterBreaker: '☀️ Térmica AC', grid: 'Red', gridSub: '3F + N', mainBoard: 'Tablero principal', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'Conmutadora', selectorPositions: 'Red · 0 · Inversor',
+      inverterBreaker: '☀️ Térmica AC', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'Conmutadora', selectorPositions: 'Red · 0 · Inversor',
       pa: 'TSPA', paSub: 'PA', pantry: 'TSPB', pantrySub: 'PB',
       count: '{{circuits}} circuitos · {{modules}} módulos', feeder: 'Alimentador', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
     },

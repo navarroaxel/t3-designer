@@ -334,7 +334,7 @@ const workspace = {
     "failed": "Could not load: {{label}}"
   },
   electrical: {
-    eyebrow: 'Electrical installation factsheet', title: 'Two boards, three phases',
+    eyebrow: 'Electrical installation factsheet', title: 'Four boards, three phases',
     intro: 'How the installation is laid out: TSINV in the garage takes the inverter\'s and the strings\' protections and the changeover switch, the TSPA in the garage takes the upper floor, and a board in the pantry takes the ground floor. The circuits, the changeover switch and the three-phase sauna are the owner\'s design; the phases, the protections and the cables are proposals for an electrician to confirm, not what is built.',
     print: 'Print or save as PDF',
     factsTitle: 'At a glance',
@@ -350,7 +350,7 @@ const workspace = {
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', dcBreaker: '☀️ DC breaker', panels: 'Panels · DC',
       inverter: '☀️ Hybrid inverter', inverterSub: 'three-phase · 10 kW', battery: '🔋 Battery', batterySub: 'low voltage', batteryItm: 'DC breaker 100 A',
-      inverterBreaker: '☀️ AC breaker', grid: 'Grid', gridSub: '3L + N', mainBoard: 'Main board', mainBoardSub: 'meter drop', mainBoardItm: 'breaker + protector', ups: 'with UPS', noUps: 'Output without UPS: water heater and sauna', main: 'Upper-floor main breaker', selector: 'Changeover switch', selectorPositions: 'Grid · 0 · Inverter',
+      inverterBreaker: '☀️ AC breaker', grid: 'Grid', gridSub: '3L + N', mainBoard: 'TP', mainBoardSub: 'meter drop', mainBoardItm: 'breaker + protector', ups: 'with UPS', noUps: 'Output without UPS: water heater and sauna', main: 'Upper-floor main breaker', selector: 'Changeover switch', selectorPositions: 'Grid · 0 · Inverter',
       pa: 'TSPA', paSub: 'Upper floor', pantry: 'TSPB', pantrySub: 'Ground floor',
       count: '{{circuits}} circuits · {{modules}} modules', feeder: 'Feeder', pantryMain: 'Main breaker', earth: 'Earth bar for both floors',
     },
