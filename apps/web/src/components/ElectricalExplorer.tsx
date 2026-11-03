@@ -35,7 +35,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
       <rect className="elec-node" x={20} y={y as number} width={130} height={46} rx={6} />
       {text(85, (y as number) + 21, node(key as 'string1'), 'elec-title')}{text(85, (y as number) + 36, node('panels'), 'elec-sub')}
     </g>)}
-    {[41, 111].map(y => <g key={y}>{square(325, y)}{text(336, y - 6, `${node('dcBreaker')} ${device('string-dc-1').ratingA} A`, 'elec-sub', 'start')}</g>)}
+    {[41, 111].map((y, index) => { const id = `string-dc-${index + 1}`; return <g key={id}>{square(325, y)}{text(336, y - 6, `☀️ ${TAGS[id]} ${device(id).ratingA} A`, 'elec-sub', 'start')}</g> })}
 
     <rect className="elec-node" x={660} y={20} width={200} height={150} rx={8} />
     {text(790, 205, node('ups'), 'elec-sub', 'start')}{text(870, 111, node('noUps').split(': ')[0] + ':', 'elec-sub', 'start')}{text(870, 126, node('noUps').split(': ').slice(1).join(': '), 'elec-sub', 'start')}

@@ -348,7 +348,7 @@ const workspace = {
     legendGarage: 'Inside a board in the garage (solar or PA)', legendPantry: 'Inside the TSPB', legendAc: 'Alternating current', legendDc: 'Direct current',
     selectorNote: 'In the Grid position the house runs straight from the grid, with no inverter; in Inverter it hangs from the inverter\'s output; in 0 it has no power. The two are never connected at once.',
     node: {
-      string1: '☀️ String 1', string2: '☀️ String 2', dcBreaker: '☀️ DC breaker', panels: 'Panels · DC',
+      string1: '☀️ String 1', string2: '☀️ String 2', panels: 'Panels · DC',
       inverter: '☀️ Hybrid inverter', inverterSub: 'three-phase · 10 kW', battery: '🔋 BAT', batterySub: 'low voltage', batteryItm: 'DC breaker 100 A',
       inverterBreaker: '☀️ INV', grid: 'Grid', gridSub: '3L + N', mainBoard: 'TP', mainBoardSub: 'meter drop', mainBoardItm: 'breaker + protector', ups: 'with UPS', noUps: 'Output without UPS: water heater and sauna', main: 'Upper-floor main breaker', selector: 'CON', selectorPositions: 'Grid/Inverter',
       tsinv: 'TSINV', tsinvSub: 'Solar board', pa: 'TSPA', paSub: 'Upper floor', pantry: 'TSPB', pantrySub: 'Ground floor',

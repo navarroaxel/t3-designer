@@ -369,7 +369,7 @@ const workspace = {
     legendGarage: 'Dentro de un tablero del garage (solar o PA)', legendPantry: 'Dentro del TSPB', legendAc: 'Corriente alterna', legendDc: 'Corriente continua',
     selectorNote: 'En la posición Red la casa va directa a la red, sin pasar por el inversor; en Inversor cuelga de su salida; en 0 queda sin energía. Nunca se conectan las dos a la vez.',
     node: {
-      string1: '☀️ String 1', string2: '☀️ String 2', dcBreaker: '☀️ Térmica DC', panels: 'Paneles · DC',
+      string1: '☀️ String 1', string2: '☀️ String 2', panels: 'Paneles · DC',
       inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 BAT', batterySub: 'baja tensión', batteryItm: 'ITM DC 100 A',
       inverterBreaker: '☀️ INV', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'CON', selectorPositions: 'Grid/Inverter',
       tsinv: 'TSINV', tsinvSub: 'Tablero solar', pa: 'TSPA', paSub: 'PA', pantry: 'TSPB', pantrySub: 'PB',
