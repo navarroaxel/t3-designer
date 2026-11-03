@@ -119,6 +119,7 @@ function BoardRows({ board }: { board: BoardId }) {
       const items = rowItems(row), used = items.reduce((sum, item) => sum + item.modules, 0)
       let at = 0
       return <div key={index} className="elec-row" role="listitem">
+        <span className="elec-row-name">{t('electrical.board.row', { n: index + 1 })}</span>
         <svg className="elec-rail" style={railStyle(perRow)} viewBox={`0 0 ${perRow * MODULE_W} ${DEVICE_H + 16}`} role="img" aria-label={`${t('electrical.board.row', { n: index + 1 })}: ${items.map(item => names[item.id]).join(', ')}`}>
           {items.map(item => { const x = at * MODULE_W; at += item.modules; return <ModuleIcon key={item.id} x={x} id={item.id} modules={item.modules} phase={item.phases?.length === 1 ? item.phases[0] : undefined} rating={rating(item.id)} tag={TAGS[item.id]} name={names[item.id]} /> })}
           {used < perRow && <g><rect x={used * MODULE_W + 1} y={1} width={(perRow - used) * MODULE_W - 2} height={DEVICE_H - 2} rx={2.5} fill="none" stroke="currentColor" strokeOpacity={.5} strokeDasharray="4 3" />
