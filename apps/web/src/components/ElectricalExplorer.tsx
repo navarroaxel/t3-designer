@@ -26,7 +26,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
   return <svg className="elec-diagram" viewBox="0 0 1000 600" role="img" aria-label={t('electrical.diagramAria')}>
     {/* Wires first, so the boxes and devices sit over them. DC is the warm line, AC the green one. */}
     <g className="elec-wire elec-wire-dc"><path d="M150 53H330M150 123H330M530 82H640" /></g>
-    <g className="elec-wire elec-wire-ac"><path d="M120 290H160M280 290H560M400 170V290M500 170V205H615V240M670 290H752M700 290V490H752M530 140H800V200M800 140H990V520H970" /></g>
+    <g className="elec-wire elec-wire-ac"><path d="M120 290H160M280 290H560M400 170V290M500 170V205H615V240M670 290H752M700 290V490H752M530 140H800V240M800 140H990V520H970" /></g>
     <circle className="elec-dot" cx={400} cy={290} r={4} /><circle className="elec-dot" cx={700} cy={290} r={4} />
 
     {[['string1', 30], ['string2', 100]].map(([key, y]) => <g key={key}>
@@ -51,9 +51,9 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
     {text(615, 284, node('selector'), 'elec-title')}{text(615, 302, node('selectorPositions'), 'elec-sub')}
     {text(712, 430, node('feeder'), 'elec-sub', 'start')}{text(712, 444, `${FEEDER.cableMm2} mm² · ${FEEDER.conductors}`, 'elec-sub', 'start')}
 
-    <rect className="elec-node elec-node-board" x={740} y={200} width={230} height={200} rx={8} />
+    <rect className="elec-node elec-node-board" x={740} y={240} width={230} height={130} rx={8} />
     {square(752, 279)}{text(784, 294, `${node('main')} ${device('main').ratingA} A`, 'elec-sub', 'start')}
-    {text(855, 336, node('pa'), 'elec-title')}{text(855, 354, node('paSub'), 'elec-sub')}{text(855, 372, count('pa'), 'elec-sub')}
+    {text(855, 326, node('pa'), 'elec-title')}{text(855, 344, node('paSub'), 'elec-sub')}{text(855, 360, count('pa'), 'elec-sub')}
     <rect className="elec-node elec-node-board" x={740} y={450} width={230} height={140} rx={8} />
     <rect className="elec-device elec-device-pantry" x={752} y={479} width={22} height={22} rx={3} />{text(784, 494, `${node('pantryMain')} ${device('feeder').ratingA} A`, 'elec-sub', 'start')}
     {text(855, 528, node('pantry'), 'elec-title')}{text(855, 546, node('pantrySub'), 'elec-sub')}{text(855, 562, count('pantry'), 'elec-sub')}{text(855, 578, node('earth'), 'elec-sub')}
