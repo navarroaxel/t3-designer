@@ -71,7 +71,8 @@ export const DEVICES: readonly Device[] = [
   { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
   { id: 'string-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: 16 },
   { id: 'string-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: 16 },
-  { id: 'surge-dc', board: 'solar', poles: 2, modules: 2, ratingA: null },
+  { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },
+  { id: 'surge-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: null },
   { id: 'rcd-garage', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
   { id: 'rcd-garage-2', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
   /** The device of the output without UPS: it covers the water heater and the line to the sauna heater in the pantry. Both are resistive, so type A. */
@@ -85,7 +86,7 @@ export const DEVICES: readonly Device[] = [
 /**
  * The main board, the meter's drop (the owner's): a Genrod of one row of sixteen modules that holds the protections of the supply, from which the changeover switch and the inverter's grid input are fed: the four-pole breaker,
  * the AC surge arrester after it, and the three-phase voltage protector. It is not one of the boards with rows: the breaker's rating follows the supply, and what it protects first is the cable to the garage, so it is 32 A or
- * less while the pantry's feeder, which has no breaker of its own at its origin, hangs from that cable. The strings' DC surge arrester is in the solar board.
+ * less while the pantry's feeder, which has no breaker of its own at its origin, hangs from that cable. The strings' DC surge arresters, one per string, are in the solar board.
  */
 export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null as number | null, boxModules: 16 }
 /** The AC surge arrester, 3+1: a varistor from each phase to neutral and a spark gap from neutral to earth, four modules. It sits next to the earth bar and the rod. The maker says what back-up breaker or fuse it needs. */
@@ -100,7 +101,7 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as con
  * outlet circuits (the standard's); the rest are the usual short forms.
  */
 export const TAGS: Readonly<Record<string, string>> = {
-  'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'surge-dc': 'SPD DC', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
+  'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
   feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
@@ -110,24 +111,24 @@ export const TAGS: Readonly<Record<string, string>> = {
 /**
  * The boxes and what goes in which row, left to right, as the installer sets them. The PA board and the pantry's are the owner's 48-module Genrod; that it is three rows of sixteen follows from the owner's photo
  * of it (three rows) and is assumed. The solar board is a new 24-module box of two rows of twelve (the owner's, the rows assumed) in the garage, next to the inverter: its first row has the changeover switch and the inverter's
- * breaker, its second the strings' DC breakers and the DC surge arrester (the battery comes with a 100 A breaker of its own). The PA board takes what hangs from the changeover switch for the upper floor: the first two rows
+ * breaker, its second the strings' DC breakers and their DC surge arresters, one per string (the battery comes with a 100 A breaker of its own). The PA board takes what hangs from the changeover switch for the upper floor: its first row is the floor's main breaker, alone, and the other two
  * each have their own residual-current device, type A for the lights and the outlets and type F for what has an inverter (the air conditioners); the water heater and the line to the sauna come from the inverter's output without
- * UPS, under a type A device of their own, in the second row with the air conditioners; the last row is the floor's main breaker. The ids are those of `CIRCUITS` and `DEVICES`.
+ * UPS, under a type A device of their own, in the last row with the air conditioners. The ids are those of `CIRCUITS` and `DEVICES`.
  */
 export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly string[])[] }> = {
   solar: {
     perRow: 12,
     rows: [
       ['selector', 'inverter-ac'],
-      ['string-dc-1', 'string-dc-2', 'surge-dc'],
+      ['string-dc-1', 'string-dc-2', 'surge-dc-1', 'surge-dc-2'],
     ],
   },
   pa: {
     perRow: 16,
     rows: [
+      ['main'],
       ['rcd-garage', 'upper-lights-1', 'upper-lights-2', 'upper-outdoor', 'upper-azotea', 'upper-outlets-rooms', 'upper-outlets-kitchen'],
       ['rcd-garage-2', 'upper-ac-living', 'upper-ac-main-room', 'upper-ac-guest-room', 'rcd-garage-3', 'upper-water-heater'],
-      ['main'],
     ],
   },
   pantry: {
