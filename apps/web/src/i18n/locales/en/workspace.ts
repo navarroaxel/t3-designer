@@ -359,7 +359,7 @@ const workspace = {
       solarNote: 'Located in the garage, the feeders of the TSPA and the TSPB leave the changeover switch.',
       paNote: 'Located in the garage, the upper floor\'s main breaker hangs from the changeover switch in the TSINV.',
       pantryNote: 'It is in the pantry, where the upper floor\'s conduits come down. It has the ground floor\'s main breaker and feeds it; the UDM and the network\'s PoE supplies are there too. It gathers the earth wires of both floors on one bar.',
-      main: 'Main board', mainNote: 'It is the drop from the utility\'s meter, a Genrod of one row of sixteen modules that holds the supply\'s protections: the main breaker, the AC surge arrester and the three-phase voltage protector, which opens when a phase\'s voltage is out of range (a lost neutral shows up as a high voltage on some phase). The changeover switch and the inverter\'s grid input are fed from it. The arrester is next to the earth rod.',
+      main: 'Main board', mainNote: 'Meter drop, with the main breaker, the AC surge arrester and the three-phase voltage protector. The changeover switch and the inverter\'s grid input are fed from it. The arrester is next to the earth rod.',
       device: 'Device', circuit: 'Circuit', phase: 'Phase', breaker: 'Protection', cable: 'Cable', modules: 'Modules', load: 'Load',
       byManual: 'per manual', bySupply: 'per the supply', loadW: '{{kw}} kW',
       total: 'Modules needed', fit: '{{box}}-module box · free: {{free}}',

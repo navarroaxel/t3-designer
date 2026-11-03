@@ -380,7 +380,7 @@ const workspace = {
       solarNote: 'Ubicado en el garage, El alimentador de TSPA y TSPB sale de la conmutadora.',
       paNote: 'Ubicado en el garage, la térmica general de PA cuelga de la conmutadora del TSINV.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
-      main: 'Tablero principal', mainNote: 'Es la bajada del medidor de la compañía, un Genrod de una fila de dieciséis módulos que junta las protecciones de la red: el ITM general, el descargador AC y el protector de tensión trifásico, que abre cuando la tensión de una fase se sale de rango (un neutro cortado se ve como tensión alta en alguna fase). De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
+      main: 'Tablero principal', mainNote: 'Bajada del medidor, incluye ITM general, descargador AC y el protector de tensión trifásico. De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
       device: 'Dispositivo', circuit: 'Circuito', phase: 'Fase', breaker: 'Protección', cable: 'Cable', modules: 'Módulos', load: 'Carga',
       byManual: 'según manual', bySupply: 'según el servicio', loadW: '{{kw}} kW',
       total: 'Módulos necesarios', fit: 'Caja de {{box}} módulos · libres: {{free}}',
