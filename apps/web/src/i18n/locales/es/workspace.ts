@@ -393,7 +393,7 @@ const workspace = {
     },
     circuit: {
       'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina-Baño',
-      'upper-outlets-rooms': '🔌 Tomas de las habitaciones', 'upper-outdoor': 'Exterior', 'upper-azotea': 'Azotea', 'upper-ac-living': '❄️ AC living',
+      'upper-outlets-rooms': '🔌 Tomas de las habitaciones', 'upper-outdoor': '🔌 Exterior', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC living',
       'upper-ac-main-room': '❄️ AC hab principal', 'upper-ac-guest-room': '❄️ AC hab de invitados', 'upper-water-heater': '💧 Termotanque',
       'ground-lights-1': '💡 Iluminación PB 3', 'ground-lights-2': '💡 Iluminación PB 4', 'ground-outlets-office': '🔌 Tomas de la oficina',
       'ground-outlets-pantry': '🔌 Tomas de la despensa y la red', 'ground-ac-office': '❄️ AC oficina', 'ground-sauna': '♨️ Sauna',

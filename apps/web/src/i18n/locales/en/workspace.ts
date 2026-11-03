@@ -372,7 +372,7 @@ const workspace = {
     },
     circuit: {
       'upper-lights-1': '💡 Upper floor kitchen-bathroom lights', 'upper-lights-2': '💡 Upper floor lights 2', 'upper-outlets-kitchen': '🔌 Kitchen-bathroom outlets',
-      'upper-outlets-rooms': '🔌 Bedroom outlets', 'upper-outdoor': 'Outdoor', 'upper-azotea': 'Azotea', 'upper-ac-living': '❄️ AC living room',
+      'upper-outlets-rooms': '🔌 Bedroom outlets', 'upper-outdoor': '🔌 Outdoor', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC living room',
       'upper-ac-main-room': '❄️ AC main bedroom', 'upper-ac-guest-room': '❄️ AC guest bedroom', 'upper-water-heater': '💧 Water heater',
       'ground-lights-1': '💡 Ground floor lights 3', 'ground-lights-2': '💡 Ground floor lights 4', 'ground-outlets-office': '🔌 Office outlets',
       'ground-outlets-pantry': '🔌 Pantry and network outlets', 'ground-ac-office': '❄️ AC office', 'ground-sauna': '♨️ Sauna',
