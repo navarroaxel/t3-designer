@@ -15,14 +15,14 @@ function PhaseChips({ phases }: { phases: readonly Phase[] }) {
   return <span className="elec-phases">{phases.map(phase => <span key={phase} className={`elec-phase elec-${phase.toLowerCase()}`}>{PHASE_NAME[phase]}</span>)}</span>
 }
 
-/** The way the power goes, on one line: the strings to the inverter, the grid and the inverter's output to the changeover switch, and the garage board's feeder to the pantry's. The small squares are devices, filled when they are in the garage board. */
-function SupplyDiagram({ circuits }: { circuits: Record<'garage' | 'pantry', { circuits: number; modules: number }> }) {
+/** The way the power goes, on one line: the strings to the inverter, the grid and the inverter's output to the changeover switch, and the feeder from the changeover switch to the pantry's. The small squares are devices, filled when they are in the garage board. */
+function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circuits: number; modules: number }> }) {
   const { t } = useTranslation('workspace')
   const node = (key: keyof typeof nodes) => nodes[key]
   const nodes = t('electrical.node', { returnObjects: true })
   const square = (x: number, y: number) => <rect className="elec-device" x={x} y={y} width={22} height={22} rx={3} />
   const text = (x: number, y: number, label: string, className = 'elec-label', anchor: 'start' | 'middle' = 'middle') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
-  const count = (board: 'garage' | 'pantry') => t('electrical.node.count', { circuits: circuits[board].circuits, modules: circuits[board].modules })
+  const count = (board: 'pa' | 'pantry') => t('electrical.node.count', { circuits: circuits[board].circuits, modules: circuits[board].modules })
   return <svg className="elec-diagram" viewBox="0 0 1000 600" role="img" aria-label={t('electrical.diagramAria')}>
     {/* Wires first, so the boxes and devices sit over them. DC is the warm line, AC the green one. */}
     <g className="elec-wire elec-wire-dc"><path d="M150 53H330M150 123H330M530 82H640" /></g>
@@ -53,7 +53,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<'garage' | 'pantry', { c
 
     <rect className="elec-node elec-node-board" x={740} y={200} width={230} height={200} rx={8} />
     {square(752, 279)}{text(784, 294, `${node('main')} ${device('main').ratingA} A`, 'elec-sub', 'start')}
-    {text(855, 336, node('garage'), 'elec-title')}{text(855, 354, node('garageSub'), 'elec-sub')}{text(855, 372, count('garage'), 'elec-sub')}
+    {text(855, 336, node('pa'), 'elec-title')}{text(855, 354, node('paSub'), 'elec-sub')}{text(855, 372, count('pa'), 'elec-sub')}
     <rect className="elec-node elec-node-board" x={740} y={450} width={230} height={140} rx={8} />
     <rect className="elec-device elec-device-pantry" x={752} y={479} width={22} height={22} rx={3} />{text(784, 494, `${node('pantryMain')} ${device('feeder').ratingA} A`, 'elec-sub', 'start')}
     {text(855, 528, node('pantry'), 'elec-title')}{text(855, 546, node('pantrySub'), 'elec-sub')}{text(855, 562, count('pantry'), 'elec-sub')}{text(855, 578, node('earth'), 'elec-sub')}
@@ -203,7 +203,7 @@ export function ElectricalExplorer() {
   const busiestOf = (circuits: readonly Circuit[]) => { const current = phaseCurrentA(circuits); return PHASES.reduce((a, b) => current[b] > current[a] ? b : a) }
   const onUps = onUpsOutput(), busiest = busiestOf(onUps), pantryBusiest = busiestOf(boardCircuits('pantry'))
   const { formatNumber } = useLocale()
-  const sizes = { garage: { circuits: boardCircuits('garage').length, modules: boardModules('garage') }, pantry: { circuits: boardCircuits('pantry').length, modules: boardModules('pantry') } }
+  const sizes = { pa: { circuits: boardCircuits('pa').length, modules: boardModules('pa') }, pantry: { circuits: boardCircuits('pantry').length, modules: boardModules('pantry') } }
   const facts: [string, string][] = [
     [t('electrical.factSupply'), t('electrical.factSupplyValue')],
     [t('electrical.factInverter'), INVERTER_MODEL],
@@ -238,7 +238,7 @@ export function ElectricalExplorer() {
         </ul>
         <p className="array-note">{t('electrical.selectorNote')}</p>
       </section>
-      <div className="elec-boards"><BoardCard board="garage" /><BoardCard board="pantry" /></div>
+      <div className="elec-boards"><BoardCard board="solar" /><BoardCard board="pa" /><BoardCard board="pantry" /></div>
       <MainBoardCard />
       <PhaseBalance />
       <section className="elec-notes" aria-labelledby="elec-notes-title">
