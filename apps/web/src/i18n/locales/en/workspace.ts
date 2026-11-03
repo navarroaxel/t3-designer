@@ -355,7 +355,7 @@ const workspace = {
       count: '{{circuits}} circuits · {{modules}} modules', feeder: 'Feeder', pantryMain: 'Main breaker', earth: 'Earth bar for both floors',
     },
     board: {
-      solar: 'TSINV Solar board', pa: 'TSPA', pantry: 'TSPB',
+      solar: 'TSINV Solar board', pa: 'TSPA PA board - Garage', pantry: 'TSPB PB board - Pantry',
       solarNote: 'It is in the garage, next to the inverter: a new 24-module box of two rows of twelve (rows assumed). The first row has the changeover switch and the inverter\'s AC breaker; the second, the strings\' DC breakers and their DC surge arresters, one per string, and the battery\'s 100 A DC breaker. The feeder to the pantry leaves the changeover switch, and so does the supply of the TSPA.',
       paNote: 'It is in the garage, the old 48-module Genrod. It takes the upper floor: the residual-current devices, the circuits and, in the first row, the floor\'s main breaker, which hangs from the changeover switch in the TSINV.',
       pantryNote: 'It is in the pantry, where the upper floor\'s conduits come down. It has the ground floor\'s main breaker and feeds it; the UDM and the network\'s PoE supplies are there too. It gathers the earth wires of both floors on one bar.',

@@ -376,7 +376,7 @@ const workspace = {
       count: '{{circuits}} circuitos · {{modules}} módulos', feeder: 'Alimentador', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
     },
     board: {
-      solar: 'TSINV Tablero Solar', pa: 'TSPA', pantry: 'TSPB',
+      solar: 'TSINV Tablero Solar', pa: 'TSPA Tablero PA - Garage', pantry: 'TSPB Tablero PB - Despensa',
       solarNote: 'Está en el garage, al lado del inversor: una caja nueva de 24 módulos en dos filas de doce (filas supuestas). La primera fila lleva la conmutadora y la térmica AC del inversor; la segunda, las térmicas DC de los strings y sus descargadores DC, uno por string, y el ITM DC de 100 A de la batería. El alimentador de la despensa sale de la conmutadora, y también la alimentación del TSPA.',
       paNote: 'Está en el garage, es el Genrod viejo de 48 módulos. Lleva PA: los diferenciales, los circuitos y, en la primera fila, la térmica general de PA, que cuelga de la conmutadora del TSINV.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
