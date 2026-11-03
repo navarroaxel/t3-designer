@@ -21,9 +21,15 @@ const wall = GROUND_GARAGE.v[0]
 export const INVERTER_U: [number, number] = [backFace - INVERTER.fromBackWall - INVERTER.width, backFace - INVERTER.fromBackWall]
 export const BOARD_U: [number, number] = [backFace - BOARD.fromBackWall - BOARD.width, backFace - BOARD.fromBackWall]
 /** Where the board stood before it moved to the back wall: to the inverter's right, 0.10 m from it. The tool cabinet kept its place there, and the spot is free. */
+/** The TSINV (owner's picture and figures): a 24-module surface-mounted box, white with a smoked black door, 320 by 280 by 110 mm, on the wall right above the TSPA, centred on it, 0.10 m over it (assumed). */
+export const TSINV = { width: .32, height: .28, depth: .11, aboveBoard: .1 }
 export const INVERTER_RIGHT_SPOT_U: [number, number] = [INVERTER_U[0] - BOARD.gap - BOARD.width, INVERTER_U[0] - BOARD.gap]
 const ibottom = INVERTER.bottom, itop = INVERTER.bottom + INVERTER.height
 const bbottom = BOARD.bottom, btop = BOARD.bottom + BOARD.height
+const boardMiddleU = (BOARD_U[0] + BOARD_U[1]) / 2
+export const TSINV_U: [number, number] = [boardMiddleU - TSINV.width / 2, boardMiddleU + TSINV.width / 2]
+export const TSINV_Y: [number, number] = [btop + TSINV.aboveBoard, btop + TSINV.aboveBoard + TSINV.height]
+const tsinvV: [number, number] = [wall, wall + TSINV.depth]
 const inverterMiddleU = (INVERTER_U[0] + INVERTER_U[1]) / 2
 const boardV: [number, number] = [wall, wall + BOARD.depth]
 const inverterV: [number, number] = [wall, wall + INVERTER.depth]
@@ -38,4 +44,7 @@ export const GARAGE_EQUIPMENT: EquipmentBox[] = [
   // The board: a white frame and lid, with the smoked black door over its front.
   { id: 'board', u: BOARD_U, v: boardV, y: [bbottom, btop], color: '#ececec' },
   { id: 'board-door', u: [BOARD_U[0] + .02, BOARD_U[1] - .03], v: [boardV[1], boardV[1] + .012], y: [bbottom + .03, btop - .06], color: '#1e1f21' },
+  // The TSINV, over it: the same white box and smoked door.
+  { id: 'tsinv', u: TSINV_U, v: tsinvV, y: TSINV_Y, color: '#ececec' },
+  { id: 'tsinv-door', u: [TSINV_U[0] + .02, TSINV_U[1] - .02], v: [tsinvV[1], tsinvV[1] + .01], y: [TSINV_Y[0] + .03, TSINV_Y[1] - .05], color: '#1e1f21' },
 ]

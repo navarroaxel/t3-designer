@@ -151,8 +151,8 @@ gland, four DC connectors and three glands underneath) and the surface-mounted b
 
 ## The hall's board, the office's desk, the rack and the fireplace
 
-- The main supply board is flush in the hall's left wall (the north-east party wall, coming in from the street), its nearer edge 0.15 m from the street's wall (owner), 1.5 m to its middle: a 300 by 170 mm frame
-  and smoked door 20 mm out of the wall, with fourteen modules inside (`board_flush_recipe.py`).
+- The main supply board, the TP, is flush in the hall's left wall (the north-east party wall, coming in from the street), its nearer edge 0.15 m from the street's wall (owner), 1.5 m to its middle: a 350 by 200 mm frame
+  and smoked door 20 mm out of the wall, in a 115 mm deep flush box (the owner's figures and picture) with sixteen modules inside, thirteen of them taken (`board_flush_recipe.py`).
 - The office's standing desk (`desk_recipe.py`) is 1.40 by 0.70 m against the south-west wall, opposite the north-east party wall (owner), its sitter facing the room; size and place are assumed.
 - The pantry's rack is a black cabinet with a smoked-glass door and the units behind it (`rack_recipe.py`); the boxes in `rack.ts` keep the units' sizes.
 - The living's gas fireplace (`fireplace_recipe.py`, from the owner's picture) has its black base, grey bands, open firebox with a zig-zag grate and ceramic logs, the black upper box and a cedar top.

@@ -1,4 +1,7 @@
-"""The owner's surface-mounted electrical board: a white three-row enclosure with a smoked black door, from the owner's picture. Units in metres; 450 mm wide, 120 mm deep, 550 mm tall.
+"""The owner's surface-mounted electrical board: a white enclosure with a smoked black door, from the owner's picture. Units in metres; by default 450 mm wide, 120 mm deep, 550 mm tall, three rows.
+
+The job may ask for another box through `parameters`: `rows` (the poles of each breaker, row by row), `modulesPerRow` (closes the rows after that many poles; by default they fill the box), `firstRowZ` and `rowPitch`
+(the height of the first row's middle and the distance between rows) and `breakerHalf` (half a breaker's height). The outer size is always the job's `dimensions`.
 
 Axes in Blender: X is the width, Y the depth (the front, where the door is, is -Y, which the exporter turns into +Z) and Z the height; it hangs with its bottom at Z = 0, centred.
 Inside, behind the smoked door, are three DIN rails of circuit breakers (white modules with a black lever, 18 mm each) with the blanking plates that close the rest of each row.
@@ -37,7 +40,8 @@ def build(request, _default_material):
     lever = paint(bpy, 'Lever', '#202124', .5)
     blank = paint(bpy, 'Blanking plate', '#cfd2d1', .55)
     parts = []
-    w, d, h = .45, .12, .55
+    options = request.get('parameters') or {}
+    w, h, d = request['dimensions']
 
     def box(name, finish_material, x, y, z, bevel=.002):
         bpy.ops.mesh.primitive_cube_add(size=1, location=((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, (z[0] + z[1]) / 2))
@@ -72,31 +76,32 @@ def build(request, _default_material):
     handle = paint(bpy, 'Easy9 handle', '#3b3c3f', .5)
     screw = paint(bpy, 'Terminal', '#16171a', .6)
     mark = paint(bpy, 'EZ green', '#14a44d', .4)
-    rows = ([2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1])
+    rows = options.get('rows') or ([2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1])
     pole = .018
     start = -half + wall + .02
-    limit = half - wall - .015
+    limit = start + options['modulesPerRow'] * pole if options.get('modulesPerRow') else half - wall - .015
+    first_row, pitch, breaker_half = options.get('firstRowZ', .115), options.get('rowPitch', .16), options.get('breakerHalf', .045)
     for row, layout in enumerate(rows):
-        z = .115 + row * .16
+        z = first_row + row * pitch
         box(f'Rail {row}', rail, (-half + wall + .01, half - wall - .01), (-.002, .008), (z - .0175, z + .0175), .0005)
-        box(f'Channel {row}', inside, (-half + wall, half - wall), (d / 2 - .02, d / 2 - .008), (z - .06, z + .06), .001)
+        box(f'Channel {row}', inside, (-half + wall, half - wall), (d / 2 - .02, d / 2 - .008), (z - breaker_half - .015, z + breaker_half + .015), .001)
         x0 = start
         for index, poles in enumerate(layout):
             x1 = x0 + poles * pole
             if x1 > limit:
                 break
-            box(f'Breaker {row} {index}', grey, (x0 + .0004, x1 - .0004), (-.045, .03), (z - .045, z + .045), .0012)
+            box(f'Breaker {row} {index}', grey, (x0 + .0004, x1 - .0004), (-.045, .03), (z - breaker_half, z + breaker_half), .0012)
             for step in range(poles):
                 px = x0 + step * pole + pole / 2
                 box(f'Handle {row} {index} {step}', handle, (px - .006, px + .006), (-.054, -.045), (z - .012, z + .012), .0012)
-                for dz in (-.0355, .0355):
+                for dz in (-breaker_half + .0095, breaker_half - .0095):
                     box(f'Terminal {row} {index} {step} {dz}', screw, (px - .004, px + .004), (-.0465, -.045), (z + dz - .004, z + dz + .004), .0003)
             if poles > 1:
                 box(f'Bar {row} {index}', handle, (x0 + .003, x1 - .003), (-.056, -.05), (z - .006, z + .002), .001)
             box(f'Mark {row} {index}', mark, (x0 + .0045, x0 + .0105), (-.0455, -.045), (z + .016, z + .022), .0002)
             x0 = x1
         while x0 + pole <= limit:
-            box(f'Blank {row} {x0:.3f}', blank, (x0 + .0004, x0 + pole - .0004), (-.035, -.03), (z - .045, z + .045), .001)
+            box(f'Blank {row} {x0:.3f}', blank, (x0 + .0004, x0 + pole - .0004), (-.035, -.03), (z - breaker_half, z + breaker_half), .001)
             x0 += pole
     # The smoked door, inside the frame's lip, with its small latch.
     box('Door', smoke, (-half + wall - .003, half - wall + .003), (front + .004, front + .014), (.04, h - .04), .004)

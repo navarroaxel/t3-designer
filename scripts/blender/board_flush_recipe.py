@@ -1,5 +1,6 @@
-"""The main supply board, flush-mounted in a wall: a single row of fourteen modules under a smoked black door, in a white frame, from the owner's picture. Units in metres; 300 mm wide, 170 mm
-tall, 100 mm deep: 20 mm of frame and door stand out of the wall and 80 mm of box are inside it.
+"""The main supply board, flush-mounted in a wall: a single row of modules under a smoked black door, in a white frame, from the owner's picture. Units in metres; the job's dimensions are its width, its height and
+its depth, 20 mm of which, the frame and the door, stand out of the wall and the rest is the box inside it. By default the row is fourteen modules (a main breaker, a residual-current device and eight breakers); the job may ask for
+another with `parameters.modules` (how many modules the row has) and `parameters.layout` (the poles of each device from the left; what is left over is closed with blanking plates).
 
 Axes in Blender: X is the width, Y the depth (the front is -Y, which the exporter turns into +Z) and Z the height; its bottom is at Z = 0, centred. The wall's face is 20 mm behind the front.
 Inside there are a two-pole main breaker, a two-pole residual-current device and eight single-pole Easy9 breakers; the last two modules are closed with blanking plates.
@@ -41,7 +42,8 @@ def build(request, _default_material):
     mark = paint(bpy, 'EZ green', '#14a44d', .4)
     blank = paint(bpy, 'Blanking plate', '#cfd2d1', .55)
     parts = []
-    w, h, d = .3, .17, .1
+    options = request.get('parameters') or {}
+    w, h, d = request['dimensions']
     front, wall = -d / 2, -d / 2 + .02
 
     def box(name, finish_material, x, y, z, bevel=.002):
@@ -81,8 +83,9 @@ def build(request, _default_material):
     pole = .018
     z = h / 2
     box('Rail', rail, (-bx + .006, bx - .006), (.008, .016), (z - .0175, z + .0175), .0005)
-    layout = [2, 2] + [1] * 8
-    x0 = -7 * pole
+    layout = options.get('layout') or [2, 2] + [1] * 8
+    modules = options.get('modules', 14)
+    x0 = -modules / 2 * pole
     for index, poles in enumerate(layout):
         x1 = x0 + poles * pole
         box(f'Breaker {index}', grey, (x0 + .0004, x1 - .0004), (-.01, .06), (z - .042, z + .042), .0012)
@@ -95,7 +98,7 @@ def build(request, _default_material):
             box(f'Bar {index}', handle, (x0 + .003, x1 - .003), (-.021, -.015), (z - .006, z + .002), .001)
         box(f'Mark {index}', mark, (x0 + .0045, x0 + .0105), (-.0105, -.01), (z + .015, z + .021), .0002)
         x0 = x1
-    for _ in range(2):
+    for _ in range(int(round((modules / 2 * pole - x0) / pole))):
         box('Blank', blank, (x0 + .0004, x0 + pole - .0004), (-.002, .003), (z - .042, z + .042), .001)
         x0 += pole
     # The smoked door, a little proud of the frame's face, with its small latch on the right.

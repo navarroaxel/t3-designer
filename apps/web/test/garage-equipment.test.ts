@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { GROUND_GARAGE, GROUND_PARTITIONS } from '../src/data/house-plan.ts'
-import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_RIGHT_SPOT_U, INVERTER_U } from '../src/data/garage-equipment.ts'
+import { furnishingsOn } from '../src/data/house-furnishings.ts'
+import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_RIGHT_SPOT_U, INVERTER_U, TSINV, TSINV_U, TSINV_Y } from '../src/data/garage-equipment.ts'
 
 const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
 const box = (id: string) => GARAGE_EQUIPMENT.find(item => item.id === id)!
@@ -37,7 +38,20 @@ test('the equipment stays inside the garage, clear of its walls and of each othe
     assert.ok(item.v[0] >= GROUND_GARAGE.v[0] - 1e-9 && item.v[1] <= GROUND_GARAGE.v[1], `${item.id} within the garage's width`)
   }
   for (const [u0, u1, v0, v1] of GROUND_PARTITIONS) {
-    for (const id of ['inverter', 'board']) assert.ok(!(overlap(box(id).u, [u0, u1]) > 1e-6 && overlap(box(id).v, [v0, v1]) > 1e-6), `${id} inside no wall`)
+    for (const id of ['inverter', 'board', 'tsinv']) assert.ok(!(overlap(box(id).u, [u0, u1]) > 1e-6 && overlap(box(id).v, [v0, v1]) > 1e-6), `${id} inside no wall`)
   }
   assert.ok(overlap(INVERTER_U, BOARD_U) <= 0, 'the board and the inverter do not overlap')
+})
+
+test('the TSINV is 320 by 280 by 110 mm, right above the TSPA, centred on it, on the same wall, and hung', () => {
+  near(TSINV.width, .32); near(TSINV.height, .28); near(TSINV.depth, .11)
+  near(TSINV_U[1] - TSINV_U[0], TSINV.width)
+  near((TSINV_U[0] + TSINV_U[1]) / 2, (BOARD_U[0] + BOARD_U[1]) / 2)
+  near(TSINV_Y[0] - (box('board').y[1]), TSINV.aboveBoard)
+  near(TSINV_Y[1] - TSINV_Y[0], TSINV.height)
+  near(box('tsinv').v[0], GROUND_GARAGE.v[0]); near(box('tsinv').v[1] - box('tsinv').v[0], TSINV.depth)
+  assert.match(box('tsinv-door').color, /^#[01]/, 'smoked black')
+  const piece = furnishingsOn('ground').find(item => item.id === 'tsinv')!
+  assert.equal(piece.model, '/models/house/tsinv.glb')
+  assert.ok(piece.hung && piece.y[0] >= 1.5, 'over the cutaway\'s cut, so only the walkthrough shows it')
 })
