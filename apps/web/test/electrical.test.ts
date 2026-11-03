@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
+import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, MAIN_BOARD_ITEMS, VOLTAGE_PROTECTOR, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
 
 const circuit = (id: string) => { const found = CIRCUITS.find(item => item.id === id); assert.ok(found, id); return found }
 const phase = (id: string): Phase => { const { phases } = circuit(id); assert.equal(phases.length, 1, `${id} is on one phase`); return phases[0] }
@@ -152,13 +152,21 @@ test('the garage\'s general breaker is the upper floor\'s: four-pole, after the 
   assert.ok(last.indexOf('selector') < last.indexOf('main'))
 })
 
-test('the main board is the meter\'s drop, with a single four-pole breaker, and is on neither of the two boards', () => {
+test('the main board is the meter\'s drop: a twelve-module box with a four-pole breaker and a voltage protector after it, on none of the other boards', () => {
   assert.equal(METER_DROP.poles, 4)
   assert.equal(TAGS[METER_DROP.id], 'ITM')
-  assert.equal(METER_DROP.boxModules, 6, 'a six-module box')
-  assert.ok(METER_DROP.modules <= METER_DROP.boxModules)
-  assert.ok(!DEVICES.some(item => item.id === METER_DROP.id))
-  assert.ok(!BOXES.garage.rows.flat().includes(METER_DROP.id) && !BOXES.pantry.rows.flat().includes(METER_DROP.id))
+  assert.equal(METER_DROP.boxModules, 12, 'one row of twelve')
+  assert.deepEqual(MAIN_BOARD_ITEMS.map(item => item.id), [METER_DROP.id, VOLTAGE_PROTECTOR.id])
+  assert.equal(VOLTAGE_PROTECTOR.modules, 5)
+  assert.equal(VOLTAGE_PROTECTOR.ratingA, 63)
+  const used = MAIN_BOARD_ITEMS.reduce((sum, item) => sum + item.modules, 0)
+  assert.equal(used, 9)
+  assert.ok(used <= METER_DROP.boxModules)
+  assert.ok(used + DEVICES.find(item => item.id === 'surge-ac')!.modules > METER_DROP.boxModules, 'the AC surge arrester would not fit: it has its own board')
+  for (const item of MAIN_BOARD_ITEMS) {
+    assert.ok(!DEVICES.some(other => other.id === item.id))
+    assert.ok(!BOXES.garage.rows.flat().includes(item.id) && !BOXES.pantry.rows.flat().includes(item.id) && !BOXES.surge.rows.flat().includes(item.id))
+  }
 })
 
 test('each residual-current device is in the row of the circuits it protects', () => {

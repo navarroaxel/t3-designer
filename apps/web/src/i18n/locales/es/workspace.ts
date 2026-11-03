@@ -371,7 +371,7 @@ const workspace = {
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', dcBreaker: '☀️ Térmica DC', panels: 'Paneles · DC',
       inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 Batería', batterySub: 'baja tensión', batteryItm: 'ITM 100 A propio',
-      inverterBreaker: '☀️ Térmica AC', grid: 'Red', gridSub: '3F + N', mainBoard: 'Tablero principal', mainBoardSub: 'bajada del medidor', mainBoardItm: '1 ITM', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'Conmutadora', selectorPositions: 'Red · 0 · Inversor',
+      inverterBreaker: '☀️ Térmica AC', grid: 'Red', gridSub: '3F + N', mainBoard: 'Tablero principal', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'Conmutadora', selectorPositions: 'Red · 0 · Inversor',
       garage: 'Tablero del garage', garageSub: 'Solar + PA', pantry: 'Tablero de la despensa', pantrySub: 'PB',
       count: '{{circuits}} circuitos · {{modules}} módulos', feeder: 'Alimentador', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
     },
@@ -380,7 +380,7 @@ const workspace = {
       surge: 'Tablero de protecciones (SPD)', surgeNote: 'Una caja chica aparte, al lado del tablero del garage, que no tiene ningún módulo libre: el descargador AC (3+1, después de la térmica del tablero principal) y el de CC de los strings. El cable de tierra hacia la bornera tiene que ser lo más corto posible. Si el inversor ya trae descargadores de CC propios está sin verificar (ver su manual), y la térmica o el fusible de respaldo de los descargadores es el que pida su fabricante.',
       garageNote: 'Está en el garage, al lado del inversor. Recibe los strings, la red y el inversor, y reparte PA. El alimentador de la despensa sale de la conmutadora, antes de su térmica general de PA.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
-      main: 'Tablero principal', mainNote: 'Es la bajada del medidor de la compañía y lleva un solo ITM. De ahí salen la conmutadora y la entrada del inversor.',
+      main: 'Tablero principal', mainNote: 'Es la bajada del medidor de la compañía, un Genrod de una fila de doce módulos: el ITM general y, después, el protector de tensión trifásico, que abre cuando la tensión de una fase se sale de rango (un neutro cortado se ve como tensión alta en alguna fase). De ahí salen la conmutadora y la entrada del inversor. El descargador AC haría trece módulos, así que está en el tablero de protecciones.',
       device: 'Dispositivo', circuit: 'Circuito', phase: 'Fase', breaker: 'Protección', cable: 'Cable', modules: 'Módulos', load: 'Carga',
       byManual: 'según manual', bySupply: 'según el servicio', loadW: '{{kw}} kW',
       total: 'Módulos necesarios', fit: 'Caja de {{box}} módulos · libres: {{free}}',
@@ -390,7 +390,7 @@ const workspace = {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica AC del inversor, 4P',
       'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
       feeder: 'Térmica PB, 4P', 'surge-dc': '☀️ Descargador DC, 2P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
-      'meter-itm': 'ITM de la bajada del medidor, 4P', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
+      'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },
     circuit: {
       'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina-Baño',

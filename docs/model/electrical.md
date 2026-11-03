@@ -2,7 +2,7 @@
 
 The **Electrical** tab (`#electrical`) is a factsheet of how the installation is laid out: the way the power goes, what each of the two boards holds, and how the phases share the load. It prints cleanly (the button calls the browser's print, so it can be saved as a PDF for the electrician). All of it comes from `apps/web/src/data/electrical.ts`; nothing in it is measured, and it is the plan, not what is built.
 
-The main board is the meter's drop, at the entrance where the stairs to the upper floor start, with a single four-pole breaker; the changeover switch and the inverter's grid input are fed from it.
+The main board is the meter's drop, at the entrance where the stairs to the upper floor start: a Genrod of one row of twelve modules with a four-pole breaker (4 modules) and, after it, a three-phase voltage protector of the BAW RU400F63 Plus kind (5 modules, 63 A). The protector reads each phase's voltage and opens when one is out of range, which a lost neutral also causes on some phase; it is in series, so everything below it goes off, and it closes again by itself after its delay (see its manual). The changeover switch and the inverter's grid input are fed from it. The AC surge arrester (4 modules) would make 13, so it stays in the surge board.
 
 ## What the owner decided, and what is proposed
 

@@ -84,17 +84,22 @@ export const DEVICES: readonly Device[] = [
 ]
 
 /**
- * The main board, the meter's drop (the owner's): a six-module box with a single four-pole breaker, from which the changeover switch and the inverter's grid input are fed. It is not one of the two boards with rows: its rating follows
- * the supply, and what it protects first is the cable to the garage, so it is 32 A or less while the pantry's feeder, which has no breaker of its own at its origin, hangs from that cable.
+ * The main board, the meter's drop (the owner's): a Genrod of one row of twelve modules, with a four-pole breaker and, after it, a three-phase voltage protector, from which the changeover switch and the inverter's grid input are fed.
+ * It is not one of the boards with rows: the breaker's rating follows the supply, and what it protects first is the cable to the garage, so it is 32 A or less while the pantry's feeder, which has no breaker of its own at its origin,
+ * hangs from that cable. The AC surge arrester (four modules) would make thirteen, so it stays in the surge board.
  */
-export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null as number | null, boxModules: 6 }
+export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null as number | null, boxModules: 12 }
+/** A BAW RU400F63 Plus type of protector (the owner's picture), five modules: it reads each phase's voltage and current and opens its contactors, in series with the load, when a voltage is out of range. 63 A a phase. */
+export const VOLTAGE_PROTECTOR = { id: 'voltage-protector', poles: 4, modules: 5, ratingA: 63 }
+/** What is in the main board, left to right: the breaker first, then the protector. */
+export const MAIN_BOARD_ITEMS = [METER_DROP, VOLTAGE_PROTECTOR] as const
 
 /**
  * Short tags for the cells of the boards' rows, where a one-module breaker is 18 mm wide and a name does not fit. IUG and TUG are the Argentine names of the general-use lighting and
  * outlet circuits (the standard's); the rest are the usual short forms.
  */
 export const TAGS: Readonly<Record<string, string>> = {
-  'meter-itm': 'ITM', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
+  'meter-itm': 'ITM', 'voltage-protector': 'PROT', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
   feeder: 'TMPB', 'surge-dc': 'SPD DC', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
