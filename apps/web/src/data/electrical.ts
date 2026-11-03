@@ -6,7 +6,7 @@ import { PV_SYSTEM } from './pv-system.ts'
  * three-phase sauna are the owner's; the phase of each circuit, the ratings and the cable sizes are proposals (`assumed`) for the electrician to confirm. The reasons are in docs/model/electrical.md.
  */
 export type Phase = 'L1' | 'L2' | 'L3'
-export type BoardId = 'garage' | 'pantry'
+export type BoardId = 'garage' | 'pantry' | 'surge'
 export type CircuitKind = 'lights' | 'outlets' | 'ac' | 'heater' | 'outdoor' | 'sauna'
 export const PHASES: readonly Phase[] = ['L1', 'L2', 'L3']
 /** What the phases are called on the page: R, S and T, as in Argentina. The ids stay L1, L2 and L3. */
@@ -61,7 +61,7 @@ export const CIRCUITS: readonly Circuit[] = [
 ]
 
 /** A protective or switching device that is not a circuit of its own. `ratingA` is null where it follows the supply or the maker's manual, which the model does not have. */
-export type Device = { id: string; board: BoardId; poles: number; modules: number; ratingA: number | null; optional?: true }
+export type Device = { id: string; board: BoardId; poles: number; modules: number; ratingA: number | null }
 
 export const DEVICES: readonly Device[] = [
   /** The garage board's general breaker, for PA only: it is after the changeover switch, and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
@@ -77,8 +77,8 @@ export const DEVICES: readonly Device[] = [
   { id: 'rcd-garage-3', board: 'garage', poles: 4, modules: 4, ratingA: 40 },
   /** The pantry board's main breaker, at the end of the feeder (the owner's choice): the feeder's cable has no breaker of its own at its origin, so the supply's main one has to be at most what the 6 mm² takes. */
   { id: 'feeder', board: 'pantry', poles: 4, modules: 4, ratingA: 32 },
-  { id: 'surge-dc', board: 'garage', poles: 2, modules: 2, ratingA: null, optional: true },
-  { id: 'surge-ac', board: 'garage', poles: 4, modules: 4, ratingA: null, optional: true },
+  { id: 'surge-dc', board: 'surge', poles: 2, modules: 2, ratingA: null },
+  { id: 'surge-ac', board: 'surge', poles: 4, modules: 4, ratingA: null },
   { id: 'rcd-pantry', board: 'pantry', poles: 4, modules: 4, ratingA: 40 },
   { id: 'rcd-pantry-2', board: 'pantry', poles: 4, modules: 4, ratingA: 40 },
 ]
@@ -106,8 +106,8 @@ export const TAGS: Readonly<Record<string, string>> = {
  * of it (three rows) and is assumed. The garage's last row has the solar circuit (the owner's choice): the inverter's breaker and the strings' DC breakers (the battery comes with a 100 A breaker of its own), and with them the supply's main
  * breaker and the changeover switch, because the other two rows are full with their groups; the first two rows each have their own residual-current device, type A for the lights and the outlets and
  * type F for what has an inverter (the air conditioners). The water heater and the line to the sauna come from the inverter's output without UPS, under a type A device of their own,
- * in the garage's second row with the air conditioners. The optional surge arresters are not in the rows: with them the garage's
- * board needs more than its 48 modules, so they go in a small box of their own. The ids are those of `CIRCUITS` and `DEVICES`.
+ * in the garage's second row with the air conditioners. The surge arresters are not in the garage's rows: the garage board is full at 48 modules, so they have a small
+ * box of their own, one row of eight (an assumed size), next to it. The ids are those of `CIRCUITS` and `DEVICES`.
  */
 export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly string[])[] }> = {
   garage: {
@@ -118,6 +118,7 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
       ['selector', 'main', 'inverter-ac', 'string-dc-1', 'string-dc-2'],
     ],
   },
+  surge: { perRow: 8, rows: [['surge-ac', 'surge-dc']] },
   pantry: {
     perRow: 16,
     rows: [
@@ -132,18 +133,18 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
 export const rowItems = (ids: readonly string[]) => ids.map(id => {
   const found = CIRCUITS.find(item => item.id === id) ?? DEVICES.find(item => item.id === id)
   if (!found) throw new Error(`Unknown item ${id}`)
-  return { id, modules: found.modules, phases: 'phases' in found ? found.phases : undefined, optional: 'optional' in found ? found.optional : undefined }
+  return { id, modules: found.modules, phases: 'phases' in found ? found.phases : undefined }
 })
 
 /** The feeder from the garage board to the pantry's: four conductors and the earth in one thick conduit, a second one empty for later. */
 export const FEEDER = { cableMm2: 6, conductors: 'R S T N + PE', conduitMm: 50, conduits: 2 }
 
 export const boardCircuits = (board: BoardId) => CIRCUITS.filter(item => item.board === board)
-export const boardDevices = (board: BoardId, withOptional = false) => DEVICES.filter(item => item.board === board && (withOptional || !item.optional))
+export const boardDevices = (board: BoardId) => DEVICES.filter(item => item.board === board)
 
-/** The modules a board needs, with or without the optional surge arresters. */
-export const boardModules = (board: BoardId, withOptional = false) =>
-  boardCircuits(board).reduce((sum, item) => sum + item.modules, 0) + boardDevices(board, withOptional).reduce((sum, item) => sum + item.modules, 0)
+/** The modules a board needs. */
+export const boardModules = (board: BoardId) =>
+  boardCircuits(board).reduce((sum, item) => sum + item.modules, 0) + boardDevices(board).reduce((sum, item) => sum + item.modules, 0)
 
 /** The connected power on each phase, watts, from the circuits that have a big load on them: a three-phase load shares its power equally. It is what is connected, not what is on at once. */
 export function phaseLoadW(circuits: readonly Circuit[] = CIRCUITS): Record<Phase, number> {

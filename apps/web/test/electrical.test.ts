@@ -94,19 +94,20 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
   for (const item of CIRCUITS.filter(item => item.phases.length === 1)) assert.equal(item.modules, 2, item.id)
 })
 
-test('the garage board needs more modules than the pantry\'s, and the surge arresters are extra', () => {
+test('the garage board needs more modules than the pantry\'s, and the surge arresters have a box of their own', () => {
   assert.ok(boardModules('garage') > boardModules('pantry'))
   assert.equal(boardModules('garage'), 48)
-  assert.equal(boardModules('garage', true), 54, 'with the surge arresters')
   assert.equal(boardModules('pantry'), 25)
-  assert.equal(boardModules('pantry', true), boardModules('pantry'), 'the pantry has no optional device')
+  assert.equal(boardModules('surge'), 6, 'the AC arrester (four modules) and the DC one (two)')
 })
 
-test('both boards are 48-module boxes; the garage\'s takes everything but the surge arresters, which go in a box of their own', () => {
+test('both boards are 48-module boxes and the garage\'s is full; the surge arresters go in a box of eight modules of their own', () => {
   assert.equal(boxModules('garage'), 48)
   assert.equal(boxModules('pantry'), 48)
-  assert.ok(boardModules('garage') <= boxModules('garage'), 'the box is full')
-  assert.ok(boardModules('garage', true) > boxModules('garage'))
+  assert.equal(boardModules('garage'), boxModules('garage'), 'the box is full')
+  assert.equal(boxModules('surge'), 8)
+  assert.ok(boardModules('surge') <= boxModules('surge'))
+  assert.deepEqual(boardDevices('surge').map(item => item.id).sort(), ['surge-ac', 'surge-dc'])
   assert.ok(boardModules('pantry') <= boxModules('pantry'))
 })
 
@@ -119,7 +120,7 @@ test('the pantry\'s main breaker, the feeder\'s, is in the pantry board, in the 
 })
 
 test('every circuit and device is in exactly one row of its board, and no row is longer than the box\'s', () => {
-  for (const board of ['garage', 'pantry'] as const) {
+  for (const board of ['garage', 'pantry', 'surge'] as const) {
     const placed = BOXES[board].rows.flat()
     const expected = [...boardCircuits(board), ...boardDevices(board)].map(item => item.id)
     assert.deepEqual([...placed].sort(), [...expected].sort(), `${board}: what is placed is what the board holds`)

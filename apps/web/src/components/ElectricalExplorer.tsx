@@ -16,13 +16,13 @@ function PhaseChips({ phases }: { phases: readonly Phase[] }) {
 }
 
 /** The way the power goes, on one line: the strings to the inverter, the grid and the inverter's output to the changeover switch, and the garage board's feeder to the pantry's. The small squares are devices, filled when they are in the garage board. */
-function SupplyDiagram({ circuits }: { circuits: Record<BoardId, { circuits: number; modules: number }> }) {
+function SupplyDiagram({ circuits }: { circuits: Record<'garage' | 'pantry', { circuits: number; modules: number }> }) {
   const { t } = useTranslation('workspace')
   const node = (key: keyof typeof nodes) => nodes[key]
   const nodes = t('electrical.node', { returnObjects: true })
   const square = (x: number, y: number) => <rect className="elec-device" x={x} y={y} width={22} height={22} rx={3} />
   const text = (x: number, y: number, label: string, className = 'elec-label', anchor: 'start' | 'middle' = 'middle') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
-  const count = (board: BoardId) => t('electrical.node.count', { circuits: circuits[board].circuits, modules: circuits[board].modules })
+  const count = (board: 'garage' | 'pantry') => t('electrical.node.count', { circuits: circuits[board].circuits, modules: circuits[board].modules })
   return <svg className="elec-diagram" viewBox="0 0 1000 600" role="img" aria-label={t('electrical.diagramAria')}>
     {/* Wires first, so the boxes and devices sit over them. DC is the warm line, AC the green one. */}
     <g className="elec-wire elec-wire-dc"><path d="M150 53H330M150 123H330M530 82H640" /></g>
@@ -61,7 +61,6 @@ function SupplyDiagram({ circuits }: { circuits: Record<BoardId, { circuits: num
 }
 
 const protection = (item: Device, t: TFunction<'workspace'>) => {
-  if (item.optional) return '—'
   if (item.ratingA === null) return t(item.id === 'selector' ? 'electrical.board.bySupply' : 'electrical.board.byManual')
   return `${item.poles}P ${item.ratingA} A${item.id.startsWith('string-dc') ? ' DC' : ''}`
 }
@@ -76,7 +75,7 @@ const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--ele
  */
 function ModuleIcon({ x, id, modules, phase, rating, tag, name }: { x: number; id: string; modules: number; phase?: Phase; rating: string; tag: string; name: string }) {
   const w = modules * MODULE_W, cx = x + w / 2
-  const rcd = id.startsWith('rcd'), selector = id === 'selector', dc = id.startsWith('string-dc')
+  const rcd = id.startsWith('rcd'), selector = id === 'selector', spd = id.startsWith('surge'), dc = id.startsWith('string-dc')
   const poles = Array.from({ length: modules }, (_, pole) => x + (pole + .5) * MODULE_W)
   const stripe = phase ? PHASE_FILL[phase] : dc ? 'var(--elec-dc)' : rcd ? 'var(--gen-typical)' : '#9aa0a6'
   return <g>
@@ -88,8 +87,9 @@ function ModuleIcon({ x, id, modules, phase, rating, tag, name }: { x: number; i
     <text x={cx} y={rcd ? 41 : 33} textAnchor="middle" fontSize={modules > 1 ? 7 : 6.2} fill="#2b2f33" fontWeight={600}>{rating}</text>
     {rcd && <><circle cx={x + MODULE_W * .9} cy={25} r={3.6} fill="#f1e9d2" stroke="#8d8466" strokeWidth={.6} /><text x={x + MODULE_W * .9} y={26.6} textAnchor="middle" fontSize={4.4} fill="#4a4636" fontWeight={700}>T</text>
       <text x={x + w - MODULE_W * .5} y={20} textAnchor="middle" fontSize={5.5} fill="#2b2f33" fontWeight={700}>N</text></>}
+    {spd && <rect x={x + 4} y={46} width={w - 8} height={11} rx={2} fill="#3f9d5a" />}
     {selector && <><circle cx={cx} cy={52} r={12} fill="#1f2124" /><path d={`M${cx} 52V43`} stroke="#f4f5f6" strokeWidth={2.2} strokeLinecap="round" /></>}
-    {!selector && (rcd
+    {!selector && !spd && (rcd
       ? <rect x={x + 3.5} y={50} width={Math.min(14, w - 7)} height={17} rx={2} fill="#2d6cb5" />
       : <>{poles.map(px => <rect key={`l${px}`} x={px - 5.5} y={44} width={11} height={20} rx={2} fill="#17181a" />)}{modules > 1 && <rect x={x + 3.5} y={57} width={w - 7} height={7} rx={1.5} fill="#17181a" />}</>)}
     <text x={cx} y={DEVICE_H + 11} textAnchor="middle" fontSize={7} fill="currentColor" fontWeight={600}>{tag}</text>
@@ -129,9 +129,9 @@ function BoardCard({ board }: { board: BoardId }) {
   const { formatNumber } = useLocale()
   const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
   const deviceNames = t('electrical.device', { returnObjects: true }) as Record<string, string>
-  const devices = boardDevices(board, true)
+  const devices = boardDevices(board)
   const circuits = boardCircuits(board)
-  const modules = boardModules(board), withSurge = boardModules(board, true)
+  const modules = boardModules(board)
   const load = (item: Circuit) => item.loadW ? t('electrical.board.loadW', { kw: formatNumber(item.loadW / 1000, 1) }) : '—'
   return <section className="elec-board" aria-labelledby={`elec-board-${board}`}>
     <h3 id={`elec-board-${board}`}>{t(`electrical.board.${board}`)}</h3>
@@ -141,7 +141,7 @@ function BoardCard({ board }: { board: BoardId }) {
       <thead><tr><th scope="col">{t('electrical.board.tag')}</th><th scope="col">{t('electrical.board.device')}</th><th scope="col">{t('electrical.board.breaker')}</th><th scope="col">{t('electrical.board.modules')}</th></tr></thead>
       <tbody>{devices.map(item => <tr key={item.id}><th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{deviceNames[item.id]}</td><td>{protection(item, t)}</td><td>{item.modules}</td></tr>)}</tbody>
     </table>
-    <table className="gen-table gen-table-plain">
+    {circuits.length > 0 && <table className="gen-table gen-table-plain">
       <thead><tr>
         <th scope="col">{t('electrical.board.tag')}</th><th scope="col">{t('electrical.board.circuit')}</th><th scope="col">{t('electrical.board.phase')}</th><th scope="col">{t('electrical.board.breaker')}</th>
         <th scope="col">{t('electrical.board.cable')}</th><th scope="col">{t('electrical.board.load')}</th><th scope="col">{t('electrical.board.modules')}</th>
@@ -149,8 +149,8 @@ function BoardCard({ board }: { board: BoardId }) {
       <tbody>{circuits.map(item => <tr key={item.id}>
         <th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{names[item.id]}</td><td><PhaseChips phases={item.phases} /></td><td>{item.modules}P {item.ratingA} A · C</td><td>{formatNumber(item.cableMm2, item.cableMm2 % 1 ? 1 : 0)} mm²</td><td>{load(item)}</td><td>{item.modules}</td>
       </tr>)}</tbody>
-    </table>
-    <p className="elec-total"><strong>{t('electrical.board.total')}: {modules}</strong>{withSurge > modules && <> · {t('electrical.board.withSurge', { count: withSurge })}</>} · {t('electrical.board.fit', { box: boxModules(board), free: boxModules(board) - modules })}</p>
+    </table>}
+    <p className="elec-total"><strong>{t('electrical.board.total')}: {modules}</strong> · {t('electrical.board.fit', { box: boxModules(board), free: boxModules(board) - modules })}</p>
   </section>
 }
 
@@ -211,7 +211,7 @@ export function ElectricalExplorer() {
   const notes = [
     t('electrical.notes.earth'), t('electrical.notes.feeder', { phase: PHASE_NAME[pantryBusiest], amps: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest]), factor: formatNumber(SIMULTANEITY, 1) }), 
     t('electrical.notes.inverterLimit', { limit: INVERTER_MAX_OUTPUT_A, phase: PHASE_NAME[busiest], amps: formatNumber(phaseCurrentA(onUps)[busiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(onUps)[busiest]), factor: formatNumber(SIMULTANEITY, 1) }),
-    t('electrical.notes.noUps'), t('electrical.notes.strings', { volts: PV_SYSTEM.inverter.mppt.maxInputV }), t('electrical.notes.comb'), t('electrical.notes.surge', { total: boardModules('garage', true), box: boxModules('garage') }), t('electrical.notes.feederOrigin'),
+    t('electrical.notes.noUps'), t('electrical.notes.strings', { volts: PV_SYSTEM.inverter.mppt.maxInputV }), t('electrical.notes.comb'), t('electrical.notes.surge'), t('electrical.notes.feederOrigin'),
   ]
   return <div className="elec-workspace">
     <article className="gen-details elec-sheet" aria-labelledby="elec-title">
@@ -234,7 +234,7 @@ export function ElectricalExplorer() {
         </ul>
         <p className="array-note">{t('electrical.selectorNote')}</p>
       </section>
-      <div className="elec-boards"><BoardCard board="garage" /><BoardCard board="pantry" /></div>
+      <div className="elec-boards"><BoardCard board="garage" /><BoardCard board="surge" /><BoardCard board="pantry" /></div>
       <MainBoardCard />
       <PhaseBalance />
       <section className="elec-notes" aria-labelledby="elec-notes-title">
