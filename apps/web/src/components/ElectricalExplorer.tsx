@@ -238,8 +238,8 @@ export function ElectricalExplorer() {
         </ul>
         <p className="array-note">{t('electrical.selectorNote')}</p>
       </section>
-      <div className="elec-boards"><BoardCard board="solar" /><BoardCard board="pa" /><BoardCard board="pantry" /></div>
       <MainBoardCard />
+      <div className="elec-boards"><BoardCard board="solar" /><BoardCard board="pa" /><BoardCard board="pantry" /></div>
       <PhaseBalance />
       <section className="elec-notes" aria-labelledby="elec-notes-title">
         <h3 id="elec-notes-title">{t('electrical.notes.title')}</h3>
