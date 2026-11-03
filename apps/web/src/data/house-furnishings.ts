@@ -262,10 +262,10 @@ function groundFloor(): Furnishing[] {
     { id: 'chest-freezer', ...CHEST_FREEZER_BOX, color: '#f6f7f7', roughness: .3, solid: true, model: '/models/house/chest-freezer.glb' },
     { id: 'tool-cabinet', ...TOOL_CABINET_BOX, color: '#1c1d20', roughness: .65, solid: true, model: '/models/house/tool-cabinet.glb' },
     // The inverter is a Blender model (its 60 mm of connectors hang under the box, which is the body); the TSPA stays boxes.
-    { id: 'garage-inverter', u: INVERTER_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + INVERTER.depth], y: [INVERTER.bottom - .06, INVERTER.bottom + INVERTER.height], color: '#f1f2f3', roughness: .42, solid: false, model: '/models/house/inverter.glb' },
-    { id: 'tspa', u: BOARD_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + BOARD.depth], y: [BOARD.bottom, BOARD.bottom + BOARD.height], color: '#ececec', roughness: .4, solid: false, model: '/models/house/board.glb' },
+    { id: 'garage-inverter', u: INVERTER_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + INVERTER.depth], y: [INVERTER.bottom - .06, INVERTER.bottom + INVERTER.height], color: '#f1f2f3', roughness: .42, solid: false, hung: true, model: '/models/house/inverter.glb' },
+    { id: 'tspa', u: BOARD_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + BOARD.depth], y: [BOARD.bottom, BOARD.bottom + BOARD.height], color: '#ececec', roughness: .4, solid: false, hung: true, model: '/models/house/board.glb' },
     // The pantry's board, the TSPB: the same unit as the TSPA, on the other face of the wall they share, at the same height.
-    { id: 'tspb', ...PANTRY_BOARD_BOX, color: '#ececec', roughness: .4, solid: false, model: '/models/house/board.glb' },
+    { id: 'tspb', ...PANTRY_BOARD_BOX, color: '#ececec', roughness: .4, solid: false, hung: true, model: '/models/house/board.glb' },
     ...GARAGE_EQUIPMENT.filter(box => !box.id.startsWith('inverter') && !box.id.startsWith('board')).map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
     ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })),
     // The network rack on the pantry's wall, at head height: a visitor does not walk into it.

@@ -6,14 +6,15 @@ import { GROUND_GARAGE } from './house-plan.ts'
  * toward lower u, and the back wall is on the left.
  *
  * The inverter's sizes are the model's, 0.386 m wide, 0.66 m high and 0.25 m deep (the makers' figures; 35.2 kg). The board is the surface-mounted, three-row unit of the owner's photo, white with a smoked
- * black door: 0.45 m by 0.55 m and 0.12 m deep, and its 0.10 m from the back wall are assumed (the pantry's board, the TSPB, is the same unit and stands the same 0.10 m from the other face of that wall).
- * The inverter hangs 0.8 m off the floor and the board 0.9 m, the same height as the TSPB: above the pantry's chest freezer, which is 0.85 m, and with its top, at 1.45 m, still under the 1.5 m cut (all assumed).
+ * black door: 0.45 m by 0.55 m and 0.12 m deep, and its 0.25 m from the back wall are assumed (the pantry's board, the TSPB, is the same unit, 0.10 m from the other face of that wall).
+ * The inverter hangs 0.9 m off the floor and the board 1.0 m, the same height as the TSPB's: above the pantry's chest freezer, which is 0.85 m (all assumed). Their tops are over the cutaway's 1.5 m cut, but they hang
+ * on the wall, so the cutaway draws them whole, as it does a TV.
  * House frame [u, v], heights above the ground-floor level.
  */
 export type EquipmentBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; metalness?: number }
 
-export const INVERTER = { width: .386, height: .66, depth: .25, fromBackWall: 1, bottom: .8 }
-export const BOARD = { width: .45, height: .55, depth: .12, gap: .1, fromBackWall: .1, bottom: .9 }
+export const INVERTER = { width: .386, height: .66, depth: .25, fromBackWall: 1, bottom: .9 }
+export const BOARD = { width: .45, height: .55, depth: .12, gap: .1, fromBackWall: .25, bottom: 1 }
 
 const backFace = GROUND_GARAGE.u[1]
 const wall = GROUND_GARAGE.v[0]

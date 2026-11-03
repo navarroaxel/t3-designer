@@ -15,19 +15,19 @@ test('the inverter hangs on the garage\'s south-west wall, 1 m from the back wal
   near(INVERTER_U[1] - INVERTER_U[0], INVERTER.width)
   near(box('inverter').v[1] - box('inverter').v[0], INVERTER.depth)
   near(box('inverter').y[1] - box('inverter').y[0], INVERTER.height)
-  // It hangs off the floor and shows whole under the 1.5 m cut.
-  assert.ok(box('inverter').y[0] > .5 && box('inverter').y[1] < 1.5)
+  // It hangs off the floor, starts under the cutaway's 1.5 m cut and, hung on the wall, is drawn whole.
+  assert.ok(box('inverter').y[0] > .5 && box('inverter').y[0] < 1.5)
 })
 
-test('the TSPA is between the inverter and the garage\'s back wall, 0.10 m from the wall, on the same wall as the inverter', () => {
+test('the TSPA is between the inverter and the garage\'s back wall, 0.25 m from the wall, on the same wall as the inverter', () => {
   // Facing the south-west wall the left hand is toward higher u: the back wall the pantry is behind.
   assert.ok(BOARD_U[0] >= INVERTER_U[1] + 1e-9, 'on the back wall\'s side of the inverter')
   near(GROUND_GARAGE.u[1] - BOARD_U[1], BOARD.fromBackWall)
   near(INVERTER_U[0] - INVERTER_RIGHT_SPOT_U[1], BOARD.gap)
   near(box('board').v[0], GROUND_GARAGE.v[0])
   near(BOARD_U[1] - BOARD_U[0], BOARD.width)
-  assert.ok(box('board').y[1] < 1.5 && box('board-door').v[1] > box('board').v[1], 'the door is on the board\'s front')
-  near(box('board').y[0], .9)
+  assert.ok(box('board').y[0] < 1.5 && box('board-door').v[1] > box('board').v[1], 'the door is on the board\'s front')
+  near(box('board').y[0], 1)
   assert.match(box('board-door').color, /^#[01]/, 'smoked black')
 })
 
