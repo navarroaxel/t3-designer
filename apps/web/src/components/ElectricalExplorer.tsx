@@ -21,34 +21,36 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
   const node = (key: keyof typeof nodes) => nodes[key]
   const nodes = t('electrical.node', { returnObjects: true })
   const square = (x: number, y: number) => <rect className="elec-device" x={x} y={y} width={22} height={22} rx={3} />
-  const text = (x: number, y: number, label: string, className = 'elec-label', anchor: 'start' | 'middle' = 'middle') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
+  const text = (x: number, y: number, label: string, className = 'elec-label', anchor: 'start' | 'middle' | 'end' = 'middle') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
   const count = (board: 'pa' | 'pantry') => t('electrical.node.count', { circuits: circuits[board].circuits, modules: circuits[board].modules })
   return <svg className="elec-diagram" viewBox="0 0 1000 600" role="img" aria-label={t('electrical.diagramAria')}>
-    {/* Wires first, so the boxes and devices sit over them. DC is the warm line, AC the green one. */}
-    <g className="elec-wire elec-wire-dc"><path d="M150 53H330M150 123H330M530 82H640" /></g>
-    <g className="elec-wire elec-wire-ac"><path d="M120 290H160M280 290H560M400 170V290M500 170V205H615V240M670 290H752M700 290V490H752M530 140H800V240M800 140H990V520H970" /></g>
-    <circle className="elec-dot" cx={400} cy={290} r={4} /><circle className="elec-dot" cx={700} cy={290} r={4} />
+    {/* Wires first, so the boxes and devices sit over them. DC is the warm line, AC the green one. The dashed frame is the TSINV: what is inside it is in that board. */}
+    <g className="elec-wire elec-wire-dc"><path d="M150 53H660M150 123H660M860 62H880" /></g>
+    <g className="elec-wire elec-wire-ac"><path d="M120 290H160M280 290H500M440 290V195H720V170M780 170V215H555V240M610 290H752M700 290V490H752M860 140H990V520H970M880 140V240" /></g>
+    <circle className="elec-dot" cx={440} cy={290} r={4} /><circle className="elec-dot" cx={700} cy={290} r={4} /><circle className="elec-dot" cx={880} cy={140} r={4} />
+    <rect className="elec-frame" x={300} y={15} width={330} height={375} rx={10} />
+    {text(315, 368, node('tsinv'), 'elec-title', 'start')}{text(315, 382, node('tsinvSub'), 'elec-sub', 'start')}
 
     {[['string1', 30], ['string2', 100]].map(([key, y]) => <g key={key}>
       <rect className="elec-node" x={20} y={y as number} width={130} height={46} rx={6} />
       {text(85, (y as number) + 21, node(key as 'string1'), 'elec-title')}{text(85, (y as number) + 36, node('panels'), 'elec-sub')}
     </g>)}
-    {[41, 111].map(y => <g key={y}>{square(190, y)}{text(201, y - 6, `${node('dcBreaker')} ${device('string-dc-1').ratingA} A`, 'elec-sub')}</g>)}
+    {[41, 111].map(y => <g key={y}>{square(325, y)}{text(336, y - 6, `${node('dcBreaker')} ${device('string-dc-1').ratingA} A`, 'elec-sub', 'start')}</g>)}
 
-    <rect className="elec-node" x={330} y={20} width={200} height={150} rx={8} />
-    {text(555, 199, node('ups'), 'elec-sub')}{text(895, 132, node('noUps'), 'elec-sub')}
-    {text(430, 62, node('inverter'), 'elec-title')}{text(430, 80, node('inverterSub'), 'elec-sub')}{text(430, 98, INVERTER_MODEL, 'elec-sub')}
-    <rect className="elec-node" x={640} y={50} width={140} height={64} rx={6} />
-    {text(710, 76, node('battery'), 'elec-title')}{text(710, 92, node('batterySub'), 'elec-sub')}{text(710, 106, node('batteryItm'), 'elec-sub')}
+    <rect className="elec-node" x={660} y={20} width={200} height={150} rx={8} />
+    {text(790, 205, node('ups'), 'elec-sub', 'start')}{text(870, 111, node('noUps').split(': ')[0] + ':', 'elec-sub', 'start')}{text(870, 126, node('noUps').split(': ').slice(1).join(': '), 'elec-sub', 'start')}
+    {text(760, 62, node('inverter'), 'elec-title')}{text(760, 80, node('inverterSub'), 'elec-sub')}{text(760, 98, INVERTER_MODEL, 'elec-sub')}
+    <rect className="elec-node" x={880} y={30} width={110} height={64} rx={6} />
+    {text(935, 56, node('battery'), 'elec-title')}{text(935, 72, node('batterySub'), 'elec-sub')}{text(935, 86, node('batteryItm'), 'elec-sub')}
 
     <rect className="elec-node" x={20} y={258} width={100} height={64} rx={6} />
     {text(70, 286, node('grid'), 'elec-title')}{text(70, 303, node('gridSub'), 'elec-sub')}
     <rect className="elec-node elec-node-board" x={160} y={250} width={120} height={80} rx={8} />
     {text(220, 284, node('mainBoard'), 'elec-title')}{text(220, 302, node('mainBoardSub'), 'elec-sub')}{text(220, 317, node('mainBoardItm'), 'elec-sub')}
-    {square(389, 215)}{text(417, 230, `${node('inverterBreaker')} ${device('inverter-ac').ratingA} A`, 'elec-sub', 'start')}
+    {square(429, 225)}{text(423, 240, `${node('inverterBreaker')} ${device('inverter-ac').ratingA} A`, 'elec-sub', 'end')}
 
-    <rect className="elec-node" x={560} y={240} width={110} height={100} rx={6} />
-    {text(615, 284, node('selector'), 'elec-title')}{text(615, 302, node('selectorPositions'), 'elec-sub')}
+    <rect className="elec-node" x={500} y={240} width={110} height={100} rx={6} />
+    {text(555, 284, node('selector'), 'elec-title')}{text(555, 302, node('selectorPositions'), 'elec-sub')}
     {text(712, 430, node('feeder'), 'elec-sub', 'start')}{text(712, 444, `${FEEDER.cableMm2} mm² · ${FEEDER.conductors}`, 'elec-sub', 'start')}
 
     <rect className="elec-node elec-node-board" x={740} y={240} width={230} height={130} rx={8} />

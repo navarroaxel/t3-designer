@@ -12,6 +12,7 @@
 .elec-scroll { overflow-x: auto; }
 .elec-diagram { display: block; width: 100%; min-width: 760px; height: auto; }
 .elec-node { fill: var(--gen-card); stroke: var(--gen-axis); stroke-width: 1.2; }
+.elec-frame { fill: none; stroke: var(--gen-typical); stroke-width: 1.6; stroke-dasharray: 7 5; }
 .elec-node-board { stroke-width: 2; stroke: var(--gen-typical); }
 .elec-device { fill: var(--gen-bar); stroke: var(--gen-typical); stroke-width: 1.5; }
 /* The pantry's devices are outlined, the garage's filled. */
