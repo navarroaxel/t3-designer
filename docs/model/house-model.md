@@ -129,7 +129,7 @@ The ground floor's living has a **gas fireplace** (owner's photo) against the pa
 
 ## The garage's solar equipment
 
-On the garage's south-west wall hangs the **three-phase 10 kW Deye hybrid inverter**, model SUN-10K-SG05LP3-EU-SM2 ([datasheet](inverter-datasheet.md)), its nearer edge 1 m from the garage's back wall, the one the pantry is behind, and to its right, seen facing the wall, the **electrical board** (owner's photos; `apps/web/src/data/garage-equipment.ts`). The inverter's sizes are the model's: 0.386 m wide, 0.66 m high and 0.25 m deep. The board is a surface-mounted, three-row unit, white with a smoked black door, drawn 0.45 m by 0.55 m and 0.12 m deep with 0.10 m from the inverter (assumed). Both hang 0.8 m off the floor, assumed, so they show whole under the cut.
+On the garage's south-west wall hangs the **three-phase 10 kW Deye hybrid inverter**, model SUN-10K-SG05LP3-EU-SM2 ([datasheet](inverter-datasheet.md)), its nearer edge 1 m from the garage's back wall, the one the pantry is behind, and between it and that wall the **TSPA**, the upper floor's board (owner's photos; `apps/web/src/data/garage-equipment.ts`). The inverter's sizes are the model's: 0.386 m wide, 0.66 m high and 0.25 m deep. The board is a surface-mounted, three-row unit, white with a smoked black door, drawn 0.45 m by 0.55 m and 0.12 m deep, 0.10 m from the back wall (assumed). The inverter hangs 0.8 m off the floor and the board 0.9 m, assumed, so they show whole under the cut. The pantry's board, the TSPB, is the same unit on the other face of that wall, 0.10 m from it and at the same height (`pantry-board.ts`).
 
 ## The azotea's water heater
 

@@ -1,8 +1,10 @@
 import { GROUND_PANTRY } from './house-plan.ts'
+import { PANTRY_BOARD_BOX } from './pantry-board.ts'
 
 /**
  * The network rack in the pantry beside the garage (owner): a wall-mounted 6U rack, high on the south-west party wall, the medianera, with a
- * UniFi Dream Machine Pro and a 24-port patch panel. House frame [u, v], absolute heights; the rack stands out from the wall, toward +v, by its depth, and is as wide as the wall runs along u.
+ * UniFi Dream Machine Pro and a 24-port patch panel. House frame [u, v], absolute heights; the rack stands out from the wall, toward +v, by its depth, and is as wide as the wall runs along u. It is centred on the
+ * pantry's depth, moved a little toward the far wall to leave the TSPB, the pantry's board, between it and the wall shared with the garage.
  * The UDM Pro is a 1U unit, 442 mm wide and 285 mm deep; the 19-inch frame, its 30 cm depth and the 1.55 m bottom are assumed.
  */
 export type RackBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; metalness?: number; emissive?: string }
@@ -12,9 +14,11 @@ export const RACK = { depth: .3, inner: .442, side: .02, units: 6, bottom: 1.55 
 const top = RACK.bottom + RACK.units * UNIT + .02
 /** The medianera's inner face, where the pantry meets the south-west party wall. */
 const wall = GROUND_PANTRY.v[0]
-/** Centred on the pantry's depth, along the wall. */
-const centre = (GROUND_PANTRY.u[0] + GROUND_PANTRY.u[1]) / 2
+/** The air left between the TSPB and the rack's side (assumed). */
+export const RACK_FROM_BOARD = .15
 const half = RACK.inner / 2 + RACK.side
+/** Centred on the pantry's depth, along the wall, unless that leaves the TSPB too close: then it moves toward the pantry's far wall until it clears it. */
+const centre = Math.max((GROUND_PANTRY.u[0] + GROUND_PANTRY.u[1]) / 2, PANTRY_BOARD_BOX.u[1] + RACK_FROM_BOARD + half)
 const front = RACK.depth
 /** A box by its span along the wall (from the rack's centre) and how far it stands out from the wall. */
 const box = (id: string, along: [number, number], out: [number, number], y: [number, number], color: string, extra: { metalness?: number; emissive?: string } = {}): RackBox =>

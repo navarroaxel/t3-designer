@@ -2,22 +2,25 @@ import { GROUND_GARAGE } from './house-plan.ts'
 
 /**
  * The solar equipment on the garage's wall (owner): the three-phase 10 kW Deye hybrid inverter, model SUN-10K-SG05LP3-EU-SM2, hung on the south-west party wall, its nearer edge 1 m
- * from the garage's back wall (the wall the pantry is behind), and to its right, seen facing the wall, the electrical board. Facing that wall
- * the right hand is toward the front of the house, toward lower u.
+ * from the garage's back wall (the wall the pantry is behind), and between it and that wall the TSPA, the upper floor's board. Facing the wall the right hand is toward the front of the house,
+ * toward lower u, and the back wall is on the left.
  *
- * The inverter's sizes are the model's, 0.386 m wide, 0.66 m high and 0.25 m deep (the makers' figures; 35.2 kg). The board is the surface-mounted, three-row unit of the owner's photo, white with a smoked black door: 0.45 m by 0.55 m and 0.12 m
- * deep, and its 0.10 m gap from the inverter are assumed. Both hang 0.8 m off the floor (assumed) so they show whole under the 1.5 m cut.
+ * The inverter's sizes are the model's, 0.386 m wide, 0.66 m high and 0.25 m deep (the makers' figures; 35.2 kg). The board is the surface-mounted, three-row unit of the owner's photo, white with a smoked
+ * black door: 0.45 m by 0.55 m and 0.12 m deep, and its 0.10 m from the back wall are assumed (the pantry's board, the TSPB, is the same unit and stands the same 0.10 m from the other face of that wall).
+ * The inverter hangs 0.8 m off the floor and the board 0.9 m, the same height as the TSPB: above the pantry's chest freezer, which is 0.85 m, and with its top, at 1.45 m, still under the 1.5 m cut (all assumed).
  * House frame [u, v], heights above the ground-floor level.
  */
 export type EquipmentBox = { id: string; u: [number, number]; v: [number, number]; y: [number, number]; color: string; metalness?: number }
 
 export const INVERTER = { width: .386, height: .66, depth: .25, fromBackWall: 1, bottom: .8 }
-export const BOARD = { width: .45, height: .55, depth: .12, gap: .1, bottom: .8 }
+export const BOARD = { width: .45, height: .55, depth: .12, gap: .1, fromBackWall: .1, bottom: .9 }
 
 const backFace = GROUND_GARAGE.u[1]
 const wall = GROUND_GARAGE.v[0]
 export const INVERTER_U: [number, number] = [backFace - INVERTER.fromBackWall - INVERTER.width, backFace - INVERTER.fromBackWall]
-export const BOARD_U: [number, number] = [INVERTER_U[0] - BOARD.gap - BOARD.width, INVERTER_U[0] - BOARD.gap]
+export const BOARD_U: [number, number] = [backFace - BOARD.fromBackWall - BOARD.width, backFace - BOARD.fromBackWall]
+/** Where the board stood before it moved to the back wall: to the inverter's right, 0.10 m from it. The tool cabinet kept its place there, and the spot is free. */
+export const INVERTER_RIGHT_SPOT_U: [number, number] = [INVERTER_U[0] - BOARD.gap - BOARD.width, INVERTER_U[0] - BOARD.gap]
 const ibottom = INVERTER.bottom, itop = INVERTER.bottom + INVERTER.height
 const bbottom = BOARD.bottom, btop = BOARD.bottom + BOARD.height
 const inverterMiddleU = (INVERTER_U[0] + INVERTER_U[1]) / 2

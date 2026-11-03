@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { GROUND_GARAGE, GROUND_PARTITIONS } from '../src/data/house-plan.ts'
-import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from '../src/data/garage-equipment.ts'
+import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_RIGHT_SPOT_U, INVERTER_U } from '../src/data/garage-equipment.ts'
 
 const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`)
 const box = (id: string) => GARAGE_EQUIPMENT.find(item => item.id === id)!
@@ -19,13 +19,15 @@ test('the inverter hangs on the garage\'s south-west wall, 1 m from the back wal
   assert.ok(box('inverter').y[0] > .5 && box('inverter').y[1] < 1.5)
 })
 
-test('the electrical board is to the inverter\'s right, facing the wall: toward the front, lower u, on the same wall', () => {
-  // Facing the south-west wall the right hand is toward lower u (the front of the house).
-  assert.ok(BOARD_U[1] <= INVERTER_U[0] + 1e-9)
-  near(INVERTER_U[0] - BOARD_U[1], BOARD.gap)
+test('the TSPA is between the inverter and the garage\'s back wall, 0.10 m from the wall, on the same wall as the inverter', () => {
+  // Facing the south-west wall the left hand is toward higher u: the back wall the pantry is behind.
+  assert.ok(BOARD_U[0] >= INVERTER_U[1] + 1e-9, 'on the back wall\'s side of the inverter')
+  near(GROUND_GARAGE.u[1] - BOARD_U[1], BOARD.fromBackWall)
+  near(INVERTER_U[0] - INVERTER_RIGHT_SPOT_U[1], BOARD.gap)
   near(box('board').v[0], GROUND_GARAGE.v[0])
   near(BOARD_U[1] - BOARD_U[0], BOARD.width)
   assert.ok(box('board').y[1] < 1.5 && box('board-door').v[1] > box('board').v[1], 'the door is on the board\'s front')
+  near(box('board').y[0], .9)
   assert.match(box('board-door').color, /^#[01]/, 'smoked black')
 })
 

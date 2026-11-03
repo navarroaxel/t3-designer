@@ -83,7 +83,7 @@ partition, 0.40 m (`FREEZER` in `kitchen.ts`).
 
 - The ground floor's way out to the light well, the pulmón, is a white aluminium **sliding door** of two leaves (1.8 m, owner), like the first floor's: one fixed, one that slides over it, opened with `E`. The
   patio is a room of its own, with a wall at the lot behind; it is open to the sky.
-- The pantry beside the garage has a wall-mounted 6U **network rack** (`rack.ts`), high on the south-west party wall, the medianera: a UniFi Dream Machine Pro and a 24-port patch panel, with
+- The pantry beside the garage has a wall-mounted 6U **network rack** (`rack.ts`), high on the south-west party wall, the medianera, moved a little toward the far wall to leave room for the TSPB, the pantry's board, on its right between it and the wall shared with the garage (`pantry-board.ts`): a UniFi Dream Machine Pro and a 24-port patch panel, with
   blank panels below. It is above the floor cutaway's 1.5 m cut, so only the walkthrough shows it.
 
 ## The azotea
@@ -156,5 +156,5 @@ gland, four DC connectors and three glands underneath) and the surface-mounted b
 - The office's standing desk (`desk_recipe.py`) is 1.40 by 0.70 m against the south-west wall, opposite the north-east party wall (owner), its sitter facing the room; size and place are assumed.
 - The pantry's rack is a black cabinet with a smoked-glass door and the units behind it (`rack_recipe.py`); the boxes in `rack.ts` keep the units' sizes.
 - The living's gas fireplace (`fireplace_recipe.py`, from the owner's picture) has its black base, grey bands, open firebox with a zig-zag grate and ceramic logs, the black upper box and a cedar top.
-- The garage's tool cabinet set (`tool_cabinet_recipe.py`, from the owner's pictures; 2.70 by 0.472 by 1.92 m, owner's figures) stands against the south-west wall, to the right of the electrical board (toward the front of the house), 10 cm from it (assumed).
+- The garage's tool cabinet set (`tool_cabinet_recipe.py`, from the owner's pictures; 2.70 by 0.472 by 1.92 m, owner's figures) stands against the south-west wall, to the right of the inverter (toward the front of the house), where the electrical board used to stand (10 cm from it, assumed); the board has moved to the back wall, between the inverter and the pantry's wall, and the cabinet has kept its place.
 - The pantry's chest freezer (`chest_freezer_recipe.py`, from the owner's picture) stands against the medianera at the end nearest the garage, under the rack; its size (0.56 by 0.58 by 0.85 m) and place are assumed.
