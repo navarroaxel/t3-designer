@@ -15,7 +15,7 @@ function PhaseChips({ phases }: { phases: readonly Phase[] }) {
   return <span className="elec-phases">{phases.map(phase => <span key={phase} className={`elec-phase elec-${phase.toLowerCase()}`}>{PHASE_NAME[phase]}</span>)}</span>
 }
 
-/** The way the power goes, on one line: the strings to the inverter, the grid and the inverter's output to the selector, and the garage board's feeder to the pantry's. The small squares are devices, filled when they are in the garage board. */
+/** The way the power goes, on one line: the strings to the inverter, the grid and the inverter's output to the changeover switch, and the garage board's feeder to the pantry's. The small squares are devices, filled when they are in the garage board. */
 function SupplyDiagram({ circuits }: { circuits: Record<BoardId, { circuits: number; modules: number }> }) {
   const { t } = useTranslation('workspace')
   const node = (key: keyof typeof nodes) => nodes[key]
@@ -71,7 +71,7 @@ const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--ele
 
 /**
  * One device of a board's row drawn as it looks on the rail, to read the board at a glance: the white body with its terminals above and below, the black lever (one bar across the poles of a
- * bipolar or a four-pole), and a stripe of the phase's colour. A residual-current device is grey with a blue lever, a test button and the N marking; the selector has a knob; a string's fuse, a cylinder. The
+ * bipolar or a four-pole), and a stripe of the phase's colour. A residual-current device is grey with a blue lever, a test button and the N marking; the changeover switch has a knob; a string's fuse, a cylinder. The
  * body keeps the real colours of the equipment in both themes, like the scene's materials do.
  */
 function ModuleIcon({ x, id, modules, phase, rating, tag, name }: { x: number; id: string; modules: number; phase?: Phase; rating: string; tag: string; name: string }) {
@@ -155,7 +155,7 @@ function BoardCard({ board }: { board: BoardId }) {
   </section>
 }
 
-/** The main board: the meter's drop, a single breaker; the selector and the inverter's grid input hang from it. */
+/** The main board: the meter's drop, a single breaker; the changeover switch and the inverter's grid input hang from it. */
 function MainBoardCard() {
   const { t } = useTranslation('workspace')
   const deviceNames = t('electrical.device', { returnObjects: true }) as Record<string, string>

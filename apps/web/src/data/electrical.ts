@@ -2,7 +2,7 @@ import { PV_SYSTEM } from './pv-system.ts'
 
 /**
  * The house's electrical design: two boards, the garage's (the solar equipment and the upper floor) and the pantry's (the ground floor), on a three-phase supply behind the Deye hybrid
- * inverter. This is the owner's plan, not what is built: which circuits there are, which board each is on, the supply's order (the three-position selector that can leave the inverter out) and the
+ * inverter. This is the owner's plan, not what is built: which circuits there are, which board each is on, the supply's order (the three-position changeover switch that can leave the inverter out) and the
  * three-phase sauna are the owner's; the phase of each circuit, the ratings and the cable sizes are proposals (`assumed`) for the electrician to confirm. The reasons are in docs/model/electrical.md.
  */
 export type Phase = 'L1' | 'L2' | 'L3'
@@ -18,7 +18,7 @@ export type Circuit = {
   phases: readonly Phase[]; ratingA: number; cableMm2: number; modules: number; loadW?: number
   /** The current the maker states, amps on each phase, where there is one; the current checks use it, not `loadW` over the voltage, which leaves out the power factor. */
   currentA?: number
-  /** True where the circuit hangs from the inverter's output without UPS, not from the one with UPS that the selector takes: the water heater and the sauna heater do. */
+  /** True where the circuit hangs from the inverter's output without UPS, not from the one with UPS that the changeover switch takes: the water heater and the sauna heater do. */
   noUps?: true
 }
 
@@ -64,7 +64,7 @@ export const CIRCUITS: readonly Circuit[] = [
 export type Device = { id: string; board: BoardId; poles: number; modules: number; ratingA: number | null; optional?: true }
 
 export const DEVICES: readonly Device[] = [
-  /** The garage board's general breaker, for PA only: it is after the selector, and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
+  /** The garage board's general breaker, for PA only: it is after the changeover switch, and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
   { id: 'main', board: 'garage', poles: 4, modules: 4, ratingA: 40 },
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
   { id: 'selector', board: 'garage', poles: 4, modules: 4, ratingA: null },
@@ -84,7 +84,7 @@ export const DEVICES: readonly Device[] = [
 ]
 
 /**
- * The main board, the meter's drop (the owner's): a six-module box with a single four-pole breaker, from which the selector and the inverter's grid input are fed. It is not one of the two boards with rows: its rating follows
+ * The main board, the meter's drop (the owner's): a six-module box with a single four-pole breaker, from which the changeover switch and the inverter's grid input are fed. It is not one of the two boards with rows: its rating follows
  * the supply, and what it protects first is the cable to the garage, so it is 32 A or less while the pantry's feeder, which has no breaker of its own at its origin, hangs from that cable.
  */
 export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null as number | null, boxModules: 6 }
@@ -94,7 +94,7 @@ export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null
  * outlet circuits (the standard's); the rest are the usual short forms.
  */
 export const TAGS: Readonly<Record<string, string>> = {
-  'meter-itm': 'ITM', main: 'TMPA', selector: 'SEL', 'inverter-ac': 'INV', 'string-fuse-1': 'F1', 'string-fuse-2': 'F2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
+  'meter-itm': 'ITM', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-fuse-1': 'F1', 'string-fuse-2': 'F2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
   feeder: 'TMPB', 'surge-dc': 'SPD DC', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
@@ -104,7 +104,7 @@ export const TAGS: Readonly<Record<string, string>> = {
 /**
  * The boxes and what goes in which row, left to right, as the installer sets them. Both boxes are the owner's 48-module Genrod; that it is three rows of sixteen follows from the owner's photo
  * of it (three rows) and is assumed. The garage's last row has the solar circuit (the owner's choice): the inverter's breaker and the strings' fuses (the battery comes with a 100 A breaker of its own), and with them the supply's main
- * breaker and the selector, because the other two rows are full with their groups; the first two rows each have their own residual-current device, type A for the lights and the outlets and
+ * breaker and the changeover switch, because the other two rows are full with their groups; the first two rows each have their own residual-current device, type A for the lights and the outlets and
  * type F for what has an inverter (the air conditioners). The water heater and the line to the sauna come from the inverter's output without UPS, under a type A device of their own,
  * in the garage's second row with the air conditioners. The optional surge arresters are not in the rows: with them the garage's
  * board needs more than its 48 modules, so they go in a small box of their own. The ids are those of `CIRCUITS` and `DEVICES`.
@@ -166,7 +166,7 @@ export const phaseDemandA = (circuits: readonly Circuit[] = CIRCUITS): Record<Ph
   return { L1: current.L1 * SIMULTANEITY, L2: current.L2 * SIMULTANEITY, L3: current.L3 * SIMULTANEITY }
 }
 export const INVERTER_MAX_OUTPUT_A = 16
-/** The circuits that hang from the inverter's UPS output when the selector is on Inverter: all but the water heater and the sauna heater, which are on its output without UPS (the owner's choice). */
+/** The circuits that hang from the inverter's UPS output when the changeover switch is on Inverter: all but the water heater and the sauna heater, which are on its output without UPS (the owner's choice). */
 export const onUpsOutput = (): readonly Circuit[] => CIRCUITS.filter(item => !item.noUps)
 
 /** The model's inverter, so the diagram names the one that the generation page does. */

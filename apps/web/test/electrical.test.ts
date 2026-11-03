@@ -84,7 +84,7 @@ test('the water heater has the 20 A its maker asks for, on the 4 mm² cable that
   assert.equal(heater.loadW, 3000)
 })
 
-test('the selector is a four-pole switch of four modules, 72 mm wide', () => {
+test('the changeover switch is a four-pole switch of four modules, 72 mm wide', () => {
   const selector = DEVICES.find(item => item.id === 'selector')
   assert.equal(selector?.poles, 4)
   assert.equal(selector?.modules, 72 / 18)
@@ -143,7 +143,7 @@ test('the output without UPS has a type A device of its own, in the row of the w
   assert.ok(!BOXES.pantry.rows.some(item => item.includes('ground-sauna') && item.includes('rcd-pantry-2')))
 })
 
-test('the garage\'s general breaker is the upper floor\'s: four-pole, after the selector, and no larger than the residual-current devices it feeds', () => {
+test('the garage\'s general breaker is the upper floor\'s: four-pole, after the changeover switch, and no larger than the residual-current devices it feeds', () => {
   const main = DEVICES.find(item => item.id === 'main')
   assert.equal(main?.poles, 4)
   assert.ok(main?.ratingA && main.ratingA <= Math.min(...DEVICES.filter(item => item.id.startsWith('rcd-garage')).map(item => item.ratingA ?? 0)))
@@ -167,7 +167,7 @@ test('each residual-current device is in the row of the circuits it protects', (
   assert.ok(BOXES.pantry.rows[1].includes('rcd-pantry-2') && BOXES.pantry.rows[1].includes('ground-ac-office'))
 })
 
-test('each string has its own fuse, in the garage board with the selector', () => {
+test('each string has its own fuse, in the garage board with the changeover switch', () => {
   for (const id of ['string-fuse-1', 'string-fuse-2', 'selector']) assert.equal(DEVICES.find(item => item.id === id)?.board, 'garage', id)
   assert.equal(boardDevices('pantry').length, 3, 'the pantry\'s board has its main breaker, two residual-current devices, type A and type F, and the circuits')
 })
