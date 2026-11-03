@@ -371,7 +371,7 @@ const workspace = {
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', panels: 'Paneles · DC',
       inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 BAT', batterySub: 'baja tensión', batteryItm: 'ITM DC 100 A',
-      inverterBreaker: '☀️ INV', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'CON', selectorPositions: 'Grid/Inverter',
+      inverterBreaker: '☀️ INV', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
       tsinv: 'TSINV', tsinvSub: 'Tablero solar', pa: 'TSPA', paSub: 'PA', pantry: 'TSPB', pantrySub: 'PB',
       count: '{{circuits}} circuitos · {{modules}} módulos', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
     },
