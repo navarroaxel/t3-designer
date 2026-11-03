@@ -349,14 +349,14 @@ const workspace = {
     selectorNote: 'In the Grid position the house runs straight from the grid, with no inverter; in Inverter it hangs from the inverter\'s output; in 0 it has no power. The two are never connected at once.',
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', dcBreaker: '☀️ DC breaker', panels: 'Panels · DC',
-      inverter: '☀️ Hybrid inverter', inverterSub: 'three-phase · 10 kW', battery: '🔋 Battery', batterySub: 'low voltage', batteryItm: 'own 100 A breaker',
+      inverter: '☀️ Hybrid inverter', inverterSub: 'three-phase · 10 kW', battery: '🔋 Battery', batterySub: 'low voltage', batteryItm: 'DC breaker 100 A',
       inverterBreaker: '☀️ AC breaker', grid: 'Grid', gridSub: '3L + N', mainBoard: 'Main board', mainBoardSub: 'meter drop', mainBoardItm: 'breaker + protector', ups: 'with UPS', noUps: 'Output without UPS: water heater and sauna', main: 'Upper-floor main breaker', selector: 'Changeover switch', selectorPositions: 'Grid · 0 · Inverter',
       pa: 'TSPA', paSub: 'Upper floor', pantry: 'TSPB', pantrySub: 'Ground floor',
       count: '{{circuits}} circuits · {{modules}} modules', feeder: 'Feeder', pantryMain: 'Main breaker', earth: 'Earth bar for both floors',
     },
     board: {
       solar: 'TSINV', pa: 'TSPA', pantry: 'TSPB',
-      solarNote: 'It is in the garage, next to the inverter: a new 24-module box of two rows of twelve (rows assumed). The first row has the changeover switch and the inverter\'s AC breaker; the second, the strings\' DC breakers and their DC surge arresters, one per string. The feeder to the pantry leaves the changeover switch, and so does the supply of the TSPA.',
+      solarNote: 'It is in the garage, next to the inverter: a new 24-module box of two rows of twelve (rows assumed). The first row has the changeover switch and the inverter\'s AC breaker; the second, the strings\' DC breakers and their DC surge arresters, one per string, and the battery\'s 100 A DC breaker. The feeder to the pantry leaves the changeover switch, and so does the supply of the TSPA.',
       paNote: 'It is in the garage, the old 48-module Genrod. It takes the upper floor: the residual-current devices, the circuits and, in the first row, the floor\'s main breaker, which hangs from the changeover switch in the TSINV.',
       pantryNote: 'It is in the pantry, where the upper floor\'s conduits come down. It has the ground floor\'s main breaker and feeds it; the UDM and the network\'s PoE supplies are there too. It gathers the earth wires of both floors on one bar.',
       main: 'Main board', mainNote: 'It is the drop from the utility\'s meter, a Genrod of one row of sixteen modules that holds the supply\'s protections: the main breaker, the AC surge arrester and the three-phase voltage protector, which opens when a phase\'s voltage is out of range (a lost neutral shows up as a high voltage on some phase). The changeover switch and the inverter\'s grid input are fed from it. The arrester is next to the earth rod.',
@@ -367,7 +367,7 @@ const workspace = {
     },
     device: {
       main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC breaker, 4P',
-      'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'surge-dc-1': '☀️ DC surge arrester 2P, string 1', 'surge-dc-2': '☀️ DC surge arrester 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
+      'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'battery-dc': '🔋 Battery DC breaker, 2P 100 A (probably outside: thick cable)', 'surge-dc-1': '☀️ DC surge arrester 2P, string 1', 'surge-dc-2': '☀️ DC surge arrester 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
       feeder: 'Pantry main breaker, 4P', 'surge-ac': 'AC surge arrester, 3+1 (4P)',
       'meter-itm': 'Meter-drop breaker, 4P', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-pantry': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioner)',
     },

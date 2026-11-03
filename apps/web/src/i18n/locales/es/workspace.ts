@@ -370,14 +370,14 @@ const workspace = {
     selectorNote: 'En la posición Red la casa va directa a la red, sin pasar por el inversor; en Inversor cuelga de su salida; en 0 queda sin energía. Nunca se conectan las dos a la vez.',
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', dcBreaker: '☀️ Térmica DC', panels: 'Paneles · DC',
-      inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 Batería', batterySub: 'baja tensión', batteryItm: 'ITM 100 A propio',
+      inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 Batería', batterySub: 'baja tensión', batteryItm: 'ITM DC 100 A',
       inverterBreaker: '☀️ Térmica AC', grid: 'Red', gridSub: '3F + N', mainBoard: 'Tablero principal', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'Conmutadora', selectorPositions: 'Red · 0 · Inversor',
       pa: 'TSPA', paSub: 'PA', pantry: 'TSPB', pantrySub: 'PB',
       count: '{{circuits}} circuitos · {{modules}} módulos', feeder: 'Alimentador', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
     },
     board: {
       solar: 'TSINV', pa: 'TSPA', pantry: 'TSPB',
-      solarNote: 'Está en el garage, al lado del inversor: una caja nueva de 24 módulos en dos filas de doce (filas supuestas). La primera fila lleva la conmutadora y la térmica AC del inversor; la segunda, las térmicas DC de los strings y sus descargadores DC, uno por string. El alimentador de la despensa sale de la conmutadora, y también la alimentación del TSPA.',
+      solarNote: 'Está en el garage, al lado del inversor: una caja nueva de 24 módulos en dos filas de doce (filas supuestas). La primera fila lleva la conmutadora y la térmica AC del inversor; la segunda, las térmicas DC de los strings y sus descargadores DC, uno por string, y el ITM DC de 100 A de la batería. El alimentador de la despensa sale de la conmutadora, y también la alimentación del TSPA.',
       paNote: 'Está en el garage, es el Genrod viejo de 48 módulos. Lleva PA: los diferenciales, los circuitos y, en la primera fila, la térmica general de PA, que cuelga de la conmutadora del TSINV.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
       main: 'Tablero principal', mainNote: 'Es la bajada del medidor de la compañía, un Genrod de una fila de dieciséis módulos que junta las protecciones de la red: el ITM general, el descargador AC y el protector de tensión trifásico, que abre cuando la tensión de una fase se sale de rango (un neutro cortado se ve como tensión alta en alguna fase). De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
@@ -388,7 +388,7 @@ const workspace = {
     },
     device: {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica AC del inversor, 4P',
-      'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
+      'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'battery-dc': '🔋 ITM DC de la batería, 2P 100 A (probablemente aparte: cable grueso)', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
       feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
       'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },

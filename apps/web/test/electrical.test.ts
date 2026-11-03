@@ -94,9 +94,9 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
   for (const item of CIRCUITS.filter(item => item.phases.length === 1)) assert.equal(item.modules, 2, item.id)
 })
 
-test('the PA board takes the upper floor in 36 modules, the TSINV 16, the pantry\'s 25', () => {
+test('the PA board takes the upper floor in 36 modules, the TSINV 18, the pantry\'s 25', () => {
   assert.equal(boardModules('pa'), 36, 'ten circuits, three residual-current devices and the floor\'s main breaker')
-  assert.equal(boardModules('solar'), 16, 'the changeover switch, the inverter\'s breaker, two DC breakers and two DC surge arresters')
+  assert.equal(boardModules('solar'), 18, 'the changeover switch, the inverter\'s breaker, two DC breakers, two DC surge arresters and the battery\'s DC breaker')
   assert.equal(boardModules('pantry'), 25)
 })
 
@@ -129,7 +129,7 @@ test('every circuit and device is in exactly one row of its board, and no row is
 test('the TSINV has the changeover switch and the inverter\'s breaker in its first row and the strings\' DC breakers and a DC surge arrester each in its second', () => {
   const [first, second] = BOXES.solar.rows
   for (const id of ['selector', 'inverter-ac']) assert.ok(first.includes(id), id)
-  for (const id of ['string-dc-1', 'string-dc-2', 'surge-dc-1', 'surge-dc-2']) assert.ok(second.includes(id), id)
+  for (const id of ['string-dc-1', 'string-dc-2', 'surge-dc-1', 'surge-dc-2', 'battery-dc']) assert.ok(second.includes(id), id)
 })
 
 test('the water heater and the sauna heater are on the inverter\'s output without UPS; the rest hangs from the one with UPS', () => {
@@ -180,4 +180,12 @@ test('each string has its own two-pole DC breaker, in the TSINV with the changeo
   for (const id of ['string-dc-1', 'string-dc-2', 'selector']) assert.equal(DEVICES.find(item => item.id === id)?.board, 'solar', id)
   for (const id of ['string-dc-1', 'string-dc-2']) assert.equal(DEVICES.find(item => item.id === id)?.poles, 2, id)
   assert.equal(boardDevices('pantry').length, 3, 'the pantry\'s board has its main breaker, two residual-current devices, type A and type F, and the circuits')
+})
+
+test('the battery has its 100 A two-pole DC breaker marked in the TSINV, with the strings\' DC row', () => {
+  const battery = DEVICES.find(item => item.id === 'battery-dc')
+  assert.equal(battery?.board, 'solar')
+  assert.equal(battery?.poles, 2)
+  assert.equal(battery?.ratingA, 100)
+  assert.ok(BOXES.solar.rows[1].includes('battery-dc'))
 })

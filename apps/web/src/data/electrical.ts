@@ -71,6 +71,8 @@ export const DEVICES: readonly Device[] = [
   { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
   { id: 'string-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: 16 },
   { id: 'string-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: 16 },
+  /** The battery's DC breaker, 2P 100 A: in practice it is probably outside the board, because of the thick cable of the battery; it is drawn here to have it marked. */
+  { id: 'battery-dc', board: 'solar', poles: 2, modules: 2, ratingA: 100 },
   { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },
   { id: 'surge-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: null },
   { id: 'rcd-garage', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
@@ -101,7 +103,7 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as con
  * outlet circuits (the standard's); the rest are the usual short forms.
  */
 export const TAGS: Readonly<Record<string, string>> = {
-  'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
+  'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'battery-dc': 'BAT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
   feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
@@ -111,7 +113,7 @@ export const TAGS: Readonly<Record<string, string>> = {
 /**
  * The boxes and what goes in which row, left to right, as the installer sets them. The PA board and the pantry's are the owner's 48-module Genrod; that it is three rows of sixteen follows from the owner's photo
  * of it (three rows) and is assumed. TSINV is a new 24-module box of two rows of twelve (the owner's, the rows assumed) in the garage, next to the inverter: its first row has the changeover switch and the inverter's
- * breaker, its second the strings' DC breakers and their DC surge arresters, one per string (the battery comes with a 100 A breaker of its own). The PA board takes what hangs from the changeover switch for the upper floor: its first row is the floor's main breaker, alone, and the other two
+ * breaker, its second the strings' DC breakers and their DC surge arresters, one per string, and the battery's 100 A DC breaker, which is probably outside in the real installation, because of the thick cable, and is drawn here to have it marked. The PA board takes what hangs from the changeover switch for the upper floor: its first row is the floor's main breaker, alone, and the other two
  * each have their own residual-current device, type A for the lights and the outlets and type F for what has an inverter (the air conditioners); the water heater and the line to the sauna come from the inverter's output without
  * UPS, under a type A device of their own, in the last row with the air conditioners. The ids are those of `CIRCUITS` and `DEVICES`.
  */
@@ -120,7 +122,7 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
     perRow: 12,
     rows: [
       ['selector', 'inverter-ac'],
-      ['string-dc-1', 'string-dc-2', 'surge-dc-1', 'surge-dc-2'],
+      ['string-dc-1', 'string-dc-2', 'surge-dc-1', 'surge-dc-2', 'battery-dc'],
     ],
   },
   pa: {

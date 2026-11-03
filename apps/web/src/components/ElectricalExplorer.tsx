@@ -62,7 +62,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
 
 const protection = (item: Device, t: TFunction<'workspace'>) => {
   if (item.ratingA === null) return t(item.id === 'selector' ? 'electrical.board.bySupply' : 'electrical.board.byManual')
-  return `${item.poles}P ${item.ratingA} A${item.id.startsWith('string-dc') ? ' DC' : ''}`
+  return `${item.poles}P ${item.ratingA} A${/^(string|battery)-dc/.test(item.id) ? ' DC' : ''}`
 }
 
 const MODULE_W = 18, DEVICE_H = 80
@@ -75,7 +75,7 @@ const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--ele
  */
 function ModuleIcon({ x, id, modules, phase, rating, tag, name }: { x: number; id: string; modules: number; phase?: Phase; rating: string; tag: string; name: string }) {
   const w = modules * MODULE_W, cx = x + w / 2
-  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', spd = id.startsWith('surge'), dc = id.startsWith('string-dc')
+  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', spd = id.startsWith('surge'), dc = /^(string|battery)-dc/.test(id)
   const poles = Array.from({ length: modules }, (_, pole) => x + (pole + .5) * MODULE_W)
   const stripe = phase ? PHASE_FILL[phase] : dc ? 'var(--elec-dc)' : rcd ? 'var(--gen-typical)' : '#9aa0a6'
   return <g>
