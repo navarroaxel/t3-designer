@@ -66,7 +66,6 @@ export type Device = { id: string; board: BoardId; poles: number; modules: numbe
 export const DEVICES: readonly Device[] = [
   /** The PA board's general breaker, for PA only: it is after the changeover switch (in the TSINV), and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
   { id: 'main', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
-  /** The TSPA's own AC surge arrester: it is more than 10 m of cable from the TP's, so the first one does not protect it well. 3+1, four modules, after the main breaker. */
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
   { id: 'selector', board: 'solar', poles: 4, modules: 4, ratingA: null },
   { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
@@ -76,6 +75,8 @@ export const DEVICES: readonly Device[] = [
   { id: 'battery-dc', board: 'solar', poles: 2, modules: 2, ratingA: 100 },
   { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },
   { id: 'surge-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: null },
+  /** A Sonoff POWR320D, the water heater's energy meter and relay (Wi-Fi, DIN rail, 20 A): in series with the heater's breaker, 2P (L and N). Its width, three modules, is assumed: check the data sheet. It is in the first row because the other two are full. */
+  { id: 'heater-meter', board: 'pa', poles: 2, modules: 3, ratingA: 20 },
   { id: 'rcd-garage', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
   { id: 'rcd-garage-2', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
   /** The device of the output without UPS: it covers the water heater and the line to the sauna heater in the pantry. Both are resistive, so type A. */
@@ -107,7 +108,7 @@ export const TAGS: Readonly<Record<string, string>> = {
   'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'battery-dc': 'BAT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
   feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
-  'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
+  'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO', 'heater-meter': 'MED T',
   'ground-lights-1': 'IUG3', 'ground-lights-2': 'IUG4', 'ground-outlets-office': 'TUG O', 'ground-outlets-pantry': 'TUG D', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
 }
 
@@ -129,7 +130,7 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
   pa: {
     perRow: 16,
     rows: [
-      ['main'],
+      ['main', 'heater-meter'],
       ['rcd-garage', 'upper-lights-1', 'upper-lights-2', 'upper-outdoor', 'upper-azotea', 'upper-outlets-rooms', 'upper-outlets-kitchen'],
       ['rcd-garage-2', 'upper-ac-living', 'upper-ac-main-room', 'upper-ac-guest-room', 'rcd-garage-3', 'upper-water-heater'],
     ],

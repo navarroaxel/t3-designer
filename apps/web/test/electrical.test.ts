@@ -94,8 +94,8 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
   for (const item of CIRCUITS.filter(item => item.phases.length === 1)) assert.equal(item.modules, 2, item.id)
 })
 
-test('the PA board takes the upper floor in 36 modules, the TSINV 18, the pantry\'s 25', () => {
-  assert.equal(boardModules('pa'), 36, 'ten circuits, three residual-current devices and the floor\'s main breaker')
+test('the PA board takes the upper floor in 39 modules, the TSINV 18, the pantry\'s 25', () => {
+  assert.equal(boardModules('pa'), 39, 'ten circuits, three residual-current devices, the floor\'s main breaker and the water heater\'s meter')
   assert.equal(boardModules('solar'), 18, 'the changeover switch, the inverter\'s breaker, two DC breakers, two DC surge arresters and the battery\'s DC breaker')
   assert.equal(boardModules('pantry'), 25)
 })
@@ -147,11 +147,11 @@ test('the TSPA has no AC surge arrester of its own: the only one is the main boa
   assert.ok(!DEVICES.some(item => item.board === 'pa' && item.id.startsWith('surge')))
 })
 
-test('the PA board\'s general breaker is the upper floor\'s: four-pole, alone in its first row, and no larger than the residual-current devices it feeds; the changeover switch it hangs from is in the TSINV', () => {
+test('the PA board\'s general breaker is the upper floor\'s: four-pole, with the water heater\'s meter in its first row, and no larger than the residual-current devices it feeds; the changeover switch it hangs from is in the TSINV', () => {
   const main = DEVICES.find(item => item.id === 'main')
   assert.equal(main?.poles, 4)
   assert.ok(main?.ratingA && main.ratingA <= Math.min(...DEVICES.filter(item => item.id.startsWith('rcd-garage')).map(item => item.ratingA ?? 0)))
-  assert.deepEqual([...BOXES.pa.rows[0]], ['main'])
+  assert.deepEqual([...BOXES.pa.rows[0]], ['main', 'heater-meter'])
   assert.equal(DEVICES.find(item => item.id === 'selector')?.board, 'solar')
 })
 
