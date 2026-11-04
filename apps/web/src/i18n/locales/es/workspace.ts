@@ -380,7 +380,7 @@ const workspace = {
       solarNote: 'Ubicado en el garage, El alimentador de TSPA y TSPB sale de la conmutadora.',
       paNote: 'Ubicado en el garage, la térmica general de PA cuelga de la conmutadora del TSINV.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
-      main: 'Tablero principal', mainNote: 'Bajada del medidor, incluye ITM general, descargador AC y el protector de tensión trifásico. De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
+      main: 'Tablero principal', mainNote: 'Bajada del medidor, incluye ITM general, descargador AC y el protector de tensión trifásico, que es opcional: el instalador dice que el Deye se encarga, pero con la conmutadora en Grid el inversor no protege nada. De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
       device: 'Dispositivo', circuit: 'Circuito', phase: 'Fase', breaker: 'Protección', cable: 'Cable', modules: 'Módulos', load: 'Carga',
       byManual: 'según manual', bySupply: 'según el servicio', loadW: '{{kw}} kW',
       total: 'Módulos necesarios', fit: 'Caja de {{box}} módulos · libres: {{free}}',
@@ -390,7 +390,7 @@ const workspace = {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica AC del inversor, 4P',
       'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'battery-dc': '🔋 ITM DC de la batería, 2P 100 A', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
       feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
-      'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
+      'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A (opcional)', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },
     circuit: {
       'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina-Baño',
