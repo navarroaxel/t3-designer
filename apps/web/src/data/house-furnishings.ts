@@ -8,9 +8,10 @@ import { CHEST_FREEZER_BOX } from './chest-freezer.ts'
 import { TOOL_CABINET_BOX } from './tool-cabinet.ts'
 import { MAIN_BOARD_BOX } from './main-board.ts'
 import { OFFICE_DESK_BOX } from './office-desk.ts'
-import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U } from './garage-equipment.ts'
+import { BOARD, BOARD_U, GARAGE_EQUIPMENT, INVERTER, INVERTER_U, TSINV, TSINV_U, TSINV_Y } from './garage-equipment.ts'
 import { FLOOR_HEIGHT } from './building-site.ts'
 import { RACK_BOX } from './rack.ts'
+import { PANTRY_BOARD_BOX } from './pantry-board.ts'
 import { tvMountBoxes } from './tv-mount.ts'
 import { ACCESS_POINT_SPOTS, CEILING_UNDERSIDE, accessPointBoxes } from './access-point.ts'
 import { wallDataSocket, wallOutlet } from './outlets.ts'
@@ -260,10 +261,14 @@ function groundFloor(): Furnishing[] {
     { id: 'office-desk', ...OFFICE_DESK_BOX, color: '#dcb67f', roughness: .55, solid: true, model: '/models/house/desk.glb' },
     { id: 'chest-freezer', ...CHEST_FREEZER_BOX, color: '#f6f7f7', roughness: .3, solid: true, model: '/models/house/chest-freezer.glb' },
     { id: 'tool-cabinet', ...TOOL_CABINET_BOX, color: '#1c1d20', roughness: .65, solid: true, model: '/models/house/tool-cabinet.glb' },
-    // The inverter is a Blender model (its 60 mm of connectors hang under the box, which is the body); the board stays boxes.
-    { id: 'garage-inverter', u: INVERTER_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + INVERTER.depth], y: [INVERTER.bottom - .06, INVERTER.bottom + INVERTER.height], color: '#f1f2f3', roughness: .42, solid: false, model: '/models/house/inverter.glb' },
-    { id: 'garage-board', u: BOARD_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + BOARD.depth], y: [BOARD.bottom, BOARD.bottom + BOARD.height], color: '#ececec', roughness: .4, solid: false, model: '/models/house/board.glb' },
-    ...GARAGE_EQUIPMENT.filter(box => !box.id.startsWith('inverter') && !box.id.startsWith('board')).map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
+    // The inverter is a Blender model (its 60 mm of connectors hang under the box, which is the body); the TSPA stays boxes.
+    { id: 'garage-inverter', u: INVERTER_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + INVERTER.depth], y: [INVERTER.bottom - .06, INVERTER.bottom + INVERTER.height], color: '#f1f2f3', roughness: .42, solid: false, hung: true, model: '/models/house/inverter.glb' },
+    { id: 'tspa', u: BOARD_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + BOARD.depth], y: [BOARD.bottom, BOARD.bottom + BOARD.height], color: '#ececec', roughness: .4, solid: false, hung: true, model: '/models/house/board.glb' },
+    // The TSINV, the solar board, right above the TSPA.
+    { id: 'tsinv', u: TSINV_U, v: [GROUND_GARAGE.v[0], GROUND_GARAGE.v[0] + TSINV.depth], y: TSINV_Y, color: '#ececec', roughness: .4, solid: false, hung: true, model: '/models/house/tsinv.glb' },
+    // The pantry's board, the TSPB: the same unit as the TSPA, on the other face of the wall they share, at the same height.
+    { id: 'tspb', ...PANTRY_BOARD_BOX, color: '#ececec', roughness: .4, solid: false, hung: true, model: '/models/house/board.glb' },
+    ...GARAGE_EQUIPMENT.filter(box => !box.id.startsWith('inverter') && !box.id.startsWith('board') && !box.id.startsWith('tsinv')).map(box => ({ id: `garage-${box.id}`, u: box.u, v: box.v, y: box.y, color: box.color, roughness: .5, metalness: box.metalness, solid: false })),
     ...STAIR_BLOCKS.map(block => ({ id: `stair-${block.id}`, u: block.u, v: block.v, y: block.y, color: '#b9b6ae', roughness: .95, solid: false })),
     // The network rack on the pantry's wall, at head height: a visitor does not walk into it.
     { id: 'rack', ...RACK_BOX, color: '#16171a', roughness: .55, solid: true, model: '/models/house/rack.glb' },

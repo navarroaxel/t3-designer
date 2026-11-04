@@ -380,7 +380,7 @@ const workspace = {
       solarNote: 'Ubicado en el garage, El alimentador de TSPA y TSPB sale de la conmutadora.',
       paNote: 'Ubicado en el garage, la térmica general de PA cuelga de la conmutadora del TSINV.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
-      main: 'Tablero principal', mainNote: 'Bajada del medidor, incluye ITM general, descargador AC y el protector de tensión trifásico. De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
+      main: 'Tablero principal', mainNote: 'Bajada del medidor, incluye ITM general, descargador AC y el protector de tensión trifásico, que es opcional: el instalador dice que el Deye se encarga, pero con la conmutadora en Grid el inversor no protege nada. De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
       device: 'Dispositivo', circuit: 'Circuito', phase: 'Fase', breaker: 'Protección', cable: 'Cable', modules: 'Módulos', load: 'Carga',
       byManual: 'según manual', bySupply: 'según el servicio', loadW: '{{kw}} kW',
       total: 'Módulos necesarios', fit: 'Caja de {{box}} módulos · libres: {{free}}',
@@ -389,8 +389,8 @@ const workspace = {
     device: {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica AC del inversor, 4P',
       'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'battery-dc': '🔋 ITM DC de la batería, 2P 100 A', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
-      feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)', 'surge-ac-pa': 'Descargador AC, 3+1 (4P)',
-      'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
+      feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
+      'heater-meter': '📊 POWTERMO: medidor y relé Wi-Fi del termo, Sonoff POWR320D, 2P 20 A', 'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A (opcional)', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },
     circuit: {
       'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina-Baño',
@@ -411,7 +411,7 @@ const workspace = {
       noUps: 'El inversor tiene dos salidas AC: con UPS, de la que cuelga la conmutadora, y sin UPS, para el termotanque y el sauna. Esas dos cargas no tienen respaldo de batería, y si el inversor falla se quedan sin energía aunque la conmutadora esté en Red. El cable del sauna a PB sale del diferencial del TSPA y no tiene térmica propia en su origen.',
       strings: 'Los strings bajan en continua (hasta {{volts}} V) en caños propios, aparte de los de 220 V. Las térmicas DC y la conmutadora van en el TSINV.',
       comb: 'Se arma por filas, de izquierda a derecha. Si usás peine trifásico, cada módulo toma la fase de su posición: el orden de la fila tiene que coincidir con la fase de la tabla; si no, se conecta con cable. Todos los circuitos de una fase van con bipolares (se corta la fase y el neutro), y llevan su neutro propio.',
-      surge: 'El descargador AC está en el tablero principal, junto a la jabalina, con un cable de tierra corto (medio metro o menos en total). Los descargadores DC de los strings, uno por string, están en el TSINV, al lado del inversor; el inversor puede traer los suyos, así que conviene mirar antes su manual, y si los trae los externos no hacen falta. El TSPA queda a más de 10 m de cable del TP, así que lleva un descargador AC propio. Si el TSPB también queda a más de unos 10 m, necesita otro.',
+      surge: 'El descargador AC está en el tablero principal, junto a la jabalina, con un cable de tierra corto (medio metro o menos en total). Los descargadores DC de los strings, uno por string, están en el TSINV, al lado del inversor; el inversor puede traer los suyos, así que conviene mirar antes su manual, y si los trae los externos no hacen falta. El TSPA y el TSPB no llevan descargador propio; si quedan a más de unos 10 m de cable del TP, conviene sumar uno en cada uno.',
       feederOrigin: 'La térmica PB está al final del alimentador, que sale de la conmutadora del TSINV antes de la térmica general de PA: el cable de 6 mm² no tiene una térmica propia en su origen y solo lo cuida la que sale del tablero principal hacia el garage. Esa tiene que ser de 32 A o menos, que es lo que aguanta ese cable; si es mayor, dejá una térmica de 32 A para el alimentador en el TSINV, que tiene lugar.',
     },
   },

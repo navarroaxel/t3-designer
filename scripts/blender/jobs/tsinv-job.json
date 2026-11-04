@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "kind": "board",
+  "id": "tsinv",
+  "label": "TSINV, the solar board",
+  "units": "meters",
+  "dimensions": [
+    0.32,
+    0.28,
+    0.11
+  ],
+  "material": {
+    "baseColor": "#f1f2f1",
+    "roughness": 0.4
+  },
+  "source": {
+    "description": "Surface-mounted two-row, 24-module electrical board with a smoked black door, 320 x 280 x 110 mm (the owner's figures and picture): the changeover switch and the inverter's breaker in the top row, the strings' DC breakers, their surge arresters and the battery's breaker in the bottom one.",
+    "dimensionalStatus": "user-supplied",
+    "url": null
+  },
+  "parameters": {
+    "rows": [[2, 2, 2, 2, 2], [4, 4]],
+    "modulesPerRow": 12,
+    "firstRowZ": 0.1,
+    "rowPitch": 0.09,
+    "breakerHalf": 0.04
+  }
+}

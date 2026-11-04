@@ -80,7 +80,7 @@ const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--ele
  */
 function ModuleIcon({ x, id, modules, terminals = modules, phase, rating, tag, name }: { x: number; id: string; modules: number; terminals?: number; phase?: Phase; rating: string; tag: string; name: string }) {
   const w = modules * MODULE_W, cx = x + w / 2
-  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', spd = id.startsWith('surge'), dc = /^(string|battery)-dc/.test(id)
+  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', meter = id === 'heater-meter', spd = id.startsWith('surge'), dc = /^(string|battery)-dc/.test(id)
   const poles = Array.from({ length: modules }, (_, pole) => x + (pole + .5) * MODULE_W)
   /** Where the terminals are: one pair per pole, spread over the width; it is one per module unless the device is wider than its poles, like the voltage protector (four poles, five modules). */
   const pairs = Array.from({ length: terminals }, (_, pole) => x + (pole + .5) * w / terminals)
@@ -90,14 +90,20 @@ function ModuleIcon({ x, id, modules, terminals = modules, phase, rating, tag, n
     <rect x={x + .6} y={0} width={w - 1.2} height={DEVICE_H} rx={2.5} fill={rcd ? '#dfe3e6' : '#f4f5f6'} stroke="#7d8389" strokeWidth={.8} />
     {pairs.map(px => <circle key={`t${px}`} cx={px} cy={9} r={3.4} fill="#7b8087" stroke="#4a4f55" strokeWidth={.6} />)}
     {pairs.map(px => <circle key={`b${px}`} cx={px} cy={DEVICE_H - 9} r={3.4} fill="#7b8087" stroke="#4a4f55" strokeWidth={.6} />)}
-    {!rcd && <rect x={x + 1.2} y={18} width={w - 2.4} height={5} fill={stripe} style={{ fill: stripe }} />}
-    <text x={cx} y={rcd ? 41 : 33} textAnchor="middle" fontSize={modules > 1 ? 7 : 6.2} fill="#2b2f33" fontWeight={600}>{rating}</text>
+    {!rcd && !meter && <rect x={x + 1.2} y={18} width={w - 2.4} height={5} fill={stripe} style={{ fill: stripe }} />}
+    {!meter && <text x={cx} y={rcd ? 41 : 33} textAnchor="middle" fontSize={modules > 1 ? 7 : 6.2} fill="#2b2f33" fontWeight={600}>{rating}</text>}
     {rcd && <><circle cx={x + MODULE_W * .9} cy={25} r={3.6} fill="#f1e9d2" stroke="#8d8466" strokeWidth={.6} /><text x={x + MODULE_W * .9} y={26.6} textAnchor="middle" fontSize={4.4} fill="#4a4636" fontWeight={700}>T</text>
       <text x={x + w - MODULE_W * .5} y={20} textAnchor="middle" fontSize={5.5} fill="#2b2f33" fontWeight={700}>N</text></>}
     {protector && <><rect x={x + 3} y={34} width={w - 6} height={30} rx={2} fill="#1f2124" />{[0, 1, 2].map(n => <circle key={n} cx={x + w * (n + 1) / 4} cy={49} r={3} fill="#4cc26b" />)}</>}
+    {meter && <>
+      <circle cx={x + 11} cy={19} r={4.6} fill="#fbfbfb" stroke="#9aa0a6" strokeWidth={.7} />
+      <circle cx={x + w - 16} cy={19} r={1.7} fill="#3b82d6" /><circle cx={x + w - 9} cy={19} r={1.7} fill="#4cc26b" />
+      <rect x={x + 4} y={28} width={w - 8} height={34} rx={2} fill="#2b2d30" stroke="#d9dcdf" strokeWidth={1} />
+      <text x={cx} y={42} textAnchor="middle" fontSize={7.5} fill="#8be3a4" fontWeight={700}>{rating}</text>
+      <text x={cx} y={55} textAnchor="middle" fontSize={5.5} fill="#8be3a4" fillOpacity={.8}>kWh · W</text></>}
     {spd && <rect x={x + 4} y={46} width={w - 8} height={11} rx={2} fill="#3f9d5a" />}
     {selector && <><circle cx={cx} cy={52} r={12} fill="#1f2124" /><path d={`M${cx} 52V43`} stroke="#f4f5f6" strokeWidth={2.2} strokeLinecap="round" /></>}
-    {!selector && !spd && !protector && (rcd
+    {!selector && !spd && !protector && !meter && (rcd
       ? <rect x={x + 3.5} y={50} width={Math.min(14, w - 7)} height={17} rx={2} fill="#2d6cb5" />
       : <>{poles.map(px => <rect key={`l${px}`} x={px - 5.5} y={44} width={11} height={20} rx={2} fill="#17181a" />)}{modules > 1 && <rect x={x + 3.5} y={57} width={w - 7} height={7} rx={1.5} fill="#17181a" />}</>)}
     <text x={cx} y={DEVICE_H + 11} textAnchor="middle" fontSize={7} fill="currentColor" fontWeight={600}>{tag}</text>
