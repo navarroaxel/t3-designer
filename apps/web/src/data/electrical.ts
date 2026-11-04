@@ -108,7 +108,7 @@ export const TAGS: Readonly<Record<string, string>> = {
   'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'battery-dc': 'BAT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
   feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
-  'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO', 'heater-meter': 'MED T',
+  'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO', 'heater-meter': 'POWTERMO',
   'ground-lights-1': 'IUG3', 'ground-lights-2': 'IUG4', 'ground-outlets-office': 'TUG O', 'ground-outlets-pantry': 'TUG D', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
 }
 

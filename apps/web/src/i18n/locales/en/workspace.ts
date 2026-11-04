@@ -369,7 +369,7 @@ const workspace = {
       main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC breaker, 4P',
       'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'battery-dc': '🔋 Battery DC breaker, 2P 100 A', 'surge-dc-1': '☀️ DC surge arrester 2P, string 1', 'surge-dc-2': '☀️ DC surge arrester 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
       feeder: 'Pantry main breaker, 4P', 'surge-ac': 'AC surge arrester, 3+1 (4P)',
-      'heater-meter': '📊 Water heater Wi-Fi meter and relay, Sonoff POWR320D, 2P 20 A', 'meter-itm': 'Meter-drop breaker, 4P', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A (optional)', 'rcd-pantry': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioner)',
+      'heater-meter': '📊 POWTERMO: water heater Wi-Fi meter and relay, Sonoff POWR320D, 2P 20 A', 'meter-itm': 'Meter-drop breaker, 4P', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A (optional)', 'rcd-pantry': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioner)',
     },
     circuit: {
       'upper-lights-1': '💡 Upper floor kitchen-bathroom lights', 'upper-lights-2': '💡 Upper floor lights 2', 'upper-outlets-kitchen': '🔌 Kitchen-bathroom outlets',
