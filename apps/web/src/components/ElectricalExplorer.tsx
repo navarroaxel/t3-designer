@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { PV_SYSTEM } from '../data/pv-system'
 import {
-  PHASE_NAME, BOXES, METER_DROP, MAIN_BOARD_ITEMS, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
+  PHASE_NAME, BOXES, METER_DROP, MAIN_BOARD_ITEMS, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, singleLine, groupNoUps, groupForwards, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
   type BoardId, type Circuit, type Device, type Phase,
 } from '../data/electrical'
 import { useLocale } from '../i18n/useLocale'
@@ -59,6 +59,78 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
     <rect className="elec-node elec-node-board" x={740} y={450} width={230} height={140} rx={8} />
     <rect className="elec-device elec-device-pantry" x={752} y={479} width={22} height={22} rx={3} />{text(784, 494, `${node('pantryMain')} ${device('feeder').ratingA} A`, 'elec-sub', 'start')}
     {text(855, 528, node('pantry'), 'elec-title')}{text(855, 546, node('pantrySub'), 'elec-sub')}{text(855, 562, count('pantry'), 'elec-sub')}{text(855, 578, node('earth'), 'elec-sub')}
+  </svg>
+}
+
+const SL = { row: 40, gap: 18, top: 34, source: 10, headX: 70, bus: 250, rcdX: 275, subBus: 370, breakerX: 385, cableEnd: 640, loadX: 662 }
+const RCD_W = 64, BOX_H = 34
+
+/**
+ * One board as a single-line diagram, left to right: the supply (the changeover switch, or the feeder for the pantry's board) through the board's main breaker and its surge arrester, a bus from which each residual-current device
+ * leaves, and the circuits under each, with the breaker, phase, cable and load of each one. The devices that are on the inverter's output without UPS do not hang from that bus: they have a source of their own, and the line
+ * that goes on to the other board (the sauna's) leaves from there. It is read from `singleLine`, so it follows the rows of the board.
+ */
+function SingleLine({ board }: { board: BoardId }) {
+  const { t } = useTranslation('workspace')
+  const { formatNumber } = useLocale()
+  const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
+  const { head, groups } = singleLine(board)
+  const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'start') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
+  const cable = (item: Circuit) => t('electrical.single.cable', { n: item.phases.length === 1 ? 2 : item.phases.length, mm2: formatNumber(item.cableMm2, item.cableMm2 % 1 ? 1 : 0) })
+  const box = (x: number, y: number, w: number, tag: string, rating: string, title: string) => <g>
+    <title>{title}</title><rect className="elec-node" x={x} y={y - BOX_H / 2} width={w} height={BOX_H} rx={4} />
+    {text(x + w / 2, y - 2, tag, 'elec-title', 'middle')}{text(x + w / 2, y + 11, rating, 'elec-sub', 'middle')}
+  </g>
+  const ticks = (x: number, y: number, count: number) => <path className="elec-single-earth" d={Array.from({ length: count }, (_, n) => `M${x + n * 5 - 2} ${y + 6}l4 -12`).join('')} />
+  let cursor = SL.top
+  const placed = groups.map(group => {
+    const forwards = groupForwards(board, group), rows = group.circuits.length + forwards.length
+    const first = cursor + SL.row / 2, last = first + (rows - 1) * SL.row
+    cursor += rows * SL.row + SL.gap
+    return { group, forwards, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+  })
+  const supplied = placed.filter(item => !item.noUps)
+  const busTop = supplied[0]?.centre ?? 0, busBottom = supplied.at(-1)?.centre ?? 0, trunk = (busTop + busBottom) / 2
+  const series = head.filter(item => !item.id.startsWith('surge')), surges = head.filter(item => item.id.startsWith('surge'))
+  const seriesX = (index: number) => SL.headX + index * 90
+  const height = cursor - SL.gap + SL.top
+  const source = board === 'pa' ? t('electrical.single.fromSelector') : t('electrical.single.fromFeeder', { conductors: FEEDER.conductors, mm2: FEEDER.cableMm2 })
+  const ratingOf = (item: Device) => item.ratingA === null ? '' : `${item.poles}P ${item.ratingA} A`
+  return <svg className="elec-single" viewBox={`0 0 1000 ${height}`} role="img" aria-label={t('electrical.single.aria', { board: t(`electrical.board.${board}`) })}>
+    <g className="elec-wire elec-wire-ac"><path d={[
+      `M${SL.source} ${trunk}H${SL.bus}`, `M${SL.bus} ${busTop}V${busBottom}`,
+      ...surges.map((_, index) => `M${seriesX(series.length) + 20 + index * 60} ${trunk}V${trunk + 26}`),
+      ...placed.flatMap(({ group, forwards, first, last, centre, noUps }) => {
+        const rows = [...group.circuits, ...forwards]
+        return [
+          `M${noUps ? SL.source : SL.bus} ${centre}H${group.rcd ? SL.rcdX : SL.subBus}`,
+          ...(group.rcd ? [`M${SL.rcdX + RCD_W} ${centre}H${SL.subBus}`] : []), `M${SL.subBus} ${first}V${last}`,
+          ...rows.map((_, index) => `M${SL.subBus} ${first + index * SL.row}H${SL.breakerX}M${SL.breakerX + 70} ${first + index * SL.row}H${SL.cableEnd}`),
+        ]
+      }),
+    ].join('')} /></g>
+    {supplied.length > 1 && supplied.map(({ centre }) => <circle key={centre} className="elec-dot" cx={SL.bus} cy={centre} r={3.5} />)}
+    {text(SL.source, trunk - 24, source)}
+    {series.map((item, index) => <g key={item.id}>{box(seriesX(index), trunk, RCD_W, TAGS[item.id], ratingOf(item), item.id)}</g>)}
+    {surges.map((item, index) => { const x = seriesX(series.length) + 20 + index * 60, y = trunk + 26; return <g key={item.id}>
+      <rect className="elec-node" x={x - 24} y={y} width={48} height={26} rx={4} />{text(x, y + 16, TAGS[item.id], 'elec-title', 'middle')}
+      <path className="elec-single-earth" d={`M${x} ${y + 26}V${y + 36}M${x - 8} ${y + 36}H${x + 8}M${x - 5} ${y + 40}H${x + 5}M${x - 2} ${y + 44}H${x + 2}`} />{text(x + 14, y + 46, t('electrical.single.surge'))}
+    </g> })}
+    {placed.map(({ group, forwards, first, centre, noUps }) => <g key={group.rcd?.id ?? group.circuits[0].id}>
+      {noUps && text(SL.source, centre - 24, t('electrical.single.noUpsSource'))}
+      {group.rcd && <g>{box(SL.rcdX, centre, RCD_W, TAGS[group.rcd.id], ratingOf(group.rcd), group.rcd.id)}{text(SL.rcdX + RCD_W / 2, centre + 30, t('electrical.single.rcd', { type: group.rcd.rcdType }), 'elec-sub', 'middle')}</g>}
+      {group.circuits.map((item, index) => { const y = first + index * SL.row; return <g key={item.id}>
+        {box(SL.breakerX, y, 70, TAGS[item.id], `${item.modules}P C${item.ratingA}`, names[item.id])}
+        {text(SL.breakerX + 78, y - 6, item.phases.map(phase => PHASE_NAME[phase]).join(''), 'elec-title')}
+        {ticks(520, y, item.phases.length === 1 ? 2 : item.phases.length)}{text(580, y - 6, cable(item), 'elec-sub', 'middle')}
+        <circle className="elec-node" cx={SL.cableEnd + 8} cy={y} r={6} />{text(SL.loadX + 6, y + 4, names[item.id], 'elec-title')}
+        {item.loadW && text(990, y + 4, t('electrical.board.loadW', { kw: formatNumber(item.loadW / 1000, 1) }), 'elec-sub', 'end')}
+      </g> })}
+      {forwards.map((item, index) => { const y = first + (group.circuits.length + index) * SL.row; return <g key={item.id}>
+        {ticks(520, y, item.phases.length === 1 ? 2 : item.phases.length)}{text(580, y - 6, cable(item), 'elec-sub', 'middle')}
+        <path className="elec-single-earth" d={`M${SL.cableEnd - 8} ${y - 5}L${SL.cableEnd} ${y}L${SL.cableEnd - 8} ${y + 5}`} />{text(SL.loadX, y + 4, `${t('electrical.single.toBoard', { board: t('electrical.node.pantry') })} · ${names[item.id]}`, 'elec-title')}
+      </g> })}
+    </g>)}
   </svg>
 }
 
@@ -244,6 +316,11 @@ export function ElectricalExplorer() {
           <li className="elec-key elec-key-device elec-key-pantry">{t('electrical.legendPantry')}</li>
         </ul>
         <p className="array-note">{t('electrical.selectorNote')}</p>
+      </section>
+      <section aria-labelledby="elec-single-title">
+        <h3 id="elec-single-title">{t('electrical.single.title')}</h3>
+        <p className="array-note">{t('electrical.single.intro')}</p>
+        <div className="elec-single-boards">{(['pa', 'pantry'] as const).map(board => <section key={board}><h4>{t(`electrical.board.${board}`)}</h4><div className="elec-scroll"><SingleLine board={board} /></div></section>)}</div>
       </section>
       <div className="elec-boards"><MainBoardCard /><BoardCard board="solar" /><BoardCard board="pantry" /><BoardCard board="pa" /></div>
       <PhaseBalance />

@@ -378,6 +378,13 @@ const workspace = {
       'ground-lights-1': '💡 Ground floor lights 3', 'ground-lights-2': '💡 Ground floor lights 4', 'ground-outlets-office': '🔌 Office outlets',
       'ground-outlets-pantry': '🔌 Pantry and network outlets', 'ground-ac-office': '❄️ AC office', 'ground-sauna': '♨️ Sauna',
     },
+    single: {
+      title: 'Single-line diagram of the TSPA and the TSPB',
+      intro: 'From left to right: what reaches the board, each residual-current device and the circuits that hang from it, with their breaker, phase, cable and load. The marks on the lines are the number of conductors.',
+      aria: 'Single-line diagram of {{board}}: the supply goes through the main breaker and is split among residual-current devices, and each device feeds its circuits.',
+      fromSelector: 'From the changeover switch CON', fromFeeder: 'Feeder from CON · {{conductors}} of {{mm2}} mm²', noUpsSource: 'Inverter\'s output without UPS',
+      toBoard: 'To {{board}}', rcd: '30 mA type {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'to earth',
+    },
     balance: {
       title: 'Split by phase', phase: 'Phase {{phase}}', power: '{{kw}} kW', current: '{{amps}} A', demand: 'demand {{kw}} kW · {{amps}} A',
       note: 'It is the connected power of the big loads (the air conditioners, the water heater and the sauna) and of each circuit of outlets, counted as 10 A; not what runs at once. The demand applies the {{factor}} simultaneity factor the AEA gives a house with superior electrification. The daytime air conditioners, the office\'s and the living room\'s, are on different phases; so are the night-time ones, the two bedrooms\'.',

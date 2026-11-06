@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, MAIN_BOARD_ITEMS, VOLTAGE_PROTECTOR, SURGE_AC, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
+import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, MAIN_BOARD_ITEMS, VOLTAGE_PROTECTOR, SURGE_AC, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, singleLine, groupNoUps, groupForwards, type Phase } from '../src/data/electrical.ts'
 
 const circuit = (id: string) => { const found = CIRCUITS.find(item => item.id === id); assert.ok(found, id); return found }
 const phase = (id: string): Phase => { const { phases } = circuit(id); assert.equal(phases.length, 1, `${id} is on one phase`); return phases[0] }
@@ -195,4 +195,15 @@ test('the battery has its 100 A two-pole DC breaker marked in the TSINV, with th
   assert.equal(battery?.poles, 2)
   assert.equal(battery?.ratingA, 100)
   assert.ok(BOXES.solar.rows[1].includes('battery-dc'))
+})
+
+test('the single-line diagram has every circuit once, under its residual-current device, and the no-UPS group apart', () => {
+  for (const board of ['pa', 'pantry'] as const) {
+    const { groups } = singleLine(board)
+    assert.deepEqual(groups.flatMap(group => group.circuits.map(item => item.id)).sort(), boardCircuits(board).map(item => item.id).sort(), board)
+  }
+  const pa = singleLine('pa').groups
+  assert.deepEqual(pa.filter(groupNoUps).map(group => group.rcd?.id), ['rcd-garage-3'], 'only the water heater\'s device is on the output without UPS')
+  assert.deepEqual(groupForwards('pa', pa.find(groupNoUps)!).map(item => item.id), ['ground-sauna'], 'and the sauna\'s line leaves from it')
+  assert.deepEqual(singleLine('pantry').groups.filter(group => !group.rcd).flatMap(group => group.circuits.map(item => item.id)), ['ground-sauna'], 'the sauna has no device in the pantry\'s board')
 })

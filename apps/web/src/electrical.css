@@ -62,3 +62,9 @@
   .elec-diagram { min-width: 0; }
   .elec-board, .elec-balance, .elec-notes { break-inside: avoid; }
 }
+/* The single-line diagram of a board (SingleLine): the wires are the supply's AC ones, the boxes are the devices. */
+.elec-single { display: block; width: 100%; min-width: 760px; height: auto; }
+.elec-single .elec-wire path { stroke-width: 1.8; }
+.elec-single-earth { fill: none; stroke: currentColor; stroke-width: 1.4; }
+.elec-single-boards { display: flex; flex-direction: column; gap: 14px; }
+@media print { .elec-single { min-width: 0; } .elec-single-boards > section { break-inside: avoid; } }

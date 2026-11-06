@@ -4,6 +4,8 @@ The **Electrical** tab (`#electrical`) is a factsheet of how the installation is
 
 The main board is the meter's drop, at the entrance where the stairs to the upper floor start: a Genrod of one row of sixteen modules that holds the supply's protections. In order: the four-pole breaker (4 modules), the AC surge arrester 3+1 (4) and the three-phase voltage protector of the BAW RU400F63 Plus kind (5 modules, 63 A): thirteen, three free. The protector reads each phase's voltage and opens when one is out of range, which a lost neutral also causes on some phase; it is in series, so everything below it goes off, and it closes again by itself after its delay (see its manual). The changeover switch and the inverter's grid input are fed from it. The arrester is next to the earth rod, so its earth wire is short. The strings' DC surge arresters are in the TSINV.
 
+The page also draws a **single-line diagram** of the TSPA and the TSPB (`singleLine` in `data/electrical.ts`, read from `BOXES`): the supply, the main breaker and surge arrester, each residual-current device with the circuits under it (breaker, phase, cable, load). The water heater's device and the sauna's line hang from the inverter's output without UPS, not from the TSPA's main breaker, and are drawn apart.
+
 ## What the owner decided, and what is proposed
 
 | Item | Source |
