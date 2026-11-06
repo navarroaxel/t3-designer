@@ -399,6 +399,13 @@ const workspace = {
       'ground-lights-1': '💡 Iluminación PB 3', 'ground-lights-2': '💡 Iluminación PB 4', 'ground-outlets-office': '🔌 Tomas de la oficina',
       'ground-outlets-pantry': '🔌 Tomas de la despensa y la red', 'ground-ac-office': '❄️ AC oficina', 'ground-sauna': '♨️ Sauna',
     },
+    single: {
+      title: 'Unifilar de TSPA y TSPB',
+      intro: 'De arriba hacia abajo: lo que llega al tablero, cada diferencial y los circuitos que cuelgan de él, con su térmica, fase, cable y carga. Las líneas con marcas llevan la cantidad de conductores.',
+      aria: 'Diagrama unifilar de {{board}}: la alimentación pasa por la térmica general y se reparte en diferenciales, y de cada diferencial salen sus circuitos.',
+      fromSelector: 'Desde la conmutadora CON', fromFeeder: 'Alimentador desde CON · {{conductors}} de {{mm2}} mm²', noUpsSource: 'Salida sin UPS del inversor',
+      toBoard: 'Hacia {{board}}', rcd: '30 mA tipo {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'a tierra',
+    },
     balance: {
       title: 'Reparto por fase', phase: 'Fase {{phase}}', power: '{{kw}} kW', current: '{{amps}} A', demand: 'demanda {{kw}} kW · {{amps}} A',
       note: 'Es la potencia conectada de las cargas grandes (los aires, el termotanque y el sauna) y de cada circuito de tomas, que cuenta como 10 A; no es lo que funciona a la vez. La demanda aplica el coeficiente de simultaneidad de {{factor}} que la AEA da a una vivienda con electrificación superior. Los aires del día, el de la oficina y el del living, están en fases distintas; los de la noche, los de las dos habitaciones, también.',

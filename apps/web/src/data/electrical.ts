@@ -61,7 +61,7 @@ export const CIRCUITS: readonly Circuit[] = [
 ]
 
 /** A protective or switching device that is not a circuit of its own. `ratingA` is null where it follows the supply or the maker's manual, which the model does not have. */
-export type Device = { id: string; board: BoardId; poles: number; modules: number; ratingA: number | null }
+export type Device = { id: string; board: BoardId; poles: number; modules: number; ratingA: number | null; /** The residual-current devices' type: A for the lights and the outlets, F for what has an inverter. */ rcdType?: 'A' | 'F' }
 
 export const DEVICES: readonly Device[] = [
   /** The PA board's general breaker, for PA only: it is after the changeover switch (in the TSINV), and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
@@ -77,14 +77,14 @@ export const DEVICES: readonly Device[] = [
   { id: 'battery-dc', board: 'solar', poles: 2, modules: 2, ratingA: 100 },
   { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },
   { id: 'surge-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: null },
-  { id: 'rcd-garage', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
-  { id: 'rcd-garage-2', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
+  { id: 'rcd-garage', board: 'pa', poles: 4, modules: 4, ratingA: 40, rcdType: 'A' },
+  { id: 'rcd-garage-2', board: 'pa', poles: 4, modules: 4, ratingA: 40, rcdType: 'F' },
   /** The device of the output without UPS: it covers the water heater and the line to the sauna heater in the pantry. Both are resistive, so type A. */
-  { id: 'rcd-garage-3', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
+  { id: 'rcd-garage-3', board: 'pa', poles: 4, modules: 4, ratingA: 40, rcdType: 'A' },
   /** The pantry board's main breaker, at the end of the feeder (the owner's choice): the feeder's cable has no breaker of its own at its origin, so the supply's main one has to be at most what the 6 mm² takes. */
   { id: 'feeder', board: 'pantry', poles: 4, modules: 4, ratingA: 32 },
-  { id: 'rcd-pantry', board: 'pantry', poles: 4, modules: 4, ratingA: 40 },
-  { id: 'rcd-pantry-2', board: 'pantry', poles: 4, modules: 4, ratingA: 40 },
+  { id: 'rcd-pantry', board: 'pantry', poles: 4, modules: 4, ratingA: 40, rcdType: 'A' },
+  { id: 'rcd-pantry-2', board: 'pantry', poles: 4, modules: 4, ratingA: 40, rcdType: 'F' },
 ]
 
 /**
@@ -151,6 +151,34 @@ export const rowItems = (ids: readonly string[]) => ids.map(id => {
   if (!found) throw new Error(`Unknown item ${id}`)
   return { id, modules: found.modules, phases: 'phases' in found ? found.phases : undefined }
 })
+
+/** One residual-current device of a board and the circuits under it; `rcd` is null for circuits that are on no device of their own board (the sauna's line comes from the TSPA's). */
+export type SingleLineGroup = { rcd: Device | null; circuits: readonly Circuit[] }
+
+/**
+ * A board for its single-line diagram: what the supply meets first (the general breaker, the surge arrester), then each residual-current device with the circuits that hang from it. It is read from `BOXES`: a row is
+ * electrically separate from the next, so a device protects the circuits to its right in its own row. The groups whose circuits are all on the inverter's output without UPS do not hang from the board's supply.
+ */
+export function singleLine(board: BoardId): { head: readonly Device[]; groups: readonly SingleLineGroup[] } {
+  const head: Device[] = [], groups: { rcd: Device | null; circuits: Circuit[] }[] = []
+  for (const row of BOXES[board].rows) {
+    let current: (typeof groups)[number] | null = null
+    for (const id of row) {
+      const device = DEVICES.find(item => item.id === id), found = CIRCUITS.find(item => item.id === id)
+      if (device?.rcdType) groups.push(current = { rcd: device, circuits: [] })
+      else if (device) head.push(device)
+      else if (found) {
+        if (!current) groups.push(current = { rcd: null, circuits: [] })
+        current.circuits.push(found)
+      }
+    }
+  }
+  return { head, groups }
+}
+/** A group is on the inverter's output without UPS when every circuit under it is: it does not take the TSPA's main breaker's supply. */
+export const groupNoUps = (group: SingleLineGroup) => group.circuits.length > 0 && group.circuits.every(item => item.noUps)
+/** The circuits of other boards that leave from a group's device: the sauna's line leaves the TSPA's device without UPS. */
+export const groupForwards = (board: BoardId, group: SingleLineGroup): readonly Circuit[] => groupNoUps(group) && group.rcd ? CIRCUITS.filter(item => item.board !== board && item.noUps) : []
 
 /** The feeder from TSINV's changeover switch to the pantry's board: four conductors and the earth in one thick conduit, a second one empty for later. */
 export const FEEDER = { cableMm2: 6, conductors: 'R S T N + PE', conduitMm: 50, conduits: 2 }

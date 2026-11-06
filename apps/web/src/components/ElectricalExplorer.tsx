@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { PV_SYSTEM } from '../data/pv-system'
 import {
-  PHASE_NAME, BOXES, METER_DROP, MAIN_BOARD_ITEMS, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
+  PHASE_NAME, BOXES, METER_DROP, MAIN_BOARD_ITEMS, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, singleLine, groupNoUps, groupForwards, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
   type BoardId, type Circuit, type Device, type Phase,
 } from '../data/electrical'
 import { useLocale } from '../i18n/useLocale'
@@ -59,6 +59,102 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
     <rect className="elec-node elec-node-board" x={740} y={450} width={230} height={140} rx={8} />
     <rect className="elec-device elec-device-pantry" x={752} y={479} width={22} height={22} rx={3} />{text(784, 494, `${node('pantryMain')} ${device('feeder').ratingA} A`, 'elec-sub', 'start')}
     {text(855, 528, node('pantry'), 'elec-title')}{text(855, 546, node('pantrySub'), 'elec-sub')}{text(855, 562, count('pantry'), 'elec-sub')}{text(855, 578, node('earth'), 'elec-sub')}
+  </svg>
+}
+
+/** The single-line diagram's measures: a column for each circuit, the gap between the groups of one residual-current device and the next, and the margin. */
+const SL = { col: 84, gap: 24, margin: 24, label: 14, boxW: 70, rcdW: 72, boxH: 34, rcdH: 46, nameLines: 14 }
+
+/** The words of a label in lines of at most `max` characters, to write it under a column. */
+const wrap = (label: string, max = SL.nameLines) => label.split(' ').reduce<string[]>((lines, word) => {
+  const last = lines.at(-1)
+  if (last !== undefined && `${last} ${word}`.length <= max) lines[lines.length - 1] = `${last} ${word}`
+  else lines.push(word)
+  return lines
+}, [])
+
+/**
+ * One board as a single-line diagram, top to bottom: the supply (the changeover switch, or the feeder for the pantry's board) comes in at the top through the board's main breaker, with its surge arrester branching to earth, to a bus
+ * from which each residual-current device drops, and under each one its circuits, a column each, with the breaker, phase, cable, load and name. The devices that are on the inverter's output without UPS do not hang from that bus: they have a
+ * source of their own at the top, and the line that goes on to the other board (the sauna's) leaves from there. It is read from `singleLine`, so it follows the rows of the board.
+ */
+function SingleLine({ board }: { board: BoardId }) {
+  const { t } = useTranslation('workspace')
+  const { formatNumber } = useLocale()
+  const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
+  const { head, groups } = singleLine(board)
+  const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
+  const cable = (item: Circuit) => t('electrical.single.cable', { n: item.phases.length === 1 ? 2 : item.phases.length, mm2: formatNumber(item.cableMm2, item.cableMm2 % 1 ? 1 : 0) }).split(' + ')
+  const ratingOf = (item: Device) => item.ratingA === null ? '' : `${item.poles}P ${item.ratingA} A`
+  const box = (cx: number, y: number, w: number, h: number, lines: string[], title: string) => <g>
+    <title>{title}</title><rect className="elec-node" x={cx - w / 2} y={y - h / 2} width={w} height={h} rx={4} />
+    {lines.map((line, index) => text(cx, y - (lines.length - 1) * 6.5 + index * 13 + 3, line, index ? 'elec-sub' : 'elec-title'))}
+  </g>
+  /** The marks across a vertical wire, one for each conductor. */
+  const ticks = (x: number, y: number, count: number) => <path className="elec-single-earth" d={Array.from({ length: count }, (_, n) => `M${x - 6} ${y + n * 5 + 2}l12 -4`).join('')} />
+
+  let at = SL.margin
+  const placed = groups.map(group => {
+    const forwards = groupForwards(board, group), rows = group.circuits.length + forwards.length
+    const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
+    at += rows * SL.col + SL.gap
+    return { group, forwards, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+  })
+  const width = at - SL.gap + SL.margin
+  const supplied = placed.filter(item => !item.noUps)
+  const busLeft = supplied[0]?.centre ?? width / 2, busRight = supplied.at(-1)?.centre ?? width / 2, trunk = (busLeft + busRight) / 2
+  const series = head.filter(item => !item.id.startsWith('surge')), surges = head.filter(item => item.id.startsWith('surge'))
+  const seriesY = (index: number) => 52 + index * 58
+  const surgeY = seriesY(series.length - 1) + SL.boxH / 2 + 24
+  const busY = surges.length ? surgeY + 100 : seriesY(series.length - 1) + SL.boxH / 2 + 30
+  const rcdY = busY + 46, subY = rcdY + SL.rcdH / 2 + 22, breakerY = subY + 38, loadY = breakerY + 86
+  const nameRows = Math.max(...placed.flatMap(({ group, forwards }) => [
+    ...group.circuits.map(item => wrap(names[item.id]).length),
+    ...forwards.map(item => wrap(`${t('electrical.single.toBoard', { board: t('electrical.node.pantry') })} · ${names[item.id]}`).length),
+  ]))
+  const height = loadY + 34 + nameRows * 12 + 6
+  const source = board === 'pa' ? t('electrical.single.fromSelector') : t('electrical.single.fromFeeder', { conductors: FEEDER.conductors, mm2: FEEDER.cableMm2 })
+  const columnX = (item: (typeof placed)[number], index: number) => item.first + index * SL.col
+  return <svg className="elec-single" style={{ minWidth: width * .85, maxWidth: width * 1.25 }} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t('electrical.single.aria', { board: t(`electrical.board.${board}`) })}>
+    <g className="elec-wire elec-wire-ac"><path d={[
+      `M${trunk} ${SL.label + 6}V${busY}`, `M${busLeft} ${busY}H${busRight}`,
+      ...surges.map((_, index) => `M${trunk} ${surgeY + index * 60}H${trunk + 44}V${surgeY + index * 60 + 14}M${trunk + 44} ${surgeY + index * 60 + 40}V${surgeY + index * 60 + 50}`),
+      ...placed.flatMap(item => [
+        `M${item.centre} ${item.noUps ? SL.label + 6 : busY}V${item.group.rcd ? rcdY - SL.rcdH / 2 : subY}`,
+        ...(item.group.rcd ? [`M${item.centre} ${rcdY + SL.rcdH / 2}V${subY}`] : []), `M${item.first} ${subY}H${item.last}`,
+        ...Array.from({ length: item.rows }, (_, index) => {
+          const x = columnX(item, index)
+          return index < item.group.circuits.length ? `M${x} ${subY}V${breakerY - SL.boxH / 2}M${x} ${breakerY + SL.boxH / 2}V${loadY - 6}` : `M${x} ${subY}V${loadY - 8}`
+        }),
+      ]),
+    ].join('')} /></g>
+    {supplied.map(item => <circle key={item.centre} className="elec-dot" cx={item.centre} cy={busY} r={3.5} />)}
+    {supplied.length > 1 && <circle className="elec-dot" cx={trunk} cy={busY} r={3.5} />}
+    {text(trunk, SL.label, source)}
+    {series.map((item, index) => <g key={item.id}>{box(trunk, seriesY(index), SL.rcdW, SL.boxH, [TAGS[item.id], ratingOf(item)], item.id)}</g>)}
+    {surges.map((item, index) => { const x = trunk + 44, y = surgeY + index * 60 + 14; return <g key={item.id}>
+      <rect className="elec-node" x={x - 24} y={y} width={48} height={26} rx={4} />{text(x, y + 17, TAGS[item.id], 'elec-title')}
+      <path className="elec-single-earth" d={`M${x - 8} ${y + 36}H${x + 8}M${x - 5} ${y + 40}H${x + 5}M${x - 2} ${y + 44}H${x + 2}`} />{text(x + 14, y + 44, t('electrical.single.surge'), 'elec-sub', 'start')}
+    </g> })}
+    {placed.map(item => { const { group, forwards, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id}>
+      {noUps && text(centre, SL.label, t('electrical.single.noUpsSource'))}
+      {group.rcd && box(centre, rcdY, SL.rcdW, SL.rcdH, [TAGS[group.rcd.id], ratingOf(group.rcd), t('electrical.single.rcd', { type: group.rcd.rcdType })], group.rcd.id)}
+      {item.rows > 1 && Array.from({ length: item.rows }, (_, index) => <circle key={index} className="elec-dot" cx={columnX(item, index)} cy={subY} r={3} />)}
+      {group.circuits.map((circuit, index) => { const x = columnX(item, index), lines = cable(circuit); return <g key={circuit.id}>
+        {text(x + 5, subY + 16, circuit.phases.map(phase => PHASE_NAME[phase]).join(''), 'elec-title', 'start')}
+        {box(x, breakerY, SL.boxW, SL.boxH, [TAGS[circuit.id], `${circuit.modules}P C${circuit.ratingA}`], names[circuit.id])}
+        {ticks(x, breakerY + 28, circuit.phases.length === 1 ? 2 : circuit.phases.length)}{lines.map((line, n) => text(x, breakerY + 54 + n * 12, line))}
+        <circle className="elec-node" cx={x} cy={loadY} r={6} />
+        {circuit.loadW && text(x, loadY + 20, t('electrical.board.loadW', { kw: formatNumber(circuit.loadW / 1000, 1) }))}
+        {wrap(names[circuit.id]).map((line, n) => text(x, loadY + 34 + n * 12, line, 'elec-title'))}
+      </g> })}
+      {forwards.map((circuit, index) => { const x = columnX(item, group.circuits.length + index), lines = cable(circuit); return <g key={circuit.id}>
+        {text(x + 5, subY + 16, circuit.phases.map(phase => PHASE_NAME[phase]).join(''), 'elec-title', 'start')}
+        {ticks(x, breakerY + 28, circuit.phases.length === 1 ? 2 : circuit.phases.length)}{lines.map((line, n) => text(x, breakerY + 54 + n * 12, line))}
+        <path className="elec-single-earth" d={`M${x - 5} ${loadY - 10}L${x} ${loadY - 2}L${x + 5} ${loadY - 10}`} />
+        {wrap(`${t('electrical.single.toBoard', { board: t('electrical.node.pantry') })} · ${names[circuit.id]}`).map((line, n) => text(x, loadY + 14 + n * 12, line, 'elec-title'))}
+      </g> })}
+    </g> })}
   </svg>
 }
 
@@ -244,6 +340,11 @@ export function ElectricalExplorer() {
           <li className="elec-key elec-key-device elec-key-pantry">{t('electrical.legendPantry')}</li>
         </ul>
         <p className="array-note">{t('electrical.selectorNote')}</p>
+      </section>
+      <section aria-labelledby="elec-single-title">
+        <h3 id="elec-single-title">{t('electrical.single.title')}</h3>
+        <p className="array-note">{t('electrical.single.intro')}</p>
+        <div className="elec-single-boards">{(['pa', 'pantry'] as const).map(board => <section key={board}><h4>{t(`electrical.board.${board}`)}</h4><div className="elec-scroll"><SingleLine board={board} /></div></section>)}</div>
       </section>
       <div className="elec-boards"><MainBoardCard /><BoardCard board="solar" /><BoardCard board="pantry" /><BoardCard board="pa" /></div>
       <PhaseBalance />
