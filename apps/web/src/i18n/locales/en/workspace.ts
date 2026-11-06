@@ -380,7 +380,7 @@ const workspace = {
     },
     single: {
       title: 'Single-line diagram of the TSPA and the TSPB',
-      intro: 'From left to right: what reaches the board, each residual-current device and the circuits that hang from it, with their breaker, phase, cable and load. The marks on the lines are the number of conductors.',
+      intro: 'From top to bottom: what reaches the board, each residual-current device and the circuits that hang from it, with their breaker, phase, cable and load. The marks on the lines are the number of conductors.',
       aria: 'Single-line diagram of {{board}}: the supply goes through the main breaker and is split among residual-current devices, and each device feeds its circuits.',
       fromSelector: 'From the changeover switch CON', fromFeeder: 'Feeder from CON · {{conductors}} of {{mm2}} mm²', noUpsSource: 'Inverter\'s output without UPS',
       toBoard: 'To {{board}}', rcd: '30 mA type {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'to earth',
