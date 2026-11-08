@@ -371,7 +371,7 @@ const workspace = {
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', panels: 'Paneles · DC',
       inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 BAT', batterySub: 'baja tensión', batteryItm: 'ITM DC 100 A',
-      inverterBreaker: '☀️ INV', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
+      serviceFrom: 'De acometida', utilityTap: 'Toma de la compañía', meterBox: 'Caja del medidor', inverterBreaker: '☀️ AC IN', inverterOut: '☀️ AC OUT', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
       tsinv: 'TSINV', tsinvSub: 'Tablero solar', pa: 'TSPA', paSub: 'PA', pantry: 'TSPB', pantrySub: 'PB',
       count: '{{circuits}} circuitos · {{modules}} módulos', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
     },
@@ -387,9 +387,9 @@ const workspace = {
       rowsTitle: 'Armado por filas', tag: 'Sigla', row: 'Fila {{n}}', free: '{{count}} libres',
     },
     device: {
-      main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica AC del inversor, 4P',
+      main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica de entrada AC del inversor, 4P', 'inverter-out': '☀️ Térmica de salida AC del inversor, 4P',
       'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'battery-dc': '🔋 ITM DC de la batería, 2P 100 A', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
-      feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)', 'surge-ac-pa': 'Descargador AC, 3+1 (4P)',
+      feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
       'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },
     circuit: {
@@ -400,10 +400,14 @@ const workspace = {
       'ground-outlets-pantry': '🔌 Tomas de la despensa y la red', 'ground-ac-office': '❄️ AC oficina', 'ground-sauna': '♨️ Sauna',
     },
     single: {
+      curveType: 'tipo {{curve}}',
+      peRod: 'a jabalina de P.A.T.', primaryBus: 'Barra primaria', secondaryBus: 'Barra secundaria', outputTerminal: 'Borne de salida',
+      table: { circuit: 'Circuito', power: 'Potencia [W]', phase: 'Fase', cable: 'Cable [mm²]', earth: 'PE [mm²]', destination: 'Destino', terminal: 'Borne de salida' },
+      inverterTitle: 'Inversor 10 kW', inverterSub: 'híbrido 380/220 Vca-50 Hz',
       title: 'Unifilar de TSPA y TSPB',
       intro: 'De arriba hacia abajo: lo que llega al tablero, cada diferencial y los circuitos que cuelgan de él, con su térmica, fase, cable y carga. Las líneas con marcas llevan la cantidad de conductores.',
       aria: 'Diagrama unifilar de {{board}}: la alimentación pasa por la térmica general y se reparte en diferenciales, y de cada diferencial salen sus circuitos.',
-      fromSelector: 'Desde la conmutadora CON', fromFeeder: 'Alimentador desde CON · {{conductors}} de {{mm2}} mm²', noUpsSource: 'Salida sin UPS del inversor',
+      fromFeeder: 'Alimentador desde CON · {{conductors}} de {{mm2}} mm²', noUpsSource: 'Salida sin UPS del inversor',
       toBoard: 'Hacia {{board}}', rcd: '30 mA tipo {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'a tierra',
     },
     balance: {

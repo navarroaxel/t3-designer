@@ -350,7 +350,7 @@ const workspace = {
     node: {
       string1: '☀️ String 1', string2: '☀️ String 2', panels: 'Panels · DC',
       inverter: '☀️ Hybrid inverter', inverterSub: 'three-phase · 10 kW', battery: '🔋 BAT', batterySub: 'low voltage', batteryItm: 'DC breaker 100 A',
-      inverterBreaker: '☀️ INV', grid: 'Grid', gridSub: '3L + N', mainBoard: 'TP', mainBoardSub: 'meter drop', mainBoardItm: 'breaker + protector', ups: 'with UPS', noUps: 'Output without UPS: water heater and sauna', main: 'Upper-floor main breaker', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
+      serviceFrom: 'From the grid', utilityTap: 'Utility tap', meterBox: 'Meter box', inverterBreaker: '☀️ AC IN', inverterOut: '☀️ AC OUT', grid: 'Grid', gridSub: '3L + N', mainBoard: 'TP', mainBoardSub: 'meter drop', mainBoardItm: 'breaker + protector', ups: 'with UPS', noUps: 'Output without UPS: water heater and sauna', main: 'Upper-floor main breaker', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
       tsinv: 'TSINV', tsinvSub: 'Solar board', pa: 'TSPA', paSub: 'Upper floor', pantry: 'TSPB', pantrySub: 'Ground floor',
       count: '{{circuits}} circuits · {{modules}} modules', pantryMain: 'Main breaker', earth: 'Earth bar for both floors',
     },
@@ -366,9 +366,9 @@ const workspace = {
       rowsTitle: 'Rows of the board', tag: 'Label', row: 'Row {{n}}', free: '{{count}} free',
     },
     device: {
-      main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC breaker, 4P',
+      main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC input breaker, 4P', 'inverter-out': '☀️ Inverter AC output breaker, 4P',
       'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'battery-dc': '🔋 Battery DC breaker, 2P 100 A', 'surge-dc-1': '☀️ DC surge arrester 2P, string 1', 'surge-dc-2': '☀️ DC surge arrester 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
-      feeder: 'Pantry main breaker, 4P', 'surge-ac': 'AC surge arrester, 3+1 (4P)', 'surge-ac-pa': 'AC surge arrester, 3+1 (4P)',
+      feeder: 'Pantry main breaker, 4P', 'surge-ac': 'AC surge arrester, 3+1 (4P)',
       'meter-itm': 'Meter-drop breaker, 4P', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-pantry': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioner)',
     },
     circuit: {
@@ -379,10 +379,14 @@ const workspace = {
       'ground-outlets-pantry': '🔌 Pantry and network outlets', 'ground-ac-office': '❄️ AC office', 'ground-sauna': '♨️ Sauna',
     },
     single: {
+      curveType: 'type {{curve}}',
+      peRod: 'to the earth rod', primaryBus: 'Primary bus', secondaryBus: 'Secondary bus', outputTerminal: 'Output terminal',
+      table: { circuit: 'Circuit', power: 'Power [W]', phase: 'Phase', cable: 'Cable [mm²]', earth: 'PE [mm²]', destination: 'Destination', terminal: 'Output terminal' },
+      inverterTitle: 'Inverter 10 kW', inverterSub: 'hybrid 380/220 Vca-50 Hz',
       title: 'Single-line diagram of the TSPA and the TSPB',
       intro: 'From top to bottom: what reaches the board, each residual-current device and the circuits that hang from it, with their breaker, phase, cable and load. The marks on the lines are the number of conductors.',
       aria: 'Single-line diagram of {{board}}: the supply goes through the main breaker and is split among residual-current devices, and each device feeds its circuits.',
-      fromSelector: 'From the changeover switch CON', fromFeeder: 'Feeder from CON · {{conductors}} of {{mm2}} mm²', noUpsSource: 'Inverter\'s output without UPS',
+      fromFeeder: 'Feeder from CON · {{conductors}} of {{mm2}} mm²', noUpsSource: 'Inverter\'s output without UPS',
       toBoard: 'To {{board}}', rcd: '30 mA type {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'to earth',
     },
     balance: {

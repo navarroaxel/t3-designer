@@ -57,7 +57,7 @@ export const CIRCUITS: readonly Circuit[] = [
   circuit('ground-outlets-office', 'pantry', 'ground', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('ground-outlets-pantry', 'pantry', 'ground', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('ground-ac-office', 'pantry', 'ground', 'ac', 'L3', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
-  circuit('ground-sauna', 'pantry', 'ground', 'sauna', PHASES, 10, 2.5, { loadW: SAUNA_W, noUps: true }),
+  circuit('ground-sauna', 'pantry', 'ground', 'sauna', PHASES, 10, 4, { loadW: SAUNA_W, noUps: true, modules: 4 }),
 ]
 
 /** A protective or switching device that is not a circuit of its own. `ratingA` is null where it follows the supply or the maker's manual, which the model does not have. */
@@ -66,13 +66,14 @@ export type Device = { id: string; board: BoardId; poles: number; modules: numbe
 export const DEVICES: readonly Device[] = [
   /** The PA board's general breaker, for PA only: it is after the changeover switch (in the TSINV), and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
   { id: 'main', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
-  /** The TSPA's own AC surge arrester: it is more than 10 m of cable from the TP's, so the first one does not protect it well. 3+1, four modules, after the main breaker. */
-  { id: 'surge-ac-pa', board: 'pa', poles: 4, modules: 4, ratingA: null },
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
   { id: 'selector', board: 'solar', poles: 4, modules: 4, ratingA: null },
+  /** AC IN: the breaker of the inverter's grid input, from the main board. */
   { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
-  { id: 'string-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: 16 },
-  { id: 'string-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: 16 },
+  /** AC OUT: cuts the inverter's output with UPS, before the changeover switch. */
+  { id: 'inverter-out', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
+  { id: 'string-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: 20 },
+  { id: 'string-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: 20 },
   /** The battery's DC breaker, 2P 100 A: in practice it is probably outside the board, because of the thick cable of the battery; it is drawn here to have it marked. */
   { id: 'battery-dc', board: 'solar', poles: 2, modules: 2, ratingA: 100 },
   { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },
@@ -92,7 +93,7 @@ export const DEVICES: readonly Device[] = [
  * the AC surge arrester after it, and the three-phase voltage protector. It is not one of the boards with rows: the breaker's rating follows the supply, and what it protects first is the cable to the garage, so it is 32 A or
  * less while the pantry's feeder, which has no breaker of its own at its origin, hangs from that cable. The strings' DC surge arresters, one per string, are in the TSINV.
  */
-export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: null as number | null, boxModules: 16 }
+export const METER_DROP = { id: 'meter-itm', poles: 4, modules: 4, ratingA: 32 as number | null, curve: 'C', breakingKA: 6, boxModules: 16 }
 /** The AC surge arrester, 3+1: a varistor from each phase to neutral and a spark gap from neutral to earth, four modules. It sits next to the earth bar and the rod. The maker says what back-up breaker or fuse it needs. */
 export const SURGE_AC = { id: 'surge-ac', poles: 4, modules: 4, ratingA: null as number | null }
 /** A BAW RU400F63 Plus type of protector (the owner's picture), five modules: it reads each phase's voltage and current and opens its contactors, in series with the load, when a voltage is out of range. 63 A a phase. */
@@ -105,8 +106,8 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as con
  * outlet circuits (the standard's); the rest are the usual short forms.
  */
 export const TAGS: Readonly<Record<string, string>> = {
-  'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'battery-dc': 'BAT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'INV', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
-  feeder: 'TMPB', 'surge-ac': 'SPD AC', 'surge-ac-pa': 'SPD PA', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
+  'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'battery-dc': 'BAT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'AC IN', 'inverter-out': 'AC OUT', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-garage-3': 'ID SU',
+  feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
   'ground-lights-1': 'IUG3', 'ground-lights-2': 'IUG4', 'ground-outlets-office': 'TUG O', 'ground-outlets-pantry': 'TUG D', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
@@ -123,14 +124,14 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
   solar: {
     perRow: 12,
     rows: [
-      ['selector', 'inverter-ac'],
+      ['selector', 'inverter-ac', 'inverter-out'],
       ['string-dc-1', 'string-dc-2', 'surge-dc-1', 'surge-dc-2', 'battery-dc'],
     ],
   },
   pa: {
     perRow: 16,
     rows: [
-      ['main', 'surge-ac-pa'],
+      ['main'],
       ['rcd-garage', 'upper-lights-1', 'upper-lights-2', 'upper-outdoor', 'upper-azotea', 'upper-outlets-rooms', 'upper-outlets-kitchen'],
       ['rcd-garage-2', 'upper-ac-living', 'upper-ac-main-room', 'upper-ac-guest-room', 'rcd-garage-3', 'upper-water-heater'],
     ],
@@ -181,7 +182,20 @@ export const groupNoUps = (group: SingleLineGroup) => group.circuits.length > 0 
 export const groupForwards = (board: BoardId, group: SingleLineGroup): readonly Circuit[] => groupNoUps(group) && group.rcd ? CIRCUITS.filter(item => item.board !== board && item.noUps) : []
 
 /** The feeder from TSINV's changeover switch to the pantry's board: four conductors and the earth in one thick conduit, a second one empty for later. */
+/** The cable from the main board to the changeover switch, and from the inverter's AC OUT breaker to it: four conductors of 10 mm² and the earth (owner). */
+export const SUPPLY_CABLE_MM2 = 10
+/** The cable from the meter box to the main board's ITM: 6 mm², what the company asks for. */
+export const METER_CABLE_MM2 = 6
+/** The conduit that takes that cable from the main board (TP) to the solar board (TSINV), in millimetres (owner). */
+export const SUPPLY_CONDUIT_MM = 50
+
+/** What each of the two strings is, for the single-line diagram (owner): nine panels of 620 Wp, 5.58 kWp. */
+export const STRING_PANELS = { panels: 9, wp: 620 }
+
 export const FEEDER = { cableMm2: 6, conductors: 'R S T N + PE', conduitMm: 50, conduits: 2 }
+
+/** The breaking capacity of every circuit's breaker, kA (owner). */
+export const CIRCUIT_BREAKING_KA = 4.5
 
 export const boardCircuits = (board: BoardId) => CIRCUITS.filter(item => item.board === board)
 export const boardDevices = (board: BoardId) => DEVICES.filter(item => item.board === board)
