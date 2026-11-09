@@ -147,7 +147,7 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     <g transform={`translate(0 ${T})`}>
     {/* The conduit that takes CON's output to the boards, marked like the drop's: a line across the output, above the branch to the boards, with a slash where it crosses the output and another where it crosses the violet PE, and its diameter and cable above it, to the right of the cable and before the branch. */}
     <path className="elec-single-earth" d={`M${PEX - 14} 556H${trunk + 215}M${PEX - 6} 562L${PEX + 6} 550M${trunk - 6} 562L${trunk + 6} 550`} />
-    {text(trunk + 20, 551, `Ø${FEEDER.conduitMm} - 4(1x${FEEDER.cableMm2}mm²) + PE`, 'elec-sub', 'start')}
+    {text(trunk + 20, 551, `4(1x${FEEDER.cableMm2}mm²) + PE=1x${FEEDER.cableMm2}mm²`, 'elec-sub', 'start')}
     <g className="elec-wire elec-wire-ac"><path d={[
       `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
       `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 584H${board.trunk}V${D - T - A + SL.label + 6}`),
