@@ -35,7 +35,7 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
       <rect className="elec-node" x={20} y={y as number} width={130} height={46} rx={6} />
       {text(85, (y as number) + 21, node(key as 'string1'), 'elec-title')}{text(85, (y as number) + 36, node('panels'), 'elec-sub')}
     </g>)}
-    {[41, 111].map((y, index) => { const id = `string-dc-${index + 1}`; return <g key={id}>{square(325, y)}{text(336, y - 6, `☀️ ${TAGS[id]} ${device(id).ratingA} A`, 'elec-sub', 'start')}</g> })}
+    {[41, 111].map((y, index) => { const id = `string-dc-${index + 1}`; return <g key={id}>{square(325, y)}{text(336, y - 6, `☀️ ${TAGS[id]} ${device(id).ratingA}A`, 'elec-sub', 'start')}</g> })}
 
     <rect className="elec-node" x={660} y={20} width={200} height={150} rx={8} />
     {text(790, 205, node('ups'), 'elec-sub', 'start')}{text(870, 111, node('noUps').split(': ')[0] + ':', 'elec-sub', 'start')}{text(870, 126, node('noUps').split(': ').slice(1).join(': '), 'elec-sub', 'start')}
@@ -47,20 +47,20 @@ function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circu
     {text(70, 286, node('grid'), 'elec-title')}{text(70, 303, node('gridSub'), 'elec-sub')}
     <rect className="elec-node elec-node-board" x={160} y={250} width={120} height={80} rx={8} />
     {text(220, 284, node('mainBoard'), 'elec-title')}{text(220, 302, node('mainBoardSub'), 'elec-sub')}{text(220, 317, node('mainBoardItm'), 'elec-sub')}
-    {square(429, 225)}{text(423, 240, `${node('inverterBreaker')} ${device('inverter-ac').ratingA} A`, 'elec-sub', 'end')}
+    {square(429, 225)}{text(423, 240, `${node('inverterBreaker')} ${device('inverter-ac').ratingA}A`, 'elec-sub', 'end')}
 
     {text(390, 282, `4(1x${SUPPLY_CABLE_MM2})mm²+PE`, 'elec-sub', 'end')}{text(700, 230, `4(1x${SUPPLY_CABLE_MM2})mm²+PE`, 'elec-sub', 'middle')}
-    {square(630, 204)}{text(641, 242, `${node('inverterOut')} ${device('inverter-out').ratingA} A`, 'elec-sub')}
+    {square(630, 204)}{text(641, 242, `${node('inverterOut')} ${device('inverter-out').ratingA}A`, 'elec-sub')}
 
     <rect className="elec-node" x={500} y={240} width={110} height={100} rx={6} />
     {text(555, 284, node('selector'), 'elec-title')}{text(555, 302, node('selectorPositions'), 'elec-sub')}
     {text(712, 440, `4(1x${FEEDER.cableMm2})mm²+PE`, 'elec-sub', 'start')}
 
     <rect className="elec-node elec-node-board" x={740} y={240} width={230} height={130} rx={8} />
-    {square(752, 279)}{text(784, 294, `${node('main')} ${device('main').ratingA} A`, 'elec-sub', 'start')}
+    {square(752, 279)}{text(784, 294, `${node('main')} ${device('main').ratingA}A`, 'elec-sub', 'start')}
     {text(855, 326, node('pa'), 'elec-title')}{text(855, 344, node('paSub'), 'elec-sub')}{text(855, 360, count('pa'), 'elec-sub')}
     <rect className="elec-node elec-node-board" x={740} y={450} width={230} height={140} rx={8} />
-    <rect className="elec-device elec-device-pantry" x={752} y={479} width={22} height={22} rx={3} />{text(784, 494, `${node('pantryMain')} ${device('feeder').ratingA} A`, 'elec-sub', 'start')}
+    <rect className="elec-device elec-device-pantry" x={752} y={479} width={22} height={22} rx={3} />{text(784, 494, `${node('pantryMain')} ${device('feeder').ratingA}A`, 'elec-sub', 'start')}
     {text(855, 528, node('pantry'), 'elec-title')}{text(855, 546, node('pantrySub'), 'elec-sub')}{text(855, 562, count('pantry'), 'elec-sub')}{text(855, 578, node('earth'), 'elec-sub')}
   </svg>
 }
@@ -329,7 +329,7 @@ function SingleLine({ board }: { board: BoardId }) {
 
 const protection = (item: Device, t: TFunction<'workspace'>) => {
   if (item.ratingA === null) return t(item.id === 'selector' ? 'electrical.board.bySupply' : 'electrical.board.byManual')
-  return `${item.poles}P ${item.ratingA} A${/^(string|battery)-dc/.test(item.id) ? ' DC' : ''}`
+  return `${item.poles}x${item.ratingA}A${/^(string|battery)-dc/.test(item.id) ? ' DC' : ''}`
 }
 
 const MODULE_W = 18, DEVICE_H = 80
@@ -379,7 +379,7 @@ function BoardRows({ board }: { board: BoardId }) {
     if (circuit) return `C${circuit.ratingA}`
     if (id.startsWith('rcd')) return '30 mA'
     const ampere = DEVICES.find(item => item.id === id)?.ratingA
-    return ampere ? `${ampere} A` : ''
+    return ampere ? `${ampere}A` : ''
   }
   return <div className="elec-rows" role="list" aria-label={t('electrical.board.rowsTitle')}>
     {rows.map((row, index) => {
@@ -405,7 +405,7 @@ function BoardCard({ board }: { board: BoardId }) {
   const devices = boardDevices(board)
   const circuits = boardCircuits(board)
   const modules = boardModules(board)
-  const load = (item: Circuit) => item.loadW ? t('electrical.board.loadW', { kw: formatNumber(item.loadW / 1000, 1) }) : '—'
+  const load = (item: Circuit) => item.loadW ? formatNumber(item.loadW) : '—'
   return <section className="elec-board" aria-labelledby={`elec-board-${board}`}>
     <h3 id={`elec-board-${board}`}>{t(`electrical.board.${board}`)}</h3>
     <p className="array-note">{t(`electrical.board.${board}Note`)}</p>
@@ -420,7 +420,7 @@ function BoardCard({ board }: { board: BoardId }) {
         <th scope="col">{t('electrical.board.cable')}</th><th scope="col">{t('electrical.board.load')}</th><th scope="col">{t('electrical.board.modules')}</th>
       </tr></thead>
       <tbody>{circuits.map(item => <tr key={item.id}>
-        <th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{names[item.id]}</td><td><PhaseChips phases={item.phases} /></td><td>{item.modules}P {item.ratingA} A · C</td><td>{formatNumber(item.cableMm2, item.cableMm2 % 1 ? 1 : 0)} mm²</td><td>{load(item)}</td><td>{item.modules}</td>
+        <th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{names[item.id]}</td><td><PhaseChips phases={item.phases} /></td><td>{item.modules}x{item.ratingA}A · C</td><td>{formatNumber(item.cableMm2, item.cableMm2 % 1 ? 1 : 0)}</td><td>{load(item)}</td><td>{item.modules}</td>
       </tr>)}</tbody>
     </table>}
     <p className="elec-total"><strong>{t('electrical.board.total')}: {modules}</strong> · {t('electrical.board.fit', { box: boxModules(board), free: boxModules(board) - modules })}</p>
@@ -437,13 +437,13 @@ function MainBoardCard() {
     <h3 id="elec-board-main">{t('electrical.board.main')}</h3>
     <p className="array-note">{t('electrical.board.mainNote')}</p>
     <svg className="elec-rail" style={railStyle(boxModules)} viewBox={`0 0 ${boxModules * MODULE_W} ${DEVICE_H + 16}`} role="img" aria-label={MAIN_BOARD_ITEMS.map(item => deviceNames[item.id]).join(', ')}>
-      {MAIN_BOARD_ITEMS.map(item => { const x = at * MODULE_W; at += item.modules; return <ModuleIcon key={item.id} x={x} id={item.id} modules={item.modules} terminals={item.poles} rating={item.ratingA ? `${item.ratingA} A` : item.id.startsWith('surge') ? '' : `${item.poles}P`} tag={TAGS[item.id]} name={deviceNames[item.id]} /> })}
+      {MAIN_BOARD_ITEMS.map(item => { const x = at * MODULE_W; at += item.modules; return <ModuleIcon key={item.id} x={x} id={item.id} modules={item.modules} terminals={item.poles} rating={item.ratingA ? `${item.ratingA}A` : item.id.startsWith('surge') ? '' : `${item.poles}P`} tag={TAGS[item.id]} name={deviceNames[item.id]} /> })}
       {used < boxModules && <g><rect x={used * MODULE_W + 1} y={1} width={(boxModules - used) * MODULE_W - 2} height={DEVICE_H - 2} rx={2.5} fill="none" stroke="currentColor" strokeOpacity={.5} strokeDasharray="4 3" />
         <text x={(used + (boxModules - used) / 2) * MODULE_W} y={DEVICE_H / 2 + 3} textAnchor="middle" fontSize={7} fill="currentColor" fillOpacity={.75}>{t('electrical.board.free', { count: boxModules - used })}</text></g>}
     </svg>
     <table className="gen-table gen-table-plain">
       <thead><tr><th scope="col">{t('electrical.board.tag')}</th><th scope="col">{t('electrical.board.device')}</th><th scope="col">{t('electrical.board.breaker')}</th><th scope="col">{t('electrical.board.modules')}</th></tr></thead>
-      <tbody>{MAIN_BOARD_ITEMS.map(item => <tr key={item.id}><th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{deviceNames[item.id]}</td><td>{item.ratingA === null ? t(item.id === METER_DROP.id ? 'electrical.board.bySupply' : 'electrical.board.byManual') : `${item.poles}P ${item.ratingA} A`}</td><td>{item.modules}</td></tr>)}</tbody>
+      <tbody>{MAIN_BOARD_ITEMS.map(item => <tr key={item.id}><th scope="row" className="elec-tag">{TAGS[item.id]}</th><td className="elec-name">{deviceNames[item.id]}</td><td>{item.ratingA === null ? t(item.id === METER_DROP.id ? 'electrical.board.bySupply' : 'electrical.board.byManual') : `${item.poles}x${item.ratingA}A`}</td><td>{item.modules}</td></tr>)}</tbody>
     </table>
     <p className="elec-total"><strong>{t('electrical.board.total')}: {used}</strong> · {t('electrical.board.fit', { box: boxModules, free: boxModules - used })}</p>
   </section>

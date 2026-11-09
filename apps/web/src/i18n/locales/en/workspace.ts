@@ -360,10 +360,10 @@ const workspace = {
       paNote: 'Located in the garage, the upper floor\'s main breaker hangs from the changeover switch in the TSINV.',
       pantryNote: 'It is in the pantry, where the upper floor\'s conduits come down. It has the ground floor\'s main breaker and feeds it; the UDM and the network\'s PoE supplies are there too. It gathers the earth wires of both floors on one bar.',
       main: 'Main board', mainNote: 'Meter drop, with the main breaker, the AC surge arrester and the three-phase voltage protector. The changeover switch and the inverter\'s grid input are fed from it. The arrester is next to the earth rod.',
-      device: 'Device', circuit: 'Circuit', phase: 'Phase', breaker: 'Protection', cable: 'Cable', modules: 'Modules', load: 'Load',
-      byManual: 'per manual', bySupply: 'per the supply', loadW: '{{kw}} kW',
+      device: 'Device', circuit: 'Destination', phase: 'Phase', breaker: 'Protection', cable: 'Cable [mm²]', modules: 'Modules', load: 'Power [W]',
+      byManual: 'per manual', bySupply: 'per the supply',
       total: 'Modules needed', fit: '{{box}}-module box · free: {{free}}',
-      rowsTitle: 'Rows of the board', tag: 'Label', row: 'Row {{n}}', free: '{{count}} free',
+      rowsTitle: 'Rows of the board', tag: 'Circuit', row: 'Row {{n}}', free: '{{count}} free',
     },
     device: {
       main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC input breaker, 4P', 'inverter-out': '☀️ Inverter AC output breaker, 4P',

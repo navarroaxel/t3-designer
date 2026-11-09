@@ -381,10 +381,10 @@ const workspace = {
       paNote: 'Ubicado en el garage, la térmica general de PA cuelga de la conmutadora del TSINV.',
       pantryNote: 'Está en la despensa, donde bajan los caños de PA. Tiene la térmica general de PB y la reparte; también están ahí el UDM y las fuentes PoE de la red. Junta los cables de tierra de las dos plantas en una bornera.',
       main: 'Tablero principal', mainNote: 'Bajada del medidor, incluye ITM general, descargador AC y el protector de tensión trifásico. De ahí salen la conmutadora y la entrada del inversor. El descargador queda junto a la jabalina.',
-      device: 'Dispositivo', circuit: 'Circuito', phase: 'Fase', breaker: 'Protección', cable: 'Cable', modules: 'Módulos', load: 'Carga',
-      byManual: 'según manual', bySupply: 'según el servicio', loadW: '{{kw}} kW',
+      device: 'Dispositivo', circuit: 'Destino', phase: 'Fase', breaker: 'Protección', cable: 'Cable [mm²]', modules: 'Módulos', load: 'Potencia [W]',
+      byManual: 'según manual', bySupply: 'según el servicio',
       total: 'Módulos necesarios', fit: 'Caja de {{box}} módulos · libres: {{free}}',
-      rowsTitle: 'Armado por filas', tag: 'Sigla', row: 'Fila {{n}}', free: '{{count}} libres',
+      rowsTitle: 'Armado por filas', tag: 'Circuito', row: 'Fila {{n}}', free: '{{count}} libres',
     },
     device: {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica de entrada AC del inversor, 4P', 'inverter-out': '☀️ Térmica de salida AC del inversor, 4P',
