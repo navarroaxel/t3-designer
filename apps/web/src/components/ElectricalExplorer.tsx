@@ -33,11 +33,16 @@ const wrap = (label: string, max = SL.nameLines) => label.split(' ').reduce<stri
  * from which each residual-current device drops, and under each one its circuits, a column each, with the breaker, phase, cable, load and name. The devices that are on the inverter's Smart Load output do not hang from that bus: they have a
  * source of their own at the top, and the line that goes on to the other board (the sauna's) leaves from there. It is read from `singleLine`, so it follows the rows of the board.
  */
-function SingleLine({ boards }: { boards: readonly BoardId[] }) {
+function SingleLine({ boards, off, mode, phasesOff }: { boards: readonly BoardId[]; off?: ReadonlySet<string>; mode?: SupplyMode | null; phasesOff?: ReadonlySet<string> }) {
   const { t } = useTranslation('workspace')
   const { formatNumber } = useLocale()
   const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
-  const parts = boards.map(board => ({ board, ...singleLine(board) }))
+  /** The filter drops the residual-current devices that it has switched off, with what hangs from them, so the columns close up and the diagram gets narrower. */
+  const parts = boards.map(board => { const part = singleLine(board); return { board, ...part, groups: part.groups.filter(group => !(group.rcd && off?.has(group.rcd.id))), hidden: part.groups.filter(group => group.rcd && off?.has(group.rcd.id)) } })
+  /** What a supply mode leaves without power: with the grid only, the inverter and what hangs from it; with the inverter only, the grid and what is upstream of CON and AC IN. */
+  const deadWhen = (side: 'grid' | 'inverter') => (mode === 'inverter' && side === 'grid') || (mode === 'grid' && side === 'inverter') ? 'elec-dead' : undefined
+  /** A circuit is without power when any of its phases is switched off: its wires, breaker, output and table column are drawn faint. */
+  const noPhase = (circuit: Circuit) => circuit.phases.some(phase => !!phasesOff?.has(PHASE_NAME[phase])) ? 'elec-dead' : undefined
   const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') => <text key={`${x}-${y}-${label}`} className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
   /** The letters of a circuit's phases, each in its homologated colour (R brown, S black, T red). */
   const phaseText = (x: number, y: number, phases: readonly Phase[], className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') =>
@@ -79,29 +84,56 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
   /** The marks across a vertical wire, one for each conductor. */
   const ticks = (x: number, y: number, count: number) => <path className="elec-single-earth" d={Array.from({ length: count }, (_, n) => `M${x - 6} ${y + n * 5 + 2}l12 -4`).join('')} />
 
+  /** The owner's continuation arrow (continuacion_salida.svg, 140 x 200, at .6): the white arrowhead, 16 wide and 40 long, at the end of a cable that goes on; its tip is at (x, tipY), and the destination is written beside it. */
+  const continuation = (x: number, tipY: number, to: string) => <g>
+    <g transform={`translate(${x} ${tipY}) scale(.6) translate(-50 -190)`}><path d="M42 150L58 150L50 190Z" className="elec-node" style={{ strokeWidth: 2.5, strokeLinejoin: 'round' }} /></g>
+    {text(x + 12, tipY - 14, to, 'elec-sub', 'start')}
+  </g>
   /** The width of the row labels of the table under the diagram, which the columns are shifted by. */
   const LABELS = 92
-  let at = SL.margin + LABELS
-  const placed = parts.flatMap((part, partIndex) => {
-    if (partIndex) at += SL.gap * 2
-    return part.groups.map(group => {
-      const rows = group.circuits.length
-      const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
-      at += rows * SL.col + SL.gap
-      return { board: part.board, group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+  /**
+   * The columns, left to right, from `start`. A board with nothing supplied from its main breaker keeps a column of its own for its trunk, so that the Smart Load's cable (which hangs from the inverter,
+   * not from it) does not end up under it; and the Smart Load's cable stays when its device is switched off: it ends where the device was, with its conductor marks, and keeps its column free.
+   */
+  const layout = (start: number) => {
+    let at = start
+    const bare: Partial<Record<BoardId, number>> = {}
+    const stubs: { centre: number; to: string }[] = []
+    const placed = parts.flatMap((part, partIndex) => {
+      if (partIndex) at += SL.gap * 2
+      if (!part.groups.some(group => !groupNoUps(group))) { bare[part.board] = at + SL.col / 2; at += SL.col + SL.gap }
+      const kept = part.groups.map(group => {
+        const rows = group.circuits.length
+        const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
+        at += rows * SL.col + SL.gap
+        return { board: part.board, group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+      })
+      part.hidden.filter(groupNoUps).forEach(group => { stubs.push({ centre: at + SL.col / 2, to: t('electrical.single.toBoard', { board: group.circuits.map(circuit => TAGS[circuit.id]).join(', ') }) }); at += SL.col + SL.gap })
+      return kept
     })
-  })
-  const width = at - SL.gap + SL.margin
+    return { placed, bare, stubs, end: at }
+  }
+  /** The drop's column is 24 left of the first board's trunk and needs 230 of room on its left (the earth rod, the arrester), so the trunk is not nearer than 254: with fewer columns the layout is shifted right. */
+  const MIN_TRUNK = 254
+  const trunkOf = (laid: ReturnType<typeof layout>) => {
+    const supplied = laid.placed.filter(item => item.board === parts[0].board && !item.noUps)
+    return supplied.length ? (supplied[0].centre + supplied.at(-1)!.centre) / 2 : laid.bare[parts[0].board] ?? 0
+  }
+  const probe = layout(SL.margin + LABELS)
+  const { placed, bare, stubs, end } = layout(SL.margin + LABELS + Math.max(0, MIN_TRUNK - trunkOf(probe)))
+  const width = end - SL.gap + SL.margin
   /** What each board has of its own: its bus, the trunk that its main breaker hangs from, and its series devices. */
   const info = parts.map(part => {
     const mine = placed.filter(item => item.board === part.board), supplied = mine.filter(item => !item.noUps)
-    const busLeft = supplied[0]?.centre ?? mine[0].centre, busRight = supplied.at(-1)?.centre ?? mine[0].centre
+    const busLeft = supplied[0]?.centre ?? bare[part.board] ?? 0, busRight = supplied.at(-1)?.centre ?? bare[part.board] ?? 0
     return { board: part.board, supplied, busLeft, busRight, trunk: (busLeft + busRight) / 2, series: part.head.filter(item => !item.id.startsWith('surge')), surges: part.head.filter(item => item.id.startsWith('surge')) }
   })
   const { series, surges } = info[0], trunk = info[0].trunk
   const seriesY = (index: number) => 52 + index * 58
   const surgeY = seriesY(series.length - 1) + SL.boxH / 2 + 24
   const busY = surges.length ? surgeY + 100 : seriesY(series.length - 1) + SL.boxH / 2 + 30
+  /** Where the arrowheads of the cables that go on end, the Smart Load's and a board's with all its devices switched off: the same level. */
+  const arrowY = busY + SL.boxH / 2 + 28
   const rcdY = busY + 56, subY = rcdY + SL.rcdH / 2 + 22, breakerY = subY + 38, loadY = breakerY + 106
   /** The output terminals of a circuit: the phase terminals (R, S, T) and the neutral, numbered by the circuit's place in its own board. */
   const terminals = (circuit: Circuit) => {
@@ -126,10 +158,14 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
   const cableText = `4(1x${SUPPLY_CABLE_MM2})mm²+PE`
   /** The drop's height, and its left wire's x: 24 to the left of the board's trunk, so that CON's output (its middle) lines up with it. */
   const T = 84, A = 34, D = 520 + T + A + 78, L = Math.max(trunk - 24, 230), PEX = L - 130, SPDX = L - 70, totalWidth = Math.max(width, L + 520)
+  /** The PE bar runs from the earth rod's line over every column that is drawn, the boards' trunks and the Smart Load's cable included, so it is not cut when the filter drops the circuits at its end. */
+  const peLeft = Math.min(PEX, ...placed.map(item => item.first - 14), ...info.map(board => board.trunk - 14))
+  const peRight = Math.max(PEX, ...placed.map(item => item.last + 14), ...info.map(board => board.trunk + 14), ...stubs.map(stub => stub.centre + 14))
   /** Where the earth rod's line meets the drop, between the meter box and the ITM, as seen from the board's group (which starts at `D`). */
   const peY = A + 100 - D
   return <svg className="elec-single" style={{ minWidth: totalWidth * .85, maxWidth: totalWidth * 1.25 }} viewBox={`0 0 ${totalWidth} ${height + D}`} role="img" aria-label={t('electrical.single.aria', { board: boards.map(board => t(`electrical.board.${board}`)).join(' · ') })}>
     <g transform={`translate(0 ${A})`}>
+    <g className={deadWhen('grid')}>
     {/* The company's service drop (the owner's acometida_edesur_iram.svg, 300 x 240, at .6, its tap the one below): the cable coming in from the left with the arrow, its four conductors and its cable. */}
     <g className="elec-wire elec-wire-ac"><path d={`M${L - 132} -2H${L}V16`} /></g>
     <path className="elec-node" d={`M${L - 114} -6.8L${L - 90} -2L${L - 114} 2.8Z`} />
@@ -144,15 +180,16 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
       <title>{nodes.meterBox}</title><path d="M32 165V125A18 18 0 0 1 68 125V165Z" className="elec-node" style={{ strokeWidth: 2.5 }} /><path d="M42 157V133L50 148L58 133V157" />
     </g>
     {text(L + 22, 32, nodes.utilityTap, 'elec-sub', 'start')}<path className="elec-single-earth" d={`M${PEX - 14} 118H${L + 200}M${L - 6} 124L${L + 6} 112M${PEX - 6} 124L${PEX + 6} 112`} /><path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${L - 6} ${133 + n * 5}l12 -4`).join('')} />{text(L + 16, 114, `4(1x${METER_CABLE_MM2}mm²)+PE=1x${METER_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 22, 81, nodes.meterBox, 'elec-sub', 'start')}
+    </g>
     <g transform={`translate(0 ${T})`}>
     {/* The conduit that takes CON's output to the boards, marked like the drop's: a line across the output, above the branch to the boards, with a slash where it crosses the output and another where it crosses the violet PE, and its diameter and cable above it, to the right of the cable and before the branch. */}
     <path className="elec-single-earth" d={`M${PEX - 14} 564H${trunk + 215}M${PEX - 6} 570L${PEX + 6} 558M${trunk - 6} 570L${trunk + 6} 558`} />
     {text(trunk + 20, 559, `4(1x${FEEDER.cableMm2}mm²) + PE=1x${FEEDER.cableMm2}mm²`, 'elec-sub', 'start')}
-    <g className="elec-wire elec-wire-ac"><path d={[
-      `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
-      `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 584H${board.trunk}V${D - T - A + SL.label + 6}`),
-    ].join('')} /></g>
-    <circle className="elec-dot" cx={L} cy={128} r={3.5} /><circle className="elec-dot" cx={L} cy={235} r={3.5} />{info.length > 1 && <circle className="elec-dot" cx={trunk} cy={584} r={3.5} />}
+    <g className={`elec-wire elec-wire-ac ${deadWhen('grid') ?? ''}`}><path d={[`M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`].join('')} /></g>
+    <g className={`elec-wire elec-wire-ac ${deadWhen('inverter') ?? ''}`}><path d={`M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`} /></g>
+    <g className="elec-wire elec-wire-ac"><path d={[`M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 584H${board.trunk}V${D - T - A + SL.label + 6}`)].join('')} /></g>
+    <g className={deadWhen('grid')}><circle className="elec-dot" cx={L} cy={128} r={3.5} /><circle className="elec-dot" cx={L} cy={235} r={3.5} /></g>{info.length > 1 && <circle className="elec-dot" cx={trunk} cy={584} r={3.5} />}
+    <g className={deadWhen('grid')}>
     {breaker(L, 94, [TAGS[METER_DROP.id], `${METER_DROP.poles}x${METER_DROP.ratingA}A`, t('electrical.single.curveType', { curve: METER_DROP.curve }), `Icc=${METER_DROP.breakingKA}kA`], TAGS[METER_DROP.id], false, false, 12)}
     {text(L + 22, 142, '380/220 Vca-50 Hz', 'elec-sub', 'start')}
     {/* The owner's IRAM surge arrester (spd_descargador_iram.svg, 100 x 200), scaled to .6: the rectangle with the arrow pointing down, and the earth below it. */}
@@ -176,16 +213,19 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     </g>
     {text(L + 30, 168, TAGS[VOLTAGE_PROTECTOR.id], 'elec-title', 'start')}{text(L + 30, 182, rating(VOLTAGE_PROTECTOR), 'elec-sub', 'start')}
     {breaker(L + 225, 265, [TAGS[inverterIn.id], rating(inverterIn)], TAGS[inverterIn.id], false, true)}
+    </g>
     {/* The owner's inverter symbol (inversor_solar.svg, 100 x 200), scaled to .8: the converter's square with its diagonal, the DC bars above it and the AC wave below. */}
+    <g className={deadWhen('inverter')}>
     <g transform={`translate(${L + 225} 326) scale(1.1) translate(-50 -95)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
       <title>{nodes.inverter}</title>
       <rect x={25} y={70} width={50} height={50} className="elec-node" style={{ strokeWidth: 2.5 }} />
       <path d="M25 120L75 70M33 83H47M33 89H47M52 105c3 -6 6 -6 8 0s5 6 8 0" />
     </g>
+    </g>
     {/* The PE goes with the cable to the TSINV, inside the same conduit: a bar between the conduit's line and the cable to AC IN, long enough to reach the strings' surge arresters, which are joined to it, from the one that comes down from the earth rod. */}
     <g className="elec-pe"><path d={`M${PEX} 225H${L + 428}`} /></g><circle className="elec-dot elec-pe-dot" cx={PEX} cy={225} r={3} />
     {/* The two strings, on the right of the inverter (the owner's panel_solar.svg, 160 x 200, at .8): the generator's square with its diagonal, the DC bars and the incident light, each with its 20 A DC breaker, to the inverter's DC input. */}
-    {[1, 2].map(n => { const x = L + 290 + (n - 1) * 110, id = `string-dc-${n}`, y = n === 1 ? 310 : 324, string = device(id); return <g key={id}>
+    <g className={deadWhen('inverter')}>{[1, 2].map(n => { const x = L + 290 + (n - 1) * 110, id = `string-dc-${n}`, y = n === 1 ? 310 : 324, string = device(id); return <g key={id}>
       <g className="elec-wire elec-wire-dc"><path d={`M${x} 38V85M${x} 119V${y}H${L + 253}M${x} 148H${x + 28}V154`} /></g>
       <g transform={`translate(${x} 18) scale(.8) translate(-55 -70)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <title>{`${TAGS[id]} · ${STRING_PANELS.panels} × ${STRING_PANELS.wp} Wp`}</title>
@@ -206,9 +246,11 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
       </g>
       {text(x + 38, 171, TAGS[`surge-dc-${n}`], 'elec-sub', 'start')}
       <g className="elec-pe"><path d={`M${x + 28} 214.5V225`} /></g><circle className="elec-dot elec-pe-dot" cx={x + 28} cy={225} r={3} />
-    </g> })}
+    </g> })}</g>
+    <g className={deadWhen('inverter')}>
     {/* The inverter's Smart Load output, which feeds the water heater and the sauna, in the TSPB: from the inverter's bottom edge, next to AC OUT, across to the board's group that hangs from it. */}
     {placed.filter(item => item.noUps).map(item => <g key={item.centre} className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V480H${item.centre}V${D - T - A + SL.label + 6}`} /></g>)}
+    {stubs.map(({ centre }) => <g key={centre} className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V480H${centre}V${D - T - A + SL.label + 6}`} /></g>)}
     {text(L + 252, 474, `${t('electrical.single.smartLoad')} - 4(1x${SMART_LOAD_CABLE_MM2})mm²+PE`, 'elec-sub', 'start')}
     {/* The battery, below the strings, on the inverter's DC side (the owner's bateria_unifilar.svg, 100 x 200, at .6). It has no breaker of its own: the inverter's is built in. */}
     {(() => { const x = L + 300; return <g>
@@ -223,6 +265,7 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     </g> })()}
     {text(L + 188, 321, t('electrical.single.inverterTitle'), 'elec-title', 'end')}{text(L + 188, 335, t('electrical.single.inverterSub'), 'elec-sub', 'end')}{text(L + 188, 349, INVERTER_MODEL, 'elec-sub', 'end')}
     {breaker(L + 208, 387, [TAGS[inverterOut.id], rating(inverterOut)], TAGS[inverterOut.id], false, true)}
+    </g>
     {/* The conduit between the TP and the TSINV, drawn as in the sample single-line diagram: its line, a slash across each conductor that goes through it (the cable and the PE) and what it holds. */}
     <path className="elec-single-earth" d={`M${PEX - 14} 215H${L + 215}M${L - 6} 221L${L + 6} 209M${PEX - 6} 221L${PEX + 6} 209`} />
     {text(L + 20, 210, `Ø${SUPPLY_CONDUIT_MM} - 4(1x${SUPPLY_CABLE_MM2}mm²) + PE=1x${SUPPLY_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 100, 418, cableText, 'elec-sub', 'start')}
@@ -230,9 +273,9 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     <g transform={`translate(${L + 24} 462) scale(.8) translate(-70 -80)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round' }}>
       <title>{nodes.selector}</title>
       <circle className="elec-node" cx={40} cy={80} r={5} /><circle className="elec-node" cx={100} cy={80} r={5} /><circle className="elec-node" cx={70} cy={130} r={5} />
-      <path d="M70 123.25V88" style={{ strokeWidth: 3.5 }} />
+      <path d="M70 123.25V88" style={{ strokeWidth: 3.5 }} transform={mode ? `rotate(${mode === 'grid' ? -31 : 31} 70 130)` : undefined} />
     </g>
-    {text(L + 12 - 14, 480, 'I', 'elec-sub', 'end')}{text(L + 24, 466, '0', 'elec-sub')}{text(L + 48 + 12, 480, 'II', 'elec-sub', 'start')}
+    {text(L + 12 - 14, 480, 'I', 'elec-sub', 'end')}{!mode && text(L + 24, 466, '0', 'elec-sub')}{text(L + 48 + 12, 480, 'II', 'elec-sub', 'start')}
     {text(L + 62, 500, nodes.selector.split(' ')[0], 'elec-title', 'start')}{text(L + 62, 514, ratingOf(DEVICES.find(item => item.id === 'selector') as Device), 'elec-sub', 'start')}{text(L + 62, 528, nodes.selectorPositions, 'elec-sub', 'start')}
     </g>
     </g>
@@ -242,19 +285,15 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
         ...[...board.series.map((_, index) => seriesY(index)), busY + SL.boxH / 2].map((y, index, all) => `M${board.trunk} ${index ? seriesY(index - 1) + SL.boxH / 2 : SL.label + 6}V${index < all.length - 1 ? y - SL.boxH / 2 : busY}`), `M${board.busLeft} ${busY}H${board.busRight}`,
         ...board.surges.map((_, index) => `M${board.trunk} ${surgeY + index * 60}H${board.trunk + 44}V${surgeY + index * 60 + 14}M${board.trunk + 44} ${surgeY + index * 60 + 40}V${surgeY + index * 60 + 50}`),
       ]),
-      ...placed.flatMap(item => [
-        `M${item.centre} ${item.noUps ? SL.label + 6 : busY}V${item.group.rcd ? rcdY - SL.rcdH / 2 : subY}`,
-        ...(item.group.rcd ? [`M${item.centre} ${rcdY + SL.rcdH / 2}V${subY}`] : []), `M${item.first} ${subY}H${item.last}`,
-        ...Array.from({ length: item.rows }, (_, index) => {
-          const x = columnX(item, index)
-          const inline = DEVICES.some(device => device.inlineOf === item.group.circuits[index]?.id)
-          return `M${x} ${subY}V${breakerY - SL.boxH / 2}` + (inline ? `M${x} ${breakerY + SL.boxH / 2}V${breakerY + 54.4}M${x} ${breakerY + 85}V${loadY - 6}` : `M${x} ${breakerY + SL.boxH / 2}V${loadY - 6}`)
-        }),
-      ]),
     ].join('')} /></g>
     {info.map(board => <g key={board.board}>
       {board.supplied.map(item => <circle key={item.centre} className="elec-dot" cx={item.centre} cy={busY} r={3.5} />)}
       {board.supplied.length > 1 && <circle className="elec-dot" cx={board.trunk} cy={busY} r={3.5} />}
+      {/* A board with all its devices switched off ends in the service drop's arrowhead, which says its cable goes on. */}
+      {bare[board.board] !== undefined && <g>
+        <g className="elec-wire elec-wire-ac"><path d={`M${board.trunk} ${seriesY(board.series.length - 1) + SL.boxH / 2}V${arrowY}`} /></g>
+        {ticks(board.trunk, busY - 4, 4)}{continuation(board.trunk, arrowY, t('electrical.single.toBoard', { board: BOARD_TAG[board.board] }))}
+      </g>}
       {/* The four conductors that come from CON, marked where they enter each board, above its first breaker. */}
       <path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${board.trunk - 6} ${8 + n * 3.2}l12 -4`).join('')} />
       {board.series.map((item, index) => <g key={item.id}>{breaker(board.trunk, seriesY(index), [TAGS[item.id], ratingOf(item)], item.id)}</g>)}
@@ -263,11 +302,20 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
         <path className="elec-single-earth" d={`M${x - 8} ${y + 36}H${x + 8}M${x - 5} ${y + 40}H${x + 5}M${x - 2} ${y + 44}H${x + 2}`} />{text(x + 14, y + 44, t('electrical.single.surge'), 'elec-sub', 'start')}
       </g> })}
     </g>)}
-    {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id}>
+    {/* Where the Smart Load's cable ended up, with its device switched off: the conductor marks and the service drop's arrowhead (24 long, 9.6 wide) turned down, which says it goes on. */}
+    <g className={deadWhen('inverter')}>{stubs.map(({ centre, to }) => <g key={centre}><g className="elec-wire elec-wire-ac"><path d={`M${centre} 20V${arrowY}`} /></g>{ticks(centre, busY - 4, 4)}{continuation(centre, arrowY, to)}</g>)}</g>
+    {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id} className={noUps ? deadWhen('inverter') : undefined}>
+      {/* The wires of the group: from the bus (or from the Smart Load output) to its device, along its secondary bus and down to each circuit's output. */}
+      <g className="elec-wire elec-wire-ac"><path d={[
+        `M${item.centre} ${item.noUps ? SL.label + 6 : busY}V${item.group.rcd ? rcdY - SL.rcdH / 2 : subY}`,
+        ...(item.group.rcd ? [`M${item.centre} ${rcdY + SL.rcdH / 2}V${subY}`] : []), `M${item.first} ${subY}H${item.last}`,
+      ].join('')} /></g>
       {noUps && ticks(centre, (group.rcd ? rcdY - SL.rcdH / 2 : subY) - 88, 4)}
       {group.rcd && rcdSymbol(centre, rcdY, [TAGS[group.rcd.id], ratingOf(group.rcd), t('electrical.single.rcd', { type: group.rcd.rcdType }), `t=${RCD_TRIP_MS}ms`], group.rcd.id)}
       {item.rows > 1 && Array.from({ length: item.rows }, (_, index) => <circle key={index} className="elec-dot" cx={columnX(item, index)} cy={subY} r={3} />)}
-      {group.circuits.map((circuit, index) => { const x = columnX(item, index); return <g key={circuit.id}>
+      {group.circuits.map((circuit, index) => { const x = columnX(item, index); const inline = DEVICES.some(device => device.inlineOf === circuit.id); return <g key={circuit.id} className={noPhase(circuit)}>
+        {/* The circuit's wire, from the secondary bus down to its output. */}
+        <g className="elec-wire elec-wire-ac"><path d={`M${x} ${subY}V${breakerY - SL.boxH / 2}` + (inline ? `M${x} ${breakerY + SL.boxH / 2}V${breakerY + 54.4}M${x} ${breakerY + 85}V${loadY - 6}` : `M${x} ${breakerY + SL.boxH / 2}V${loadY - 6}`)} /></g>
         {phaseText(x + 5, subY + 16, circuit.phases, 'elec-title', 'start')}
         {breaker(x, breakerY, [`${circuit.modules}x${circuit.ratingA}A`, t('electrical.single.curveType', { curve: 'C' }), `Icc=${formatNumber(CIRCUIT_BREAKING_KA, 1)}kA`], names[circuit.id])}
         {ticks(x, breakerY + 28, circuit.phases.length === 1 ? 2 : circuit.phases.length + 1)}
@@ -289,7 +337,7 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
       </g> })}
     </g> })}
     {/* The PE bar, dashed as in the sample single-line diagram, just above the primary bus, with its earth at the end. */}
-    <g className="elec-pe"><path d={`M${Math.min(placed[0].first - 14, PEX)} ${busY - 10}H${Math.max(placed.at(-1)!.last + 14, PEX)}M${PEX} ${busY - 10}V${peY}H${PEX - 96}V${peY + 6}`} /></g>
+    <g className="elec-pe"><path d={`M${peLeft} ${busY - 10}H${peRight}M${PEX} ${busY - 10}V${peY}H${PEX - 96}V${peY + 6}`} /></g>
     <path className="elec-single-earth" style={{ stroke: '#b04a9a', strokeWidth: 1.8 }} d={`M${PEX - 106} ${peY + 6}H${PEX - 86}M${PEX - 102} ${peY + 11}H${PEX - 90}M${PEX - 98} ${peY + 16}H${PEX - 94}`} />
     <circle className="elec-dot elec-pe-dot" cx={PEX} cy={busY - 10} r={3} />
     {text(PEX - 4, peY - 5, t('electrical.single.peRod'), 'elec-sub', 'end')}
@@ -300,9 +348,9 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
       <rect className="elec-cell" x={4} y={rowY(index)} width={LABELS - 8} height={rowH(index)} />
       {(row === 'terminal' ? t(`electrical.single.table.${row}`).split(/ (?=[^ ]+$)/) : [t(`electrical.single.table.${row}`)]).map((line, n) => text(10, rowY(index) + 12.5 + n * 11, line, 'elec-sub', 'start'))}
     </g>)}
-    {placed.flatMap(item => item.group.circuits.map((circuit, index) => ({ circuit, x: columnX(item, index) }))).map(({ circuit, x }) => {
+    {placed.flatMap(item => item.group.circuits.map((circuit, index) => ({ circuit, x: columnX(item, index), }))).map(({ circuit, x }) => {
       const cells = [TAGS[circuit.id], circuit.loadW ? formatNumber(circuit.loadW) : '–', circuit.phases.map(phase => PHASE_NAME[phase]).join(''), cable(circuit)[0].replace(' mm²', ''), formatNumber(circuit.cableMm2, circuit.cableMm2 % 1 ? 1 : 0), terminals(circuit), destinationOf(circuit)]
-      return <g key={circuit.id}>{cells.map((cell, index) => <g key={index}>
+      return <g key={circuit.id} className={noPhase(circuit)}>{cells.map((cell, index) => <g key={index}>
         <rect className="elec-cell" x={x - SL.col / 2} y={rowY(index)} width={SL.col} height={rowH(index)} />
         {index === tableRows.length - 1
           ? <>
@@ -461,8 +509,21 @@ function PhaseBalance() {
  * The electrical factsheet: a page to read, and to print for the electrician, of how the installation is laid out: the way the power goes, what each of the two boards holds and how the phases share the load.
  * The numbers are the plan in `data/electrical.ts`; nothing here is measured.
  */
+/** How the house is supplied in the single-line diagram: from the grid alone (CON on Grid, the inverter out) or from the inverter alone (CON on Inverter, the grid gone). */
+export type SupplyMode = 'grid' | 'inverter'
+
+/** The boards' short names, as the factsheet calls them. */
+const BOARD_TAG: Record<BoardId, string> = { solar: 'TSINV', pa: 'TSPA', pantry: 'TSPB' }
+
+/** The boards of the single-line diagram, in the order it draws them. */
+const SINGLE_LINE_BOARDS = ['pa', 'pantry'] as const
+
 export function ElectricalExplorer() {
   const { t } = useTranslation('workspace')
+  /** The switches of the full-screen filter: one for each residual-current device, with its circuits' names as its hint. */
+  const circuitNames = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
+  const singleLineFilters = SINGLE_LINE_BOARDS.flatMap(board => singleLine(board).groups.flatMap(group => group.rcd
+    ? [{ id: group.rcd.id, label: groupNoUps(group) ? t('electrical.single.smartLoad') : TAGS[group.rcd.id], hint: group.circuits.map(circuit => circuitNames[circuit.id]).join(', ') }] : []))
   const upper = CIRCUITS.filter(item => item.floor === 'upper').length, ground = CIRCUITS.length - upper
   const busiestOf = (circuits: readonly Circuit[]) => { const current = phaseCurrentA(circuits); return PHASES.reduce((a, b) => current[b] > current[a] ? b : a) }
   const onUps = onUpsOutput(), busiest = busiestOf(onUps), pantryOnUps = boardCircuits('pantry').filter(item => !item.noUps), pantryBusiest = busiestOf(pantryOnUps)
@@ -493,7 +554,13 @@ export function ElectricalExplorer() {
       <section className="elec-single-section" aria-labelledby="elec-single-title">
         <h3 id="elec-single-title">{t('electrical.single.title')}</h3>
         <p className="array-note">{t('electrical.single.intro')}</p>
-        <DiagramViewer labels={{ title: t('electrical.single.title'), open: t('electrical.single.fullscreen'), close: t('electrical.single.close'), zoomIn: t('electrical.single.zoomIn'), zoomOut: t('electrical.single.zoomOut'), reset: t('electrical.single.fit') }}><SingleLine boards={['pa', 'pantry']} /></DiagramViewer>
+        <DiagramViewer
+          render={({ off, mode, phasesOff }) => <SingleLine boards={SINGLE_LINE_BOARDS} off={off} mode={mode as SupplyMode | null} phasesOff={phasesOff} />}
+          phases={PHASES.map(phase => PHASE_NAME[phase])}
+          modes={[{ id: 'grid', label: t('electrical.single.modeGrid') }, { id: 'inverter', label: t('electrical.single.modeInverter') }]}
+          filters={singleLineFilters}
+          labels={{ title: t('electrical.single.title'), open: t('electrical.single.fullscreen'), close: t('electrical.single.close'), zoomIn: t('electrical.single.zoomIn'), zoomOut: t('electrical.single.zoomOut'), reset: t('electrical.single.fit'), filter: t('electrical.single.filter'), all: t('electrical.single.filterAll'), mode: t('electrical.single.mode'), phases: t('electrical.single.phases') }}
+        />
       </section>
       <div className="elec-boards"><MainBoardCard /><BoardCard board="solar" /><BoardCard board="pantry" /><BoardCard board="pa" /></div>
       <PhaseBalance />
