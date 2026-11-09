@@ -490,7 +490,7 @@ export function ElectricalExplorer() {
       <div className="gen-stats elec-facts" aria-label={t('electrical.factsTitle')}>
         {facts.map(([label, value]) => <div key={label} className="gen-stat gen-stat-wide"><span>{label}</span><strong>{value}</strong></div>)}
       </div>
-      <section aria-labelledby="elec-single-title">
+      <section className="elec-single-section" aria-labelledby="elec-single-title">
         <h3 id="elec-single-title">{t('electrical.single.title')}</h3>
         <p className="array-note">{t('electrical.single.intro')}</p>
         <DiagramViewer labels={{ title: t('electrical.single.title'), open: t('electrical.single.fullscreen'), close: t('electrical.single.close'), zoomIn: t('electrical.single.zoomIn'), zoomOut: t('electrical.single.zoomOut'), reset: t('electrical.single.fit') }}><SingleLine boards={['pa', 'pantry']} /></DiagramViewer>
