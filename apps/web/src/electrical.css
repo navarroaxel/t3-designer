@@ -101,3 +101,11 @@
 .elec-dead { opacity: .18; transition: opacity .15s; }
 .elec-chip.elec-mode[aria-pressed='false'] { opacity: 1; text-decoration: none; }
 .elec-chip.elec-mode[aria-pressed='true'] { background: var(--gen-typical); border-color: var(--gen-typical); color: #fff; }
+
+/* The phase switches beside the modes: R, S and T in their phase's colour, pressed while the phase has power; a phase that is off leaves its circuits faint. */
+.elec-chip.elec-phase-chip { min-width: 34px; padding: 0 8px; font-weight: 700; }
+.elec-chip.elec-phase-chip[data-phase='R'] { color: var(--elec-l1); }
+.elec-chip.elec-phase-chip[data-phase='S'] { color: var(--elec-l2); }
+.elec-chip.elec-phase-chip[data-phase='T'] { color: var(--elec-l3); }
+.elec-chip.elec-phase-chip[aria-pressed='false'] { opacity: .55; text-decoration: line-through; }
+.elec-chip.elec-phase-chip[aria-pressed='true'] { background: var(--gen-card); border-color: currentColor; }

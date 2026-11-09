@@ -395,7 +395,7 @@ const workspace = {
       'ground-outlets-3': '🔌 Tomas Baño, Onsen', 'ground-ac-office': '❄️ AC Oficina', 'ground-sauna': '♨️ Sauna',
     },
     single: {
-      filter: 'Circuitos', mode: 'Alimentación', modeGrid: 'Solo red', modeInverter: 'Solo inversor', filterAll: 'Todos', fullscreen: 'Pantalla completa', close: 'Cerrar', zoomIn: 'Acercar', zoomOut: 'Alejar', fit: 'Ajustar',
+      filter: 'Circuitos', mode: 'Alimentación', phases: 'Fases', modeGrid: 'Solo red', modeInverter: 'Solo inversor', filterAll: 'Todos', fullscreen: 'Pantalla completa', close: 'Cerrar', zoomIn: 'Acercar', zoomOut: 'Alejar', fit: 'Ajustar',
       smartLoad: 'Smart Load',
       curveType: 'tipo {{curve}}',
       peRod: 'a jabalina de P.A.T.', primaryBus: 'Barra primaria', secondaryBus: 'Barra secundaria', outputTerminal: 'Borne de salida',

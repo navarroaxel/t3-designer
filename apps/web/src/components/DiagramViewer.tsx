@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 type View = { x: number; y: number; k: number }
-type Labels = { open: string; close: string; zoomIn: string; zoomOut: string; reset: string; title: string; filter: string; all: string; mode: string }
+type Labels = { open: string; close: string; zoomIn: string; zoomOut: string; reset: string; title: string; filter: string; all: string; mode: string; phases: string }
 /** A switch of the filter: what it switches off is drawn faint in the full-screen layer. */
 export type DiagramFilter = { id: string; label: string; hint: string }
 /** A mode of the diagram, one at a time (or none): `render` gets the id of the one that is on. */
 export type DiagramMode = { id: string; label: string }
-export type DiagramState = { off: ReadonlySet<string>; mode: string | null }
+export type DiagramState = { off: ReadonlySet<string>; mode: string | null; phasesOff: ReadonlySet<string> }
 const NONE: ReadonlySet<string> = new Set()
 
 /** The diagram's width on the full-screen canvas, in pixels at zoom 1; its height follows from the SVG's own proportions. */
@@ -19,21 +19,22 @@ const MAX_ZOOM = 4
  * A diagram that opens in a full-screen layer to be navigated: dragged with the pointer (or a finger), zoomed with the wheel around the cursor or with the buttons, and closed with Escape. The inline
  * copy stays as it is on the page; the layer draws a second copy of the diagram, which can be filtered: each switch of `filters` turns a part of it off, and `render` gets the set of the ones that are off.
  */
-export function DiagramViewer({ render, filters = [], modes = [], labels }: { render: (state: DiagramState) => ReactNode; filters?: readonly DiagramFilter[]; modes?: readonly DiagramMode[]; labels: Labels }) {
+export function DiagramViewer({ render, filters = [], modes = [], phases = [], labels }: { render: (state: DiagramState) => ReactNode; filters?: readonly DiagramFilter[]; modes?: readonly DiagramMode[]; phases?: readonly string[]; labels: Labels }) {
   const [open, setOpen] = useState(false)
   return <>
     <button type="button" className="elec-full-open" onClick={() => setOpen(true)}>⤢ {labels.open}</button>
-    <div className="elec-scroll">{render({ off: NONE, mode: null })}</div>
-    {open && createPortal(<Layer labels={labels} filters={filters} modes={modes} render={render} onClose={() => setOpen(false)} />, document.body)}
+    <div className="elec-scroll">{render({ off: NONE, mode: null, phasesOff: NONE })}</div>
+    {open && createPortal(<Layer labels={labels} filters={filters} modes={modes} phases={phases} render={render} onClose={() => setOpen(false)} />, document.body)}
   </>
 }
 
-function Layer({ render, filters, modes, labels, onClose }: { render: (state: DiagramState) => ReactNode; filters: readonly DiagramFilter[]; modes: readonly DiagramMode[]; labels: Labels; onClose: () => void }) {
+function Layer({ render, filters, modes, phases, labels, onClose }: { render: (state: DiagramState) => ReactNode; filters: readonly DiagramFilter[]; modes: readonly DiagramMode[]; phases: readonly string[]; labels: Labels; onClose: () => void }) {
   const stage = useRef<HTMLDivElement>(null)
   const drag = useRef<{ id: number; x: number; y: number } | null>(null)
   const [view, setView] = useState<View>({ x: 0, y: 0, k: 1 })
   const [off, setOff] = useState<ReadonlySet<string>>(NONE)
   const [mode, setMode] = useState<string | null>(null)
+  const [phasesOff, setPhasesOff] = useState<ReadonlySet<string>>(NONE)
   /** At least one stays on: with none the diagram would have nothing to draw. Double-clicking a chip leaves only that one. */
   const toggle = (id: string) => setOff(current => { const next = new Set(current); if (!next.delete(id)) next.add(id); return next.size < filters.length ? next : current })
 
@@ -84,6 +85,9 @@ function Layer({ render, filters, modes, labels, onClose }: { render: (state: Di
       {modes.length > 0 && <span className="elec-modes" role="group" aria-label={labels.mode}>
         {modes.map(item => <button key={item.id} type="button" className="elec-chip elec-mode" aria-pressed={mode === item.id} onClick={() => setMode(current => current === item.id ? null : item.id)}>{item.label}</button>)}
       </span>}
+      {phases.length > 0 && <span className="elec-modes" role="group" aria-label={labels.phases}>
+        {phases.map(item => <button key={item} type="button" className="elec-chip elec-mode elec-phase-chip" data-phase={item} aria-pressed={!phasesOff.has(item)} title={`${labels.phases} ${item}`} onClick={() => setPhasesOff(current => { const next = new Set(current); if (!next.delete(item)) next.add(item); return next })}>{item}</button>)}
+      </span>}
       <span className="elec-full-tools">
         <button type="button" onClick={() => zoom(1 / 1.25)} aria-label={labels.zoomOut}>−</button>
         <button type="button" onClick={() => zoom(1.25)} aria-label={labels.zoomIn}>+</button>
@@ -110,7 +114,7 @@ function Layer({ render, filters, modes, labels, onClose }: { render: (state: Di
       onPointerUp={() => { drag.current = null }}
       onPointerCancel={() => { drag.current = null }}
     >
-      <div className="elec-full-canvas" style={{ width: BASE_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}>{render({ off, mode })}</div>
+      <div className="elec-full-canvas" style={{ width: BASE_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}>{render({ off, mode, phasesOff })}</div>
     </div>
   </div>
 }
