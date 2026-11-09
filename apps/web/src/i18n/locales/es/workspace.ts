@@ -390,7 +390,7 @@ const workspace = {
       'upper-lights-1': '💡 Ilum. PA Cocina, Living, Baño', 'upper-lights-2': '💡 Ilum. PA Habitaciones', 'upper-outlets-kitchen': '🔌 Tomas Cocina', 'upper-outlets-living': '🔌 Tomas Living, Baño',
       'upper-outlets-rooms': '🔌 Tomas Habitaciones', 'upper-outdoor': '🔌 Exterior', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC Living',
       'upper-ac-main-room': '❄️ AC hab principal', 'upper-ac-guest-room': '❄️ AC hab de invitados', 'upper-water-heater': '💧 Termotanque',
-      'ground-lights-1': '💡 Iluminación Garage, Recepción, Kitchenette', 'ground-lights-2': '💡 Iluminación Oficina, Living', 'ground-lights-3': '💡 Iluminación Baño, Onsen', 'ground-outlets-1': '🔌 Tomas Garage, Recepción, Kitchenette',
+      'ground-lights-1': '💡 Iluminación Garage, Recepción, Kitchenette', 'ground-lights-2': '💡 Ilum. PB Oficina, Living', 'ground-lights-3': '💡 Iluminación Baño, Onsen', 'ground-outlets-1': '🔌 Tomas Garage, Recepción, Kitchenette',
       'ground-outlets-2': '🔌 Tomas Living, Oficina, Despensa',
       'ground-outlets-3': '🔌 Tomas Baño, Onsen', 'ground-ac-office': '❄️ AC Oficina', 'ground-sauna': '♨️ Sauna',
     },
