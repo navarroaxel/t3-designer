@@ -168,19 +168,21 @@ export const rowItems = (ids: readonly string[]) => ids.map(id => {
 })
 
 /** One residual-current device of a board and the circuits under it; `rcd` is null for circuits that are on no device of their own board (the sauna's line comes from the TSPA's). */
-export type SingleLineGroup = { rcd: Device | null; circuits: readonly Circuit[] }
+/** The residual-current devices are the devices with a type: this is one of them, so the type is there for whoever reads it. */
+export type ResidualCurrentDevice = Device & { rcdType: NonNullable<Device['rcdType']> }
+export type SingleLineGroup = { rcd: ResidualCurrentDevice | null; circuits: readonly Circuit[] }
 
 /**
  * A board for its single-line diagram: what the supply meets first (the general breaker, the surge arrester), then each residual-current device with the circuits that hang from it. It is read from `BOXES`: a row is
  * electrically separate from the next, so a device protects the circuits to its right in its own row. The groups whose circuits are all on the inverter's output without UPS do not hang from the board's supply.
  */
 export function singleLine(board: BoardId): { head: readonly Device[]; groups: readonly SingleLineGroup[] } {
-  const head: Device[] = [], groups: { rcd: Device | null; circuits: Circuit[] }[] = []
+  const head: Device[] = [], groups: { rcd: ResidualCurrentDevice | null; circuits: Circuit[] }[] = []
   for (const row of BOXES[board].rows) {
     let current: (typeof groups)[number] | null = null
     for (const id of row) {
       const device = DEVICES.find(item => item.id === id), found = CIRCUITS.find(item => item.id === id)
-      if (device?.rcdType) groups.push(current = { rcd: device, circuits: [] })
+      if (device?.rcdType) groups.push(current = { rcd: { ...device, rcdType: device.rcdType }, circuits: [] })
       else if (device && !device.inlineOf) head.push(device)
       else if (found) {
         if (!current) groups.push(current = { rcd: null, circuits: [] })
