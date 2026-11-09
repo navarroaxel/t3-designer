@@ -145,6 +145,16 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     </g>
     {text(L + 22, 32, nodes.utilityTap, 'elec-sub', 'start')}<path className="elec-single-earth" d={`M${PEX - 14} 118H${L + 200}M${L - 6} 124L${L + 6} 112M${PEX - 6} 124L${PEX + 6} 112`} /><path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${L - 6} ${133 + n * 5}l12 -4`).join('')} />{text(L + 16, 114, `4(1x${METER_CABLE_MM2}mm²)+PE=1x${METER_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 22, 81, nodes.meterBox, 'elec-sub', 'start')}
     <g transform={`translate(0 ${T})`}>
+    {/* The PVC conduit that takes CON's output to each board, drawn as a white tube under the wires: a bar along the branch to the other boards and one down to each board's entrance. */}
+    {(() => {
+      const end = D - T - A + SL.label + 6, r = 5
+      const bars = [...info.slice(1).map(board => ({ x: trunk - r, y: 538 - r, w: board.trunk - trunk + 2 * r, h: 2 * r })), ...info.map(board => ({ x: board.trunk - r, y: 538 - r, w: 2 * r, h: end - 538 + r }))]
+      return <g className="elec-conduit">
+        {bars.map((bar, index) => <rect key={`s${index}`} x={bar.x} y={bar.y} width={bar.w} height={bar.h} rx={r} />)}
+        {bars.map((bar, index) => <rect key={`f${index}`} className="elec-conduit-fill" x={bar.x} y={bar.y} width={bar.w} height={bar.h} rx={r} />)}
+        {text(trunk + 20, 560, t('electrical.single.pvcConduit', { mm: FEEDER.conduitMm }), 'elec-sub', 'start')}
+      </g>
+    })()}
     <g className="elec-wire elec-wire-ac"><path d={[
       `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
       `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 538H${board.trunk}V${D - T - A + SL.label + 6}`),

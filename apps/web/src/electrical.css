@@ -75,3 +75,7 @@
 .elec-full-canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .elec-full .elec-single { min-width: 0 !important; max-width: none !important; width: 100%; }
 @media print { .elec-full-open, .elec-full { display: none !important; } }
+
+/* The conduit under the wires in the single-line diagram: a white PVC tube, outlined, the same in both themes. */
+.elec-conduit rect { fill: #7d8389; stroke: #7d8389; stroke-width: 1.6; }
+.elec-conduit rect.elec-conduit-fill { fill: #ffffff; stroke: none; }
