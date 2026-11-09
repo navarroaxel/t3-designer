@@ -24,7 +24,7 @@ The page also draws a **single-line diagram** ("Esquema Unifilar") of the TSPA a
 
 ## Open questions
 
-- The main breaker's and the changeover switch's ratings follow the supply, which the model does not have. The battery has no breaker of its own, neither in the TSINV nor in the diagram: the inverter's DC breaker is built in.
+- The main breaker's rating follows the supply, which the model does not have; the changeover switch is 4x40 A (owner), the TMPA's rating. The battery has no breaker of its own, neither in the TSINV nor in the diagram: the inverter's DC breaker is built in.
 - The TSPA and the pantry's are the owner's 48-module Genrod; that it is three rows of sixteen is assumed from the owner's photo: count the real box. The TSPA needs 40 modules (its first row has the floor's main breaker and its own AC surge arrester, because it is more than 10 m of cable from the TP's); the pantry's needs 25. TSINV is a new 24-module box of two rows of twelve (the rows are assumed too) and needs 18. The changeover switch is a four-pole switch, 72 mm, four modules.
 - TSINV's first row has the changeover switch and the inverter's breaker, and its second the strings' DC breakers and their DC surge arresters, one per string. The battery has no breaker there: the inverter's is built in. The supply of the TSPA hangs from the changeover switch, and so does the pantry's feeder.
 - The pantry's main breaker (4P, 32 A) is in the TSPB, at the end of the feeder (the owner's choice). The feeder's 6 mm² cable then has no breaker of its own at its origin, and only the supply's incoming breaker looks after it: that one has to be 32 A or less, or a 32 A breaker for the feeder is put in the TSINV, which has the room.
