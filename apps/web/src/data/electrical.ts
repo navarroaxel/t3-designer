@@ -76,9 +76,9 @@ export const DEVICES: readonly Device[] = [
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
   { id: 'selector', board: 'solar', poles: 4, modules: 4, ratingA: null },
   /** AC IN: the breaker of the inverter's grid input, from the main board. */
-  { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
+  { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 32 },
   /** AC OUT: cuts the inverter's output with UPS, before the changeover switch. */
-  { id: 'inverter-out', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
+  { id: 'inverter-out', board: 'solar', poles: 4, modules: 4, ratingA: 32 },
   { id: 'string-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: 20 },
   { id: 'string-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: 20 },
   { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },

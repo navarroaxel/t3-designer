@@ -387,12 +387,12 @@ const workspace = {
       'meter-itm': 'ITM de la bajada del medidor', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-garage-3': '⚡ Diferencial 30 mA, 30 ms, tipo A (EXT + AZO)', 'rcd-pantry': '⚡ Diferencial 30 mA, 30 ms, tipo A (IUG + TUG)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, 30 ms, tipo F (AC)', 'rcd-pantry-4': '⚡ Diferencial 30 mA, 30 ms, tipo A (Baño + Onsen)',
     },
     circuit: {
-      'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina', 'upper-outlets-living': '🔌 Tomas Living-Baño',
+      'upper-lights-1': '💡 Ilum PA cocina, baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina', 'upper-outlets-living': '🔌 Tomas Living, Baño',
       'upper-outlets-rooms': '🔌 Tomas Habitaciones', 'upper-outdoor': '🔌 Exterior', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC Living',
       'upper-ac-main-room': '❄️ AC hab principal', 'upper-ac-guest-room': '❄️ AC hab de invitados', 'upper-water-heater': '💧 Termotanque',
-      'ground-lights-1': '💡 Iluminación Garage-Recepción', 'ground-lights-2': '💡 Iluminación Oficina-Living', 'ground-lights-3': '💡 Iluminación Baño-Onsen', 'ground-outlets-1': '🔌 Tomas Garage, Recepción, Kitchenette',
+      'ground-lights-1': '💡 Iluminación Garage, Recepción, Kitchenette', 'ground-lights-2': '💡 Iluminación Oficina, Living', 'ground-lights-3': '💡 Iluminación Baño, Onsen', 'ground-outlets-1': '🔌 Tomas Garage, Recepción, Kitchenette',
       'ground-outlets-2': '🔌 Tomas Living, Oficina, Despensa',
-      'ground-outlets-3': '🔌 Tomas Baño + Onsen', 'ground-ac-office': '❄️ AC Oficina', 'ground-sauna': '♨️ Sauna',
+      'ground-outlets-3': '🔌 Tomas Baño, Onsen', 'ground-ac-office': '❄️ AC Oficina', 'ground-sauna': '♨️ Sauna',
     },
     single: {
       smartLoad: 'Smart Load',
