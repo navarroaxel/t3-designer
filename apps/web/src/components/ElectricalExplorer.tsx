@@ -113,6 +113,8 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
   const seriesY = (index: number) => 52 + index * 58
   const surgeY = seriesY(series.length - 1) + SL.boxH / 2 + 24
   const busY = surges.length ? surgeY + 100 : seriesY(series.length - 1) + SL.boxH / 2 + 30
+  /** Where the arrowheads of the cables that go on end, the Smart Load's and a board's with all its devices switched off: the same level. */
+  const arrowY = busY + SL.boxH / 2 + 28
   const rcdY = busY + 56, subY = rcdY + SL.rcdH / 2 + 22, breakerY = subY + 38, loadY = breakerY + 106
   /** The output terminals of a circuit: the phase terminals (R, S, T) and the neutral, numbered by the circuit's place in its own board. */
   const terminals = (circuit: Circuit) => {
@@ -137,6 +139,9 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
   const cableText = `4(1x${SUPPLY_CABLE_MM2})mm²+PE`
   /** The drop's height, and its left wire's x: 24 to the left of the board's trunk, so that CON's output (its middle) lines up with it. */
   const T = 84, A = 34, D = 520 + T + A + 78, L = Math.max(trunk - 24, 230), PEX = L - 130, SPDX = L - 70, totalWidth = Math.max(width, L + 520)
+  /** The PE bar runs from the earth rod's line over every column that is drawn, the boards' trunks and the Smart Load's cable included, so it is not cut when the filter drops the circuits at its end. */
+  const peLeft = Math.min(PEX, ...placed.map(item => item.first - 14), ...info.map(board => board.trunk - 14))
+  const peRight = Math.max(PEX, ...placed.map(item => item.last + 14), ...info.map(board => board.trunk + 14), ...stubs.map(centre => centre + 14))
   /** Where the earth rod's line meets the drop, between the meter box and the ITM, as seen from the board's group (which starts at `D`). */
   const peY = A + 100 - D
   return <svg className="elec-single" style={{ minWidth: totalWidth * .85, maxWidth: totalWidth * 1.25 }} viewBox={`0 0 ${totalWidth} ${height + D}`} role="img" aria-label={t('electrical.single.aria', { board: boards.map(board => t(`electrical.board.${board}`)).join(' · ') })}>
@@ -265,6 +270,11 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
     {info.map(board => <g key={board.board}>
       {board.supplied.map(item => <circle key={item.centre} className="elec-dot" cx={item.centre} cy={busY} r={3.5} />)}
       {board.supplied.length > 1 && <circle className="elec-dot" cx={board.trunk} cy={busY} r={3.5} />}
+      {/* A board with all its devices switched off ends in the service drop's arrowhead, which says its cable goes on. */}
+      {bare[board.board] !== undefined && <g>
+        <g className="elec-wire elec-wire-ac"><path d={`M${board.trunk} ${seriesY(board.series.length - 1) + SL.boxH / 2}V${arrowY}`} /></g>
+        {ticks(board.trunk, seriesY(board.series.length - 1) + SL.boxH / 2 + 4, 4)}<path className="elec-node" d={`M${board.trunk - 4.8} ${arrowY - 24}L${board.trunk + 4.8} ${arrowY - 24}L${board.trunk} ${arrowY}Z`} />
+      </g>}
       {/* The four conductors that come from CON, marked where they enter each board, above its first breaker. */}
       <path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${board.trunk - 6} ${8 + n * 3.2}l12 -4`).join('')} />
       {board.series.map((item, index) => <g key={item.id}>{breaker(board.trunk, seriesY(index), [TAGS[item.id], ratingOf(item)], item.id)}</g>)}
@@ -274,7 +284,7 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
       </g> })}
     </g>)}
     {/* Where the Smart Load's cable ended up, with its device switched off: the conductor marks and the service drop's arrowhead (24 long, 9.6 wide) turned down, which says it goes on. */}
-    <g className={deadWhen('inverter')}>{stubs.map(centre => <g key={centre}>{ticks(centre, -26, 4)}<path className="elec-node" d={`M${centre - 4.8} -4L${centre + 4.8} -4L${centre} 20Z`} /></g>)}</g>
+    <g className={deadWhen('inverter')}>{stubs.map(centre => <g key={centre}><g className="elec-wire elec-wire-ac"><path d={`M${centre} 20V${arrowY}`} /></g>{ticks(centre, -26, 4)}<path className="elec-node" d={`M${centre - 4.8} ${arrowY - 24}L${centre + 4.8} ${arrowY - 24}L${centre} ${arrowY}Z`} /></g>)}</g>
     {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id} className={noUps ? deadWhen('inverter') : undefined}>
       {/* The wires of the group: from the bus (or from the Smart Load output) to its device, along its secondary bus and down to each circuit's output. */}
       <g className="elec-wire elec-wire-ac"><path d={[
@@ -311,7 +321,7 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
       </g> })}
     </g> })}
     {/* The PE bar, dashed as in the sample single-line diagram, just above the primary bus, with its earth at the end. */}
-    <g className="elec-pe"><path d={`M${Math.min(placed[0].first - 14, PEX)} ${busY - 10}H${Math.max(placed.at(-1)!.last + 14, PEX)}M${PEX} ${busY - 10}V${peY}H${PEX - 96}V${peY + 6}`} /></g>
+    <g className="elec-pe"><path d={`M${peLeft} ${busY - 10}H${peRight}M${PEX} ${busY - 10}V${peY}H${PEX - 96}V${peY + 6}`} /></g>
     <path className="elec-single-earth" style={{ stroke: '#b04a9a', strokeWidth: 1.8 }} d={`M${PEX - 106} ${peY + 6}H${PEX - 86}M${PEX - 102} ${peY + 11}H${PEX - 90}M${PEX - 98} ${peY + 16}H${PEX - 94}`} />
     <circle className="elec-dot elec-pe-dot" cx={PEX} cy={busY - 10} r={3} />
     {text(PEX - 4, peY - 5, t('electrical.single.peRod'), 'elec-sub', 'end')}
