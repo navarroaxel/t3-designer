@@ -146,8 +146,8 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     {text(L + 22, 32, nodes.utilityTap, 'elec-sub', 'start')}<path className="elec-single-earth" d={`M${PEX - 14} 118H${L + 200}M${L - 6} 124L${L + 6} 112M${PEX - 6} 124L${PEX + 6} 112`} /><path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${L - 6} ${133 + n * 5}l12 -4`).join('')} />{text(L + 16, 114, `4(1x${METER_CABLE_MM2}mm²)+PE=1x${METER_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 22, 81, nodes.meterBox, 'elec-sub', 'start')}
     <g transform={`translate(0 ${T})`}>
     {/* The conduit that takes CON's output to the boards, marked like the drop's: a line across the output, above the branch to the boards, with a slash where it crosses the output and another where it crosses the violet PE, and its diameter and cable above it, to the right of the cable and before the branch. */}
-    <path className="elec-single-earth" d={`M${PEX - 14} 556H${trunk + 215}M${PEX - 6} 562L${PEX + 6} 550M${trunk - 6} 562L${trunk + 6} 550`} />
-    {text(trunk + 20, 551, `4(1x${FEEDER.cableMm2}mm²) + PE=1x${FEEDER.cableMm2}mm²`, 'elec-sub', 'start')}
+    <path className="elec-single-earth" d={`M${PEX - 14} 564H${trunk + 215}M${PEX - 6} 570L${PEX + 6} 558M${trunk - 6} 570L${trunk + 6} 558`} />
+    {text(trunk + 20, 559, `4(1x${FEEDER.cableMm2}mm²) + PE=1x${FEEDER.cableMm2}mm²`, 'elec-sub', 'start')}
     <g className="elec-wire elec-wire-ac"><path d={[
       `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
       `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 584H${board.trunk}V${D - T - A + SL.label + 6}`),
