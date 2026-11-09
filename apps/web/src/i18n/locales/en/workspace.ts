@@ -366,12 +366,12 @@ const workspace = {
       'meter-itm': 'Meter-drop breaker', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, 30 ms, type A (EXT + AZO)', 'rcd-pantry': '⚡ Residual-current device, 30 mA, 30 ms, type A (IUG + TUG)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, 30 ms, type F (AC)', 'rcd-pantry-4': '⚡ Residual-current device, 30 mA, 30 ms, type A (Bathroom + Onsen)',
     },
     circuit: {
-      'upper-lights-1': '💡 Upper floor kitchen-bathroom lights', 'upper-lights-2': '💡 Upper floor lights 2', 'upper-outlets-kitchen': '🔌 Kitchen outlets', 'upper-outlets-living': '🔌 Living-bathroom outlets',
+      'upper-lights-1': '💡 Upper floor kitchen, living room, bathroom lights', 'upper-lights-2': '💡 Upper floor bedrooms lights', 'upper-outlets-kitchen': '🔌 Kitchen outlets', 'upper-outlets-living': '🔌 Living, bathroom outlets',
       'upper-outlets-rooms': '🔌 Bedrooms outlets', 'upper-outdoor': '🔌 Outdoor', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC living room',
       'upper-ac-main-room': '❄️ AC main bedroom', 'upper-ac-guest-room': '❄️ AC guest bedroom', 'upper-water-heater': '💧 Water heater',
-      'ground-lights-1': '💡 Garage-Reception lights', 'ground-lights-2': '💡 Office-Living lights', 'ground-lights-3': '💡 Bathroom-Onsen lights', 'ground-outlets-1': '🔌 Garage, reception, kitchenette outlets',
+      'ground-lights-1': '💡 Garage, Reception, Kitchenette lights', 'ground-lights-2': '💡 Ground floor office, living room lights', 'ground-lights-3': '💡 Bathroom, Onsen lights', 'ground-outlets-1': '🔌 Garage, reception, kitchenette outlets',
       'ground-outlets-2': '🔌 Living, office, pantry outlets',
-      'ground-outlets-3': '🔌 Bathroom + onsen outlets', 'ground-ac-office': '❄️ AC Office', 'ground-sauna': '♨️ Sauna',
+      'ground-outlets-3': '🔌 Bathroom, onsen outlets', 'ground-ac-office': '❄️ AC Office', 'ground-sauna': '♨️ Sauna',
     },
     single: {
       smartLoad: 'Smart Load',

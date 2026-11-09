@@ -76,9 +76,9 @@ export const DEVICES: readonly Device[] = [
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
   { id: 'selector', board: 'solar', poles: 4, modules: 4, ratingA: null },
   /** AC IN: the breaker of the inverter's grid input, from the main board. */
-  { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
+  { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 32 },
   /** AC OUT: cuts the inverter's output with UPS, before the changeover switch. */
-  { id: 'inverter-out', board: 'solar', poles: 4, modules: 4, ratingA: 20 },
+  { id: 'inverter-out', board: 'solar', poles: 4, modules: 4, ratingA: 32 },
   { id: 'string-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: 20 },
   { id: 'string-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: 20 },
   { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },
@@ -122,7 +122,7 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as con
 export const TAGS: Readonly<Record<string, string>> = {
   'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'AC IN', 'inverter-out': 'AC OUT', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID C', 'rcd-pantry-3': 'ID SU',
   feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID B', 'rcd-pantry-2': 'ID F', 'rcd-pantry-4': 'ID D', 'rcd-garage-3': 'ID E',
-  'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-living': 'TUG L', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
+  'upper-lights-1': 'IUG L', 'upper-lights-2': 'IUG R', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-living': 'TUG L', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO', 'water-heater-switch': 'MTERMO', 'ac-office-meter': 'MACOF', 'ac-living-meter': 'MACL',
   'ground-lights-1': 'IUG G', 'ground-lights-2': 'IUG O', 'ground-lights-3': 'IUG B', 'ground-outlets-1': 'TUG G', 'ground-outlets-2': 'TUG O', 'ground-outlets-3': 'TUG B', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
 }
