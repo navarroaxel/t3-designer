@@ -63,3 +63,25 @@
 .elec-single .elec-title { font-weight: 400; }
 
 .elec-single .elec-ph-l1 { fill: var(--elec-l1); } .elec-single .elec-ph-l2 { fill: var(--elec-l2); } .elec-single .elec-ph-l3 { fill: var(--elec-l3); }
+
+/* The single-line diagram's full-screen layer: a bar with the tools and a stage that is dragged and zoomed; the diagram keeps its colours in both themes. */
+.elec-full-open { margin: 0 0 6px; font: inherit; font-size: 11px; padding: 4px 10px; border: 1px solid var(--gen-card-border); border-radius: 6px; background: var(--gen-card); color: inherit; cursor: pointer; }
+.elec-full { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; background-color: Canvas; color: CanvasText; }
+.elec-full-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--gen-card-border); }
+.elec-full-tools { display: flex; gap: 6px; }
+.elec-full-tools button { font: inherit; font-size: 12px; min-width: 36px; min-height: 36px; padding: 0 10px; border: 1px solid var(--gen-card-border); border-radius: 6px; background: var(--gen-card); color: inherit; cursor: pointer; }
+.elec-full-stage { position: relative; flex: 1; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
+.elec-full-stage:active { cursor: grabbing; }
+.elec-full-canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.elec-full .elec-single { min-width: 0 !important; max-width: none !important; width: 100%; }
+@media print { .elec-full-open, .elec-full { display: none !important; } }
+
+/* On paper the single-line diagram has a sheet to itself, A4 landscape (its proportion is 1.39, close to the sheet's): the diagram is scaled to fit the sheet's height as well as its width. The rest of the factsheet keeps the default page. */
+@page diagram { size: A4 landscape; margin: 8mm; }
+@media print {
+  /* The block is laid out as wide as the sheet's printable width (297 mm less the margins), not as the other pages' column. */
+  .elec-single-section { page: diagram; break-before: page; break-after: page; width: 281mm; max-width: none; }
+  .elec-single-section .array-note { margin: 0 0 2mm; }
+  .gen-details.elec-sheet { background: transparent !important; }
+  .elec-single-section .elec-single { width: 100%; height: 168mm; max-width: none; }
+}

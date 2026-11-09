@@ -74,7 +74,7 @@ export const DEVICES: readonly Device[] = [
   /** The PA board's general breaker, for PA only: it is after the changeover switch (in the TSINV), and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
   { id: 'main', board: 'pa', poles: 4, modules: 4, ratingA: 40 },
   /** A four-pole changeover switch such as the 63 A TX419G of the owner's picture: 72 mm wide, four modules. Its load terminals are the odd ones on top, the normal (the grid) and the standby (the inverter) the even ones below. */
-  { id: 'selector', board: 'solar', poles: 4, modules: 4, ratingA: null },
+  { id: 'selector', board: 'solar', poles: 4, modules: 4, ratingA: 40 },
   /** AC IN: the breaker of the inverter's grid input, from the main board. */
   { id: 'inverter-ac', board: 'solar', poles: 4, modules: 4, ratingA: 32 },
   /** AC OUT: cuts the inverter's output with UPS, before the changeover switch. */
