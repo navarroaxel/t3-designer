@@ -84,25 +84,37 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
 
   /** The width of the row labels of the table under the diagram, which the columns are shifted by. */
   const LABELS = 92
-  let at = SL.margin + LABELS
-  /** Where a board with nothing supplied from its main breaker keeps its trunk. */
-  const bare: Partial<Record<BoardId, number>> = {}
-  /** The Smart Load's cable stays when its device is switched off: it ends where the device was, with its conductor marks, and keeps its column free. */
-  const stubs: number[] = []
-  const placed = parts.flatMap((part, partIndex) => {
-    if (partIndex) at += SL.gap * 2
-    // A board with nothing supplied from its main breaker keeps a column of its own for its trunk, so that the Smart Load's cable (which hangs from the inverter, not from it) does not end up under it.
-    if (!part.groups.some(group => !groupNoUps(group))) { bare[part.board] = at + SL.col / 2; at += SL.col + SL.gap }
-    const kept = part.groups.map(group => {
-      const rows = group.circuits.length
-      const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
-      at += rows * SL.col + SL.gap
-      return { board: part.board, group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+  /**
+   * The columns, left to right, from `start`. A board with nothing supplied from its main breaker keeps a column of its own for its trunk, so that the Smart Load's cable (which hangs from the inverter,
+   * not from it) does not end up under it; and the Smart Load's cable stays when its device is switched off: it ends where the device was, with its conductor marks, and keeps its column free.
+   */
+  const layout = (start: number) => {
+    let at = start
+    const bare: Partial<Record<BoardId, number>> = {}
+    const stubs: number[] = []
+    const placed = parts.flatMap((part, partIndex) => {
+      if (partIndex) at += SL.gap * 2
+      if (!part.groups.some(group => !groupNoUps(group))) { bare[part.board] = at + SL.col / 2; at += SL.col + SL.gap }
+      const kept = part.groups.map(group => {
+        const rows = group.circuits.length
+        const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
+        at += rows * SL.col + SL.gap
+        return { board: part.board, group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+      })
+      part.hidden.filter(groupNoUps).forEach(() => { stubs.push(at + SL.col / 2); at += SL.col + SL.gap })
+      return kept
     })
-    part.hidden.filter(groupNoUps).forEach(() => { stubs.push(at + SL.col / 2); at += SL.col + SL.gap })
-    return kept
-  })
-  const width = at - SL.gap + SL.margin
+    return { placed, bare, stubs, end: at }
+  }
+  /** The drop's column is 24 left of the first board's trunk and needs 230 of room on its left (the earth rod, the arrester), so the trunk is not nearer than 254: with fewer columns the layout is shifted right. */
+  const MIN_TRUNK = 254
+  const trunkOf = (laid: ReturnType<typeof layout>) => {
+    const supplied = laid.placed.filter(item => item.board === parts[0].board && !item.noUps)
+    return supplied.length ? (supplied[0].centre + supplied.at(-1)!.centre) / 2 : laid.bare[parts[0].board] ?? 0
+  }
+  const probe = layout(SL.margin + LABELS)
+  const { placed, bare, stubs, end } = layout(SL.margin + LABELS + Math.max(0, MIN_TRUNK - trunkOf(probe)))
+  const width = end - SL.gap + SL.margin
   /** What each board has of its own: its bus, the trunk that its main breaker hangs from, and its series devices. */
   const info = parts.map(part => {
     const mine = placed.filter(item => item.board === part.board), supplied = mine.filter(item => !item.noUps)
