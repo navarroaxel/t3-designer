@@ -38,7 +38,7 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
   const { formatNumber } = useLocale()
   const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
   /** The filter drops the residual-current devices that it has switched off, with what hangs from them, so the columns close up and the diagram gets narrower. */
-  const parts = boards.map(board => { const part = singleLine(board); return { board, ...part, groups: part.groups.filter(group => !(group.rcd && off?.has(group.rcd.id))) } })
+  const parts = boards.map(board => { const part = singleLine(board); return { board, ...part, groups: part.groups.filter(group => !(group.rcd && off?.has(group.rcd.id))), hidden: part.groups.filter(group => group.rcd && off?.has(group.rcd.id)) } })
   /** What a supply mode leaves without power: with the grid only, the inverter and what hangs from it; with the inverter only, the grid and what is upstream of CON and AC IN. */
   const deadWhen = (side: 'grid' | 'inverter') => (mode === 'inverter' && side === 'grid') || (mode === 'grid' && side === 'inverter') ? 'elec-dead' : undefined
   const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') => <text key={`${x}-${y}-${label}`} className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
@@ -87,15 +87,19 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
   let at = SL.margin + LABELS
   /** Where a board with all its devices switched off keeps its trunk. */
   const bare: Partial<Record<BoardId, number>> = {}
+  /** The Smart Load's cable stays when its device is switched off: it ends where the device was, with its conductor marks, and keeps its column free. */
+  const stubs: number[] = []
   const placed = parts.flatMap((part, partIndex) => {
     if (partIndex) at += SL.gap * 2
-    if (!part.groups.length) { bare[part.board] = at + SL.col / 2; at += SL.col + SL.gap }
-    return part.groups.map(group => {
+    if (!part.groups.length) { bare[part.board] = at + SL.col / 2; if (!part.hidden.some(groupNoUps)) at += SL.col + SL.gap }
+    const kept = part.groups.map(group => {
       const rows = group.circuits.length
       const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
       at += rows * SL.col + SL.gap
       return { board: part.board, group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
     })
+    part.hidden.filter(groupNoUps).forEach(() => { stubs.push(at + SL.col / 2); at += SL.col + SL.gap })
+    return kept
   })
   const width = at - SL.gap + SL.margin
   /** What each board has of its own: its bus, the trunk that its main breaker hangs from, and its series devices. */
@@ -221,6 +225,7 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
     <g className={deadWhen('inverter')}>
     {/* The inverter's Smart Load output, which feeds the water heater and the sauna, in the TSPB: from the inverter's bottom edge, next to AC OUT, across to the board's group that hangs from it. */}
     {placed.filter(item => item.noUps).map(item => <g key={item.centre} className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V480H${item.centre}V${D - T - A + SL.label + 6}`} /></g>)}
+    {stubs.map(centre => <g key={centre} className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V480H${centre}V${D - T - A + SL.label + 6}`} /></g>)}
     {text(L + 252, 474, `${t('electrical.single.smartLoad')} - 4(1x${SMART_LOAD_CABLE_MM2})mm²+PE`, 'elec-sub', 'start')}
     {/* The battery, below the strings, on the inverter's DC side (the owner's bateria_unifilar.svg, 100 x 200, at .6). It has no breaker of its own: the inverter's is built in. */}
     {(() => { const x = L + 300; return <g>
@@ -267,6 +272,7 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
         <path className="elec-single-earth" d={`M${x - 8} ${y + 36}H${x + 8}M${x - 5} ${y + 40}H${x + 5}M${x - 2} ${y + 44}H${x + 2}`} />{text(x + 14, y + 44, t('electrical.single.surge'), 'elec-sub', 'start')}
       </g> })}
     </g>)}
+    <g className={deadWhen('inverter')}>{stubs.map(centre => ticks(centre, rcdY - SL.rcdH / 2 - 88, 4))}</g>
     {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id} className={noUps ? deadWhen('inverter') : undefined}>
       {/* The wires of the group: from the bus (or from the Smart Load output) to its device, along its secondary bus and down to each circuit's output. */}
       <g className="elec-wire elec-wire-ac"><path d={[
