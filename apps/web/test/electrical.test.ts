@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, MAIN_BOARD_ITEMS, VOLTAGE_PROTECTOR, SURGE_AC, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, type Phase } from '../src/data/electrical.ts'
+import { AC_CURRENT_A, WATER_HEATER_A, PHASE_NAME, AC_LOAD_W, BOXES, METER_DROP, MAIN_BOARD_ITEMS, VOLTAGE_PROTECTOR, SURGE_AC, TAGS, onUpsOutput, boardCircuits, boardDevices, boardModules, boxModules, CIRCUITS, rowItems, DEVICES, OUTLET_LOAD_W, PHASES, phaseCurrentA, phaseDemandA, phaseLoadW, SIMULTANEITY, SAUNA_W, WATER_HEATER_W, singleLine, groupNoUps, groupForwards, type Phase } from '../src/data/electrical.ts'
 
 const circuit = (id: string) => { const found = CIRCUITS.find(item => item.id === id); assert.ok(found, id); return found }
 const phase = (id: string): Phase => { const { phases } = circuit(id); assert.equal(phases.length, 1, `${id} is on one phase`); return phases[0] }
@@ -94,10 +94,10 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
   for (const item of CIRCUITS.filter(item => item.phases.length === 1)) assert.equal(item.modules, 2, item.id)
 })
 
-test('the PA board takes the upper floor in 40 modules, the TSINV 18, the pantry\'s 25', () => {
-  assert.equal(boardModules('pa'), 40, 'ten circuits, three residual-current devices, the floor\'s main breaker and its AC surge arrester')
-  assert.equal(boardModules('solar'), 18, 'the changeover switch, the inverter\'s breaker, two DC breakers, two DC surge arresters and the battery\'s DC breaker')
-  assert.equal(boardModules('pantry'), 25)
+test('the PA board takes the upper floor in 36 modules, the TSINV 22, the pantry\'s 26', () => {
+  assert.equal(boardModules('pa'), 36, 'ten circuits, three residual-current devices and the floor\'s main breaker')
+  assert.equal(boardModules('solar'), 22, 'the changeover switch, the inverter\'s AC IN and AC OUT breakers, two DC breakers, two DC surge arresters and the battery\'s DC breaker')
+  assert.equal(boardModules('pantry'), 26, 'the sauna\'s breaker is four-pole: three phases and the neutral')
 })
 
 test('the PA board and the pantry\'s are 48-module boxes and the TSINV is 24 modules, two rows of twelve; every one has room for what it holds', () => {
@@ -128,7 +128,7 @@ test('every circuit and device is in exactly one row of its board, and no row is
 
 test('the TSINV has the changeover switch and the inverter\'s breaker in its first row and the strings\' DC breakers and a DC surge arrester each in its second', () => {
   const [first, second] = BOXES.solar.rows
-  for (const id of ['selector', 'inverter-ac']) assert.ok(first.includes(id), id)
+  for (const id of ['selector', 'inverter-ac', 'inverter-out']) assert.ok(first.includes(id), id)
   for (const id of ['string-dc-1', 'string-dc-2', 'surge-dc-1', 'surge-dc-2', 'battery-dc']) assert.ok(second.includes(id), id)
 })
 
@@ -143,18 +143,15 @@ test('the output without UPS has a type A device of its own, in the row of the w
   assert.ok(!BOXES.pantry.rows.some(item => item.includes('ground-sauna') && item.includes('rcd-pantry-2')))
 })
 
-test('the TSPA has an AC surge arrester of its own, four poles, after its main breaker: it is more than 10 m of cable from the TP\'s', () => {
-  const arrester = DEVICES.find(item => item.id === 'surge-ac-pa')
-  assert.equal(arrester?.board, 'pa')
-  assert.equal(arrester?.poles, 4)
-  assert.ok(BOXES.pa.rows[0].indexOf('main') < BOXES.pa.rows[0].indexOf('surge-ac-pa'))
+test('the TSPA has no AC surge arrester of its own: the main board\'s protects the installation', () => {
+  assert.equal(DEVICES.find(item => item.id === 'surge-ac-pa'), undefined)
 })
 
-test('the PA board\'s general breaker is the upper floor\'s: four-pole, with its own AC surge arrester in its first row, and no larger than the residual-current devices it feeds; the changeover switch it hangs from is in the TSINV', () => {
+test('the PA board\'s general breaker is the upper floor\'s: four-pole, alone in its first row, and no larger than the residual-current devices it feeds; the changeover switch it hangs from is in the TSINV', () => {
   const main = DEVICES.find(item => item.id === 'main')
   assert.equal(main?.poles, 4)
   assert.ok(main?.ratingA && main.ratingA <= Math.min(...DEVICES.filter(item => item.id.startsWith('rcd-garage')).map(item => item.ratingA ?? 0)))
-  assert.deepEqual([...BOXES.pa.rows[0]], ['main', 'surge-ac-pa'])
+  assert.deepEqual([...BOXES.pa.rows[0]], ['main'])
   assert.equal(DEVICES.find(item => item.id === 'selector')?.board, 'solar')
 })
 
@@ -195,4 +192,15 @@ test('the battery has its 100 A two-pole DC breaker marked in the TSINV, with th
   assert.equal(battery?.poles, 2)
   assert.equal(battery?.ratingA, 100)
   assert.ok(BOXES.solar.rows[1].includes('battery-dc'))
+})
+
+test('the single-line diagram has every circuit once, under its residual-current device, and the no-UPS group apart', () => {
+  for (const board of ['pa', 'pantry'] as const) {
+    const { groups } = singleLine(board)
+    assert.deepEqual(groups.flatMap(group => group.circuits.map(item => item.id)).sort(), boardCircuits(board).map(item => item.id).sort(), board)
+  }
+  const pa = singleLine('pa').groups
+  assert.deepEqual(pa.filter(groupNoUps).map(group => group.rcd?.id), ['rcd-garage-3'], 'only the water heater\'s device is on the output without UPS')
+  assert.deepEqual(groupForwards('pa', pa.find(groupNoUps)!).map(item => item.id), ['ground-sauna'], 'and the sauna\'s line leaves from it')
+  assert.deepEqual(singleLine('pantry').groups.filter(group => !group.rcd).flatMap(group => group.circuits.map(item => item.id)), ['ground-sauna'], 'the sauna has no device in the pantry\'s board')
 })
