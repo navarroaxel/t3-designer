@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
+import { DiagramViewer } from './DiagramViewer'
 import { PV_SYSTEM } from '../data/pv-system'
 import {
   PHASE_NAME, BOXES, METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR, MAIN_BOARD_ITEMS, CIRCUIT_BREAKING_KA, RCD_TRIP_MS, SMART_SWITCH, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, SUPPLY_CABLE_MM2, SUPPLY_CONDUIT_MM, METER_CABLE_MM2, SMART_LOAD_CABLE_MM2, STRING_PANELS, BATTERY, singleLine, groupNoUps, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
@@ -488,7 +489,7 @@ export function ElectricalExplorer() {
       <section aria-labelledby="elec-single-title">
         <h3 id="elec-single-title">{t('electrical.single.title')}</h3>
         <p className="array-note">{t('electrical.single.intro')}</p>
-        <div className="elec-scroll"><SingleLine boards={['pa', 'pantry']} /></div>
+        <DiagramViewer labels={{ title: t('electrical.single.title'), open: t('electrical.single.fullscreen'), close: t('electrical.single.close'), zoomIn: t('electrical.single.zoomIn'), zoomOut: t('electrical.single.zoomOut'), reset: t('electrical.single.fit') }}><SingleLine boards={['pa', 'pantry']} /></DiagramViewer>
       </section>
       <div className="elec-boards"><MainBoardCard /><BoardCard board="solar" /><BoardCard board="pantry" /><BoardCard board="pa" /></div>
       <PhaseBalance />
