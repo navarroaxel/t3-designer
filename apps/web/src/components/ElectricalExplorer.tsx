@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { PV_SYSTEM } from '../data/pv-system'
 import {
-  PHASE_NAME, BOXES, METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR, MAIN_BOARD_ITEMS, CIRCUIT_BREAKING_KA, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, SUPPLY_CABLE_MM2, SUPPLY_CONDUIT_MM, METER_CABLE_MM2, SMART_LOAD_CABLE_MM2, STRING_PANELS, BATTERY, singleLine, groupNoUps, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
+  PHASE_NAME, BOXES, METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR, MAIN_BOARD_ITEMS, CIRCUIT_BREAKING_KA, RCD_TRIP_MS, SMART_SWITCH, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, SUPPLY_CABLE_MM2, SUPPLY_CONDUIT_MM, METER_CABLE_MM2, SMART_LOAD_CABLE_MM2, STRING_PANELS, BATTERY, singleLine, groupNoUps, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
   type BoardId, type Circuit, type Device, type Phase,
 } from '../data/electrical'
 import { useLocale } from '../i18n/useLocale'
@@ -38,6 +38,9 @@ function SingleLine({ board }: { board: BoardId }) {
   const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
   const { head, groups } = singleLine(board)
   const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') => <text key={`${x}-${y}-${label}`} className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
+  /** The letters of a circuit's phases, each in its homologated colour (R brown, S black, T red). */
+  const phaseText = (x: number, y: number, phases: readonly Phase[], className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') =>
+    <text key={`${x}-${y}-${phases.join('')}`} className={className} x={x} y={y} textAnchor={anchor}>{phases.map(phase => <tspan key={phase} className={`elec-ph-${phase.toLowerCase()}`}>{PHASE_NAME[phase]}</tspan>)}</text>
   const cable = (item: Circuit) => t('electrical.single.cable', { n: item.phases.length === 1 ? 2 : item.phases.length + 1, mm2: formatNumber(item.cableMm2, item.cableMm2 % 1 ? 1 : 0) }).split(' + ')
   const ratingOf = (item: Device) => item.ratingA === null ? '' : `${item.poles}x${item.ratingA}A`
   /**
@@ -91,7 +94,7 @@ function SingleLine({ board }: { board: BoardId }) {
   const seriesY = (index: number) => 52 + index * 58
   const surgeY = seriesY(series.length - 1) + SL.boxH / 2 + 24
   const busY = surges.length ? surgeY + 100 : seriesY(series.length - 1) + SL.boxH / 2 + 30
-  const rcdY = busY + 56, subY = rcdY + SL.rcdH / 2 + 22, breakerY = subY + 38, loadY = breakerY + 86
+  const rcdY = busY + 56, subY = rcdY + SL.rcdH / 2 + 22, breakerY = subY + 38, loadY = breakerY + 106
   /** The output terminals of a circuit: the phase terminals (R, S, T) and the neutral, numbered by the circuit's place in its own board. */
   const terminals = (circuit: Circuit) => {
     const n = BOXES[circuit.board].rows.flat().filter(id => CIRCUITS.some(item => item.id === id)).indexOf(circuit.id) + 1
@@ -239,7 +242,8 @@ function SingleLine({ board }: { board: BoardId }) {
         ...(item.group.rcd ? [`M${item.centre} ${rcdY + SL.rcdH / 2}V${subY}`] : []), `M${item.first} ${subY}H${item.last}`,
         ...Array.from({ length: item.rows }, (_, index) => {
           const x = columnX(item, index)
-          return index < item.group.circuits.length ? `M${x} ${subY}V${breakerY - SL.boxH / 2}M${x} ${breakerY + SL.boxH / 2}V${loadY - 6}` : `M${x} ${subY}V${loadY - 6}`
+          const inline = DEVICES.some(device => device.inlineOf === item.group.circuits[index]?.id)
+          return `M${x} ${subY}V${breakerY - SL.boxH / 2}` + (inline ? `M${x} ${breakerY + SL.boxH / 2}V${breakerY + 54.4}M${x} ${breakerY + 85}V${loadY - 6}` : `M${x} ${breakerY + SL.boxH / 2}V${loadY - 6}`)
         }),
       ]),
     ].join('')} /></g>
@@ -252,12 +256,23 @@ function SingleLine({ board }: { board: BoardId }) {
     </g> })}
     {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id}>
       {noUps && ticks(centre, (group.rcd ? rcdY - SL.rcdH / 2 : subY) - 88, 4)}
-      {group.rcd && rcdSymbol(centre, rcdY, [TAGS[group.rcd.id], ratingOf(group.rcd), t('electrical.single.rcd', { type: group.rcd.rcdType })], group.rcd.id)}
+      {group.rcd && rcdSymbol(centre, rcdY, [TAGS[group.rcd.id], ratingOf(group.rcd), t('electrical.single.rcd', { type: group.rcd.rcdType }), `t=${RCD_TRIP_MS}ms`], group.rcd.id)}
       {item.rows > 1 && Array.from({ length: item.rows }, (_, index) => <circle key={index} className="elec-dot" cx={columnX(item, index)} cy={subY} r={3} />)}
       {group.circuits.map((circuit, index) => { const x = columnX(item, index); return <g key={circuit.id}>
-        {text(x + 5, subY + 16, circuit.phases.map(phase => PHASE_NAME[phase]).join(''), 'elec-title', 'start')}
+        {phaseText(x + 5, subY + 16, circuit.phases, 'elec-title', 'start')}
         {breaker(x, breakerY, [`${circuit.modules}x${circuit.ratingA}A`, t('electrical.single.curveType', { curve: 'C' }), `Icc=${formatNumber(CIRCUIT_BREAKING_KA, 1)}kA`], names[circuit.id])}
         {ticks(x, breakerY + 28, circuit.phases.length === 1 ? 2 : circuit.phases.length + 1)}
+        {(() => { const inline = DEVICES.find(item => item.inlineOf === circuit.id); return inline && <g>
+          {/* A circuit's smart switch, in series after its breaker (the owner's sonoff_pow_contactor.svg, 100 x 200, at .5): the fixed contact with the contactor's arc, and the open blade from its pivot. */}
+          <title>{`${SMART_SWITCH.brand} ${SMART_SWITCH.model}`}</title>
+          <g transform={`translate(${x} ${breakerY + 70}) scale(.5) translate(-40 -90)`} className="elec-single-earth" style={{ strokeWidth: 3, strokeLinecap: 'round' }}>
+            <path d="M40 58.75V72M40 60A6 6 0 0 0 40 72" />
+            <circle cx={40} cy={115} r={5} className="elec-node" style={{ strokeWidth: 3 }} />
+            <path d="M40 108.25V62" transform="rotate(30 40 115)" style={{ strokeWidth: 5 }} />
+          </g>
+          {text(x + 22, breakerY + 66, SMART_SWITCH.model, 'elec-sub', 'start')}
+          {text(x + 22, breakerY + 79, `${inline.poles}x${inline.ratingA}A`, 'elec-sub', 'start')}
+        </g> })()}
         {/* The owner's circuit output (salida_circuito.svg, 100 x 140), at .85: the output terminal with the slash across it. */}
         <g transform={`translate(${x} ${loadY}) scale(.85) translate(-50 -110)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round' }}>
           <circle cx={50} cy={110} r={7} className="elec-node" style={{ strokeWidth: 2.5 }} /><path d="M37 121L63 99" />
@@ -274,7 +289,7 @@ function SingleLine({ board }: { board: BoardId }) {
     {/* The table of the circuits under the diagram, a column for each, as in the sample single-line diagram. */}
     {tableRows.map((row, index) => <g key={row}>
       <rect className="elec-cell" x={4} y={rowY(index)} width={LABELS - 8} height={rowH(index)} />
-      {text(10, rowY(index) + 12.5, t(`electrical.single.table.${row}`), 'elec-sub', 'start')}
+      {(row === 'terminal' ? t(`electrical.single.table.${row}`).split(/ (?=[^ ]+$)/) : [t(`electrical.single.table.${row}`)]).map((line, n) => text(10, rowY(index) + 12.5 + n * 11, line, 'elec-sub', 'start'))}
     </g>)}
     {placed.flatMap(item => item.group.circuits.map((circuit, index) => ({ circuit, x: columnX(item, index) }))).map(({ circuit, x }) => {
       const cells = [TAGS[circuit.id], circuit.loadW ? formatNumber(circuit.loadW) : '–', circuit.phases.map(phase => PHASE_NAME[phase]).join(''), cable(circuit)[0].replace(' mm²', ''), formatNumber(circuit.cableMm2, circuit.cableMm2 % 1 ? 1 : 0), terminals(circuit), destinationOf(circuit)]
@@ -285,7 +300,9 @@ function SingleLine({ board }: { board: BoardId }) {
             {text(x, rowY(index) + 24, (cell as { emoji: string }).emoji, 'elec-title')}
             {wrap((cell as { label: string }).label, 15).map((line, n, all) => { const lx = x + (n - (all.length - 1) / 2) * 12 + 4, ly = rowY(index) + 34 + (rowH(index) - 34) / 2; return <text key={n} className="elec-sub" x={lx} y={ly} textAnchor="middle" transform={`rotate(-90 ${lx} ${ly})`}>{line}</text> })}
           </>
-          : (Array.isArray(cell) ? cell : [cell as string]).map((line, n) => text(x, rowY(index) + 12.5 + n * 11, line, index === 0 ? 'elec-title' : 'elec-sub'))}
+          : index === 2
+            ? phaseText(x, rowY(index) + 12.5, circuit.phases)
+            : (Array.isArray(cell) ? cell : [cell as string]).map((line, n) => text(x, rowY(index) + 12.5 + n * 11, line, index === 0 ? 'elec-title' : 'elec-sub'))}
       </g>)}</g>
     })}
     </g>
@@ -310,7 +327,7 @@ const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--ele
  */
 function ModuleIcon({ x, id, modules, terminals = modules, phase, rating, tag, name }: { x: number; id: string; modules: number; terminals?: number; phase?: Phase; rating: string; tag: string; name: string }) {
   const w = modules * MODULE_W, cx = x + w / 2
-  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', spd = id.startsWith('surge'), dc = /^string-dc/.test(id)
+  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', smart = DEVICES.some(item => item.id === id && item.inlineOf), spd = id.startsWith('surge'), dc = /^string-dc/.test(id)
   const poles = Array.from({ length: modules }, (_, pole) => x + (pole + .5) * MODULE_W)
   /** Where the terminals are: one pair per pole, spread over the width; it is one per module unless the device is wider than its poles, like the voltage protector (four poles, five modules). */
   const pairs = Array.from({ length: terminals }, (_, pole) => x + (pole + .5) * w / terminals)
@@ -321,13 +338,14 @@ function ModuleIcon({ x, id, modules, terminals = modules, phase, rating, tag, n
     {pairs.map(px => <circle key={`t${px}`} cx={px} cy={9} r={3.4} fill="#7b8087" stroke="#4a4f55" strokeWidth={.6} />)}
     {pairs.map(px => <circle key={`b${px}`} cx={px} cy={DEVICE_H - 9} r={3.4} fill="#7b8087" stroke="#4a4f55" strokeWidth={.6} />)}
     {!rcd && <rect x={x + 1.2} y={18} width={w - 2.4} height={5} fill={stripe} style={{ fill: stripe }} />}
-    <text x={cx} y={rcd ? 41 : 33} textAnchor="middle" fontSize={modules > 1 ? 7 : 6.2} fill="#2b2f33" fontWeight={600}>{rating}</text>
+    {!smart && <text x={cx} y={rcd ? 41 : 33} textAnchor="middle" fontSize={modules > 1 ? 7 : 6.2} fill="#2b2f33" fontWeight={600}>{rating}</text>}
     {rcd && <><circle cx={x + MODULE_W * .9} cy={25} r={3.6} fill="#f1e9d2" stroke="#8d8466" strokeWidth={.6} /><text x={x + MODULE_W * .9} y={26.6} textAnchor="middle" fontSize={4.4} fill="#4a4636" fontWeight={700}>T</text>
       <text x={x + w - MODULE_W * .5} y={20} textAnchor="middle" fontSize={5.5} fill="#2b2f33" fontWeight={700}>N</text></>}
     {protector && <><rect x={x + 3} y={34} width={w - 6} height={30} rx={2} fill="#1f2124" />{[0, 1, 2].map(n => <circle key={n} cx={x + w * (n + 1) / 4} cy={49} r={3} fill="#4cc26b" />)}</>}
+    {smart && <><circle cx={x + w * .2} cy={31} r={3.2} fill="#c9ced3" stroke="#7d8389" strokeWidth={.6} /><circle cx={x + w * .46} cy={31} r={2.1} fill="#4cc26b" /><circle cx={x + w * .66} cy={31} r={2.1} fill="#e0a23a" /><rect x={x + 4} y={40} width={w - 8} height={24} rx={2} fill="#1f2124" /><text x={cx} y={56} textAnchor="middle" fontSize={8} fill="#4cc26b" fontWeight={600}>{rating}</text></>}
     {spd && <rect x={x + 4} y={46} width={w - 8} height={11} rx={2} fill="#3f9d5a" />}
     {selector && <><circle cx={cx} cy={52} r={12} fill="#1f2124" /><path d={`M${cx} 52V43`} stroke="#f4f5f6" strokeWidth={2.2} strokeLinecap="round" /></>}
-    {!selector && !spd && !protector && (rcd
+    {!selector && !spd && !protector && !smart && (rcd
       ? <rect x={x + 3.5} y={50} width={Math.min(14, w - 7)} height={17} rx={2} fill="#2d6cb5" />
       : <>{poles.map(px => <rect key={`l${px}`} x={px - 5.5} y={44} width={11} height={20} rx={2} fill="#17181a" />)}{modules > 1 && <rect x={x + 3.5} y={57} width={w - 7} height={7} rx={1.5} fill="#17181a" />}</>)}
     <text x={cx} y={DEVICE_H + 11} textAnchor="middle" fontSize={7} fill="currentColor" fontWeight={600}>{tag}</text>

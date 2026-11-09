@@ -338,7 +338,7 @@ const workspace = {
     intro: 'How the installation is laid out: the TP takes the grid and holds the supply\'s protections; TSINV, in the garage, has the changeover switch and the inverter\'s and the strings\' protections; TSPA, in the garage, takes the upper floor; and TSPB, in the pantry, takes the ground floor. The circuits, the changeover switch and the three-phase sauna are the owner\'s design; the phases, the protections and the cables are proposals for an electrician to confirm, not what is built.',
     print: 'Print or save as PDF',
     factsTitle: 'At a glance',
-    factSupply: 'Supply', factSupplyValue: 'Three-phase, 3L + N · 230/400 V',
+    factSupply: 'Supply', factSupplyValue: 'Three-phase, 3L + N · 220/380 V',
     factInverter: 'Hybrid inverter', factBoards: 'Boards', factBoardsValue: 'TP (supply), TSINV (solar), TSPA (upper floor, garage) and TSPB (ground floor, pantry)',
     factCircuits: 'Circuits', factCircuitsValue: '{{upper}} on the upper floor and {{ground}} on the ground floor',
     factSelector: 'Changeover switch', factSelectorValue: 'Grid · 0 · Inverter, to leave the inverter out',
@@ -360,13 +360,13 @@ const workspace = {
       rowsTitle: 'Rows of the board', tag: 'Circuit', row: 'Row {{n}}', free: '{{count}} free',
     },
     device: {
-      main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC input breaker, 4P', 'inverter-out': '☀️ Inverter AC output breaker, 4P',
-      'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'surge-dc-1': '☀️ DC surge arrester 2P, string 1', 'surge-dc-2': '☀️ DC surge arrester 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
-      feeder: 'Pantry main breaker, 4P', 'surge-ac': 'AC surge arrester, 3+1 (4P)',
-      'meter-itm': 'Meter-drop breaker, 4P', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-pantry': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioner)',
+      main: 'Upper-floor main breaker', selector: '3-position changeover switch', 'inverter-ac': '☀️ Inverter AC input breaker', 'inverter-out': '☀️ Inverter AC output breaker',
+      'string-dc-1': '☀️ DC breaker, string 1', 'string-dc-2': '☀️ DC breaker, string 2', 'surge-dc-1': '☀️ DC surge arrester, string 1', 'surge-dc-2': '☀️ DC surge arrester, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, 30 ms, type A (IUG + TUG)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, 30 ms, type F (air conditioners)', 'ac-office-meter': '❄️ Sonoff POWR320D, meter of the office air conditioner', 'ac-living-meter': '❄️ Sonoff POWR320D, meter of the living room air conditioner', 'water-heater-switch': '💧 Sonoff POWR320D, switch and meter of the water heater', 'rcd-pantry-3': '⚡ Residual-current device, 30 mA, 30 ms, type A (Smart Load - Water heater + Sauna)',
+      feeder: 'Pantry main thermal-magnetic breaker', 'surge-ac': 'AC surge arrester, 3+1',
+      'meter-itm': 'Meter-drop breaker', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, 30 ms, type A (EXT + AZO)', 'rcd-pantry': '⚡ Residual-current device, 30 mA, 30 ms, type A (IUG + TUG)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, 30 ms, type F (air conditioner)',
     },
     circuit: {
-      'upper-lights-1': '💡 Upper floor kitchen-bathroom lights', 'upper-lights-2': '💡 Upper floor lights 2', 'upper-outlets-kitchen': '🔌 Kitchen-bathroom outlets',
+      'upper-lights-1': '💡 Upper floor kitchen-bathroom lights', 'upper-lights-2': '💡 Upper floor lights 2', 'upper-outlets-kitchen': '🔌 Kitchen outlets', 'upper-outlets-living': '🔌 Living-bathroom outlets',
       'upper-outlets-rooms': '🔌 Bedroom outlets', 'upper-outdoor': '🔌 Outdoor', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC living room',
       'upper-ac-main-room': '❄️ AC main bedroom', 'upper-ac-guest-room': '❄️ AC guest bedroom', 'upper-water-heater': '💧 Water heater',
       'ground-lights-1': '💡 Ground floor lights 3', 'ground-lights-2': '💡 Ground floor lights 4', 'ground-outlets-office': '🔌 Office outlets',
@@ -385,7 +385,7 @@ const workspace = {
     },
     balance: {
       title: 'Split by phase', phase: 'Phase {{phase}}', power: '{{kw}} kW', current: '{{amps}} A', demand: 'demand {{kw}} kW · {{amps}} A',
-      note: 'It is the connected power of the big loads (the air conditioners, the water heater and the sauna) and of each circuit of outlets, counted as 10 A; not what runs at once. The demand applies the {{factor}} simultaneity factor the AEA gives a house with superior electrification. The daytime air conditioners, the office\'s and the living room\'s, are on different phases; so are the night-time ones, the two bedrooms\'.',
+      note: 'It is the connected power of the big loads (the air conditioners, the water heater and the sauna) and of each circuit of outlets, counted as 10 A; not what runs at once. The demand applies the {{factor}} simultaneity factor the AEA gives a house with superior electrification. The daytime air conditioners, the office\'s and the living room\'s, are on different phases. It is not balanced further: each board\'s lights and outlets are on one phase, and so are the TSPA\'s air conditioners, behind two-pole residual-current devices.',
     },
     notes: {
       title: 'To confirm',

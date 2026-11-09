@@ -7,7 +7,7 @@ import { PV_SYSTEM } from './pv-system.ts'
  */
 export type Phase = 'L1' | 'L2' | 'L3'
 export type BoardId = 'pa' | 'pantry' | 'solar'
-export type CircuitKind = 'lights' | 'outlets' | 'ac' | 'heater' | 'outdoor' | 'sauna'
+export type CircuitKind = 'lights' | 'outlets' | 'ac' | 'heater' | 'sauna'
 export const PHASES: readonly Phase[] = ['L1', 'L2', 'L3']
 /** What the phases are called on the page: R, S and T, as in Argentina. The ids stay L1, L2 and L3. */
 export const PHASE_NAME: Readonly<Record<Phase, string>> = { L1: 'R', L2: 'S', L3: 'T' }
@@ -22,8 +22,8 @@ export type Circuit = {
   noUps?: true
 }
 
-/** Phase-to-neutral voltage, volts; the line-to-line one is 400. */
-export const PHASE_VOLTAGE = 230
+/** Phase-to-neutral voltage, volts: the nominal one in Argentina, 220 V (380 V line-to-line, as on the single-line diagram). */
+export const PHASE_VOLTAGE = 220
 /** The 553GIQ2201F's electrical consumption in cooling (the maker's table: 1.89 kW, 8.73 A); the power display counts the air conditioners at it, and the current checks at its 8.73 A. */
 export const AC_LOAD_W = 1890
 export const AC_CURRENT_A = 8.73
@@ -31,37 +31,39 @@ export const AC_CURRENT_A = 8.73
 export const WATER_HEATER_W = 3000
 export const WATER_HEATER_A = 13.6
 /** What a circuit of outlets is counted at: 10 A, the owner's figure and the rating of the Argentine outlet's plug. The kitchen's kettle (2.2 kW; the air fryer is used instead of it, not with it) fits in it. */
-export const OUTLET_LOAD_W = 10 * 230
+export const OUTLET_LOAD_W = 10 * PHASE_VOLTAGE
 export const SAUNA_W = 5000
 
 const circuit = (id: string, board: BoardId, floor: Circuit['floor'], kind: CircuitKind, phase: Phase | readonly Phase[], ratingA: number, cableMm2: number, extra: { modules?: number; loadW?: number; currentA?: number; noUps?: true } = {}): Circuit =>
   ({ id, board, floor, kind, phases: typeof phase === 'string' ? [phase] : phase, ratingA, cableMm2, modules: extra.modules ?? (typeof phase === 'string' ? 1 : phase.length), loadW: extra.loadW, currentA: extra.currentA, noUps: extra.noUps })
 
 /**
- * The circuits. The daytime air conditioners (the office's and the living room's) are on different phases, and so are the two bedrooms', which are used at night; the water heater is not on the kettle's phase.
+ * The circuits. The daytime air conditioners (the office's and the living room's) are on different phases; the water heater is not on the kettle's phase.
  * Every circuit on one phase is 2P (the owner's choice, but for the water heater's): the phase and the neutral are both cut.
+ * The lights and outlets of each board are all on the same phase, and so are the air conditioners of the TSPA, behind two-pole residual-current devices (the teacher's advice: no more balancing; and the comb for the board's row is two-pole).
  */
 export const CIRCUITS: readonly Circuit[] = [
-  circuit('upper-lights-1', 'pa', 'upper', 'lights', 'L1', 10, 1.5, { modules: 2 }),
-  circuit('upper-lights-2', 'pa', 'upper', 'lights', 'L2', 10, 1.5, { modules: 2 }),
+  circuit('upper-lights-1', 'pa', 'upper', 'lights', 'L3', 10, 1.5, { modules: 2 }),
+  circuit('upper-lights-2', 'pa', 'upper', 'lights', 'L3', 10, 1.5, { modules: 2 }),
   circuit('upper-outlets-kitchen', 'pa', 'upper', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
-  circuit('upper-outlets-rooms', 'pa', 'upper', 'outlets', 'L1', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
-  circuit('upper-outdoor', 'pa', 'upper', 'outdoor', 'L2', 10, 1.5, { modules: 2 }),
-  circuit('upper-azotea', 'pa', 'upper', 'outdoor', 'L3', 16, 2.5, { modules: 2 }),
-  circuit('upper-ac-living', 'pa', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
+  circuit('upper-outlets-living', 'pa', 'upper', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
+  circuit('upper-outlets-rooms', 'pa', 'upper', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
+  circuit('upper-outdoor', 'pa', 'upper', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
+  circuit('upper-azotea', 'pa', 'upper', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
+  circuit('upper-ac-living', 'pa', 'upper', 'ac', 'L1', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
   circuit('upper-ac-main-room', 'pa', 'upper', 'ac', 'L1', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
-  circuit('upper-ac-guest-room', 'pa', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
+  circuit('upper-ac-guest-room', 'pa', 'upper', 'ac', 'L1', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
   circuit('upper-water-heater', 'pantry', 'upper', 'heater', 'L1', 20, 4, { modules: 2, loadW: WATER_HEATER_W, currentA: WATER_HEATER_A, noUps: true }),
-  circuit('ground-lights-1', 'pantry', 'ground', 'lights', 'L3', 10, 1.5, { modules: 2 }),
-  circuit('ground-lights-2', 'pantry', 'ground', 'lights', 'L1', 10, 1.5, { modules: 2 }),
+  circuit('ground-lights-1', 'pantry', 'ground', 'lights', 'L2', 10, 1.5, { modules: 2 }),
+  circuit('ground-lights-2', 'pantry', 'ground', 'lights', 'L2', 10, 1.5, { modules: 2 }),
   circuit('ground-outlets-office', 'pantry', 'ground', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
-  circuit('ground-outlets-pantry', 'pantry', 'ground', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
+  circuit('ground-outlets-pantry', 'pantry', 'ground', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('ground-ac-office', 'pantry', 'ground', 'ac', 'L3', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
   circuit('ground-sauna', 'pantry', 'ground', 'sauna', PHASES, 10, 4, { loadW: SAUNA_W, noUps: true, modules: 4 }),
 ]
 
 /** A protective or switching device that is not a circuit of its own. `ratingA` is null where it follows the supply or the maker's manual, which the model does not have. */
-export type Device = { id: string; board: BoardId; poles: number; modules: number; ratingA: number | null; /** The residual-current devices' type: A for the lights and the outlets, F for what has an inverter. */ rcdType?: 'A' | 'F' }
+export type Device = { id: string; board: BoardId; poles: number; modules: number; ratingA: number | null; /** The residual-current devices' type: A for the lights and the outlets, F for what has an inverter. */ rcdType?: 'A' | 'F'; /** The circuit it is in series with, when it is not one of the board's own devices but part of that circuit's line (the water heater's smart switch). */ inlineOf?: string }
 
 export const DEVICES: readonly Device[] = [
   /** The PA board's general breaker, for PA only: it is after the changeover switch (in the TSINV), and the feeder to the pantry leaves before it. At 40 A, no larger than the residual-current devices it feeds. */
@@ -76,14 +78,21 @@ export const DEVICES: readonly Device[] = [
   { id: 'string-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: 20 },
   { id: 'surge-dc-1', board: 'solar', poles: 2, modules: 2, ratingA: null },
   { id: 'surge-dc-2', board: 'solar', poles: 2, modules: 2, ratingA: null },
-  { id: 'rcd-garage', board: 'pa', poles: 4, modules: 4, ratingA: 40, rcdType: 'A' },
-  { id: 'rcd-garage-2', board: 'pa', poles: 4, modules: 4, ratingA: 40, rcdType: 'F' },
+  { id: 'rcd-garage', board: 'pa', poles: 2, modules: 2, ratingA: 40, rcdType: 'A' },
+  { id: 'rcd-garage-2', board: 'pa', poles: 2, modules: 2, ratingA: 40, rcdType: 'F' },
+  /** The exterior's own device: the exterior lights and the azotea's outlets, which get wet, so that their leaks do not cut the kitchen and the living (it is in the first row, next to the main breaker, as the pantry's ID A is). */
+  { id: 'rcd-garage-3', board: 'pa', poles: 2, modules: 2, ratingA: 40, rcdType: 'A' },
   /** The device of the inverter's Smart Load output: it covers the water heater and the sauna heater, both in the pantry board. Both are resistive, so type A. */
   { id: 'rcd-pantry-3', board: 'pantry', poles: 4, modules: 4, ratingA: 40, rcdType: 'A' },
   /** The pantry board's main breaker, at the end of the feeder (the owner's choice): the feeder's cable has no breaker of its own at its origin, so the supply's main one has to be at most what the 6 mm² takes. */
+  /** The Sonoff POW of the water heater: a smart switch and meter, 20 A, three modules wide, in series with its circuit, right after its breaker. */
+  { id: 'water-heater-switch', board: 'pantry', poles: 2, modules: 3, ratingA: 20, inlineOf: 'upper-water-heater' },
+  /** The same Sonoff POWR320D after the office's air conditioner's breaker, and after the living room's. */
+  { id: 'ac-office-meter', board: 'pantry', poles: 2, modules: 3, ratingA: 20, inlineOf: 'ground-ac-office' },
+  { id: 'ac-living-meter', board: 'pa', poles: 2, modules: 3, ratingA: 20, inlineOf: 'upper-ac-living' },
   { id: 'feeder', board: 'pantry', poles: 4, modules: 4, ratingA: 32 },
-  { id: 'rcd-pantry', board: 'pantry', poles: 4, modules: 4, ratingA: 40, rcdType: 'A' },
-  { id: 'rcd-pantry-2', board: 'pantry', poles: 4, modules: 4, ratingA: 40, rcdType: 'F' },
+  { id: 'rcd-pantry', board: 'pantry', poles: 2, modules: 2, ratingA: 40, rcdType: 'A' },
+  { id: 'rcd-pantry-2', board: 'pantry', poles: 2, modules: 2, ratingA: 40, rcdType: 'F' },
 ]
 
 /**
@@ -105,9 +114,9 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as con
  */
 export const TAGS: Readonly<Record<string, string>> = {
   'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'AC IN', 'inverter-out': 'AC OUT', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID F', 'rcd-pantry-3': 'ID SU',
-  feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F',
-  'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
-  'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO',
+  feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID A', 'rcd-pantry-2': 'ID F', 'rcd-garage-3': 'ID E',
+  'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-living': 'TUG L', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
+  'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO', 'water-heater-switch': 'MTERMO', 'ac-office-meter': 'MACOF', 'ac-living-meter': 'MACL',
   'ground-lights-1': 'IUG3', 'ground-lights-2': 'IUG4', 'ground-outlets-office': 'TUG O', 'ground-outlets-pantry': 'TUG D', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
 }
 
@@ -129,26 +138,26 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
   pa: {
     perRow: 16,
     rows: [
-      ['main'],
-      ['rcd-garage', 'upper-lights-1', 'upper-lights-2', 'upper-outdoor', 'upper-azotea', 'upper-outlets-rooms', 'upper-outlets-kitchen'],
-      ['rcd-garage-2', 'upper-ac-living', 'upper-ac-main-room', 'upper-ac-guest-room'],
+      ['main', 'rcd-garage-3', 'upper-outdoor', 'upper-azotea'],
+      ['rcd-garage', 'upper-lights-1', 'upper-lights-2', 'upper-outlets-rooms', 'upper-outlets-kitchen', 'upper-outlets-living'],
+      ['rcd-garage-2', 'upper-ac-living', 'ac-living-meter', 'upper-ac-main-room', 'upper-ac-guest-room'],
     ],
   },
   pantry: {
     perRow: 16,
     rows: [
       ['feeder', 'rcd-pantry', 'ground-lights-1', 'ground-lights-2', 'ground-outlets-office', 'ground-outlets-pantry'],
-      ['rcd-pantry-2', 'ground-ac-office'],
-      ['rcd-pantry-3', 'upper-water-heater', 'ground-sauna'],
+      ['rcd-pantry-2', 'ground-ac-office', 'ac-office-meter'],
+      ['rcd-pantry-3', 'upper-water-heater', 'water-heater-switch', 'ground-sauna'],
     ],
   },
 }
 
-/** A row's items with what they are and how many modules they take. */
+/** A row's items with what they are and how many modules they take; the phases are those of the circuit, or of the circuit that a device is in series with (the water heater's smart switch). */
 export const rowItems = (ids: readonly string[]) => ids.map(id => {
   const found = CIRCUITS.find(item => item.id === id) ?? DEVICES.find(item => item.id === id)
   if (!found) throw new Error(`Unknown item ${id}`)
-  return { id, modules: found.modules, phases: 'phases' in found ? found.phases : undefined }
+  return { id, modules: found.modules, phases: 'phases' in found ? found.phases : found.inlineOf ? CIRCUITS.find(item => item.id === found.inlineOf)?.phases : undefined }
 })
 
 /** One residual-current device of a board and the circuits under it; `rcd` is null for circuits that are on no device of their own board (the sauna's line comes from the TSPA's). */
@@ -165,7 +174,7 @@ export function singleLine(board: BoardId): { head: readonly Device[]; groups: r
     for (const id of row) {
       const device = DEVICES.find(item => item.id === id), found = CIRCUITS.find(item => item.id === id)
       if (device?.rcdType) groups.push(current = { rcd: device, circuits: [] })
-      else if (device) head.push(device)
+      else if (device && !device.inlineOf) head.push(device)
       else if (found) {
         if (!current) groups.push(current = { rcd: null, circuits: [] })
         current.circuits.push(found)
@@ -197,6 +206,10 @@ export const FEEDER = { cableMm2: 6, conductors: 'R S T N + PE', conduitMm: 50, 
 
 /** The breaking capacity of every circuit's breaker, kA (owner). */
 export const CIRCUIT_BREAKING_KA = 4.5
+/** The smart switch with power metering that the water heater's circuit goes through, after its breaker, and the air conditioners of the office and the living room too (owner): a Sonoff POWR320D, 20 A, three modules wide (`water-heater-switch`, `ac-office-meter` and `ac-living-meter` in `DEVICES`). */
+export const SMART_SWITCH = { brand: 'Sonoff', model: 'POWR320D' }
+/** The residual-current devices' trip time, ms: 30 ms is what the regulation asks. */
+export const RCD_TRIP_MS = 30
 
 export const boardCircuits = (board: BoardId) => CIRCUITS.filter(item => item.board === board)
 export const boardDevices = (board: BoardId) => DEVICES.filter(item => item.board === board)

@@ -359,7 +359,7 @@ const workspace = {
     intro: 'Cómo queda repartida la instalación: el TP recibe la red y junta las protecciones de entrada; el TSINV, en el garage, lleva la conmutadora y las protecciones del inversor y de los strings; el TSPA, en el garage, lleva PA; y el TSPB, en la despensa, lleva PB. Los circuitos, la conmutadora y el sauna trifásico son del diseño del dueño; las fases, las protecciones y los cables son propuestas para que las confirme un electricista, no lo que está hecho.',
     print: 'Imprimir o guardar en PDF',
     factsTitle: 'En resumen',
-    factSupply: 'Suministro', factSupplyValue: 'Trifásico, 3F + N · 230/400 V',
+    factSupply: 'Suministro', factSupplyValue: 'Trifásico, 3F + N · 220/380 V',
     factInverter: 'Inversor híbrido', factBoards: 'Tableros', factBoardsValue: 'TP (entrada), TSINV (solar), TSPA (PA, garage) y TSPB (PB, despensa)',
     factCircuits: 'Circuitos', factCircuitsValue: '{{upper}} en PA y {{ground}} en PB',
     factSelector: 'Conmutadora', factSelectorValue: 'Red · 0 · Inversor, para dejar el inversor afuera',
@@ -381,13 +381,13 @@ const workspace = {
       rowsTitle: 'Armado por filas', tag: 'Circuito', row: 'Fila {{n}}', free: '{{count}} libres',
     },
     device: {
-      main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica de entrada AC del inversor, 4P', 'inverter-out': '☀️ Térmica de salida AC del inversor, 4P',
-      'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
-      feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
-      'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
+      main: 'Térmica general PA', selector: 'Conmutadora de 3 posiciones', 'inverter-ac': '☀️ Térmica de entrada AC del inversor', 'inverter-out': '☀️ Térmica de salida AC del inversor',
+      'string-dc-1': '☀️ Térmica DC, string 1', 'string-dc-2': '☀️ Térmica DC, string 2', 'surge-dc-1': '☀️ Descargador DC, string 1', 'surge-dc-2': '☀️ Descargador DC, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, 30 ms, tipo A (IUG + TUG)', 'rcd-garage-2': '⚡ Diferencial 30 mA, 30 ms, tipo F (aires)', 'ac-office-meter': '❄️ Sonoff POWR320D, medición del aire de la oficina', 'ac-living-meter': '❄️ Sonoff POWR320D, medición del aire del living', 'water-heater-switch': '💧 Sonoff POWR320D, corte y medición del termotanque', 'rcd-pantry-3': '⚡ Diferencial 30 mA, 30 ms, tipo A (Smart Load - Termo + Sauna)',
+      feeder: 'Termomagnética general PB', 'surge-ac': 'Descargador AC, 3+1',
+      'meter-itm': 'ITM de la bajada del medidor', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-garage-3': '⚡ Diferencial 30 mA, 30 ms, tipo A (EXT + AZO)', 'rcd-pantry': '⚡ Diferencial 30 mA, 30 ms, tipo A (IUG + TUG)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, 30 ms, tipo F (aire)',
     },
     circuit: {
-      'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina-Baño',
+      'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina', 'upper-outlets-living': '🔌 Tomas Living-Baño',
       'upper-outlets-rooms': '🔌 Tomas de las habitaciones', 'upper-outdoor': '🔌 Exterior', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC living',
       'upper-ac-main-room': '❄️ AC hab principal', 'upper-ac-guest-room': '❄️ AC hab de invitados', 'upper-water-heater': '💧 Termotanque',
       'ground-lights-1': '💡 Iluminación PB 3', 'ground-lights-2': '💡 Iluminación PB 4', 'ground-outlets-office': '🔌 Tomas de la oficina',
@@ -406,7 +406,7 @@ const workspace = {
     },
     balance: {
       title: 'Reparto por fase', phase: 'Fase {{phase}}', power: '{{kw}} kW', current: '{{amps}} A', demand: 'demanda {{kw}} kW · {{amps}} A',
-      note: 'Es la potencia conectada de las cargas grandes (los aires, el termotanque y el sauna) y de cada circuito de tomas, que cuenta como 10 A; no es lo que funciona a la vez. La demanda aplica el coeficiente de simultaneidad de {{factor}} que la AEA da a una vivienda con electrificación superior. Los aires del día, el de la oficina y el del living, están en fases distintas; los de la noche, los de las dos habitaciones, también.',
+      note: 'Es la potencia conectada de las cargas grandes (los aires, el termotanque y el sauna) y de cada circuito de tomas, que cuenta como 10 A; no es lo que funciona a la vez. La demanda aplica el coeficiente de simultaneidad de {{factor}} que la AEA da a una vivienda con electrificación superior. Los aires del día, el de la oficina y el del living, están en fases distintas. No se balancea más: las luces y tomas de cada tablero van en una sola fase, y los aires de PA también, detrás de diferenciales bipolares.',
     },
     notes: {
       title: 'Para confirmar',

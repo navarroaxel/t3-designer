@@ -61,3 +61,5 @@
 .elec-pe path { fill: none; stroke: #b04a9a; stroke-width: 1.6; stroke-dasharray: 6 4; stroke-linecap: round; }
 .elec-pe-dot { fill: #b04a9a; }
 .elec-single .elec-title { font-weight: 400; }
+
+.elec-single .elec-ph-l1 { fill: var(--elec-l1); } .elec-single .elec-ph-l2 { fill: var(--elec-l2); } .elec-single .elec-ph-l3 { fill: var(--elec-l3); }
