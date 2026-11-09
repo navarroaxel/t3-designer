@@ -384,14 +384,15 @@ const workspace = {
       main: 'Térmica general PA', selector: 'Conmutadora de 3 posiciones', 'inverter-ac': '☀️ Térmica de entrada AC del inversor', 'inverter-out': '☀️ Térmica de salida AC del inversor',
       'string-dc-1': '☀️ Térmica DC, string 1', 'string-dc-2': '☀️ Térmica DC, string 2', 'surge-dc-1': '☀️ Descargador DC, string 1', 'surge-dc-2': '☀️ Descargador DC, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, 30 ms, tipo A (IUG + TUG)', 'rcd-garage-2': '⚡ Diferencial 30 mA, 30 ms, tipo F (aires)', 'ac-office-meter': '❄️ Sonoff POWR320D, medición del aire de la oficina', 'ac-living-meter': '❄️ Sonoff POWR320D, medición del aire del living', 'water-heater-switch': '💧 Sonoff POWR320D, corte y medición del termotanque', 'rcd-pantry-3': '⚡ Diferencial 30 mA, 30 ms, tipo A (Smart Load - Termo + Sauna)',
       feeder: 'Termomagnética general PB', 'surge-ac': 'Descargador AC, 3+1',
-      'meter-itm': 'ITM de la bajada del medidor', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-garage-3': '⚡ Diferencial 30 mA, 30 ms, tipo A (EXT + AZO)', 'rcd-pantry': '⚡ Diferencial 30 mA, 30 ms, tipo A (IUG + TUG)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, 30 ms, tipo F (aire)',
+      'meter-itm': 'ITM de la bajada del medidor', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-garage-3': '⚡ Diferencial 30 mA, 30 ms, tipo A (EXT + AZO)', 'rcd-pantry': '⚡ Diferencial 30 mA, 30 ms, tipo A (IUG + TUG)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, 30 ms, tipo F (aire)', 'rcd-pantry-4': '⚡ Diferencial 30 mA, 30 ms, tipo A (Baño + Onsen)',
     },
     circuit: {
       'upper-lights-1': '💡 Ilum PA cocina-baño', 'upper-lights-2': '💡 Iluminación PA 2', 'upper-outlets-kitchen': '🔌 Tomas Cocina', 'upper-outlets-living': '🔌 Tomas Living-Baño',
       'upper-outlets-rooms': '🔌 Tomas de las habitaciones', 'upper-outdoor': '🔌 Exterior', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC living',
       'upper-ac-main-room': '❄️ AC hab principal', 'upper-ac-guest-room': '❄️ AC hab de invitados', 'upper-water-heater': '💧 Termotanque',
-      'ground-lights-1': '💡 Iluminación PB 3', 'ground-lights-2': '💡 Iluminación PB 4', 'ground-outlets-office': '🔌 Tomas de la oficina',
-      'ground-outlets-pantry': '🔌 Tomas de la despensa y la red', 'ground-ac-office': '❄️ AC oficina', 'ground-sauna': '♨️ Sauna',
+      'ground-lights-1': '💡 Iluminación PB 3', 'ground-lights-2': '💡 Iluminación PB 4', 'ground-outlets-1': '🔌 Tomas Garage, Recepción, pava y Nespresso',
+      'ground-outlets-2': '🔌 Tomas Living, laptops, rack y freezer',
+      'ground-outlets-3': '🔌 Tomas Baño + Onsen', 'ground-ac-office': '❄️ AC oficina', 'ground-sauna': '♨️ Sauna',
     },
     single: {
       smartLoad: 'Smart Load',

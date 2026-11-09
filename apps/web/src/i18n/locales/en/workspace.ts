@@ -363,14 +363,15 @@ const workspace = {
       main: 'Upper-floor main breaker', selector: '3-position changeover switch', 'inverter-ac': '☀️ Inverter AC input breaker', 'inverter-out': '☀️ Inverter AC output breaker',
       'string-dc-1': '☀️ DC breaker, string 1', 'string-dc-2': '☀️ DC breaker, string 2', 'surge-dc-1': '☀️ DC surge arrester, string 1', 'surge-dc-2': '☀️ DC surge arrester, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, 30 ms, type A (IUG + TUG)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, 30 ms, type F (air conditioners)', 'ac-office-meter': '❄️ Sonoff POWR320D, meter of the office air conditioner', 'ac-living-meter': '❄️ Sonoff POWR320D, meter of the living room air conditioner', 'water-heater-switch': '💧 Sonoff POWR320D, switch and meter of the water heater', 'rcd-pantry-3': '⚡ Residual-current device, 30 mA, 30 ms, type A (Smart Load - Water heater + Sauna)',
       feeder: 'Pantry main thermal-magnetic breaker', 'surge-ac': 'AC surge arrester, 3+1',
-      'meter-itm': 'Meter-drop breaker', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, 30 ms, type A (EXT + AZO)', 'rcd-pantry': '⚡ Residual-current device, 30 mA, 30 ms, type A (IUG + TUG)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, 30 ms, type F (air conditioner)',
+      'meter-itm': 'Meter-drop breaker', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, 30 ms, type A (EXT + AZO)', 'rcd-pantry': '⚡ Residual-current device, 30 mA, 30 ms, type A (IUG + TUG)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, 30 ms, type F (air conditioner)', 'rcd-pantry-4': '⚡ Residual-current device, 30 mA, 30 ms, type A (Bathroom + Onsen)',
     },
     circuit: {
       'upper-lights-1': '💡 Upper floor kitchen-bathroom lights', 'upper-lights-2': '💡 Upper floor lights 2', 'upper-outlets-kitchen': '🔌 Kitchen outlets', 'upper-outlets-living': '🔌 Living-bathroom outlets',
       'upper-outlets-rooms': '🔌 Bedroom outlets', 'upper-outdoor': '🔌 Outdoor', 'upper-azotea': '🔌 Azotea', 'upper-ac-living': '❄️ AC living room',
       'upper-ac-main-room': '❄️ AC main bedroom', 'upper-ac-guest-room': '❄️ AC guest bedroom', 'upper-water-heater': '💧 Water heater',
-      'ground-lights-1': '💡 Ground floor lights 3', 'ground-lights-2': '💡 Ground floor lights 4', 'ground-outlets-office': '🔌 Office outlets',
-      'ground-outlets-pantry': '🔌 Pantry and network outlets', 'ground-ac-office': '❄️ AC office', 'ground-sauna': '♨️ Sauna',
+      'ground-lights-1': '💡 Ground floor lights 3', 'ground-lights-2': '💡 Ground floor lights 4', 'ground-outlets-1': '🔌 Garage, reception, kettle and Nespresso outlets',
+      'ground-outlets-2': '🔌 Living, laptops, rack and freezer outlets',
+      'ground-outlets-3': '🔌 Bathroom + onsen outlets', 'ground-ac-office': '❄️ AC office', 'ground-sauna': '♨️ Sauna',
     },
     single: {
       smartLoad: 'Smart Load',
