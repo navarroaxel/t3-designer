@@ -8,7 +8,7 @@ const phase = (id: string): Phase => { const { phases } = circuit(id); assert.eq
 test('the owner\'s circuits are all there: the upper floor on the PA board, the ground floor on the pantry\'s', () => {
   assert.equal(new Set(CIRCUITS.map(item => item.id)).size, CIRCUITS.length, 'every circuit has its own id')
   assert.equal(boardCircuits('pa').length, 10, 'two lights, three outlets, outdoor, azotea and three air conditioners')
-  assert.equal(boardCircuits('pantry').length, 8, 'two lights, three outlets, the office\'s air conditioner, the water heater and the sauna')
+  assert.equal(boardCircuits('pantry').length, 9, 'three lights, three outlets, the office\'s air conditioner, the water heater and the sauna')
   for (const item of CIRCUITS) assert.equal(item.board === 'pa', item.floor === 'upper' && !item.noUps, `${item.id} is on its floor's board, but for the Smart Load ones, which are in the pantry's`)
 })
 
@@ -99,10 +99,10 @@ test('every circuit on one phase is bipolar, as the owner chose, and cuts the ph
   for (const item of CIRCUITS.filter(item => item.phases.length === 1)) assert.equal(item.modules, 2, item.id)
 })
 
-test('the PA board takes the upper floor in 33 modules, the TSINV 20, the pantry\'s 38', () => {
+test('the PA board takes the upper floor in 33 modules, the TSINV 20, the pantry\'s 40', () => {
   assert.equal(boardModules('pa'), 33, 'ten circuits, three two-pole residual-current devices, the living room air conditioner\'s meter and the floor\'s main breaker')
   assert.equal(boardModules('solar'), 20, 'the changeover switch, the inverter\'s AC IN and AC OUT breakers, two DC breakers and two DC surge arresters')
-  assert.equal(boardModules('pantry'), 38, 'the feeder\'s breaker, four two-pole or four-pole residual-current devices, eight circuits (the sauna\'s breaker is four-pole) and two smart switches, the water heater\'s and the office air conditioner\'s, three modules wide each')
+  assert.equal(boardModules('pantry'), 40, 'the feeder\'s breaker, four two-pole or four-pole residual-current devices, nine circuits (the sauna\'s breaker is four-pole) and two smart switches, the water heater\'s and the office air conditioner\'s, three modules wide each')
 })
 
 test('the PA board and the pantry\'s are 48-module boxes and the TSINV is 24 modules, two rows of twelve; every one has room for what it holds', () => {

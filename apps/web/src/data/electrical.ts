@@ -40,11 +40,12 @@ const circuit = (id: string, board: BoardId, floor: Circuit['floor'], kind: Circ
 /**
  * The circuits. The daytime air conditioners (the office's and the living room's) are on different phases; the water heater is not on the kettle's phase.
  * Every circuit on one phase is 2P (the owner's choice, but for the water heater's): the phase and the neutral are both cut.
+ * Every circuit of lights is on 2.5 mm² (the owner's choice): 1.5 mm² is kept for the switches' returns.
  * The lights and outlets of each board are all on the same phase, and so are the air conditioners of the TSPA, behind two-pole residual-current devices (the teacher's advice: no more balancing; and the comb for the board's row is two-pole).
  */
 export const CIRCUITS: readonly Circuit[] = [
-  circuit('upper-lights-1', 'pa', 'upper', 'lights', 'L3', 10, 1.5, { modules: 2 }),
-  circuit('upper-lights-2', 'pa', 'upper', 'lights', 'L3', 10, 1.5, { modules: 2 }),
+  circuit('upper-lights-1', 'pa', 'upper', 'lights', 'L3', 10, 2.5, { modules: 2 }),
+  circuit('upper-lights-2', 'pa', 'upper', 'lights', 'L3', 10, 2.5, { modules: 2 }),
   circuit('upper-outlets-kitchen', 'pa', 'upper', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('upper-outlets-living', 'pa', 'upper', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('upper-outlets-rooms', 'pa', 'upper', 'outlets', 'L3', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
@@ -54,9 +55,11 @@ export const CIRCUITS: readonly Circuit[] = [
   circuit('upper-ac-main-room', 'pa', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
   circuit('upper-ac-guest-room', 'pa', 'upper', 'ac', 'L2', 16, 4, { modules: 2, loadW: AC_LOAD_W, currentA: AC_CURRENT_A }),
   circuit('upper-water-heater', 'pantry', 'upper', 'heater', 'L1', 20, 4, { modules: 2, loadW: WATER_HEATER_W, currentA: WATER_HEATER_A, noUps: true }),
-  circuit('ground-lights-1', 'pantry', 'ground', 'lights', 'L2', 10, 1.5, { modules: 2 }),
-  circuit('ground-lights-2', 'pantry', 'ground', 'lights', 'L2', 10, 1.5, { modules: 2 }),
-  /** The ground floor's three outlet circuits (owner): the garage, the reception and the office's kettle and Nespresso; the living, the office's laptops, the rack and the freezer (under the same type A device as the lights); the bathroom and the onsen (under a device of their own, as they are wet). */
+  circuit('ground-lights-1', 'pantry', 'ground', 'lights', 'L2', 10, 2.5, { modules: 2 }),
+  circuit('ground-lights-2', 'pantry', 'ground', 'lights', 'L2', 10, 2.5, { modules: 2 }),
+  /** The bathroom's and the onsen's lights: a circuit of their own under the wet zone's device (ID D), so that a leak of a luminaire does not cut the rest, nor an outlet's overload the light. */
+  circuit('ground-lights-3', 'pantry', 'ground', 'lights', 'L1', 10, 2.5, { modules: 2 }),
+  /** The ground floor's three outlet circuits (owner): the garage, the reception and the office's kitchenette (the kettle and the Nespresso); the living, the office's laptops, the rack and the freezer (under the same type A device as the lights); the bathroom and the onsen (under a device of their own, as they are wet). */
   circuit('ground-outlets-1', 'pantry', 'ground', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('ground-outlets-2', 'pantry', 'ground', 'outlets', 'L2', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
   circuit('ground-outlets-3', 'pantry', 'ground', 'outlets', 'L1', 16, 2.5, { modules: 2, loadW: OUTLET_LOAD_W }),
@@ -121,7 +124,7 @@ export const TAGS: Readonly<Record<string, string>> = {
   feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID B', 'rcd-pantry-2': 'ID F', 'rcd-pantry-4': 'ID D', 'rcd-garage-3': 'ID E',
   'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-living': 'TUG L', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO', 'water-heater-switch': 'MTERMO', 'ac-office-meter': 'MACOF', 'ac-living-meter': 'MACL',
-  'ground-lights-1': 'IUG3', 'ground-lights-2': 'IUG4', 'ground-outlets-1': 'TUG G', 'ground-outlets-2': 'TUG O', 'ground-outlets-3': 'TUG B', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
+  'ground-lights-1': 'IUG G', 'ground-lights-2': 'IUG O', 'ground-lights-3': 'IUG B', 'ground-outlets-1': 'TUG G', 'ground-outlets-2': 'TUG O', 'ground-outlets-3': 'TUG B', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
 }
 
 /**
@@ -151,7 +154,7 @@ export const BOXES: Record<BoardId, { perRow: number; rows: readonly (readonly s
     perRow: 16,
     rows: [
       ['feeder', 'rcd-pantry', 'ground-lights-1', 'ground-lights-2', 'ground-outlets-1', 'ground-outlets-2'],
-      ['rcd-pantry-2', 'ground-ac-office', 'ac-office-meter', 'rcd-pantry-4', 'ground-outlets-3'],
+      ['rcd-pantry-2', 'ground-ac-office', 'ac-office-meter', 'rcd-pantry-4', 'ground-outlets-3', 'ground-lights-3'],
       ['rcd-pantry-3', 'upper-water-heater', 'water-heater-switch', 'ground-sauna'],
     ],
   },
