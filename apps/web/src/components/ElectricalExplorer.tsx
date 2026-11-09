@@ -125,7 +125,7 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
   const inverterIn = DEVICES.find(item => item.id === 'inverter-ac')!, inverterOut = DEVICES.find(item => item.id === 'inverter-out')!
   const cableText = `4(1x${SUPPLY_CABLE_MM2})mm²+PE`
   /** The drop's height, and its left wire's x: 24 to the left of the board's trunk, so that CON's output (its middle) lines up with it. */
-  const T = 84, A = 34, D = 520 + T + A + 30, L = Math.max(trunk - 24, 230), PEX = L - 130, SPDX = L - 70, totalWidth = Math.max(width, L + 520)
+  const T = 84, A = 34, D = 520 + T + A + 50, L = Math.max(trunk - 24, 230), PEX = L - 130, SPDX = L - 70, totalWidth = Math.max(width, L + 520)
   /** Where the earth rod's line meets the drop, between the meter box and the ITM, as seen from the board's group (which starts at `D`). */
   const peY = A + 100 - D
   return <svg className="elec-single" style={{ minWidth: totalWidth * .85, maxWidth: totalWidth * 1.25 }} viewBox={`0 0 ${totalWidth} ${height + D}`} role="img" aria-label={t('electrical.single.aria', { board: boards.map(board => t(`electrical.board.${board}`)).join(' · ') })}>
@@ -145,16 +145,9 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     </g>
     {text(L + 22, 32, nodes.utilityTap, 'elec-sub', 'start')}<path className="elec-single-earth" d={`M${PEX - 14} 118H${L + 200}M${L - 6} 124L${L + 6} 112M${PEX - 6} 124L${PEX + 6} 112`} /><path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${L - 6} ${133 + n * 5}l12 -4`).join('')} />{text(L + 16, 114, `4(1x${METER_CABLE_MM2}mm²)+PE=1x${METER_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 22, 81, nodes.meterBox, 'elec-sub', 'start')}
     <g transform={`translate(0 ${T})`}>
-    {/* The PVC conduit that takes CON's output to each board, drawn as a white tube under the wires: a bar along the branch to the other boards and one down to each board's entrance. */}
-    {(() => {
-      const end = D - T - A + SL.label + 6, r = 5
-      const bars = [...info.slice(1).map(board => ({ x: trunk - r, y: 538 - r, w: board.trunk - trunk + 2 * r, h: 2 * r })), ...info.map(board => ({ x: board.trunk - r, y: 538 - r, w: 2 * r, h: end - 538 + r }))]
-      return <g className="elec-conduit">
-        {bars.map((bar, index) => <rect key={`s${index}`} x={bar.x} y={bar.y} width={bar.w} height={bar.h} rx={r} />)}
-        {bars.map((bar, index) => <rect key={`f${index}`} className="elec-conduit-fill" x={bar.x} y={bar.y} width={bar.w} height={bar.h} rx={r} />)}
-        {text(trunk + 20, 560, t('electrical.single.pvcConduit', { mm: FEEDER.conduitMm }), 'elec-sub', 'start')}
-      </g>
-    })()}
+    {/* The conduit that takes CON's output to each board, marked like the drop's: a line across the branch to every board with a slash where it crosses each, and its diameter and cable beside it. */}
+    <path className="elec-single-earth" d={`M${trunk - 14} 560H${info.at(-1)!.trunk + 14}${info.map(board => `M${board.trunk - 6} 566L${board.trunk + 6} 554`).join('')}`} />
+    {text(trunk + 14, 555, `Ø${FEEDER.conduitMm} - 4(1x${FEEDER.cableMm2}mm²) + PE`, 'elec-sub', 'start')}
     <g className="elec-wire elec-wire-ac"><path d={[
       `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
       `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 538H${board.trunk}V${D - T - A + SL.label + 6}`),
@@ -263,7 +256,7 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
       {board.supplied.map(item => <circle key={item.centre} className="elec-dot" cx={item.centre} cy={busY} r={3.5} />)}
       {board.supplied.length > 1 && <circle className="elec-dot" cx={board.trunk} cy={busY} r={3.5} />}
       {/* The four conductors that come from CON, marked where they enter each board, above its first breaker. */}
-      <path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${board.trunk - 6} ${8 + n * 3.2}l12 -4`).join('')} />
+      <path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${board.trunk - 6} ${4 + n * 3.2}l12 -4`).join('')} />
       {board.series.map((item, index) => <g key={item.id}>{breaker(board.trunk, seriesY(index), [TAGS[item.id], ratingOf(item)], item.id)}</g>)}
       {board.surges.map((item, index) => { const x = board.trunk + 44, y = surgeY + index * 60 + 14; return <g key={item.id}>
         <rect className="elec-node" x={x - 24} y={y} width={48} height={26} rx={4} />{text(x, y + 17, TAGS[item.id], 'elec-title')}

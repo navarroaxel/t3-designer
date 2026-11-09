@@ -374,7 +374,7 @@ const workspace = {
       'ground-outlets-3': '🔌 Bathroom, onsen outlets', 'ground-ac-office': '❄️ AC Office', 'ground-sauna': '♨️ Sauna',
     },
     single: {
-      pvcConduit: 'PVC conduit Ø{{mm}}', fullscreen: 'Full screen', close: 'Close', zoomIn: 'Zoom in', zoomOut: 'Zoom out', fit: 'Fit',
+      fullscreen: 'Full screen', close: 'Close', zoomIn: 'Zoom in', zoomOut: 'Zoom out', fit: 'Fit',
       smartLoad: 'Smart Load',
       curveType: 'type {{curve}}',
       peRod: 'to the earth rod', primaryBus: 'Primary bus', secondaryBus: 'Secondary bus', outputTerminal: 'Output terminal',
