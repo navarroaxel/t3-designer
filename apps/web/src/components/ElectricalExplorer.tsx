@@ -549,7 +549,7 @@ export function ElectricalExplorer() {
         <p className="array-note">{t('electrical.single.intro')}</p>
         <DiagramViewer
           render={({ off, mode }) => <SingleLine boards={SINGLE_LINE_BOARDS} off={off} mode={mode as SupplyMode | null} />}
-          modes={[{ id: 'grid', label: 'Grid only' }, { id: 'inverter', label: 'Inverter only' }]}
+          modes={[{ id: 'grid', label: t('electrical.single.modeGrid') }, { id: 'inverter', label: t('electrical.single.modeInverter') }]}
           filters={singleLineFilters}
           labels={{ title: t('electrical.single.title'), open: t('electrical.single.fullscreen'), close: t('electrical.single.close'), zoomIn: t('electrical.single.zoomIn'), zoomOut: t('electrical.single.zoomOut'), reset: t('electrical.single.fit'), filter: t('electrical.single.filter'), all: t('electrical.single.filterAll'), mode: t('electrical.single.mode') }}
         />
