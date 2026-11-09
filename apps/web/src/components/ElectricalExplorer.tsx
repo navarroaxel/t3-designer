@@ -158,7 +158,6 @@ function SingleLine({ board }: { board: BoardId }) {
   const heights = [ROW, ROW, ROW, ROW, ROW, terminalsH, DESTINATION_H]
   const rowY = (index: number) => tableTop + heights.slice(0, index).reduce((sum, h) => sum + h, 0), rowH = (index: number) => heights[index]
   const height = rowY(tableRows.length - 1) + DESTINATION_H + 8
-  const source = board === 'pa' ? '' : t('electrical.single.fromFeeder', { conductors: FEEDER.conductors, mm2: FEEDER.cableMm2 })
   const columnX = (item: (typeof placed)[number], index: number) => item.first + index * SL.col
   const nodes = t('electrical.node', { returnObjects: true }) as Record<string, string>
   const rating = (item: { poles: number; ratingA: number | null }) => item.ratingA === null ? `${item.poles}P` : `${item.poles}x${item.ratingA}A`
@@ -274,7 +273,6 @@ function SingleLine({ board }: { board: BoardId }) {
     ].join('')} /></g>
     {supplied.map(item => <circle key={item.centre} className="elec-dot" cx={item.centre} cy={busY} r={3.5} />)}
     {supplied.length > 1 && <circle className="elec-dot" cx={trunk} cy={busY} r={3.5} />}
-    {source && text(trunk + 8, SL.label + 2, source, 'elec-sub', 'start')}
     {series.map((item, index) => <g key={item.id}>{breaker(trunk, seriesY(index), [TAGS[item.id], ratingOf(item)], item.id)}</g>)}
     {surges.map((item, index) => { const x = trunk + 44, y = surgeY + index * 60 + 14; return <g key={item.id}>
       <rect className="elec-node" x={x - 24} y={y} width={48} height={26} rx={4} />{text(x, y + 17, TAGS[item.id], 'elec-title')}

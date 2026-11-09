@@ -407,7 +407,7 @@ const workspace = {
       title: 'Unifilar de TSPA y TSPB',
       intro: 'De arriba hacia abajo: lo que llega al tablero, cada diferencial y los circuitos que cuelgan de él, con su térmica, fase, cable y carga. Las líneas con marcas llevan la cantidad de conductores.',
       aria: 'Diagrama unifilar de {{board}}: la alimentación pasa por la térmica general y se reparte en diferenciales, y de cada diferencial salen sus circuitos.',
-      fromFeeder: 'Alimentador desde CON · {{conductors}} de {{mm2}} mm²', noUpsSource: 'Salida sin UPS del inversor',
+      noUpsSource: 'Salida sin UPS del inversor',
       toBoard: 'Hacia {{board}}', rcd: '30 mA tipo {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'a tierra',
     },
     balance: {
