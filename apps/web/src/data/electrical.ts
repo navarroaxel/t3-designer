@@ -122,7 +122,7 @@ export const MAIN_BOARD_ITEMS = [METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR] as con
 export const TAGS: Readonly<Record<string, string>> = {
   'meter-itm': 'ITM', 'voltage-protector': 'PROT', 'surge-dc-1': 'SPD D1', 'surge-dc-2': 'SPD D2', main: 'TMPA', selector: 'CON', 'inverter-ac': 'AC IN', 'inverter-out': 'AC OUT', 'string-dc-1': 'DC1', 'string-dc-2': 'DC2', 'rcd-garage': 'ID A', 'rcd-garage-2': 'ID C', 'rcd-pantry-3': 'ID SU',
   feeder: 'TMPB', 'surge-ac': 'SPD AC', 'rcd-pantry': 'ID B', 'rcd-pantry-2': 'ID F', 'rcd-pantry-4': 'ID D', 'rcd-garage-3': 'ID E',
-  'upper-lights-1': 'IUG1', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-living': 'TUG L', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
+  'upper-lights-1': 'IUG L', 'upper-lights-2': 'IUG2', 'upper-outlets-kitchen': 'TUG K', 'upper-outlets-living': 'TUG L', 'upper-outlets-rooms': 'TUG R', 'upper-outdoor': 'EXT', 'upper-azotea': 'AZO',
   'upper-ac-living': 'AC L', 'upper-ac-main-room': 'ACMR', 'upper-ac-guest-room': 'ACGR', 'upper-water-heater': 'TERMO', 'water-heater-switch': 'MTERMO', 'ac-office-meter': 'MACOF', 'ac-living-meter': 'MACL',
   'ground-lights-1': 'IUG G', 'ground-lights-2': 'IUG O', 'ground-lights-3': 'IUG B', 'ground-outlets-1': 'TUG G', 'ground-outlets-2': 'TUG O', 'ground-outlets-3': 'TUG B', 'ground-ac-office': 'ACOF', 'ground-sauna': 'SAUNA',
 }
