@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { PV_SYSTEM } from '../data/pv-system'
 import {
-  PHASE_NAME, BOXES, METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR, MAIN_BOARD_ITEMS, CIRCUIT_BREAKING_KA, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, SUPPLY_CABLE_MM2, SUPPLY_CONDUIT_MM, METER_CABLE_MM2, STRING_PANELS, singleLine, groupNoUps, groupForwards, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
+  PHASE_NAME, BOXES, METER_DROP, SURGE_AC, VOLTAGE_PROTECTOR, MAIN_BOARD_ITEMS, CIRCUIT_BREAKING_KA, boardCircuits, boardDevices, boardModules, onUpsOutput, boxModules, SIMULTANEITY, CIRCUITS, DEVICES, rowItems, TAGS, FEEDER, SUPPLY_CABLE_MM2, SUPPLY_CONDUIT_MM, METER_CABLE_MM2, SMART_LOAD_CABLE_MM2, STRING_PANELS, BATTERY, singleLine, groupNoUps, INVERTER_MAX_OUTPUT_A, INVERTER_MODEL, PHASES, phaseCurrentA, phaseLoadW,
   type BoardId, type Circuit, type Device, type Phase,
 } from '../data/electrical'
 import { useLocale } from '../i18n/useLocale'
@@ -13,56 +13,6 @@ const device = (id: string) => { const found = DEVICES.find(item => item.id === 
 
 function PhaseChips({ phases }: { phases: readonly Phase[] }) {
   return <span className="elec-phases">{phases.map(phase => <span key={phase} className={`elec-phase elec-${phase.toLowerCase()}`}>{PHASE_NAME[phase]}</span>)}</span>
-}
-
-/** The way the power goes, on one line: the strings to the inverter, the grid and the inverter's output to the changeover switch, and the feeder from the changeover switch to the pantry's. The small squares are devices, filled when they are in the garage board. */
-function SupplyDiagram({ circuits }: { circuits: Record<'pa' | 'pantry', { circuits: number; modules: number }> }) {
-  const { t } = useTranslation('workspace')
-  const node = (key: keyof typeof nodes) => nodes[key]
-  const nodes = t('electrical.node', { returnObjects: true })
-  const square = (x: number, y: number) => <rect className="elec-device" x={x} y={y} width={22} height={22} rx={3} />
-  const text = (x: number, y: number, label: string, className = 'elec-label', anchor: 'start' | 'middle' | 'end' = 'middle') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
-  const count = (board: 'pa' | 'pantry') => t('electrical.node.count', { circuits: circuits[board].circuits, modules: circuits[board].modules })
-  return <svg className="elec-diagram" viewBox="0 0 1000 600" role="img" aria-label={t('electrical.diagramAria')}>
-    {/* Wires first, so the boxes and devices sit over them. DC is the warm line, AC the green one. The dashed frame is the TSINV: what is inside it is in that board. */}
-    <g className="elec-wire elec-wire-dc"><path d="M150 53H660M150 123H660M860 62H880" /></g>
-    <g className="elec-wire elec-wire-ac"><path d="M120 290H160M280 290H500M440 290V195H720V170M780 170V215H555V240M610 290H752M700 290V490H752M860 140H990V520H970M880 140V240" /></g>
-    <circle className="elec-dot" cx={440} cy={290} r={4} /><circle className="elec-dot" cx={700} cy={290} r={4} /><circle className="elec-dot" cx={880} cy={140} r={4} />
-    <rect className="elec-frame" x={300} y={15} width={330} height={375} rx={10} />
-    {text(315, 368, node('tsinv'), 'elec-title', 'start')}{text(315, 382, node('tsinvSub'), 'elec-sub', 'start')}
-
-    {[['string1', 30], ['string2', 100]].map(([key, y]) => <g key={key}>
-      <rect className="elec-node" x={20} y={y as number} width={130} height={46} rx={6} />
-      {text(85, (y as number) + 21, node(key as 'string1'), 'elec-title')}{text(85, (y as number) + 36, node('panels'), 'elec-sub')}
-    </g>)}
-    {[41, 111].map((y, index) => { const id = `string-dc-${index + 1}`; return <g key={id}>{square(325, y)}{text(336, y - 6, `☀️ ${TAGS[id]} ${device(id).ratingA}A`, 'elec-sub', 'start')}</g> })}
-
-    <rect className="elec-node" x={660} y={20} width={200} height={150} rx={8} />
-    {text(790, 205, node('ups'), 'elec-sub', 'start')}{text(870, 111, node('noUps').split(': ')[0] + ':', 'elec-sub', 'start')}{text(870, 126, node('noUps').split(': ').slice(1).join(': '), 'elec-sub', 'start')}
-    {text(760, 62, node('inverter'), 'elec-title')}{text(760, 80, node('inverterSub'), 'elec-sub')}{text(760, 98, INVERTER_MODEL, 'elec-sub')}
-    <rect className="elec-node" x={880} y={30} width={110} height={64} rx={6} />
-    {text(935, 56, node('battery'), 'elec-title')}{text(935, 72, node('batterySub'), 'elec-sub')}{text(935, 86, node('batteryItm'), 'elec-sub')}
-
-    <rect className="elec-node" x={20} y={258} width={100} height={64} rx={6} />
-    {text(70, 286, node('grid'), 'elec-title')}{text(70, 303, node('gridSub'), 'elec-sub')}
-    <rect className="elec-node elec-node-board" x={160} y={250} width={120} height={80} rx={8} />
-    {text(220, 284, node('mainBoard'), 'elec-title')}{text(220, 302, node('mainBoardSub'), 'elec-sub')}{text(220, 317, node('mainBoardItm'), 'elec-sub')}
-    {square(429, 225)}{text(423, 240, `${node('inverterBreaker')} ${device('inverter-ac').ratingA}A`, 'elec-sub', 'end')}
-
-    {text(390, 282, `4(1x${SUPPLY_CABLE_MM2})mm²+PE`, 'elec-sub', 'end')}{text(700, 230, `4(1x${SUPPLY_CABLE_MM2})mm²+PE`, 'elec-sub', 'middle')}
-    {square(630, 204)}{text(641, 242, `${node('inverterOut')} ${device('inverter-out').ratingA}A`, 'elec-sub')}
-
-    <rect className="elec-node" x={500} y={240} width={110} height={100} rx={6} />
-    {text(555, 284, node('selector'), 'elec-title')}{text(555, 302, node('selectorPositions'), 'elec-sub')}
-    {text(712, 440, `4(1x${FEEDER.cableMm2})mm²+PE`, 'elec-sub', 'start')}
-
-    <rect className="elec-node elec-node-board" x={740} y={240} width={230} height={130} rx={8} />
-    {square(752, 279)}{text(784, 294, `${node('main')} ${device('main').ratingA}A`, 'elec-sub', 'start')}
-    {text(855, 326, node('pa'), 'elec-title')}{text(855, 344, node('paSub'), 'elec-sub')}{text(855, 360, count('pa'), 'elec-sub')}
-    <rect className="elec-node elec-node-board" x={740} y={450} width={230} height={140} rx={8} />
-    <rect className="elec-device elec-device-pantry" x={752} y={479} width={22} height={22} rx={3} />{text(784, 494, `${node('pantryMain')} ${device('feeder').ratingA}A`, 'elec-sub', 'start')}
-    {text(855, 528, node('pantry'), 'elec-title')}{text(855, 546, node('pantrySub'), 'elec-sub')}{text(855, 562, count('pantry'), 'elec-sub')}{text(855, 578, node('earth'), 'elec-sub')}
-  </svg>
 }
 
 /** The single-line diagram's measures: a column for each circuit, the gap between the groups of one residual-current device and the next, and the margin. */
@@ -87,7 +37,7 @@ function SingleLine({ board }: { board: BoardId }) {
   const { formatNumber } = useLocale()
   const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
   const { head, groups } = singleLine(board)
-  const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') => <text className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
+  const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') => <text key={`${x}-${y}-${label}`} className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
   const cable = (item: Circuit) => t('electrical.single.cable', { n: item.phases.length === 1 ? 2 : item.phases.length + 1, mm2: formatNumber(item.cableMm2, item.cableMm2 % 1 ? 1 : 0) }).split(' + ')
   const ratingOf = (item: Device) => item.ratingA === null ? '' : `${item.poles}x${item.ratingA}A`
   /**
@@ -129,10 +79,10 @@ function SingleLine({ board }: { board: BoardId }) {
   const LABELS = 92
   let at = SL.margin + LABELS
   const placed = groups.map(group => {
-    const forwards = groupForwards(board, group), rows = group.circuits.length + forwards.length
+    const rows = group.circuits.length
     const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
     at += rows * SL.col + SL.gap
-    return { group, forwards, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+    return { group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
   })
   const width = at - SL.gap + SL.margin
   const supplied = placed.filter(item => !item.noUps)
@@ -148,13 +98,13 @@ function SingleLine({ board }: { board: BoardId }) {
     return [...circuit.phases.map(phase => `${PHASE_NAME[phase]}${n}`), `N${n}`]
   }
   /** Where a circuit goes, for the table: its emoji and its name without it; the forwarded line says which board it goes to. */
-  const destinationOf = (circuit: Circuit, forward: boolean) => {
+  const destinationOf = (circuit: Circuit) => {
     const [, emoji = '', name = names[circuit.id]] = names[circuit.id].match(/^(\p{Extended_Pictographic}\uFE0F?)\s*(.*)$/u) ?? []
-    return { emoji, label: forward ? `${t('electrical.single.toBoard', { board: t('electrical.node.pantry') })} · ${name}` : name }
+    return { emoji, label: name }
   }
   const tableTop = loadY + 36, ROW = 18, DESTINATION_H = 126, tableRows = ['circuit', 'power', 'phase', 'cable', 'earth', 'terminal', 'destination'] as const
   /** The terminals' row is a vertical list, as tall as the longest one; the others are one line. */
-  const terminalsH = Math.max(...placed.flatMap(item => [...item.group.circuits, ...item.forwards]).map(item => terminals(item).length)) * 11 + 8
+  const terminalsH = Math.max(...placed.flatMap(item => item.group.circuits).map(item => terminals(item).length)) * 11 + 8
   const heights = [ROW, ROW, ROW, ROW, ROW, terminalsH, DESTINATION_H]
   const rowY = (index: number) => tableTop + heights.slice(0, index).reduce((sum, h) => sum + h, 0), rowH = (index: number) => heights[index]
   const height = rowY(tableRows.length - 1) + DESTINATION_H + 8
@@ -185,8 +135,8 @@ function SingleLine({ board }: { board: BoardId }) {
     {text(L + 22, 32, nodes.utilityTap, 'elec-sub', 'start')}<path className="elec-single-earth" d={`M${PEX - 14} 118H${L + 200}M${L - 6} 124L${L + 6} 112M${PEX - 6} 124L${PEX + 6} 112`} /><path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${L - 6} ${133 + n * 5}l12 -4`).join('')} />{text(L + 16, 114, `4(1x${METER_CABLE_MM2}mm²)+PE=1x${METER_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 22, 81, nodes.meterBox, 'elec-sub', 'start')}
     <g transform={`translate(0 ${T})`}>
     <g className="elec-wire elec-wire-ac"><path d={[
-      `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V306`,
-      `M${L + 225} 346V370M${L + 225} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`,
+      `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
+      `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`,
     ].join('')} /></g>
     <circle className="elec-dot" cx={L} cy={128} r={3.5} /><circle className="elec-dot" cx={L} cy={235} r={3.5} />
     {breaker(L, 94, [TAGS[METER_DROP.id], `${METER_DROP.poles}x${METER_DROP.ratingA}A`, t('electrical.single.curveType', { curve: METER_DROP.curve }), `Icc=${METER_DROP.breakingKA}kA`], TAGS[METER_DROP.id], false, false, 12)}
@@ -213,7 +163,7 @@ function SingleLine({ board }: { board: BoardId }) {
     {text(L + 30, 168, TAGS[VOLTAGE_PROTECTOR.id], 'elec-title', 'start')}{text(L + 30, 182, rating(VOLTAGE_PROTECTOR), 'elec-sub', 'start')}
     {breaker(L + 225, 265, [TAGS[inverterIn.id], rating(inverterIn)], TAGS[inverterIn.id], false, true)}
     {/* The owner's inverter symbol (inversor_solar.svg, 100 x 200), scaled to .8: the converter's square with its diagonal, the DC bars above it and the AC wave below. */}
-    <g transform={`translate(${L + 225} 326) scale(.8) translate(-50 -95)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+    <g transform={`translate(${L + 225} 326) scale(1.1) translate(-50 -95)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
       <title>{nodes.inverter}</title>
       <rect x={25} y={70} width={50} height={50} className="elec-node" style={{ strokeWidth: 2.5 }} />
       <path d="M25 120L75 70M33 83H47M33 89H47M52 105c3 -6 6 -6 8 0s5 6 8 0" />
@@ -221,8 +171,8 @@ function SingleLine({ board }: { board: BoardId }) {
     {/* The PE goes with the cable to the TSINV, inside the same conduit: a bar between the conduit's line and the cable to AC IN, long enough to reach the strings' surge arresters, which are joined to it, from the one that comes down from the earth rod. */}
     <g className="elec-pe"><path d={`M${PEX} 225H${L + 428}`} /></g><circle className="elec-dot elec-pe-dot" cx={PEX} cy={225} r={3} />
     {/* The two strings, on the right of the inverter (the owner's panel_solar.svg, 160 x 200, at .8): the generator's square with its diagonal, the DC bars and the incident light, each with its 20 A DC breaker, to the inverter's DC input. */}
-    {[1, 2].map(n => { const x = L + 290 + (n - 1) * 110, id = `string-dc-${n}`, y = n === 1 ? 316 : 336, string = device(id); return <g key={id}>
-      <g className="elec-wire elec-wire-dc"><path d={`M${x} 38V73M${x} 107V${y}H${L + 245}M${x} 136H${x + 28}V142`} /></g>
+    {[1, 2].map(n => { const x = L + 290 + (n - 1) * 110, id = `string-dc-${n}`, y = n === 1 ? 310 : 324, string = device(id); return <g key={id}>
+      <g className="elec-wire elec-wire-dc"><path d={`M${x} 38V85M${x} 119V${y}H${L + 253}M${x} 148H${x + 28}V154`} /></g>
       <g transform={`translate(${x} 18) scale(.8) translate(-55 -70)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <title>{`${TAGS[id]} · ${STRING_PANELS.panels} × ${STRING_PANELS.wp} Wp`}</title>
         <rect x={30} y={45} width={50} height={50} className="elec-node" style={{ strokeWidth: 2.5 }} />
@@ -230,20 +180,42 @@ function SingleLine({ board }: { board: BoardId }) {
         {[[10, 24], [22, 14]].map(([tx, ty]) => <g key={tx} transform={`translate(${tx} ${ty}) rotate(45)`}><path d="M0 0H14" /><path d="M22 0L14 -2V2Z" style={{ fill: 'currentColor', stroke: 'none' }} /></g>)}
       </g>
       {text(x + 26, 12, `${STRING_PANELS.panels} × ${STRING_PANELS.wp} Wp`, 'elec-sub', 'start')}{text(x + 26, 25, `${formatNumber(STRING_PANELS.panels * STRING_PANELS.wp / 1000, 2)} kWp`, 'elec-sub', 'start')}
-      {breaker(x, 90, [TAGS[id], `${string.poles}x${string.ratingA}A`], id)}
-      <circle className="elec-dot" cx={x} cy={136} r={3} />
+      {ticks(x, 59, 2)}
+      {breaker(x, 102, [TAGS[id], `${string.poles}x${string.ratingA}A`], id)}
+      <circle className="elec-dot" cx={x} cy={148} r={3} />
       {/* The string's DC surge arrester, as the AC one is drawn: the rectangle with the arrow, and its dashed earth. */}
-      <g transform={`translate(${x + 28} 142) scale(.6) translate(-50 -60)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+      <g transform={`translate(${x + 28} 154) scale(.6) translate(-50 -60)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <title>{TAGS[`surge-dc-${n}`]}</title>
         <path d="M50 111.25V160.75" style={{ strokeDasharray: '8 5', stroke: '#b04a9a' }} />
         <rect x={42} y={60} width={16} height={50} className="elec-node" style={{ strokeWidth: 2.5 }} />
         <path d="M50 61.25V93" /><path d="M50 105L47 93H53Z" style={{ fill: 'currentColor', stroke: 'none' }} />
       </g>
-      {text(x + 38, 159, TAGS[`surge-dc-${n}`], 'elec-sub', 'start')}
-      <g className="elec-pe"><path d={`M${x + 28} 202.5V225`} /></g><circle className="elec-dot elec-pe-dot" cx={x + 28} cy={225} r={3} />
+      {text(x + 38, 171, TAGS[`surge-dc-${n}`], 'elec-sub', 'start')}
+      <g className="elec-pe"><path d={`M${x + 28} 214.5V225`} /></g><circle className="elec-dot elec-pe-dot" cx={x + 28} cy={225} r={3} />
     </g> })}
-    {text(L + 197, 321, t('electrical.single.inverterTitle'), 'elec-title', 'end')}{text(L + 197, 335, t('electrical.single.inverterSub'), 'elec-sub', 'end')}{text(L + 197, 349, INVERTER_MODEL, 'elec-sub', 'end')}
-    {breaker(L + 225, 387, [TAGS[inverterOut.id], rating(inverterOut)], TAGS[inverterOut.id], false, true)}
+    {/* The inverter's Smart Load output, which feeds the water heater and the sauna, in the TSPB: from the inverter's bottom edge, next to AC OUT, across to the board's group that hangs from it. */}
+    {placed.filter(item => item.noUps).map(item => <g key={item.centre} className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V480H${item.centre}V${D - T - A + SL.label + 6}`} /></g>)}
+    {placed.some(item => item.noUps)
+      ? text(L + 252, 474, `${t('electrical.single.smartLoad')} - 4(1x${SMART_LOAD_CABLE_MM2})mm²+PE`, 'elec-sub', 'start')
+      : <g>
+        {/* The TSPA has none of those loads: the line goes on to the other board. */}
+        <g className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V468`} /></g>
+        <path className="elec-single-earth" d={`M${L + 237} 460L${L + 242} 468L${L + 247} 460`} />
+        {text(L + 252, 442, `${t('electrical.single.smartLoad')} - 4(1x${SMART_LOAD_CABLE_MM2})mm²+PE`, 'elec-sub', 'start')}{text(L + 252, 456, t('electrical.single.toBoard', { board: t('electrical.node.pantry') }), 'elec-sub', 'start')}
+      </g>}
+    {/* The battery, below the strings, on the inverter's DC side (the owner's bateria_unifilar.svg, 100 x 200, at .6). It has no breaker of its own: the inverter's is built in. */}
+    {(() => { const x = L + 300; return <g>
+      <g className="elec-wire elec-wire-dc"><path d={`M${L + 253} 338H${x}V384`} /></g>
+      <path className="elec-single-earth" d={[0, 1].map(n => `M${x - 6} ${358 + n * 5}l12 -4`).join('')} />
+      <g transform={`translate(${x} 385) scale(.6) translate(-50 -110)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+        <title>{`${nodes.battery} ${BATTERY.model}`}</title>
+        <path d="M30 110H70M30 140H70" /><path d="M50 122.5V138.75" style={{ strokeDasharray: '3 4', strokeLinecap: 'butt' }} />
+        <rect x={40} y={117.5} width={20} height={5} style={{ fill: 'currentColor', stroke: 'none' }} /><rect x={40} y={147.5} width={20} height={5} style={{ fill: 'currentColor', stroke: 'none' }} />
+      </g>
+      {text(x - 17, 383, '+', 'elec-sub')}{text(x - 12, 414, '–', 'elec-sub')}{text(x + 20, 388, `${nodes.battery.replace('🔋 ', '')} ${formatNumber(BATTERY.voltageV, 1)} V`, 'elec-sub', 'start')}{text(x + 20, 402, BATTERY.model, 'elec-sub', 'start')}{text(x + 20, 416, `${formatNumber(BATTERY.energyKWh, 1)} kWh · ${BATTERY.capacityAh} Ah`, 'elec-sub', 'start')}
+    </g> })()}
+    {text(L + 188, 321, t('electrical.single.inverterTitle'), 'elec-title', 'end')}{text(L + 188, 335, t('electrical.single.inverterSub'), 'elec-sub', 'end')}{text(L + 188, 349, INVERTER_MODEL, 'elec-sub', 'end')}
+    {breaker(L + 208, 387, [TAGS[inverterOut.id], rating(inverterOut)], TAGS[inverterOut.id], false, true)}
     {/* The conduit between the TP and the TSINV, drawn as in the sample single-line diagram: its line, a slash across each conductor that goes through it (the cable and the PE) and what it holds. */}
     <path className="elec-single-earth" d={`M${PEX - 14} 215H${L + 215}M${L - 6} 221L${L + 6} 209M${PEX - 6} 221L${PEX + 6} 209`} />
     {text(L + 20, 210, `Ø${SUPPLY_CONDUIT_MM} - 4(1x${SUPPLY_CABLE_MM2}mm²) + PE=1x${SUPPLY_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 100, 418, cableText, 'elec-sub', 'start')}
@@ -278,8 +250,8 @@ function SingleLine({ board }: { board: BoardId }) {
       <rect className="elec-node" x={x - 24} y={y} width={48} height={26} rx={4} />{text(x, y + 17, TAGS[item.id], 'elec-title')}
       <path className="elec-single-earth" d={`M${x - 8} ${y + 36}H${x + 8}M${x - 5} ${y + 40}H${x + 5}M${x - 2} ${y + 44}H${x + 2}`} />{text(x + 14, y + 44, t('electrical.single.surge'), 'elec-sub', 'start')}
     </g> })}
-    {placed.map(item => { const { group, forwards, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id}>
-      {noUps && text(centre, SL.label, t('electrical.single.noUpsSource'))}
+    {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id}>
+      {noUps && ticks(centre, (group.rcd ? rcdY - SL.rcdH / 2 : subY) - 88, 4)}
       {group.rcd && rcdSymbol(centre, rcdY, [TAGS[group.rcd.id], ratingOf(group.rcd), t('electrical.single.rcd', { type: group.rcd.rcdType })], group.rcd.id)}
       {item.rows > 1 && Array.from({ length: item.rows }, (_, index) => <circle key={index} className="elec-dot" cx={columnX(item, index)} cy={subY} r={3} />)}
       {group.circuits.map((circuit, index) => { const x = columnX(item, index); return <g key={circuit.id}>
@@ -287,13 +259,6 @@ function SingleLine({ board }: { board: BoardId }) {
         {breaker(x, breakerY, [`${circuit.modules}x${circuit.ratingA}A`, t('electrical.single.curveType', { curve: 'C' }), `Icc=${formatNumber(CIRCUIT_BREAKING_KA, 1)}kA`], names[circuit.id])}
         {ticks(x, breakerY + 28, circuit.phases.length === 1 ? 2 : circuit.phases.length + 1)}
         {/* The owner's circuit output (salida_circuito.svg, 100 x 140), at .85: the output terminal with the slash across it. */}
-        <g transform={`translate(${x} ${loadY}) scale(.85) translate(-50 -110)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round' }}>
-          <circle cx={50} cy={110} r={7} className="elec-node" style={{ strokeWidth: 2.5 }} /><path d="M37 121L63 99" />
-        </g>
-      </g> })}
-      {forwards.map((circuit, index) => { const x = columnX(item, group.circuits.length + index); return <g key={circuit.id}>
-        {text(x + 5, subY + 16, circuit.phases.map(phase => PHASE_NAME[phase]).join(''), 'elec-title', 'start')}
-        {ticks(x, breakerY + 28, circuit.phases.length === 1 ? 2 : circuit.phases.length + 1)}
         <g transform={`translate(${x} ${loadY}) scale(.85) translate(-50 -110)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round' }}>
           <circle cx={50} cy={110} r={7} className="elec-node" style={{ strokeWidth: 2.5 }} /><path d="M37 121L63 99" />
         </g>
@@ -311,8 +276,8 @@ function SingleLine({ board }: { board: BoardId }) {
       <rect className="elec-cell" x={4} y={rowY(index)} width={LABELS - 8} height={rowH(index)} />
       {text(10, rowY(index) + 12.5, t(`electrical.single.table.${row}`), 'elec-sub', 'start')}
     </g>)}
-    {placed.flatMap(item => [...item.group.circuits, ...item.forwards].map((circuit, index) => ({ circuit, x: columnX(item, index), forward: index >= item.group.circuits.length }))).map(({ circuit, x, forward }) => {
-      const cells = [TAGS[circuit.id], circuit.loadW ? formatNumber(circuit.loadW) : '–', circuit.phases.map(phase => PHASE_NAME[phase]).join(''), cable(circuit)[0].replace(' mm²', ''), formatNumber(circuit.cableMm2, circuit.cableMm2 % 1 ? 1 : 0), terminals(circuit), destinationOf(circuit, forward)]
+    {placed.flatMap(item => item.group.circuits.map((circuit, index) => ({ circuit, x: columnX(item, index) }))).map(({ circuit, x }) => {
+      const cells = [TAGS[circuit.id], circuit.loadW ? formatNumber(circuit.loadW) : '–', circuit.phases.map(phase => PHASE_NAME[phase]).join(''), cable(circuit)[0].replace(' mm²', ''), formatNumber(circuit.cableMm2, circuit.cableMm2 % 1 ? 1 : 0), terminals(circuit), destinationOf(circuit)]
       return <g key={circuit.id}>{cells.map((cell, index) => <g key={index}>
         <rect className="elec-cell" x={x - SL.col / 2} y={rowY(index)} width={SL.col} height={rowH(index)} />
         {index === tableRows.length - 1
@@ -329,7 +294,7 @@ function SingleLine({ board }: { board: BoardId }) {
 
 const protection = (item: Device, t: TFunction<'workspace'>) => {
   if (item.ratingA === null) return t(item.id === 'selector' ? 'electrical.board.bySupply' : 'electrical.board.byManual')
-  return `${item.poles}x${item.ratingA}A${/^(string|battery)-dc/.test(item.id) ? ' DC' : ''}`
+  return `${item.poles}x${item.ratingA}A${/^string-dc/.test(item.id) ? ' DC' : ''}`
 }
 
 const MODULE_W = 18, DEVICE_H = 80
@@ -345,7 +310,7 @@ const PHASE_FILL: Record<Phase, string> = { L1: 'var(--elec-l1)', L2: 'var(--ele
  */
 function ModuleIcon({ x, id, modules, terminals = modules, phase, rating, tag, name }: { x: number; id: string; modules: number; terminals?: number; phase?: Phase; rating: string; tag: string; name: string }) {
   const w = modules * MODULE_W, cx = x + w / 2
-  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', spd = id.startsWith('surge'), dc = /^(string|battery)-dc/.test(id)
+  const rcd = id.startsWith('rcd'), selector = id === 'selector', protector = id === 'voltage-protector', spd = id.startsWith('surge'), dc = /^string-dc/.test(id)
   const poles = Array.from({ length: modules }, (_, pole) => x + (pole + .5) * MODULE_W)
   /** Where the terminals are: one pair per pole, spread over the width; it is one per module unless the device is wider than its poles, like the voltage protector (four poles, five modules). */
   const pairs = Array.from({ length: terminals }, (_, pole) => x + (pole + .5) * w / terminals)
@@ -473,9 +438,8 @@ export function ElectricalExplorer() {
   const { t } = useTranslation('workspace')
   const upper = CIRCUITS.filter(item => item.floor === 'upper').length, ground = CIRCUITS.length - upper
   const busiestOf = (circuits: readonly Circuit[]) => { const current = phaseCurrentA(circuits); return PHASES.reduce((a, b) => current[b] > current[a] ? b : a) }
-  const onUps = onUpsOutput(), busiest = busiestOf(onUps), pantryBusiest = busiestOf(boardCircuits('pantry'))
+  const onUps = onUpsOutput(), busiest = busiestOf(onUps), pantryOnUps = boardCircuits('pantry').filter(item => !item.noUps), pantryBusiest = busiestOf(pantryOnUps)
   const { formatNumber } = useLocale()
-  const sizes = { pa: { circuits: boardCircuits('pa').length, modules: boardModules('pa') }, pantry: { circuits: boardCircuits('pantry').length, modules: boardModules('pantry') } }
   const facts: [string, string][] = [
     [t('electrical.factSupply'), t('electrical.factSupplyValue')],
     [t('electrical.factInverter'), INVERTER_MODEL],
@@ -485,7 +449,7 @@ export function ElectricalExplorer() {
     [t('electrical.factFeeder'), t('electrical.factFeederValue', { conductors: FEEDER.conductors, mm2: FEEDER.cableMm2, conduit: FEEDER.conduitMm })],
   ]
   const notes = [
-    t('electrical.notes.earth'), t('electrical.notes.feeder', { phase: PHASE_NAME[pantryBusiest], amps: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(boardCircuits('pantry'))[pantryBusiest]), factor: formatNumber(SIMULTANEITY, 1) }), 
+    t('electrical.notes.earth'), t('electrical.notes.feeder', { phase: PHASE_NAME[pantryBusiest], amps: formatNumber(phaseCurrentA(pantryOnUps)[pantryBusiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(pantryOnUps)[pantryBusiest]), factor: formatNumber(SIMULTANEITY, 1) }), 
     t('electrical.notes.inverterLimit', { limit: INVERTER_MAX_OUTPUT_A, phase: PHASE_NAME[busiest], amps: formatNumber(phaseCurrentA(onUps)[busiest] * SIMULTANEITY), connected: formatNumber(phaseCurrentA(onUps)[busiest]), factor: formatNumber(SIMULTANEITY, 1) }),
     t('electrical.notes.noUps'), t('electrical.notes.strings', { volts: PV_SYSTEM.inverter.mppt.maxInputV }), t('electrical.notes.comb'), t('electrical.notes.surge'), t('electrical.notes.feederOrigin'),
   ]
@@ -499,17 +463,6 @@ export function ElectricalExplorer() {
       <div className="gen-stats elec-facts" aria-label={t('electrical.factsTitle')}>
         {facts.map(([label, value]) => <div key={label} className="gen-stat gen-stat-wide"><span>{label}</span><strong>{value}</strong></div>)}
       </div>
-      <section aria-labelledby="elec-diagram-title">
-        <h3 id="elec-diagram-title">{t('electrical.diagramTitle')}</h3>
-        <div className="elec-scroll"><SupplyDiagram circuits={sizes} /></div>
-        <ul className="gen-legend">
-          <li className="elec-key elec-key-ac">{t('electrical.legendAc')}</li>
-          <li className="elec-key elec-key-dc">{t('electrical.legendDc')}</li>
-          <li className="elec-key elec-key-device">{t('electrical.legendGarage')}</li>
-          <li className="elec-key elec-key-device elec-key-pantry">{t('electrical.legendPantry')}</li>
-        </ul>
-        <p className="array-note">{t('electrical.selectorNote')}</p>
-      </section>
       <section aria-labelledby="elec-single-title">
         <h3 id="elec-single-title">{t('electrical.single.title')}</h3>
         <p className="array-note">{t('electrical.single.intro')}</p>

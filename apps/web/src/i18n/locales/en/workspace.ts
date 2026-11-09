@@ -343,16 +343,10 @@ const workspace = {
     factCircuits: 'Circuits', factCircuitsValue: '{{upper}} on the upper floor and {{ground}} on the ground floor',
     factSelector: 'Changeover switch', factSelectorValue: 'Grid · 0 · Inverter, to leave the inverter out',
     factFeeder: 'Feeder to the pantry', factFeederValue: '{{conductors}} of {{mm2}} mm², a {{conduit}} mm conduit and a spare one',
-    diagramTitle: 'The way the power goes',
-    diagramAria: 'Single-line diagram. The two panel strings, each with its own DC breaker, go into the hybrid inverter, which has the battery at its side. The grid comes in through the hall\'s main board and reaches the changeover switch and the inverter\'s grid input; the inverter\'s output reaches the changeover switch. From the changeover switch, on one side, the TSPA\'s main breaker and, on the other, the feeder to the TSPB.',
-    legendGarage: 'Inside a board in the garage (solar or PA)', legendPantry: 'Inside the TSPB', legendAc: 'Alternating current', legendDc: 'Direct current',
-    selectorNote: 'In the Grid position the house runs straight from the grid, with no inverter; in Inverter it hangs from the inverter\'s output; in 0 it has no power. The two are never connected at once.',
     node: {
-      string1: '☀️ String 1', string2: '☀️ String 2', panels: 'Panels · DC',
-      inverter: '☀️ Hybrid inverter', inverterSub: 'three-phase · 10 kW', battery: '🔋 BAT', batterySub: 'low voltage', batteryItm: 'DC breaker 100 A',
-      serviceFrom: 'From the grid', utilityTap: 'Utility tap', meterBox: 'Meter box', inverterBreaker: '☀️ AC IN', inverterOut: '☀️ AC OUT', grid: 'Grid', gridSub: '3L + N', mainBoard: 'TP', mainBoardSub: 'meter drop', mainBoardItm: 'breaker + protector', ups: 'with UPS', noUps: 'Output without UPS: water heater and sauna', main: 'Upper-floor main breaker', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
-      tsinv: 'TSINV', tsinvSub: 'Solar board', pa: 'TSPA', paSub: 'Upper floor', pantry: 'TSPB', pantrySub: 'Ground floor',
-      count: '{{circuits}} circuits · {{modules}} modules', pantryMain: 'Main breaker', earth: 'Earth bar for both floors',
+      inverter: '☀️ Hybrid inverter', battery: '🔋 BAT',
+      serviceFrom: 'From the grid', utilityTap: 'Utility tap', meterBox: 'Meter box', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
+      pantry: 'TSPB',
     },
     board: {
       solar: 'TSINV Solar board', pa: 'TSPA PA board - Garage', pantry: 'TSPB PB board - Pantry',
@@ -367,7 +361,7 @@ const workspace = {
     },
     device: {
       main: 'Upper-floor main breaker, 4P', selector: '3-position changeover switch, 4P', 'inverter-ac': '☀️ Inverter AC input breaker, 4P', 'inverter-out': '☀️ Inverter AC output breaker, 4P',
-      'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'battery-dc': '🔋 Battery DC breaker, 2P 100 A', 'surge-dc-1': '☀️ DC surge arrester 2P, string 1', 'surge-dc-2': '☀️ DC surge arrester 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
+      'string-dc-1': '☀️ DC breaker 2P, string 1', 'string-dc-2': '☀️ DC breaker 2P, string 2', 'surge-dc-1': '☀️ DC surge arrester 2P, string 1', 'surge-dc-2': '☀️ DC surge arrester 2P, string 2', 'rcd-garage': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-garage-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioners)', 'rcd-garage-3': '⚡ Residual-current device, 30 mA, type A, 4P (water heater and sauna, no UPS)',
       feeder: 'Pantry main breaker, 4P', 'surge-ac': 'AC surge arrester, 3+1 (4P)',
       'meter-itm': 'Meter-drop breaker, 4P', 'voltage-protector': '🛡️ Three-phase voltage protector, 63 A', 'rcd-pantry': '⚡ Residual-current device, 30 mA, type A, 4P (lights and outlets)', 'rcd-pantry-2': '⚡ Residual-current device, 30 mA, type F, 4P (air conditioner)',
     },
@@ -379,6 +373,7 @@ const workspace = {
       'ground-outlets-pantry': '🔌 Pantry and network outlets', 'ground-ac-office': '❄️ AC office', 'ground-sauna': '♨️ Sauna',
     },
     single: {
+      smartLoad: 'Smart Load',
       curveType: 'type {{curve}}',
       peRod: 'to the earth rod', primaryBus: 'Primary bus', secondaryBus: 'Secondary bus', outputTerminal: 'Output terminal',
       table: { circuit: 'Circuit', power: 'Power [W]', phase: 'Phase', cable: 'Cable [mm²]', earth: 'PE [mm²]', destination: 'Destination', terminal: 'Output terminal' },
@@ -386,7 +381,6 @@ const workspace = {
       title: 'Single-line diagram of the TSPA and the TSPB',
       intro: 'From top to bottom: what reaches the board, each residual-current device and the circuits that hang from it, with their breaker, phase, cable and load. The marks on the lines are the number of conductors.',
       aria: 'Single-line diagram of {{board}}: the supply goes through the main breaker and is split among residual-current devices, and each device feeds its circuits.',
-      noUpsSource: 'Inverter\'s output without UPS',
       toBoard: 'To {{board}}', rcd: '30 mA type {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'to earth',
     },
     balance: {
@@ -396,9 +390,9 @@ const workspace = {
     notes: {
       title: 'To confirm',
       earth: 'The pantry\'s earth bar gathers the earth wires of both floors, and a single conductor goes on to the garage. The upper floor\'s phases and neutrals run on to the TSPA: about 20 conductors that, by the numbers, fit loosely in a 40 mm conduit.',
-      feeder: 'The 6 mm² feeder with a 32 A breaker covers the ground floor: on its busiest phase, {{phase}}, the demand is {{amps}} A ({{connected}} A connected times a {{factor}} simultaneity factor), with the sauna on.',
+      feeder: 'The 6 mm² feeder with a 32 A breaker covers the circuits of the ground floor on the UPS output (the water heater and the sauna hang from the inverter\'s Smart Load, not from it): on its busiest phase, {{phase}}, the demand is {{amps}} A ({{connected}} A connected times a {{factor}} simultaneity factor).',
       inverterLimit: 'With the changeover switch on Inverter, the house (without the water heater and the sauna) hangs from the inverter\'s output, which gives up to {{limit}} A a phase. On phase {{phase}} the demand is {{amps}} A ({{connected}} A connected times a {{factor}} simultaneity factor): check the inverter\'s manual for what it does with an unbalanced load.',
-      noUps: 'The inverter has two AC outputs: with UPS, which the changeover switch takes, and without UPS, for the water heater and the sauna. Those two loads have no battery backup, and if the inverter fails they have no power even with the changeover switch on Grid. The sauna\'s cable to PB leaves the TSPA\'s residual-current device and has no breaker of its own at its origin.',
+      noUps: 'The inverter has two AC outputs: with UPS, which the changeover switch takes, and without UPS, for the water heater and the sauna (the inverter\'s Smart Load output). Those two loads have no battery backup, and if the inverter fails they have no power even with the changeover switch on Grid. Both are in the TSPB, under a residual-current device of their own, and the inverter\'s Smart Load output (its own cut-off) goes there with a 6 mm² cable.',
       strings: 'The strings come down in DC (up to {{volts}} V) in conduits of their own, apart from the 220 V ones. The DC breakers and the changeover switch are in the TSINV.',
       comb: 'It is set up in rows, left to right. If you use a three-phase comb bar, each module takes the phase of its place: the row\'s order has to match the phase in the table; if not, it is wired with cable. Every circuit on one phase is bipolar (the phase and the neutral are cut), and each has a neutral of its own.',
       surge: 'The AC surge arrester is in the main board, next to the earth rod, with a short earth wire (half a metre or less in all). The strings\' DC arresters, one per string, are in the TSINV, next to the inverter; the inverter may have its own, so check its manual first, and if it does the external ones are not needed. The TSPA is more than 10 m of cable from the TP, so it has an AC arrester of its own. If the TSPB is also more than about 10 m away, it needs one too.',

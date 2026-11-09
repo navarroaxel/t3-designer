@@ -364,16 +364,10 @@ const workspace = {
     factCircuits: 'Circuitos', factCircuitsValue: '{{upper}} en PA y {{ground}} en PB',
     factSelector: 'Conmutadora', factSelectorValue: 'Red · 0 · Inversor, para dejar el inversor afuera',
     factFeeder: 'Alimentador a la despensa', factFeederValue: '{{conductors}} de {{mm2}} mm², caño de {{conduit}} mm y otro de reserva',
-    diagramTitle: 'Camino de la energía',
-    diagramAria: 'Diagrama unifilar. Los dos strings de paneles, cada uno con su térmica DC, entran al inversor híbrido, que tiene la batería a un lado. La red entra por el tablero principal del hall y llega a la conmutadora y a la entrada de red del inversor; la salida del inversor llega a la conmutadora. De la conmutadora salen, por un lado, la térmica general del TSPA y, por otro, el alimentador al TSPB.',
-    legendGarage: 'Dentro de un tablero del garage (solar o PA)', legendPantry: 'Dentro del TSPB', legendAc: 'Corriente alterna', legendDc: 'Corriente continua',
-    selectorNote: 'En la posición Red la casa va directa a la red, sin pasar por el inversor; en Inversor cuelga de su salida; en 0 queda sin energía. Nunca se conectan las dos a la vez.',
     node: {
-      string1: '☀️ String 1', string2: '☀️ String 2', panels: 'Paneles · DC',
-      inverter: '☀️ Inversor híbrido', inverterSub: 'trifásico · 10 kW', battery: '🔋 BAT', batterySub: 'baja tensión', batteryItm: 'ITM DC 100 A',
-      serviceFrom: 'De acometida', utilityTap: 'Toma de la compañía', meterBox: 'Caja del medidor', inverterBreaker: '☀️ AC IN', inverterOut: '☀️ AC OUT', grid: 'Red', gridSub: '3F + N', mainBoard: 'TP', mainBoardSub: 'bajada del medidor', mainBoardItm: 'ITM + protector', ups: 'con UPS', noUps: 'Salida sin UPS: termotanque y sauna', main: 'Térmica general PA', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
-      tsinv: 'TSINV', tsinvSub: 'Tablero solar', pa: 'TSPA', paSub: 'PA', pantry: 'TSPB', pantrySub: 'PB',
-      count: '{{circuits}} circuitos · {{modules}} módulos', pantryMain: 'Térmica PB', earth: 'Bornera de tierra de PA y PB',
+      inverter: '☀️ Inversor híbrido', battery: '🔋 BAT',
+      serviceFrom: 'De acometida', utilityTap: 'Toma de la compañía', meterBox: 'Caja del medidor', selector: 'CON', selectorPositions: 'Grid · 0 · Inverter',
+      pantry: 'TSPB',
     },
     board: {
       solar: 'TSINV Tablero Solar', pa: 'TSPA Tablero PA - Garage', pantry: 'TSPB Tablero PB - Despensa',
@@ -388,7 +382,7 @@ const workspace = {
     },
     device: {
       main: 'Térmica general PA, 4P', selector: 'Conmutadora de 3 posiciones, 4P', 'inverter-ac': '☀️ Térmica de entrada AC del inversor, 4P', 'inverter-out': '☀️ Térmica de salida AC del inversor, 4P',
-      'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'battery-dc': '🔋 ITM DC de la batería, 2P 100 A', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
+      'string-dc-1': '☀️ Térmica DC 2P, string 1', 'string-dc-2': '☀️ Térmica DC 2P, string 2', 'surge-dc-1': '☀️ Descargador DC 2P, string 1', 'surge-dc-2': '☀️ Descargador DC 2P, string 2', 'rcd-garage': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-garage-2': '⚡ Diferencial 30 mA, tipo F, 4P (aires)', 'rcd-garage-3': '⚡ Diferencial 30 mA, tipo A, 4P (termotanque y sauna, sin UPS)',
       feeder: 'Térmica PB, 4P', 'surge-ac': 'Descargador AC, 3+1 (4P)',
       'meter-itm': 'ITM de la bajada del medidor, 4P', 'voltage-protector': '🛡️ Protector de tensión trifásico, 63 A', 'rcd-pantry': '⚡ Diferencial 30 mA, tipo A, 4P (luces y tomas)', 'rcd-pantry-2': '⚡ Diferencial 30 mA, tipo F, 4P (aire)',
     },
@@ -400,6 +394,7 @@ const workspace = {
       'ground-outlets-pantry': '🔌 Tomas de la despensa y la red', 'ground-ac-office': '❄️ AC oficina', 'ground-sauna': '♨️ Sauna',
     },
     single: {
+      smartLoad: 'Smart Load',
       curveType: 'tipo {{curve}}',
       peRod: 'a jabalina de P.A.T.', primaryBus: 'Barra primaria', secondaryBus: 'Barra secundaria', outputTerminal: 'Borne de salida',
       table: { circuit: 'Circuito', power: 'Potencia [W]', phase: 'Fase', cable: 'Cable [mm²]', earth: 'PE [mm²]', destination: 'Destino', terminal: 'Borne de salida' },
@@ -407,7 +402,6 @@ const workspace = {
       title: 'Unifilar de TSPA y TSPB',
       intro: 'De arriba hacia abajo: lo que llega al tablero, cada diferencial y los circuitos que cuelgan de él, con su térmica, fase, cable y carga. Las líneas con marcas llevan la cantidad de conductores.',
       aria: 'Diagrama unifilar de {{board}}: la alimentación pasa por la térmica general y se reparte en diferenciales, y de cada diferencial salen sus circuitos.',
-      noUpsSource: 'Salida sin UPS del inversor',
       toBoard: 'Hacia {{board}}', rcd: '30 mA tipo {{type}}', cable: '{{n}}×{{mm2}} mm² + PE', surge: 'a tierra',
     },
     balance: {
@@ -417,9 +411,9 @@ const workspace = {
     notes: {
       title: 'Para confirmar',
       earth: 'La bornera de tierra de la despensa junta los cables de tierra de PA y PB, y sale un solo conductor hacia el garage. Las fases y los neutros de PA siguen hasta el TSPA: unos 20 conductores que, según el cálculo, entran holgados en un caño de 40 mm.',
-      feeder: 'El alimentador de 6 mm² con térmica de 32 A cubre PB: en su fase más cargada, {{phase}}, la demanda es de {{amps}} A ({{connected}} A conectados por {{factor}} de simultaneidad), con el sauna prendido.',
+      feeder: 'El alimentador de 6 mm² con térmica de 32 A cubre los circuitos de PB en la salida con UPS (el termotanque y el sauna cuelgan de la Smart Load del inversor, no de él): en su fase más cargada, {{phase}}, la demanda es de {{amps}} A ({{connected}} A conectados por {{factor}} de simultaneidad).',
       inverterLimit: 'Con la conmutadora en Inversor, la casa (sin el termotanque ni el sauna) cuelga de la salida del inversor, que da hasta {{limit}} A por fase. En la fase {{phase}} la demanda es de {{amps}} A ({{connected}} A conectados por {{factor}} de simultaneidad): conviene ver en el manual del inversor qué pasa con una carga desbalanceada.',
-      noUps: 'El inversor tiene dos salidas AC: con UPS, de la que cuelga la conmutadora, y sin UPS, para el termotanque y el sauna. Esas dos cargas no tienen respaldo de batería, y si el inversor falla se quedan sin energía aunque la conmutadora esté en Red. El cable del sauna a PB sale del diferencial del TSPA y no tiene térmica propia en su origen.',
+      noUps: 'El inversor tiene dos salidas AC: con UPS, de la que cuelga la conmutadora, y sin UPS, para el termotanque y el sauna (la salida Smart Load del inversor). Esas dos cargas no tienen respaldo de batería, y si el inversor falla se quedan sin energía aunque la conmutadora esté en Red. Las dos están en el TSPB, bajo un diferencial propio, y la salida Smart Load del inversor (que tiene su propio corte) llega ahí con un cable de 6 mm².',
       strings: 'Los strings bajan en continua (hasta {{volts}} V) en caños propios, aparte de los de 220 V. Las térmicas DC y la conmutadora van en el TSINV.',
       comb: 'Se arma por filas, de izquierda a derecha. Si usás peine trifásico, cada módulo toma la fase de su posición: el orden de la fila tiene que coincidir con la fase de la tabla; si no, se conecta con cable. Todos los circuitos de una fase van con bipolares (se corta la fase y el neutro), y llevan su neutro propio.',
       surge: 'El descargador AC está en el tablero principal, junto a la jabalina, con un cable de tierra corto (medio metro o menos en total). Los descargadores DC de los strings, uno por string, están en el TSINV, al lado del inversor; el inversor puede traer los suyos, así que conviene mirar antes su manual, y si los trae los externos no hacen falta. El TSPA queda a más de 10 m de cable del TP, así que lleva un descargador AC propio. Si el TSPB también queda a más de unos 10 m, necesita otro.',

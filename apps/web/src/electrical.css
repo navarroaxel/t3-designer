@@ -10,25 +10,15 @@
 .elec-workspace { padding: 0 22px 28px; max-width: 1180px; }
 .elec-sheet h3 { margin: 8px 0 4px; font-size: 13px; font-weight: 560; }
 .elec-scroll { overflow-x: auto; }
-.elec-diagram { display: block; width: 100%; min-width: 760px; height: auto; }
 .elec-node { fill: var(--gen-card); stroke: var(--gen-axis); stroke-width: 1.2; }
-.elec-frame { fill: none; stroke: var(--gen-typical); stroke-width: 1.6; stroke-dasharray: 7 5; }
 .elec-node-board { stroke-width: 2; stroke: var(--gen-typical); }
-.elec-device { fill: var(--gen-bar); stroke: var(--gen-typical); stroke-width: 1.5; }
 /* The pantry's devices are outlined, the garage's filled. */
-.elec-device-pantry { fill: var(--gen-details-bg); }
 .elec-wire path { fill: none; stroke-width: 2.2; stroke-linejoin: round; }
 .elec-wire-ac path { stroke: var(--elec-ac); }
 .elec-wire-dc path { stroke: var(--elec-dc); }
 .elec-dot { fill: var(--elec-ac); }
 .elec-title { fill: currentColor; font-size: 13px; font-weight: 560; }
 .elec-sub, .elec-label { fill: currentColor; fill-opacity: .78; font-size: 10.5px; }
-/* The legend. `.gen-legend li::before` (building.css) is more specific than a single class, so these name `.gen-legend` too, or every key would keep the text's colour. */
-.gen-legend .elec-key::before { width: 18px; height: 0; border: 0; border-top: 3px solid; margin-right: 6px; border-radius: 0; background: none; }
-.gen-legend .elec-key-ac::before { border-top-color: var(--elec-ac); }
-.gen-legend .elec-key-dc::before { border-top-color: var(--elec-dc); }
-.gen-legend .elec-key-device::before { width: 11px; height: 11px; border: 1.5px solid var(--gen-typical); border-radius: 2px; background: var(--gen-bar); }
-.gen-legend .elec-key-pantry::before { background: var(--gen-details-bg); }
 .elec-boards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
 .elec-board { display: flex; flex-direction: column; gap: 8px; min-width: 0; overflow-x: auto; }
 .elec-board .gen-table td { white-space: nowrap; }
@@ -59,7 +49,6 @@
   .elec-workspace { padding: 0; max-width: none; }
   .gen-details.elec-sheet { box-shadow: none; border: 0; padding: 0; overflow: visible; }
   .elec-scroll { overflow: visible; }
-  .elec-diagram { min-width: 0; }
   .elec-board, .elec-balance, .elec-notes { break-inside: avoid; }
 }
 /* The single-line diagram of a board (SingleLine): the wires are the supply's AC ones, the boxes are the devices. */
