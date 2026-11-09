@@ -273,7 +273,7 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
       {/* A board with all its devices switched off ends in the service drop's arrowhead, which says its cable goes on. */}
       {bare[board.board] !== undefined && <g>
         <g className="elec-wire elec-wire-ac"><path d={`M${board.trunk} ${seriesY(board.series.length - 1) + SL.boxH / 2}V${arrowY}`} /></g>
-        {ticks(board.trunk, seriesY(board.series.length - 1) + SL.boxH / 2 + 4, 4)}<path className="elec-node" d={`M${board.trunk - 4.8} ${arrowY - 24}L${board.trunk + 4.8} ${arrowY - 24}L${board.trunk} ${arrowY}Z`} />
+        {ticks(board.trunk, busY - 4, 4)}<path className="elec-node" d={`M${board.trunk - 4.8} ${arrowY - 24}L${board.trunk + 4.8} ${arrowY - 24}L${board.trunk} ${arrowY}Z`} />
       </g>}
       {/* The four conductors that come from CON, marked where they enter each board, above its first breaker. */}
       <path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${board.trunk - 6} ${8 + n * 3.2}l12 -4`).join('')} />
@@ -284,7 +284,7 @@ function SingleLine({ boards, off, mode }: { boards: readonly BoardId[]; off?: R
       </g> })}
     </g>)}
     {/* Where the Smart Load's cable ended up, with its device switched off: the conductor marks and the service drop's arrowhead (24 long, 9.6 wide) turned down, which says it goes on. */}
-    <g className={deadWhen('inverter')}>{stubs.map(centre => <g key={centre}><g className="elec-wire elec-wire-ac"><path d={`M${centre} 20V${arrowY}`} /></g>{ticks(centre, -26, 4)}<path className="elec-node" d={`M${centre - 4.8} ${arrowY - 24}L${centre + 4.8} ${arrowY - 24}L${centre} ${arrowY}Z`} /></g>)}</g>
+    <g className={deadWhen('inverter')}>{stubs.map(centre => <g key={centre}><g className="elec-wire elec-wire-ac"><path d={`M${centre} 20V${arrowY}`} /></g>{ticks(centre, busY - 4, 4)}<path className="elec-node" d={`M${centre - 4.8} ${arrowY - 24}L${centre + 4.8} ${arrowY - 24}L${centre} ${arrowY}Z`} /></g>)}</g>
     {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id} className={noUps ? deadWhen('inverter') : undefined}>
       {/* The wires of the group: from the bus (or from the Smart Load output) to its device, along its secondary bus and down to each circuit's output. */}
       <g className="elec-wire elec-wire-ac"><path d={[
