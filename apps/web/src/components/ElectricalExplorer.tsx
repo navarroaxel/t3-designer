@@ -27,16 +27,16 @@ const wrap = (label: string, max = SL.nameLines) => label.split(' ').reduce<stri
 }, [])
 
 /**
- * One board as a single-line diagram, top to bottom. It starts with the drop, repeated on each board so that no diagram has to be wide: the grid through the main board's ITM, surge arrester and voltage protector to the changeover
- * switch CON, which picks between that and the inverter's AC OUT (the inverter hangs from the same drop through AC IN). Then the supply (CON's output, or the feeder for the pantry's board) comes in through the board's main breaker, with its surge arrester branching to earth, to a bus
- * from which each residual-current device drops, and under each one its circuits, a column each, with the breaker, phase, cable, load and name. The devices that are on the inverter's output without UPS do not hang from that bus: they have a
+ * The boards as one single-line diagram, top to bottom. It starts with the drop, once: the grid through the main board's ITM, surge arrester and voltage protector to the changeover
+ * switch CON, which picks between that and the inverter's AC OUT (the inverter hangs from the same drop through AC IN). Then CON's output goes to the first board's main breaker and, branching off before it, to the other's (the pantry's feeder); each board's main breaker feeds a bus
+ * from which each residual-current device drops, and under each one its circuits, a column each, with the breaker, phase, cable, load and name. The devices that are on the inverter's Smart Load output do not hang from that bus: they have a
  * source of their own at the top, and the line that goes on to the other board (the sauna's) leaves from there. It is read from `singleLine`, so it follows the rows of the board.
  */
-function SingleLine({ board }: { board: BoardId }) {
+function SingleLine({ boards }: { boards: readonly BoardId[] }) {
   const { t } = useTranslation('workspace')
   const { formatNumber } = useLocale()
   const names = t('electrical.circuit', { returnObjects: true }) as Record<string, string>
-  const { head, groups } = singleLine(board)
+  const parts = boards.map(board => ({ board, ...singleLine(board) }))
   const text = (x: number, y: number, label: string, className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') => <text key={`${x}-${y}-${label}`} className={className} x={x} y={y} textAnchor={anchor}>{label}</text>
   /** The letters of a circuit's phases, each in its homologated colour (R brown, S black, T red). */
   const phaseText = (x: number, y: number, phases: readonly Phase[], className = 'elec-sub', anchor: 'start' | 'middle' | 'end' = 'middle') =>
@@ -81,16 +81,23 @@ function SingleLine({ board }: { board: BoardId }) {
   /** The width of the row labels of the table under the diagram, which the columns are shifted by. */
   const LABELS = 92
   let at = SL.margin + LABELS
-  const placed = groups.map(group => {
-    const rows = group.circuits.length
-    const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
-    at += rows * SL.col + SL.gap
-    return { group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+  const placed = parts.flatMap((part, partIndex) => {
+    if (partIndex) at += SL.gap * 2
+    return part.groups.map(group => {
+      const rows = group.circuits.length
+      const first = at + SL.col / 2, last = first + (rows - 1) * SL.col
+      at += rows * SL.col + SL.gap
+      return { board: part.board, group, rows, first, last, centre: (first + last) / 2, noUps: groupNoUps(group) }
+    })
   })
   const width = at - SL.gap + SL.margin
-  const supplied = placed.filter(item => !item.noUps)
-  const busLeft = supplied[0]?.centre ?? width / 2, busRight = supplied.at(-1)?.centre ?? width / 2, trunk = (busLeft + busRight) / 2
-  const series = head.filter(item => !item.id.startsWith('surge')), surges = head.filter(item => item.id.startsWith('surge'))
+  /** What each board has of its own: its bus, the trunk that its main breaker hangs from, and its series devices. */
+  const info = parts.map(part => {
+    const mine = placed.filter(item => item.board === part.board), supplied = mine.filter(item => !item.noUps)
+    const busLeft = supplied[0]?.centre ?? mine[0].centre, busRight = supplied.at(-1)?.centre ?? mine[0].centre
+    return { board: part.board, supplied, busLeft, busRight, trunk: (busLeft + busRight) / 2, series: part.head.filter(item => !item.id.startsWith('surge')), surges: part.head.filter(item => item.id.startsWith('surge')) }
+  })
+  const { series, surges } = info[0], trunk = info[0].trunk
   const seriesY = (index: number) => 52 + index * 58
   const surgeY = seriesY(series.length - 1) + SL.boxH / 2 + 24
   const busY = surges.length ? surgeY + 100 : seriesY(series.length - 1) + SL.boxH / 2 + 30
@@ -120,7 +127,7 @@ function SingleLine({ board }: { board: BoardId }) {
   const T = 84, A = 34, D = 520 + T + A, L = Math.max(trunk - 24, 230), PEX = L - 130, SPDX = L - 70, totalWidth = Math.max(width, L + 520)
   /** Where the earth rod's line meets the drop, between the meter box and the ITM, as seen from the board's group (which starts at `D`). */
   const peY = A + 100 - D
-  return <svg className="elec-single" style={{ minWidth: totalWidth * .85, maxWidth: totalWidth * 1.25 }} viewBox={`0 0 ${totalWidth} ${height + D}`} role="img" aria-label={t('electrical.single.aria', { board: t(`electrical.board.${board}`) })}>
+  return <svg className="elec-single" style={{ minWidth: totalWidth * .85, maxWidth: totalWidth * 1.25 }} viewBox={`0 0 ${totalWidth} ${height + D}`} role="img" aria-label={t('electrical.single.aria', { board: boards.map(board => t(`electrical.board.${board}`)).join(' · ') })}>
     <g transform={`translate(0 ${A})`}>
     {/* The company's service drop (the owner's acometida_edesur_iram.svg, 300 x 240, at .6, its tap the one below): the cable coming in from the left with the arrow, its four conductors and its cable. */}
     <g className="elec-wire elec-wire-ac"><path d={`M${L - 132} -2H${L}V16`} /></g>
@@ -139,9 +146,9 @@ function SingleLine({ board }: { board: BoardId }) {
     <g transform={`translate(0 ${T})`}>
     <g className="elec-wire elec-wire-ac"><path d={[
       `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
-      `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`,
+      `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 538H${board.trunk}V${D - T - A + SL.label + 6}`),
     ].join('')} /></g>
-    <circle className="elec-dot" cx={L} cy={128} r={3.5} /><circle className="elec-dot" cx={L} cy={235} r={3.5} />
+    <circle className="elec-dot" cx={L} cy={128} r={3.5} /><circle className="elec-dot" cx={L} cy={235} r={3.5} />{info.length > 1 && <circle className="elec-dot" cx={trunk} cy={538} r={3.5} />}
     {breaker(L, 94, [TAGS[METER_DROP.id], `${METER_DROP.poles}x${METER_DROP.ratingA}A`, t('electrical.single.curveType', { curve: METER_DROP.curve }), `Icc=${METER_DROP.breakingKA}kA`], TAGS[METER_DROP.id], false, false, 12)}
     {text(L + 22, 142, '380/220 Vca-50 Hz', 'elec-sub', 'start')}
     {/* The owner's IRAM surge arrester (spd_descargador_iram.svg, 100 x 200), scaled to .6: the rectangle with the arrow pointing down, and the earth below it. */}
@@ -198,14 +205,7 @@ function SingleLine({ board }: { board: BoardId }) {
     </g> })}
     {/* The inverter's Smart Load output, which feeds the water heater and the sauna, in the TSPB: from the inverter's bottom edge, next to AC OUT, across to the board's group that hangs from it. */}
     {placed.filter(item => item.noUps).map(item => <g key={item.centre} className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V480H${item.centre}V${D - T - A + SL.label + 6}`} /></g>)}
-    {placed.some(item => item.noUps)
-      ? text(L + 252, 474, `${t('electrical.single.smartLoad')} - 4(1x${SMART_LOAD_CABLE_MM2})mm²+PE`, 'elec-sub', 'start')
-      : <g>
-        {/* The TSPA has none of those loads: the line goes on to the other board. */}
-        <g className="elec-wire elec-wire-ac"><path d={`M${L + 242} 353.5V468`} /></g>
-        <path className="elec-single-earth" d={`M${L + 237} 460L${L + 242} 468L${L + 247} 460`} />
-        {text(L + 252, 442, `${t('electrical.single.smartLoad')} - 4(1x${SMART_LOAD_CABLE_MM2})mm²+PE`, 'elec-sub', 'start')}{text(L + 252, 456, t('electrical.single.toBoard', { board: t('electrical.node.pantry') }), 'elec-sub', 'start')}
-      </g>}
+    {text(L + 252, 474, `${t('electrical.single.smartLoad')} - 4(1x${SMART_LOAD_CABLE_MM2})mm²+PE`, 'elec-sub', 'start')}
     {/* The battery, below the strings, on the inverter's DC side (the owner's bateria_unifilar.svg, 100 x 200, at .6). It has no breaker of its own: the inverter's is built in. */}
     {(() => { const x = L + 300; return <g>
       <g className="elec-wire elec-wire-dc"><path d={`M${L + 253} 338H${x}V384`} /></g>
@@ -223,7 +223,7 @@ function SingleLine({ board }: { board: BoardId }) {
     <path className="elec-single-earth" d={`M${PEX - 14} 215H${L + 215}M${L - 6} 221L${L + 6} 209M${PEX - 6} 221L${PEX + 6} 209`} />
     {text(L + 20, 210, `Ø${SUPPLY_CONDUIT_MM} - 4(1x${SUPPLY_CABLE_MM2}mm²) + PE=1x${SUPPLY_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 100, 418, cableText, 'elec-sub', 'start')}
     {/* The owner's three-position changeover switch (conmutadora_3pos_iram.svg, 140 x 200), at .8, with its blade in the middle, open (0): the two inputs, the pivot that is the output. Grid on the left (I), inverter on the right (II). */}
-    <path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${trunk - 6} ${522 + n * 4.5}l12 -4`).join('')} />
+    <path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${trunk - 6} ${512 + n * 4.5}l12 -4`).join('')} />
     <g transform={`translate(${L + 24} 462) scale(.8) translate(-70 -80)`} className="elec-single-earth" style={{ strokeWidth: 2.5, strokeLinecap: 'round' }}>
       <title>{nodes.selector}</title>
       <circle className="elec-node" cx={40} cy={80} r={5} /><circle className="elec-node" cx={100} cy={80} r={5} /><circle className="elec-node" cx={70} cy={130} r={5} />
@@ -235,8 +235,10 @@ function SingleLine({ board }: { board: BoardId }) {
     </g>
     <g transform={`translate(0 ${D})`}>
     <g className="elec-wire elec-wire-ac"><path d={[
-      ...[...series.map((_, index) => seriesY(index)), busY + SL.boxH / 2].map((y, index, all) => `M${trunk} ${index ? seriesY(index - 1) + SL.boxH / 2 : SL.label + 6}V${index < all.length - 1 ? y - SL.boxH / 2 : busY}`), `M${busLeft} ${busY}H${busRight}`,
-      ...surges.map((_, index) => `M${trunk} ${surgeY + index * 60}H${trunk + 44}V${surgeY + index * 60 + 14}M${trunk + 44} ${surgeY + index * 60 + 40}V${surgeY + index * 60 + 50}`),
+      ...info.flatMap(board => [
+        ...[...board.series.map((_, index) => seriesY(index)), busY + SL.boxH / 2].map((y, index, all) => `M${board.trunk} ${index ? seriesY(index - 1) + SL.boxH / 2 : SL.label + 6}V${index < all.length - 1 ? y - SL.boxH / 2 : busY}`), `M${board.busLeft} ${busY}H${board.busRight}`,
+        ...board.surges.map((_, index) => `M${board.trunk} ${surgeY + index * 60}H${board.trunk + 44}V${surgeY + index * 60 + 14}M${board.trunk + 44} ${surgeY + index * 60 + 40}V${surgeY + index * 60 + 50}`),
+      ]),
       ...placed.flatMap(item => [
         `M${item.centre} ${item.noUps ? SL.label + 6 : busY}V${item.group.rcd ? rcdY - SL.rcdH / 2 : subY}`,
         ...(item.group.rcd ? [`M${item.centre} ${rcdY + SL.rcdH / 2}V${subY}`] : []), `M${item.first} ${subY}H${item.last}`,
@@ -247,13 +249,15 @@ function SingleLine({ board }: { board: BoardId }) {
         }),
       ]),
     ].join('')} /></g>
-    {supplied.map(item => <circle key={item.centre} className="elec-dot" cx={item.centre} cy={busY} r={3.5} />)}
-    {supplied.length > 1 && <circle className="elec-dot" cx={trunk} cy={busY} r={3.5} />}
-    {series.map((item, index) => <g key={item.id}>{breaker(trunk, seriesY(index), [TAGS[item.id], ratingOf(item)], item.id)}</g>)}
-    {surges.map((item, index) => { const x = trunk + 44, y = surgeY + index * 60 + 14; return <g key={item.id}>
-      <rect className="elec-node" x={x - 24} y={y} width={48} height={26} rx={4} />{text(x, y + 17, TAGS[item.id], 'elec-title')}
-      <path className="elec-single-earth" d={`M${x - 8} ${y + 36}H${x + 8}M${x - 5} ${y + 40}H${x + 5}M${x - 2} ${y + 44}H${x + 2}`} />{text(x + 14, y + 44, t('electrical.single.surge'), 'elec-sub', 'start')}
-    </g> })}
+    {info.map(board => <g key={board.board}>
+      {board.supplied.map(item => <circle key={item.centre} className="elec-dot" cx={item.centre} cy={busY} r={3.5} />)}
+      {board.supplied.length > 1 && <circle className="elec-dot" cx={board.trunk} cy={busY} r={3.5} />}
+      {board.series.map((item, index) => <g key={item.id}>{breaker(board.trunk, seriesY(index), [TAGS[item.id], ratingOf(item)], item.id)}</g>)}
+      {board.surges.map((item, index) => { const x = board.trunk + 44, y = surgeY + index * 60 + 14; return <g key={item.id}>
+        <rect className="elec-node" x={x - 24} y={y} width={48} height={26} rx={4} />{text(x, y + 17, TAGS[item.id], 'elec-title')}
+        <path className="elec-single-earth" d={`M${x - 8} ${y + 36}H${x + 8}M${x - 5} ${y + 40}H${x + 5}M${x - 2} ${y + 44}H${x + 2}`} />{text(x + 14, y + 44, t('electrical.single.surge'), 'elec-sub', 'start')}
+      </g> })}
+    </g>)}
     {placed.map(item => { const { group, centre, noUps } = item; return <g key={group.rcd?.id ?? group.circuits[0].id}>
       {noUps && ticks(centre, (group.rcd ? rcdY - SL.rcdH / 2 : subY) - 88, 4)}
       {group.rcd && rcdSymbol(centre, rcdY, [TAGS[group.rcd.id], ratingOf(group.rcd), t('electrical.single.rcd', { type: group.rcd.rcdType }), `t=${RCD_TRIP_MS}ms`], group.rcd.id)}
@@ -484,7 +488,7 @@ export function ElectricalExplorer() {
       <section aria-labelledby="elec-single-title">
         <h3 id="elec-single-title">{t('electrical.single.title')}</h3>
         <p className="array-note">{t('electrical.single.intro')}</p>
-        <div className="elec-single-boards">{(['pa', 'pantry'] as const).map(board => <section key={board}><h4>{t(`electrical.board.${board}`)}</h4><div className="elec-scroll"><SingleLine board={board} /></div></section>)}</div>
+        <div className="elec-scroll"><SingleLine boards={['pa', 'pantry']} /></div>
       </section>
       <div className="elec-boards"><MainBoardCard /><BoardCard board="solar" /><BoardCard board="pantry" /><BoardCard board="pa" /></div>
       <PhaseBalance />
