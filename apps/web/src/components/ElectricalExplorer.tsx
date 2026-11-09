@@ -125,7 +125,7 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
   const inverterIn = DEVICES.find(item => item.id === 'inverter-ac')!, inverterOut = DEVICES.find(item => item.id === 'inverter-out')!
   const cableText = `4(1x${SUPPLY_CABLE_MM2})mm²+PE`
   /** The drop's height, and its left wire's x: 24 to the left of the board's trunk, so that CON's output (its middle) lines up with it. */
-  const T = 84, A = 34, D = 520 + T + A + 30, L = Math.max(trunk - 24, 230), PEX = L - 130, SPDX = L - 70, totalWidth = Math.max(width, L + 520)
+  const T = 84, A = 34, D = 520 + T + A + 66, L = Math.max(trunk - 24, 230), PEX = L - 130, SPDX = L - 70, totalWidth = Math.max(width, L + 520)
   /** Where the earth rod's line meets the drop, between the meter box and the ITM, as seen from the board's group (which starts at `D`). */
   const peY = A + 100 - D
   return <svg className="elec-single" style={{ minWidth: totalWidth * .85, maxWidth: totalWidth * 1.25 }} viewBox={`0 0 ${totalWidth} ${height + D}`} role="img" aria-label={t('electrical.single.aria', { board: boards.map(board => t(`electrical.board.${board}`)).join(' · ') })}>
@@ -145,14 +145,14 @@ function SingleLine({ boards }: { boards: readonly BoardId[] }) {
     </g>
     {text(L + 22, 32, nodes.utilityTap, 'elec-sub', 'start')}<path className="elec-single-earth" d={`M${PEX - 14} 118H${L + 200}M${L - 6} 124L${L + 6} 112M${PEX - 6} 124L${PEX + 6} 112`} /><path className="elec-single-earth" d={[0, 1, 2, 3].map(n => `M${L - 6} ${133 + n * 5}l12 -4`).join('')} />{text(L + 16, 114, `4(1x${METER_CABLE_MM2}mm²)+PE=1x${METER_CABLE_MM2}mm²`, 'elec-sub', 'start')}{text(L + 22, 81, nodes.meterBox, 'elec-sub', 'start')}
     <g transform={`translate(0 ${T})`}>
-    {/* The conduit that takes CON's output to the boards, marked like the drop's: a line across the output, above the branch to the boards, with a slash where it crosses it, and its diameter and cable beside it. */}
-    <path className="elec-single-earth" d={`M${trunk - 14} 522H${trunk + 14}M${trunk - 6} 528L${trunk + 6} 516`} />
-    {text(trunk - 20, 521, `Ø${FEEDER.conduitMm} - 4(1x${FEEDER.cableMm2}mm²) + PE`, 'elec-sub', 'end')}
+    {/* The conduit that takes CON's output to the boards, marked like the drop's: a line across the output, above the branch to the boards, with a slash where it crosses the output and another where it crosses the violet PE, and its diameter and cable to the right of the cable, before the branch. */}
+    <path className="elec-single-earth" d={`M${PEX - 14} 538H${trunk + 14}M${PEX - 6} 544L${PEX + 6} 532M${trunk - 6} 544L${trunk + 6} 532`} />
+    {text(trunk + 12, 555, `Ø${FEEDER.conduitMm} - 4(1x${FEEDER.cableMm2}mm²) + PE`, 'elec-sub', 'start')}
     <g className="elec-wire elec-wire-ac"><path d={[
       `M${L} ${95 - T}V77M${L} 111V151M${L} 193V462`, `M${L} 128H${SPDX}V134`, `M${L} 235H${L + 225}V248M${L + 225} 282V298.5`,
-      `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 538H${board.trunk}V${D - T - A + SL.label + 6}`),
+      `M${L + 208} 353.5V370M${L + 208} 404V425H${L + 48}V462`, `M${trunk} 502V${D - T - A + SL.label + 6}`, ...info.slice(1).map(board => `M${trunk} 572H${board.trunk}V${D - T - A + SL.label + 6}`),
     ].join('')} /></g>
-    <circle className="elec-dot" cx={L} cy={128} r={3.5} /><circle className="elec-dot" cx={L} cy={235} r={3.5} />{info.length > 1 && <circle className="elec-dot" cx={trunk} cy={538} r={3.5} />}
+    <circle className="elec-dot" cx={L} cy={128} r={3.5} /><circle className="elec-dot" cx={L} cy={235} r={3.5} />{info.length > 1 && <circle className="elec-dot" cx={trunk} cy={572} r={3.5} />}
     {breaker(L, 94, [TAGS[METER_DROP.id], `${METER_DROP.poles}x${METER_DROP.ratingA}A`, t('electrical.single.curveType', { curve: METER_DROP.curve }), `Icc=${METER_DROP.breakingKA}kA`], TAGS[METER_DROP.id], false, false, 12)}
     {text(L + 22, 142, '380/220 Vca-50 Hz', 'elec-sub', 'start')}
     {/* The owner's IRAM surge arrester (spd_descargador_iram.svg, 100 x 200), scaled to .6: the rectangle with the arrow pointing down, and the earth below it. */}
